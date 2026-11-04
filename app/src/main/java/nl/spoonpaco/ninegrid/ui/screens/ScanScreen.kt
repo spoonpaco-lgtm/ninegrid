@@ -139,7 +139,7 @@ fun ScanScreen(vm: AppViewModel, onResult: () -> Unit) {
         }
     }
 
-    Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.scan_page), fontWeight = FontWeight.Bold) }) }) { pad ->
+    Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.scan_page), fontWeight = FontWeight.Bold) }, actions = { nl.spoonpaco.ninegrid.ui.guide.HelpButton("add") }) }) { pad ->
         Column(Modifier.padding(pad).fillMaxSize().padding(horizontal = 12.dp, vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Text(stringResource(R.string.scan_explain), fontSize = 13.sp, color = LocalNgExtra.current.subtle, textAlign = TextAlign.Center)
             Spacer(Modifier.height(6.dp))

@@ -18,6 +18,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -33,6 +34,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import nl.spoonpaco.ninegrid.R
+import nl.spoonpaco.ninegrid.ui.guide.GuideChapterScreen
+import nl.spoonpaco.ninegrid.ui.guide.GuideScreen
+import nl.spoonpaco.ninegrid.ui.guide.LocalHelp
 import nl.spoonpaco.ninegrid.ui.screens.AboutScreen
 import nl.spoonpaco.ninegrid.ui.screens.CardDetailScreen
 import nl.spoonpaco.ninegrid.ui.screens.ChangeLogScreen
@@ -76,6 +80,7 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
         restoreState = true
     }
 
+    CompositionLocalProvider(LocalHelp provides { id: String -> nav.navigate("guide/$id") }) {
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         snackbarHost = { SnackbarHost(snackbar) },
@@ -96,10 +101,17 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
     ) { pad ->
         NavHost(nav, startDestination = if (showOnboarding) "onboarding" else "collection", modifier = Modifier.padding(pad)) {
             composable("onboarding") {
-                OnboardingScreen(onDone = {
-                    vm.setOnboardingDone()
-                    nav.navigate("collection") { popUpTo("onboarding") { inclusive = true } }
-                })
+                OnboardingScreen(
+                    onDone = {
+                        vm.setOnboardingDone()
+                        nav.navigate("collection") { popUpTo("onboarding") { inclusive = true } }
+                    },
+                    onGuide = {
+                        vm.setOnboardingDone()
+                        nav.navigate("collection") { popUpTo("onboarding") { inclusive = true } }
+                        nav.navigate("guide")
+                    },
+                )
             }
             composable("collection") {
                 CollectionScreen(
@@ -121,6 +133,7 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
                     onChanges = { nav.navigate("changes") },
                     onSettings = { nav.navigate("settings") },
                     onAbout = { nav.navigate("about") },
+                    onGuide = { nav.navigate("guide") },
                 )
             }
             composable("card/{printId}", arguments = listOf(navArgument("printId") { type = NavType.StringType })) {
@@ -155,12 +168,20 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
                     }
                 })
             }
+            composable("guide") { GuideScreen(onBack = { nav.popBackStack() }, onChapter = { nav.navigate("guide/$it") }) }
+            composable("guide/{id}", arguments = listOf(navArgument("id") { type = NavType.StringType })) {
+                GuideChapterScreen(it.arguments?.getString("id") ?: "start", onBack = { nav.popBackStack() }, onChapter = { id ->
+                    nav.navigate("guide/$id") { popUpTo("guide") }
+                })
+            }
             composable("changes") { ChangeLogScreen(vm, onBack = { nav.popBackStack() }) }
             composable("settings") { SettingsScreen(vm, onBack = { nav.popBackStack() }) }
             composable("about") {
                 AboutScreen(onBack = { nav.popBackStack() }, onTour = { nav.navigate("onboarding") })
             }
         }
+    }
+
     }
 
     vm.update?.let { u ->

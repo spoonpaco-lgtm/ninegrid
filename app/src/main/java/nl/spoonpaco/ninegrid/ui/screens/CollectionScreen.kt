@@ -91,7 +91,7 @@ fun CollectionScreen(
                         style = MaterialTheme.typography.bodySmall, color = LocalNgExtra.current.subtle,
                     )
                 }
-            })
+            }, actions = { nl.spoonpaco.ninegrid.ui.guide.HelpButton("collection") })
         },
         floatingActionButton = {
             FloatingActionButton(onClick = { menu = true }, containerColor = MaterialTheme.colorScheme.primary) {

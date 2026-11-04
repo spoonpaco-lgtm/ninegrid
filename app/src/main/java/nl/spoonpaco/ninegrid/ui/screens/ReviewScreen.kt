@@ -98,6 +98,7 @@ fun ReviewScreen(vm: AppViewModel, onBack: () -> Unit, onSaved: (Long?) -> Unit)
             TopAppBar(
                 title = { Text(stringResource(R.string.review_title)) },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) } },
+                actions = { nl.spoonpaco.ninegrid.ui.guide.HelpButton("review") },
             )
         },
         bottomBar = {

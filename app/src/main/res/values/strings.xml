@@ -201,4 +201,12 @@
     <string name="pick_empty_body">Search differently, or add the card via Paste list.</string>
     <string name="pick_available">You have %1$d here</string>
     <string name="pick_put_in_deck">Put in deck</string>
+    <string name="guide">Guide</string>
+    <string name="guide_tip">Tip</string>
+    <string name="guide_note">Note</string>
+    <string name="guide_ask_title">Want to read the guide?</string>
+    <string name="guide_ask_body">In a few minutes it explains how scanning, decks and undo work.</string>
+    <string name="guide_where">You can always find the guide under More → Guide, and via the ? at the top right of each screen.</string>
+    <string name="read_guide">Read the guide</string>
+    <string name="not_now">Not now</string>
 </resources>

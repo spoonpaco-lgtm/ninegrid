@@ -20,6 +20,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.Backup
 import androidx.compose.material.icons.filled.ContentPaste
@@ -71,7 +72,7 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MoreScreen(onPaste: () -> Unit, onChanges: () -> Unit, onSettings: () -> Unit, onAbout: () -> Unit) {
+fun MoreScreen(onPaste: () -> Unit, onChanges: () -> Unit, onSettings: () -> Unit, onAbout: () -> Unit, onGuide: () -> Unit) {
     Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.more), fontWeight = FontWeight.Bold) }) }) { pad ->
         Column(Modifier.padding(pad)) {
             ListItem(headlineContent = { Text(stringResource(R.string.paste_list)) }, leadingContent = { Icon(Icons.Filled.ContentPaste, null) },
@@ -80,6 +81,8 @@ fun MoreScreen(onPaste: () -> Unit, onChanges: () -> Unit, onSettings: () -> Uni
                 modifier = Modifier.clickableRow(onChanges))
             ListItem(headlineContent = { Text(stringResource(R.string.settings_backup)) }, leadingContent = { Icon(Icons.Filled.Settings, null) },
                 modifier = Modifier.clickableRow(onSettings))
+            ListItem(headlineContent = { Text(stringResource(R.string.guide)) }, leadingContent = { Icon(Icons.AutoMirrored.Filled.MenuBook, null) },
+                modifier = Modifier.clickableRow(onGuide))
             ListItem(headlineContent = { Text(stringResource(R.string.about)) }, leadingContent = { Icon(Icons.Filled.Info, null) },
                 modifier = Modifier.clickableRow(onAbout))
         }
@@ -98,6 +101,7 @@ fun ChangeLogScreen(vm: AppViewModel, onBack: () -> Unit) {
         TopAppBar(
             title = { Text(stringResource(R.string.change_log)) },
             navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) } },
+            actions = { nl.spoonpaco.ninegrid.ui.guide.HelpButton("undo") },
         )
     }) { pad ->
         Column(Modifier.padding(pad)) {
@@ -144,6 +148,7 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit) {
         TopAppBar(
             title = { Text(stringResource(R.string.settings_backup)) },
             navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) } },
+            actions = { nl.spoonpaco.ninegrid.ui.guide.HelpButton("backup") },
         )
     }) { pad ->
         Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
@@ -248,12 +253,13 @@ fun AboutScreen(onBack: () -> Unit, onTour: () -> Unit) {
 }
 
 @Composable
-fun OnboardingScreen(onDone: () -> Unit) {
+fun OnboardingScreen(onDone: () -> Unit, onGuide: () -> Unit) {
     var page by remember { mutableStateOf(0) }
     val pages = listOf(
         R.string.tour1_title to R.string.tour1_body,
         R.string.tour2_title to R.string.tour2_body,
         R.string.tour3_title to R.string.tour3_body,
+        R.string.guide_ask_title to R.string.guide_ask_body,
     )
     Column(
         Modifier.fillMaxSize().padding(28.dp),
@@ -268,11 +274,16 @@ fun OnboardingScreen(onDone: () -> Unit) {
         Spacer(Modifier.height(28.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             if (page < pages.lastIndex) {
-                TextButton(onClick = onDone) { Text(stringResource(R.string.skip)) }
+                TextButton(onClick = { page = pages.lastIndex }) { Text(stringResource(R.string.skip)) }
                 Button(onClick = { page++ }) { Text(stringResource(R.string.next)) }
             } else {
-                Button(onClick = onDone) { Text(stringResource(R.string.start_using)) }
+                OutlinedButton(onClick = onDone) { Text(stringResource(R.string.not_now)) }
+                Button(onClick = onGuide) { Text(stringResource(R.string.read_guide)) }
             }
+        }
+        if (page == pages.lastIndex) {
+            Spacer(Modifier.height(12.dp))
+            Text(stringResource(R.string.guide_where), fontSize = 13.sp, textAlign = TextAlign.Center, color = LocalNgExtra.current.subtle)
         }
         Spacer(Modifier.height(12.dp))
         Text("${page + 1} / ${pages.size}", color = LocalNgExtra.current.subtle)

@@ -200,4 +200,12 @@
     <string name="pick_empty_body">Zoek anders, of voeg de kaart toe via Lijst plakken.</string>
     <string name="pick_available">Je hebt er hier %1$d</string>
     <string name="pick_put_in_deck">In deck zetten</string>
+    <string name="guide">Handleiding</string>
+    <string name="guide_tip">Tip</string>
+    <string name="guide_note">Let op</string>
+    <string name="guide_ask_title">Wil je de handleiding lezen?</string>
+    <string name="guide_ask_body">Daarin staat in een paar minuten hoe scannen, decks en ongedaan maken werken.</string>
+    <string name="guide_where">Je vindt de handleiding altijd terug onder Meer → Handleiding, en via het ? rechtsboven op elk scherm.</string>
+    <string name="read_guide">Handleiding lezen</string>
+    <string name="not_now">Nu niet</string>
 </resources>

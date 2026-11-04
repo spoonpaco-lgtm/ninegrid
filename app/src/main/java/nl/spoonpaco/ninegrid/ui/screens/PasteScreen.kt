@@ -42,6 +42,7 @@ fun PasteScreen(vm: AppViewModel, intoDeck: Long?, asNewDeck: Boolean, onBack: (
         TopAppBar(
             title = { Text(stringResource(if (asNewDeck) R.string.new_deck else R.string.paste_list)) },
             navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) } },
+            actions = { nl.spoonpaco.ninegrid.ui.guide.HelpButton("add") },
         )
     }) { pad ->
         Column(Modifier.padding(pad).padding(16.dp).fillMaxSize()) {

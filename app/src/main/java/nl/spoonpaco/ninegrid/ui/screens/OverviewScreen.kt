@@ -84,7 +84,7 @@ fun OverviewScreen(vm: AppViewModel) {
                     )
                 }
             },
-            actions = { IconButton(onClick = { vm.refreshPrices() }, enabled = !vm.busy) { Icon(Icons.Filled.Refresh, stringResource(R.string.update_prices)) } },
+            actions = { nl.spoonpaco.ninegrid.ui.guide.HelpButton("overview"); IconButton(onClick = { vm.refreshPrices() }, enabled = !vm.busy) { Icon(Icons.Filled.Refresh, stringResource(R.string.update_prices)) } },
         )
     }) { pad ->
         Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState())) {
