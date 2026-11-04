@@ -11,7 +11,7 @@ data class Area(val left: Float, val top: Float, val right: Float, val bottom: F
 }
 
 /** Uitkomst van een scan: de vakken, en hoeveel van het kader de tekst beslaat (0..1). */
-data class ScanResult(val slots: List<SlotRead>, val coverage: Float, val linesInside: Int)
+data class ScanResult(val slots: List<SlotRead>, val coverage: Float, val linesInside: Int, val frame: Area? = null)
 
 /** Wat de scanner in één vak van het 3x3-blad heeft gevonden. */
 data class SlotRead(
@@ -33,12 +33,17 @@ data class SlotRead(
  */
 object ScanParser {
     // "229/254 M", "0074/281 R", "250/271 R"
-    private val numberSlash = Regex("""(?<![A-Z0-9])(\d{1,4})\s*/\s*(\d{1,4})(?:\s*[CURMSLTP])?(?![0-9])""")
+    // Het totaal heeft minstens 2 cijfers, zodat kracht/weerstand ("2/2") niet als nummer telt.
+    private val numberSlash = Regex("""(?<![A-Z0-9])(\d{1,4})\s*/\s*(\d{2,4})(?:\s*[CURMSLTP])?(?![0-9])""")
     // Nieuwe kaarten (2023+): "M 0074", "U 0859", "R 0049"
     private val numberLetterFirst = Regex("""(?<![A-Z0-9])([CURMSLTP])\s+(\d{3,4})(?![0-9])""")
     // "MH1 • EN", "WOT · EN", "CMM - EN", "LTC * EN"
     // Het scheidingsteken leest de OCR vaak niet, dus dat is optioneel.
     private val setLang = Regex("""(?<![A-Z0-9])([A-Z0-9]{3,5})\s*[•·*.\-+°,]?\s*(EN|DE|FR|IT|ES|PT|JA|JP|KO|RU|ZH|CS|CT|PH)(?![A-Z])""")
+
+    // Extended art, borderless en showcase: alleen een nummer, zonder "/totaal" ("374 R", "374").
+    private val numberAlone = Regex("""^\s*(\d{1,4})\s*([CURMSLTP])?\s*$""")
+    private val numberThenRarity = Regex("""^\s*(\d{1,4})\s+[CURMSLTP](?![A-Z])""")
 
     private val langMap = mapOf("EN" to "", "JA" to "JP", "ZH" to "CN", "CS" to "CN", "CT" to "TW")
 
@@ -93,7 +98,8 @@ object ScanParser {
             val h = (lines.maxOf { it.centerY } - lines.minOf { it.centerY }) / area.height
             (w.coerceIn(0f, 1f) * h.coerceIn(0f, 1f))
         }
-        return ScanResult(parse(lines, width, height, crop), coverage, lines.size)
+        val (slots, frame) = parseWithFrame(lines, width, height, crop)
+        return ScanResult(slots, coverage, lines.size, frame)
     }
 
     private fun looseName(raw: String): String? {
@@ -107,44 +113,67 @@ object ScanParser {
         val sets = reads.mapNotNull { it.setCode }
         if (sets.size < 2) return null
         val (best, n) = sets.groupingBy { it }.eachCount().maxBy { it.value }
-        return if (n >= 2 && n * 2 >= sets.size) best else null
+        // Alleen bij een duidelijke meerderheid: meer dan de helft van alle gelezen sets.
+        return if (n >= 2 && n * 2 > sets.size) best else null
     }
 
-    fun parse(lines: List<OcrLine>, width: Int, height: Int, crop: Area? = null): List<SlotRead> {
+    fun parse(lines: List<OcrLine>, width: Int, height: Int, crop: Area? = null): List<SlotRead> = parseWithFrame(lines, width, height, crop).first
+
+    private fun parseWithFrame(lines: List<OcrLine>, width: Int, height: Int, crop: Area?): Pair<List<SlotRead>, Area> {
         val frame = frameOf(lines, width, height, crop)
         val cellH = (frame.bottom - frame.top) / 3f
         val bySlot = lines.groupBy { slotIn(frame, it.centerX, it.centerY) }
-        return (1..9).map { slot ->
-            val ls = bySlot[slot].orEmpty()
-            var number: String? = null
-            var set: String? = null
-            var lang: String? = null
-            // Onderste regels eerst: de verzamelregel staat onderaan de kaart.
-            for (l in ls.sortedByDescending { it.centerY }) {
-                val t = cleanup(l.text)
-                if (number == null) {
-                    numberSlash.find(t)?.let { number = it.groupValues[1].trimStart('0').ifEmpty { "0" } }
-                        ?: numberLetterFirst.find(t)?.let { number = it.groupValues[2].trimStart('0').ifEmpty { "0" } }
-                }
-                if (set == null) {
-                    setLang.find(t)?.let {
-                        set = fixSetCode(it.groupValues[1])
-                        lang = langMap[it.groupValues[2]] ?: it.groupValues[2]
-                    }
+        val slots = (1..9).map { slot ->
+            val row = (slot - 1) / 3
+            readRegion(slot, bySlot[slot].orEmpty(), frame.top + row * cellH, cellH)
+        }
+        return slots to Area(frame.left, frame.top, frame.right, frame.bottom)
+    }
+
+    /** Leest één kaart: naam bovenaan, nummer, set en taal onderaan. */
+    private fun readRegion(slot: Int, ls: List<OcrLine>, regionTop: Float, regionH: Float): SlotRead {
+        var number: String? = null
+        var set: String? = null
+        var lang: String? = null
+        // Onderste regels eerst: de verzamelregel staat onderaan de kaart.
+        for (l in ls.sortedByDescending { it.centerY }) {
+            val t = cleanup(l.text)
+            val inBottom = l.centerY > regionTop + regionH * 0.78f
+            if (number == null) {
+                numberSlash.find(t)?.let { number = it.groupValues[1].trimStart('0').ifEmpty { "0" } }
+                    ?: numberLetterFirst.find(t)?.let { number = it.groupValues[2].trimStart('0').ifEmpty { "0" } }
+                    // Een los nummer alleen onderaan de kaart, zodat getallen uit de regeltekst niet meetellen.
+                    ?: (if (inBottom) (numberAlone.find(t) ?: numberThenRarity.find(t)) else null)?.let { number = it.groupValues[1].trimStart('0').ifEmpty { "0" } }
+            }
+            if (set == null) {
+                setLang.find(t)?.let {
+                    set = fixSetCode(it.groupValues[1])
+                    lang = langMap[it.groupValues[2]] ?: it.groupValues[2]
                 }
             }
-            // De naam staat bovenaan de kaart: de bovenste regel in het bovenste deel van het vak die op een naam lijkt.
-            val row = (slot - 1) / 3
-            val cellTop = frame.top + row * cellH
-            val top = ls.filter { it.centerY < cellTop + cellH * 0.35f }.sortedBy { it.centerY }
-            val names = top.mapNotNull { nameCandidate(it.text) }.distinct()
-            // Ruimer: ook regels uit de bovenste helft die vooral uit letters bestaan.
-            val loose = ls.filter { it.centerY < cellTop + cellH * 0.5f }.sortedBy { it.centerY }
-                .mapNotNull { looseName(it.text) }.filter { it !in names }.distinct()
-            val name = names.firstOrNull()
-            val alt = (names.drop(1) + loose).take(4)
-            SlotRead(slot, set, number, lang, ls.sortedBy { it.centerY }.map { it.text }, name, alt)
         }
+        // De naam staat bovenaan de kaart: de bovenste regel in het bovenste deel die op een naam lijkt.
+        val top = ls.filter { it.centerY < regionTop + regionH * 0.35f }.sortedBy { it.centerY }
+        val names = top.mapNotNull { nameCandidate(it.text) }.distinct()
+        // Ruimer: ook regels uit de bovenste helft die vooral uit letters bestaan.
+        val loose = ls.filter { it.centerY < regionTop + regionH * 0.5f }.sortedBy { it.centerY }
+            .mapNotNull { looseName(it.text) }.filter { it !in names }.distinct()
+        val name = names.firstOrNull()
+        val alt = (names.drop(1) + loose).take(4)
+        return SlotRead(slot, set, number, lang, ls.sortedBy { it.centerY }.map { it.text }, name, alt)
+    }
+
+    /** Eén losse kaart in het kader: alle tekst hoort bij die kaart. */
+    fun analyzeSingle(all: List<OcrLine>, width: Int, height: Int, crop: Area?): ScanResult {
+        val lines = if (crop != null) all.filter { crop.contains(it.centerX, it.centerY) } else all
+        val area = crop ?: Area(0f, 0f, width.toFloat(), height.toFloat())
+        if (lines.isEmpty()) return ScanResult(listOf(SlotRead(1, null, null, null, emptyList())), 0f, 0, area)
+        // De kaart zelf: van de bovenste tot de onderste regel, iets ruimer.
+        val minY = lines.minOf { it.centerY }; val maxY = lines.maxOf { it.centerY }
+        val pad = (maxY - minY) * 0.04f
+        val top = (minY - pad).coerceAtLeast(area.top); val h = (maxY + pad).coerceAtMost(area.bottom) - top
+        val coverage = ((maxY - minY) / area.height).coerceIn(0f, 1f)
+        return ScanResult(listOf(readRegion(1, lines, top, h.coerceAtLeast(1f))), coverage, lines.size, area)
     }
 
     /** OCR haalt soms tekens door elkaar. */

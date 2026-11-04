@@ -249,4 +249,25 @@
     <string name="scan_fields_empty">Set, map, blad (optioneel)</string>
     <string name="scan_fields_title">Dit blad</string>
     <string name="msg_scryfall_error">Scryfall gaf een fout (code %1$d). Probeer het later opnieuw.</string>
+    <string name="scan_mode_page">Blad</string>
+    <string name="scan_mode_single">1 kaart</string>
+    <string name="scan_waiting">Wacht op verbinding</string>
+    <string name="scan_all_found">%1$d van %2$d gevonden</string>
+    <string name="scan_some_found">%1$d gevonden · %2$d controleren</string>
+    <string name="done">Klaar</string>
+    <string name="review_short">Bekijken</string>
+    <string name="undo">Ongedaan maken</string>
+    <string name="msg_waiting_for_network">Geen internet. De scan is bewaard en wordt opgezocht zodra je weer verbinding hebt.</string>
+    <string name="msg_pending_restored">Er wachtte nog een scan op verbinding. Je vindt hem onder Bekijken.</string>
+    <string name="msg_scryfall_pause">Scryfall vraagt even pauze, ik probeer het over 30 seconden opnieuw…</string>
+    <string name="range_1d">1D</string>
+    <string name="range_1w">1W</string>
+    <plurals name="scan_single_count">
+        <item quantity="one">%d kaart</item>
+        <item quantity="other">%d kaarten</item>
+    </plurals>
+    <plurals name="scan_empty_slots">
+        <item quantity="one">%d leeg vak</item>
+        <item quantity="other">%d lege vakken</item>
+    </plurals>
 </resources>

@@ -33,6 +33,8 @@ data class AppSettings(
     val chartLines: List<String> = listOf("total"),
     val chartMetric: String = "value",
     val chartRange: String = "3M",
+    /** Scannen: een blad van 9 ("page") of losse kaarten ("single"). */
+    val scanMode: String = "page",
 )
 
 class SettingsStore(private val context: Context) {
@@ -49,6 +51,7 @@ class SettingsStore(private val context: Context) {
         val chartLines = stringPreferencesKey("chart_lines")
         val chartMetric = stringPreferencesKey("chart_metric")
         val chartRange = stringPreferencesKey("chart_range")
+        val scanMode = stringPreferencesKey("scan_mode")
     }
 
     val flow: Flow<AppSettings> = context.dataStore.data.map { p -> p.toSettings() }
@@ -68,6 +71,7 @@ class SettingsStore(private val context: Context) {
         chartLines = this[K.chartLines]?.split(",")?.filter { it.isNotBlank() } ?: listOf("total"),
         chartMetric = this[K.chartMetric] ?: "value",
         chartRange = this[K.chartRange] ?: "3M",
+        scanMode = this[K.scanMode] ?: "page",
     )
 
     suspend fun setTheme(v: String) = context.dataStore.edit { it[K.theme] = v }
@@ -84,4 +88,5 @@ class SettingsStore(private val context: Context) {
     suspend fun setChartLines(v: List<String>) = context.dataStore.edit { it[K.chartLines] = v.joinToString(",") }
     suspend fun setChartMetric(v: String) = context.dataStore.edit { it[K.chartMetric] = v }
     suspend fun setChartRange(v: String) = context.dataStore.edit { it[K.chartRange] = v }
+    suspend fun setScanMode(v: String) = context.dataStore.edit { it[K.scanMode] = v }
 }

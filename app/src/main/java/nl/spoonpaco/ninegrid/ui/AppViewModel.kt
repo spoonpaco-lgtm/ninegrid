@@ -6,6 +6,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.SharingStarted
@@ -31,9 +32,10 @@ import nl.spoonpaco.ninegrid.domain.DeckListParser
 import nl.spoonpaco.ninegrid.domain.Formats
 import nl.spoonpaco.ninegrid.domain.SlotRead
 
-enum class ItemStatus { RESOLVING, FOUND, NOT_FOUND }
+enum class ItemStatus { RESOLVING, FOUND, NOT_FOUND, WAITING }
 
 /** Eén kaart die wacht op bevestiging, na scannen, plakken of zoeken. */
+@kotlinx.serialization.Serializable
 data class PendingItem(
     val key: Int,
     val slot: Int? = null,
@@ -49,9 +51,15 @@ data class PendingItem(
     val section: String = Section.MAIN,
     val include: Boolean = true,
     val fromCollection: Boolean = true,
+    /** Naam, set en nummer kloppen met elkaar: kan zonder controle worden opgeslagen. */
+    val confident: Boolean = false,
 )
 
 enum class ImportSource { SCAN, PASTE, SEARCH }
+
+/** Wat er bewaard wordt als een scan op internet wacht. */
+@kotlinx.serialization.Serializable
+private data class SavedPending(val source: ImportSource, val destination: Destination, val binder: String, val page: String, val items: List<PendingItem>)
 
 enum class Destination { COLLECTION, NEW_DECK, EXISTING_DECK }
 
@@ -67,15 +75,19 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     val changes = repo.changes.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
     val binders = repo.binders.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
     val snapshots = repo.snapshots.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+    val moments = repo.moments.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     init {
         // Eén momentopname per dag: bij het openen van de app (en na elke prijsupdate of wijziging).
         viewModelScope.launch { kotlinx.coroutines.delay(1500); snapshot() }
+        repo.scryfall.onThrottled = { viewModelScope.launch { message = str(R.string.msg_scryfall_pause) } }
     }
 
     fun snapshot() = viewModelScope.launch { runCatching { repo.takeSnapshot() } }
 
     var message by mutableStateOf<String?>(null)
+    /** De huidige melding krijgt een knop Ongedaan maken. */
+    var messageUndo by mutableStateOf(false)
     var busy by mutableStateOf(false)
     var update by mutableStateOf<UpdateInfo?>(null)
 
@@ -130,16 +142,25 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         resolveAll()
     }
 
-    fun startScan(reads: List<SlotRead>) {
-        pending.clear()
+    /** Uitsneden van je eigen foto per kaart (sleutel = PendingItem.key). Alleen in het geheugen, nooit bewaard. */
+    val crops = androidx.compose.runtime.mutableStateMapOf<Int, androidx.compose.ui.graphics.ImageBitmap>()
+
+    /**
+     * Zet een scan klaar. Bij een blad (9 vakken) vervangt hij wat er klaarstond; bij losse kaarten (append)
+     * komt elke foto erbij, tot je op Klaar tikt.
+     */
+    fun startScan(reads: List<SlotRead>, slotCrops: Map<Int, android.graphics.Bitmap> = emptyMap(), single: Boolean = false) {
+        val append = single && importSource == ImportSource.SCAN && pending.isNotEmpty() && pending.all { it.slot == null }
+        if (!append) { pending.clear(); crops.clear() }
         importSource = ImportSource.SCAN
         unreadableLines = emptyList()
         destination = Destination.COLLECTION
         val forcedSet = scanSet.trim().uppercase().ifBlank { null }
         // Komen de meeste kaarten uit één set, dan is dat de set voor de twijfelgevallen op dit blad.
-        val pageSet = forcedSet ?: nl.spoonpaco.ninegrid.domain.ScanParser.dominantSet(reads)
-        // Altijd alle 9 vakken tonen, ook als er niets gelezen is: dan zie je dat er een kaart gemist is.
-        (1..9).map { slot -> reads.firstOrNull { it.slot == slot } ?: SlotRead(slot, null, null, null, emptyList()) }.forEach { r ->
+        val pageSet = if (single) forcedSet else forcedSet ?: nl.spoonpaco.ninegrid.domain.ScanParser.dominantSet(reads)
+        // Bij een blad altijd alle 9 vakken tonen, ook als er niets gelezen is: dan zie je dat er een kaart gemist is.
+        val list = if (single) reads.take(1) else (1..9).map { slot -> reads.firstOrNull { it.slot == slot } ?: SlotRead(slot, null, null, null, emptyList()) }
+        list.forEach { r ->
             // De set die je zelf opgeeft wint: de setcode is het kleinste tekstje en wordt het vaakst verkeerd gelezen.
             val set = forcedSet ?: r.setCode ?: pageSet
             val canLook = (set != null && r.collectorNumber != null) || r.name != null || (set != null && r.altNames.isNotEmpty())
@@ -147,9 +168,11 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                 listOfNotNull(r.setCode, r.collectorNumber).joinToString(" ").ifBlank { null },
                 (r.name ?: r.altNames.firstOrNull())?.let { "‘" + it.take(22) + "’" },
             )
+            val key = nextKey++
+            slotCrops[r.slot]?.let { crops[key] = it.asImageBitmapSafe() }
             pending += PendingItem(
-                key = nextKey++,
-                slot = r.slot,
+                key = key,
+                slot = if (single) null else r.slot,
                 label = if (readParts.isEmpty() && r.lines.isEmpty()) str(R.string.scan_nothing_read)
                     else str(R.string.scan_read_as, (readParts.ifEmpty { r.lines.take(2).map { it.take(22) } }).joinToString(" · ")),
                 query = CardQuery(setCode = set, collectorNumber = r.collectorNumber, name = r.name, altNames = r.altNames),
@@ -161,6 +184,67 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
             if (binder.isNotBlank() && page.isBlank()) page = repo.nextPage(binder).toString()
         }
         resolveAll()
+    }
+
+    private fun android.graphics.Bitmap.asImageBitmapSafe() = this.asImageBitmap()
+
+    /** Stand van de laatste scan, voor de balk op het camerascherm. */
+    data class ScanSummary(val busy: Boolean, val found: Int, val empty: Int, val doubtful: Int, val waiting: Int, val total: Int) {
+        val allGood get() = !busy && doubtful == 0 && waiting == 0 && found > 0
+    }
+
+    val scanSummary: ScanSummary?
+        get() {
+            if (importSource != ImportSource.SCAN || pending.isEmpty()) return null
+            val emptySlots = pending.count { it.status == ItemStatus.NOT_FOUND && it.label == str(R.string.scan_nothing_read) }
+            return ScanSummary(
+                busy = pending.any { it.status == ItemStatus.RESOLVING },
+                found = pending.count { it.status == ItemStatus.FOUND },
+                empty = emptySlots,
+                doubtful = pending.count { (it.status == ItemStatus.FOUND && !it.confident) || it.status == ItemStatus.NOT_FOUND } - emptySlots,
+                waiting = pending.count { it.status == ItemStatus.WAITING },
+                total = pending.size,
+            )
+        }
+
+    fun clearPending() { pending.clear(); crops.clear(); clearSavedPending() }
+
+    private val pendingFile get() = java.io.File(getApplication<Application>().filesDir, "pending.json")
+    private val pendingJson = kotlinx.serialization.json.Json { ignoreUnknownKeys = true }
+
+    private fun savePendingToDisk() = runCatching {
+        pendingFile.writeText(pendingJson.encodeToString(SavedPending.serializer(), SavedPending(importSource, destination, binder, page, pending.toList())))
+    }
+
+    private fun clearSavedPending() { runCatching { pendingFile.delete() } }
+
+    /** Een scan die op internet wachtte (ook na het sluiten van de app) weer klaarzetten. */
+    private fun loadSavedPending() = runCatching {
+        if (!pendingFile.exists()) return@runCatching
+        val saved = pendingJson.decodeFromString(SavedPending.serializer(), pendingFile.readText())
+        if (saved.items.isEmpty()) return@runCatching
+        pending.clear(); pending.addAll(saved.items)
+        nextKey = (saved.items.maxOf { it.key } + 1)
+        importSource = saved.source; destination = saved.destination; binder = saved.binder; page = saved.page
+        message = str(R.string.msg_pending_restored)
+    }
+
+    private val connectivity = app.getSystemService(android.net.ConnectivityManager::class.java)
+    private val networkCallback = object : android.net.ConnectivityManager.NetworkCallback() {
+        override fun onAvailable(network: android.net.Network) {
+            viewModelScope.launch {
+                // Weer verbinding: wachtende kaarten alsnog opzoeken.
+                if (pending.any { it.status == ItemStatus.WAITING }) {
+                    pending.indices.forEach { i -> if (pending[i].status == ItemStatus.WAITING) pending[i] = pending[i].copy(status = ItemStatus.RESOLVING) }
+                    resolveAll()
+                }
+            }
+        }
+    }
+
+    override fun onCleared() {
+        runCatching { connectivity?.unregisterNetworkCallback(networkCallback) }
+        super.onCleared()
     }
 
     fun startSingle(print: CardPrint) {
@@ -176,19 +260,37 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         if (todo.isEmpty()) return
         viewModelScope.launch {
             busy = true
-            val found = runCatching { repo.resolve(todo.map { it.query }) }.getOrElse {
-                message = errorText(it); List(todo.size) { null }
+            val result = runCatching { repo.resolve(todo.map { it.query }) }
+            val err = result.exceptionOrNull()
+            if (err is java.io.IOException) {
+                // Geen internet: bewaren en opzoeken zodra er weer verbinding is.
+                todo.forEach { item ->
+                    val idx = pending.indexOfFirst { it.key == item.key }
+                    if (idx >= 0) pending[idx] = pending[idx].copy(status = ItemStatus.WAITING)
+                }
+                message = str(R.string.msg_waiting_for_network)
+                savePendingToDisk()
+                busy = false
+                return@launch
             }
+            if (err != null) message = errorText(err)
+            val found = result.getOrElse { List(todo.size) { null } }
             todo.forEachIndexed { i, item ->
                 val idx = pending.indexOfFirst { it.key == item.key }
                 if (idx >= 0) {
                     val card = found[i]
+                    val q = item.query
+                    val confident = card != null && (q.name != null || q.collectorNumber != null) &&
+                        (q.name == null || repo.namesLookAlike(q.name, card.name)) &&
+                        (q.collectorNumber == null || card.collectorNumber.equals(q.collectorNumber, true))
                     pending[idx] = pending[idx].copy(
                         print = card?.toPrint(),
                         status = if (card != null) ItemStatus.FOUND else ItemStatus.NOT_FOUND,
+                        confident = confident || q.id != null,
                     )
                 }
             }
+            if (pending.none { it.status == ItemStatus.WAITING }) clearSavedPending()
             if (importSource == ImportSource.PASTE) {
                 val typeLines = pending.mapNotNull { p -> p.print?.let { it.name to it.typeLine } }.toMap()
                 val parsed = pending.map {
@@ -237,6 +339,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             busy = true
             val count = items.sumOf { it.quantity }
+            messageUndo = true
             when (destination) {
                 Destination.COLLECTION -> {
                     val b = binder.trim().ifBlank { null }
@@ -282,6 +385,8 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                 page = ((page.toIntOrNull() ?: 0) + 1).toString()
             }
             pending.clear()
+            crops.clear()
+            clearSavedPending()
             busy = false
             snapshot()
         }
@@ -299,26 +404,31 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     // ---------- Wijzigen ----------
     fun updateEntry(entry: Entry) = viewModelScope.launch {
         repo.updateEntry(entry, str(R.string.log_edited, nameOf(entry)))
+        snapshot()
     }
 
     fun deleteEntry(entry: Entry) = viewModelScope.launch {
         repo.deleteEntry(entry, str(R.string.log_deleted, entry.quantity, nameOf(entry)))
+        snapshot()
     }
 
     fun moveEntry(entry: Entry, qty: Int, deckId: Long?, section: String?, binder: String?, page: Int?, slot: Int?) = viewModelScope.launch {
         val where = deckId?.let { id -> decks.value.firstOrNull { it.id == id }?.name } ?: str(R.string.collection)
         repo.moveEntry(entry, qty, deckId, section, binder, page, slot, str(R.string.log_moved, qty, nameOf(entry), where))
         message = str(R.string.msg_moved, where)
+        snapshot()
     }
 
     fun updateDeck(deck: Deck) = viewModelScope.launch { repo.updateDeck(deck, str(R.string.log_deck_edited, deck.name)) }
 
     fun deleteDeck(deck: Deck, keepCards: Boolean) = viewModelScope.launch {
         repo.deleteDeck(deck.id, keepCards, str(R.string.log_deck_deleted, deck.name))
+        snapshot()
     }
 
     fun undo() = viewModelScope.launch {
         message = if (repo.undoLatest()) str(R.string.msg_undone) else str(R.string.msg_nothing_to_undo)
+        snapshot()
     }
 
     private fun nameOf(e: Entry) = entries.value.firstOrNull { it.entry.id == e.id }?.print?.name ?: "?"
@@ -379,6 +489,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun setChartLines(v: List<String>) = viewModelScope.launch { settingsStore.setChartLines(v) }
     fun setChartMetric(v: String) = viewModelScope.launch { settingsStore.setChartMetric(v) }
     fun setChartRange(v: String) = viewModelScope.launch { settingsStore.setChartRange(v) }
+    fun setScanMode(v: String) = viewModelScope.launch { settingsStore.setScanMode(v) }
     fun setCurrency(v: String) = viewModelScope.launch { settingsStore.setCurrency(v) }
     fun setWifiOnly(v: Boolean) = viewModelScope.launch { settingsStore.setWifiOnly(v) }
     fun setOnboardingDone() = viewModelScope.launch { settingsStore.setOnboardingDone(true) }
@@ -395,5 +506,10 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         val u = UpdateChecker.check()
         update = u
         if (u == null && manual) message = str(R.string.msg_up_to_date)
+    }
+
+    init {
+        runCatching { connectivity?.registerDefaultNetworkCallback(networkCallback) }
+        loadSavedPending()
     }
 }

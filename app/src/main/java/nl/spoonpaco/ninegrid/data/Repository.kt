@@ -46,6 +46,7 @@ class Repository(
     val changes: Flow<List<ChangeRecord>> = db.changes().observeAll()
     val binders: Flow<List<String>> = db.entries().binders()
     val snapshots = db.snapshots().observeAll()
+    val moments = db.moments().observeAll()
 
     /**
      * Bewaart de stand van vandaag: totaal, sets, decks en elk deck en elke set apart.
@@ -67,9 +68,14 @@ class Repository(
         val rows = mutableListOf(snap("total", "", entries), snap("sets", "", loose), snap("decks", "", inDecks))
         decks.forEach { d -> rows += snap("deck:${d.id}", d.name, inDecks.filter { it.deckId == d.id }) }
         loose.groupBy { prints[it.printId]?.setCode ?: "?" }.forEach { (code, l) -> rows += snap("set:$code", code, l) }
+        val now = System.currentTimeMillis()
         db.withTransaction {
             db.snapshots().deleteDay(day)
             db.snapshots().upsert(rows)
+            // Momenten: hoogstens één per minuut, en na een maand weg.
+            db.moments().deleteAfter(now - 60_000)
+            db.moments().deleteBefore(now - 31L * 24 * 3600 * 1000)
+            db.moments().upsert(rows.map { nl.spoonpaco.ninegrid.data.db.Moment(now, it.key, it.eur, it.usd, it.count) })
         }
     }
 
@@ -298,33 +304,44 @@ class Repository(
      * Zoekt kaarten op bij Scryfall. Bij een set en nummer die niet bestaan, probeert hij
      * de gangbare OCR-verwarringen (O/0, I/1) en daarna de naam.
      */
-    suspend fun resolve(queries: List<CardQuery>): List<SfCard?> {
+    /** Een fout van Scryfall voor één kaart telt als niet gevonden, behalve een weigering (429): die gaat door naar boven. */
+    private suspend fun <T> soft(block: suspend () -> T?): T? = try {
+        block()
+    } catch (e: nl.spoonpaco.ninegrid.data.scryfall.ScryfallException) {
+        if (e.code == 429) throw e else null
+    }
+
+    private fun nameOk(q: CardQuery, c: SfCard) = q.name == null || namesLookAlike(q.name, c.name)
+
+    suspend fun resolve(queries: List<CardQuery>, onProgress: ((Int, Int) -> Unit)? = null): List<SfCard?> {
         val first = scryfall.collection(queries).toMutableList()
-        // Nummer verkeerd gelezen? Als de gelezen naam duidelijk niet past bij de gevonden kaart, opnieuw op naam zoeken.
+        // Past de gelezen naam niet bij wat set en nummer opleveren, dan was set of nummer verkeerd gelezen.
         queries.forEachIndexed { i, q ->
             val c = first[i]
-            if (c != null && q.id == null && q.name != null && q.collectorNumber != null && !namesLookAlike(q.name, c.name)) first[i] = null
+            if (c != null && q.id == null && !nameOk(q, c)) first[i] = null
         }
         queries.forEachIndexed { i, q ->
-            if (first[i] != null) return@forEachIndexed
+            onProgress?.invoke(i, queries.size)
+            first[i]?.let { found -> first[i] = betterPrint(q, found); return@forEachIndexed }
             if (q.id != null) {
-                first[i] = runCatching { scryfall.cardById(q.id) }.getOrNull()
+                first[i] = soft { scryfall.cardById(q.id) }
                 if (first[i] != null) return@forEachIndexed
             }
             if (q.setCode != null && q.collectorNumber != null) {
                 for ((s, n) in listOf(q.setCode to q.collectorNumber) + ScanParser.alternatives(q.setCode, q.collectorNumber)) {
-                    val c = runCatching { scryfall.cardBySetNumber(s, n) }.getOrNull()
-                    if (c != null) { first[i] = c; break }
+                    val c = soft { scryfall.cardBySetNumber(s, n) }
+                    // Ook in de herkansing: de naam moet kloppen met wat er gelezen is.
+                    if (c != null && nameOk(q, c)) { first[i] = c; break }
                 }
             }
             if (first[i] == null && q.name != null) {
-                first[i] = byNameInSet(q.name, q.setCode, strict = false)
+                first[i] = byNameInSet(q.name, q.setCode, strict = false)?.let { betterPrint(q, it) }
             }
             // Laatste poging: andere gelezen regels, maar alleen als die kaart in de set van dit blad bestaat.
             if (first[i] == null && q.setCode != null) {
                 for (alt in q.altNames) {
                     val c = byNameInSet(alt, q.setCode, strict = true)
-                    if (c != null) { first[i] = c; break }
+                    if (c != null) { first[i] = betterPrint(q, c); break }
                 }
             }
         }
@@ -332,13 +349,28 @@ class Repository(
     }
 
     /**
+     * Op naam gevonden, maar het gelezen nummer hoort bij een andere print (bijvoorbeeld extended art 374
+     * in plaats van 258)? Dan die print, bij voorkeur uit de gelezen set.
+     */
+    private suspend fun betterPrint(q: CardQuery, c: SfCard): SfCard {
+        val number = q.collectorNumber ?: return c
+        if (c.collectorNumber.equals(number, true) && (q.setCode == null || c.set.equals(q.setCode, true))) return c
+        if (q.setCode != null) {
+            soft { scryfall.cardBySetNumber(q.setCode, number) }?.takeIf { it.name == c.name }?.let { return it }
+        }
+        val prints = soft { scryfall.printsOf(c.name) } ?: return c
+        val matches = prints.filter { it.collectorNumber.equals(number, true) }
+        return matches.firstOrNull { it.set.equals(q.setCode ?: c.set, true) } ?: matches.firstOrNull() ?: c
+    }
+
+    /**
      * Zoekt op naam en geeft bij voorkeur de print uit [set]. Met strict alleen een kaart die echt in die set bestaat
      * en waarvan de naam lijkt op wat er gelezen is.
      */
     private suspend fun byNameInSet(name: String, set: String?, strict: Boolean): SfCard? {
-        val c = runCatching { scryfall.cardByName(name, set) }.getOrNull() ?: return null
+        val c = soft { scryfall.cardByName(name, set) } ?: return null
         if (set == null || c.set.equals(set, true)) return if (!strict || namesLookAlike(name, c.name)) c else null
-        val inSet = runCatching { scryfall.cardByName(c.name, set) }.getOrNull()?.takeIf { it.set.equals(set, true) }
+        val inSet = soft { scryfall.cardByName(c.name, set) }?.takeIf { it.set.equals(set, true) }
         return when {
             inSet != null && (!strict || namesLookAlike(name, inSet.name)) -> inSet
             strict -> null
@@ -373,7 +405,7 @@ class Repository(
 
     suspend fun allPrintsOwned() = db.prints().owned()
 
-    private fun namesLookAlike(read: String, real: String): Boolean {
+    fun namesLookAlike(read: String, real: String): Boolean {
         fun norm(x: String) = x.lowercase().filter { it.isLetter() }
         val a = norm(read); val b = norm(real.substringBefore(" // "))
         if (a.isEmpty() || b.isEmpty()) return true

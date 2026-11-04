@@ -20,11 +20,10 @@ import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
-import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
-/** Eén lijn: per dag (epochDay) een waarde. */
+/** Eén lijn: punten met tijd (millis) en waarde. */
 data class Series(val key: String, val label: String, val color: Color, val points: List<Pair<Long, Double>>)
 
 /**
@@ -35,13 +34,19 @@ fun HistoryChart(
     series: List<Series>,
     fromDay: Long,
     toDay: Long,
+    /** Toon tijden in plaats van datums (bij een korte periode). */
+    showTime: Boolean = false,
     formatY: (Double) -> String,
     axisColor: Color,
     textColor: Color,
     modifier: Modifier = Modifier,
 ) {
     var selected by remember(series, fromDay) { mutableStateOf<Long?>(null) }
-    val dateFmt = remember { DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT) }
+    val zone = remember { java.time.ZoneId.systemDefault() }
+    val dateFmt = remember(showTime) {
+        if (showTime) DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT) else DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)
+    }
+    fun label(ms: Long) = java.time.Instant.ofEpochMilli(ms).atZone(zone).format(dateFmt)
     val allPoints = series.flatMap { it.points }
     val maxY = (allPoints.maxOfOrNull { it.second } ?: 1.0).let { if (it <= 0) 1.0 else it * 1.08 }
     val span = (toDay - fromDay).coerceAtLeast(1)
@@ -51,7 +56,7 @@ fun HistoryChart(
             .pointerInput(series, fromDay, toDay) {
                 fun pick(x: Float) {
                     val left = 52.dp.toPx(); val w = size.width - left - 8.dp.toPx()
-                    val day = fromDay + Math.round(((x - left) / w).coerceIn(0f, 1f) * span)
+                    val day = fromDay + (((x - left) / w).coerceIn(0f, 1f).toDouble() * span).toLong()
                     // De dichtstbijzijnde dag waarop er een meting is.
                     selected = allPoints.map { it.first }.distinct().minByOrNull { kotlin.math.abs(it - day) }
                 }
@@ -60,7 +65,7 @@ fun HistoryChart(
             .pointerInput(series, fromDay, toDay) {
                 detectDragGestures { change, _ ->
                     val left = 52.dp.toPx(); val w = size.width - left - 8.dp.toPx()
-                    val day = fromDay + Math.round(((change.position.x - left) / w).coerceIn(0f, 1f) * span)
+                    val day = fromDay + (((change.position.x - left) / w).coerceIn(0f, 1f).toDouble() * span).toLong()
                     selected = allPoints.map { it.first }.distinct().minByOrNull { kotlin.math.abs(it - day) }
                 }
             },
@@ -68,7 +73,7 @@ fun HistoryChart(
         val left = 52.dp.toPx(); val right = size.width - 8.dp.toPx()
         val top = 8.dp.toPx(); val bottom = size.height - 22.dp.toPx()
         val w = right - left; val h = bottom - top
-        fun x(day: Long) = left + w * ((day - fromDay).toFloat() / span)
+        fun x(day: Long) = left + w * ((day - fromDay).toDouble() / span).toFloat()
         fun y(v: Double) = bottom - h * (v / maxY).toFloat()
         val paint = android.graphics.Paint().apply { color = textColor.toArgb(); textSize = 10.dp.toPx(); isAntiAlias = true }
 
@@ -82,9 +87,9 @@ fun HistoryChart(
         }
         // Begin- en einddatum.
         paint.textAlign = android.graphics.Paint.Align.LEFT
-        drawContext.canvas.nativeCanvas.drawText(LocalDate.ofEpochDay(fromDay).format(dateFmt), left, size.height - 4.dp.toPx(), paint)
+        drawContext.canvas.nativeCanvas.drawText(label(fromDay), left, size.height - 4.dp.toPx(), paint)
         paint.textAlign = android.graphics.Paint.Align.RIGHT
-        drawContext.canvas.nativeCanvas.drawText(LocalDate.ofEpochDay(toDay).format(dateFmt), right, size.height - 4.dp.toPx(), paint)
+        drawContext.canvas.nativeCanvas.drawText(label(toDay), right, size.height - 4.dp.toPx(), paint)
 
         series.forEach { s ->
             val pts = s.points.sortedBy { it.first }
@@ -101,7 +106,7 @@ fun HistoryChart(
         selected?.let { day ->
             val xx = x(day)
             drawLine(axisColor.copy(alpha = 0.6f), Offset(xx, top), Offset(xx, bottom), strokeWidth = 1.5f)
-            val rows = listOf(LocalDate.ofEpochDay(day).format(dateFmt) to Color.Unspecified) +
+            val rows = listOf(label(day) to Color.Unspecified) +
                 series.mapNotNull { s -> s.points.firstOrNull { it.first == day }?.let { "${s.label}: ${formatY(it.second)}" to s.color } }
             val tp = android.graphics.Paint().apply { textSize = 11.dp.toPx(); isAntiAlias = true }
             val lineH = 14.dp.toPx()

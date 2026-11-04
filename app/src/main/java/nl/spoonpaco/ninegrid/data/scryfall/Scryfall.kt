@@ -107,6 +107,7 @@ data class SfCollection(val data: List<SfCard> = emptyList(), @SerialName("not_f
 data class SfCatalog(val data: List<String> = emptyList())
 
 /** Eén vraag aan Scryfall: op set en nummer, of alleen op naam. */
+@Serializable
 data class CardQuery(
     val setCode: String? = null,
     val collectorNumber: String? = null,
@@ -119,8 +120,10 @@ data class CardQuery(
 class ScryfallException(message: String, val code: Int = 0) : Exception(message)
 
 /**
- * Toegang tot Scryfall (gratis, geen sleutel nodig). Scryfall vraagt om rustig aan te doen:
- * hoogstens 10 verzoeken per seconde, met een eigen User-Agent.
+ * Toegang tot Scryfall (gratis, geen sleutel nodig). Scryfall stelt grenzen
+ * (https://scryfall.com/docs/api/rate-limits): /cards/search, /cards/named, /cards/random en /cards/collection
+ * hoogstens 2 keer per seconde, al het andere 10 keer per seconde. Bij een weigering (429) is de app
+ * 30 seconden geblokkeerd; dan wachten we die tijd en proberen het één keer opnieuw.
  */
 class ScryfallClient {
     private val json = Json { ignoreUnknownKeys = true; coerceInputValues = true }
@@ -130,24 +133,42 @@ class ScryfallClient {
         .build()
     private val gate = Mutex()
     private var lastCall = 0L
+    private var lastSlowCall = 0L
+
+    /** Wordt aangeroepen als Scryfall om pauze vraagt, zodat de app een melding kan tonen. */
+    var onThrottled: (() -> Unit)? = null
+
+    private fun isSlow(url: String) = listOf("/cards/search", "/cards/named", "/cards/random", "/cards/collection").any { url.contains(it) }
 
     private suspend fun call(request: Request): String? = withContext(Dispatchers.IO) {
-        gate.withLock {
-            val wait = 110 - (System.currentTimeMillis() - lastCall)
-            if (wait > 0) delay(wait)
-            lastCall = System.currentTimeMillis()
-        }
-        val req = request.newBuilder()
-            .header("User-Agent", "NineGrid/${BuildConfig.VERSION_NAME} (+https://github.com/spoonpaco-lgtm/ninegrid)")
-            .header("Accept", "application/json")
-            .build()
-        http.newCall(req).execute().use { resp ->
+        for (attempt in 0..1) {
+            val slow = isSlow(request.url.encodedPath)
+            gate.withLock {
+                val now = System.currentTimeMillis()
+                val wait = maxOf(110 - (now - lastCall), if (slow) 520 - (now - lastSlowCall) else 0)
+                if (wait > 0) delay(wait)
+                lastCall = System.currentTimeMillis()
+                if (slow) lastSlowCall = lastCall
+            }
+            val req = request.newBuilder()
+                .header("User-Agent", "NineGrid/${BuildConfig.VERSION_NAME} (+https://github.com/spoonpaco-lgtm/ninegrid)")
+                .header("Accept", "application/json")
+                .build()
+            val result: Pair<Int, String?> = http.newCall(req).execute().use { resp ->
+                resp.code to (if (resp.isSuccessful) resp.body?.string() else null)
+            }
             when {
-                resp.isSuccessful -> resp.body?.string()
-                resp.code == 404 -> null
-                else -> throw ScryfallException("Scryfall ${resp.code}", resp.code)
+                result.first in 200..299 -> return@withContext result.second
+                result.first == 404 -> return@withContext null
+                result.first == 429 && attempt == 0 -> {
+                    onThrottled?.invoke()
+                    // Iedereen wacht: ook andere verzoeken mogen in deze 30 seconden niet.
+                    gate.withLock { delay(30_000); lastCall = System.currentTimeMillis(); lastSlowCall = lastCall }
+                }
+                else -> throw ScryfallException("Scryfall ${result.first}", result.first)
             }
         }
+        throw ScryfallException("Scryfall 429", 429)
     }
 
     private fun enc(s: String) = URLEncoder.encode(s, "UTF-8")
@@ -227,6 +248,7 @@ class ScryfallClient {
                         .build()
                 )
             } catch (e: ScryfallException) {
+                if (e.code == 429) throw e
                 null // Scryfall weigert het verzoek: de kaarten worden daarna één voor één gezocht.
             } ?: return@forEach
             val coll = json.decodeFromString(SfCollection.serializer(), body)

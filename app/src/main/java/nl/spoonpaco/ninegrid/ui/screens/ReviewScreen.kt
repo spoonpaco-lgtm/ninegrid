@@ -40,6 +40,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -216,6 +219,25 @@ private fun PendingRow(
 ) {
     val extra = LocalNgExtra.current
     val p = item.print
+    var compare by remember { mutableStateOf(false) }
+    if (compare) {
+        // Groot naast elkaar: jouw foto en de kaart die gevonden is.
+        AlertDialog(
+            onDismissRequest = { compare = false },
+            confirmButton = { TextButton(onClick = { compare = false }) { Text(stringResource(R.string.back)) } },
+            text = {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    vm.crops[item.key]?.let { androidx.compose.foundation.Image(it, null, Modifier.weight(1f).aspectRatio(0.716f).clip(RoundedCornerShape(8.dp)), contentScale = androidx.compose.ui.layout.ContentScale.Crop) }
+                    Box(Modifier.weight(1f).aspectRatio(0.716f)) {
+                        coil.compose.AsyncImage(
+                            model = vm.images.request(vm.images.urlFor(p, large = true), settings), imageLoader = vm.images.loader,
+                            contentDescription = p?.name, modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(8.dp)),
+                        )
+                    }
+                }
+            },
+        )
+    }
     Card(
         colors = CardDefaults.cardColors(containerColor = extra.cardSurface),
         shape = RoundedCornerShape(12.dp),
@@ -225,7 +247,16 @@ private fun PendingRow(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Checkbox(checked = item.include, onCheckedChange = { vm.updatePending(item.copy(include = it)) })
                 if (item.slot != null) Text("${item.slot}", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, modifier = Modifier.width(18.dp))
-                CardThumb(p, vm.images, settings, 30)
+                // Je eigen foto naast de gevonden kaart: in één oogopslag zien of het klopt.
+                vm.crops[item.key]?.let { crop ->
+                    androidx.compose.foundation.Image(
+                        crop, contentDescription = null,
+                        modifier = Modifier.width(36.dp).height(50.dp).clip(RoundedCornerShape(4.dp)).clickable { compare = true },
+                        contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                    )
+                    Spacer(Modifier.width(4.dp))
+                }
+                Box(Modifier.clickable(enabled = vm.crops[item.key] != null) { compare = true }) { CardThumb(p, vm.images, settings, 36) }
                 Spacer(Modifier.width(8.dp))
                 Column(Modifier.weight(1f).clickable(onClick = onToggle)) {
                     when (item.status) {
@@ -235,6 +266,7 @@ private fun PendingRow(
                         }
                         ItemStatus.RESOLVING -> Text(stringResource(R.string.looking_up), color = extra.subtle)
                         ItemStatus.NOT_FOUND -> Text(stringResource(R.string.not_found), color = NgColors.Error, fontWeight = FontWeight.Bold)
+                        ItemStatus.WAITING -> Text(stringResource(R.string.scan_waiting), color = NgColors.Pending, fontWeight = FontWeight.Bold)
                     }
                     Text(
                         if (p != null) "${p.setCode} ${p.collectorNumber} · ${p.rarity.replaceFirstChar { it.uppercase() }}" + (if (showSection) " · " + sectionLabelPlain(item.section) else "")

@@ -95,6 +95,7 @@ fun OverviewScreen(vm: AppViewModel) {
     val decks by vm.decks.collectAsState()
     val settings by vm.settings.collectAsState()
     val snaps by vm.snapshots.collectAsState()
+    val moments by vm.moments.collectAsState()
     val cur = settings.currency
     val extra = LocalNgExtra.current
     var choosing by remember { mutableStateOf(false) }
@@ -166,29 +167,36 @@ fun OverviewScreen(vm: AppViewModel) {
 
             // Grafiek.
             item {
-                val ranges = listOf("1M" to 30L, "3M" to 91L, "1Y" to 365L, "ALL" to 0L)
-                val today = LocalDate.now().toEpochDay()
-                val firstDay = snaps.minOfOrNull { LocalDate.parse(it.day).toEpochDay() } ?: today
+                val ranges = listOf("1D" to 1L, "1W" to 7L, "1M" to 30L, "3M" to 91L, "1Y" to 365L, "ALL" to 0L)
+                val dayMs = 24L * 3600 * 1000
+                val now = System.currentTimeMillis()
+                val zone = java.time.ZoneId.systemDefault()
+                fun noon(day: String) = LocalDate.parse(day).atTime(12, 0).atZone(zone).toInstant().toEpochMilli()
+                val firstMs = (snaps.minOfOrNull { noon(it.day) } ?: now).coerceAtMost(moments.minOfOrNull { it.ts } ?: now)
                 val days = ranges.firstOrNull { it.first == settings.chartRange }?.second ?: 91L
-                val from = if (days == 0L) firstDay else maxOf(firstDay, today - days)
+                val from = if (days == 0L) firstMs else maxOf(firstMs, now - days * dayMs)
+                val intraday = days in 1..31
                 val lines = settings.chartLines.filter { it in available }.ifEmpty { listOf("total") }
                 val byValue = settings.chartMetric != "count"
+                fun pick(eur: Double, usd: Double, count: Int) = if (byValue) (if (cur == "USD") usd else eur) else count.toDouble()
                 val series = lines.mapIndexed { i, key ->
-                    Series(
-                        key, labelOf(key, latestLabel[key]), LINE_COLORS[i % LINE_COLORS.size],
-                        snaps.filter { it.key == key }.map { s -> LocalDate.parse(s.day).toEpochDay() to if (byValue) (if (cur == "USD") s.usd else s.eur) else s.count.toDouble() }
-                            .filter { it.first >= from },
-                    )
+                    val daily = snaps.filter { it.key == key }.map { noon(it.day) to pick(it.eur, it.usd, it.count) }
+                    val pts = if (intraday) {
+                        // Alle momenten van binnen de dag, aangevuld met dagstanden voor dagen zonder momenten (bijv. geïmporteerde historie).
+                        val ms = moments.filter { it.key == key }.map { it.ts to pick(it.eur, it.usd, it.count) }
+                        val momentDays = ms.map { java.time.Instant.ofEpochMilli(it.first).atZone(zone).toLocalDate().toString() }.toSet()
+                        ms + snaps.filter { it.key == key && it.day !in momentDays }.map { noon(it.day) to pick(it.eur, it.usd, it.count) }
+                    } else daily
+                    Series(key, labelOf(key, latestLabel[key]), LINE_COLORS[i % LINE_COLORS.size], pts.filter { it.first >= from }.sortedBy { it.first })
                 }
                 Panel {
                     Text(stringResource(R.string.chart_title), fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(6.dp))
-                    val distinctDays = snaps.map { it.day }.distinct().size
-                    if (distinctDays < 2) {
+                    if (series.all { it.points.size < 2 }) {
                         Text(stringResource(R.string.chart_empty), fontSize = 13.sp, color = extra.subtle, modifier = Modifier.padding(vertical = 8.dp))
                     }
                     HistoryChart(
-                        series = series, fromDay = from, toDay = maxOf(today, from + 1),
+                        series = series, fromDay = from, toDay = maxOf(now, from + 60_000), showTime = days in 1..7,
                         formatY = { v -> if (byValue) compactMoney(v, cur) else v.toInt().toString() },
                         axisColor = MaterialTheme.colorScheme.onSurface, textColor = extra.subtle,
                     )
@@ -272,6 +280,7 @@ fun OverviewScreen(vm: AppViewModel) {
 
 @Composable
 private fun rangeLabel(k: String) = when (k) {
+    "1D" -> stringResource(R.string.range_1d); "1W" -> stringResource(R.string.range_1w)
     "1M" -> stringResource(R.string.range_1m); "3M" -> stringResource(R.string.range_3m)
     "1Y" -> stringResource(R.string.range_1y); else -> stringResource(R.string.range_all)
 }

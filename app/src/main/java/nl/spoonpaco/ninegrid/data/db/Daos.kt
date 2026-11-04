@@ -151,3 +151,18 @@ interface SnapshotDao {
     @Query("DELETE FROM snapshots")
     suspend fun deleteAll()
 }
+
+@Dao
+interface MomentDao {
+    @Upsert
+    suspend fun upsert(items: List<Moment>)
+
+    @Query("SELECT * FROM moments ORDER BY ts")
+    fun observeAll(): Flow<List<Moment>>
+
+    @Query("DELETE FROM moments WHERE ts > :after")
+    suspend fun deleteAfter(after: Long)
+
+    @Query("DELETE FROM moments WHERE ts < :before")
+    suspend fun deleteBefore(before: Long)
+}

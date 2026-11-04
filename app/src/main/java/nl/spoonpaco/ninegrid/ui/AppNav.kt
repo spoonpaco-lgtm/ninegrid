@@ -69,8 +69,18 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
     val route = backStack?.destination?.route
     val uri = LocalUriHandler.current
 
+    val undoLabel = stringResource(R.string.undo)
     LaunchedEffect(vm.message) {
-        vm.message?.let { snackbar.showSnackbar(it); vm.message = null }
+        val m = vm.message ?: return@LaunchedEffect
+        val undo = vm.messageUndo
+        vm.messageUndo = false
+        // Na opslaan: meteen ongedaan te maken vanuit de melding.
+        val r = snackbar.showSnackbar(
+            m, actionLabel = if (undo) undoLabel else null,
+            duration = if (undo) androidx.compose.material3.SnackbarDuration.Long else androidx.compose.material3.SnackbarDuration.Short,
+        )
+        if (r == androidx.compose.material3.SnackbarResult.ActionPerformed) vm.undo()
+        vm.message = null
     }
     LaunchedEffect(Unit) { vm.checkUpdate(manual = false) }
 

@@ -131,3 +131,13 @@ data class Snapshot(
     val usd: Double,
     val count: Int,
 )
+
+/** Momenten binnen een dag (bij elke wijziging en prijsupdate), voor 1D, 1W en 1M. Na een maand opgeruimd. */
+@Entity(tableName = "moments", primaryKeys = ["ts", "key"])
+data class Moment(
+    val ts: Long,
+    val key: String,
+    val eur: Double,
+    val usd: Double,
+    val count: Int,
+)
