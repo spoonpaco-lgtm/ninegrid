@@ -66,13 +66,15 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          VER="v$(grep -oP 'versionNameValue = "\K[^"]+' app/build.gradle.kts)"
+          VER="v$(sed -n 's/^val versionNameValue = "\(.*\)"/\1/p' app/build.gradle.kts)"
+          echo "Versie: $VER" | tee -a build.log
           if gh release view "$VER" >/dev/null 2>&1; then
             echo "Release $VER bestaat al." | tee -a build.log
           else
             cp app/build/outputs/apk/release/app-release.apk "NineGrid-$VER.apk"
+            set -o pipefail
             gh release create "$VER" "NineGrid-$VER.apk" --target "$GITHUB_SHA" \
-              --title "NineGrid $VER" --notes-file RELEASE_NOTES.md
+              --title "NineGrid $VER" --notes-file RELEASE_NOTES.md 2>&1 | tee -a build.log
             echo "Release $VER gemaakt." | tee -a build.log
           fi
 
