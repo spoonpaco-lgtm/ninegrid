@@ -30,12 +30,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.FlashlightOff
+import androidx.compose.material.icons.filled.FlashlightOn
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -52,6 +55,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -139,30 +144,57 @@ fun ScanScreen(vm: AppViewModel, onResult: () -> Unit) {
         }
     }
 
+    var camera by remember { mutableStateOf<androidx.camera.core.Camera?>(null) }
+    var torch by remember { mutableStateOf(false) }
+
     Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.scan_page), fontWeight = FontWeight.Bold) }, actions = { nl.spoonpaco.ninegrid.ui.guide.HelpButton("add") }) }) { pad ->
-        Column(Modifier.padding(pad).fillMaxSize().padding(horizontal = 12.dp, vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(stringResource(R.string.scan_explain), fontSize = 13.sp, color = LocalNgExtra.current.subtle, textAlign = TextAlign.Center)
-            Spacer(Modifier.height(6.dp))
-            OutlinedTextField(
-                value = vm.scanSet, onValueChange = { vm.scanSet = it.take(6) },
-                label = { Text(stringResource(R.string.scan_set_optional)) },
-                singleLine = true, modifier = Modifier.fillMaxWidth(),
-            )
-            Spacer(Modifier.height(8.dp))
-            Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
+        Column(Modifier.padding(pad).fillMaxSize().padding(horizontal = 12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            // Set, map en blad bovenaan, zodat je bij meerdere bladen achter elkaar ziet waar je bent.
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
+                OutlinedTextField(
+                    value = vm.scanSet, onValueChange = { vm.scanSet = it.take(6).uppercase() },
+                    label = { Text(stringResource(R.string.set)) }, placeholder = { Text("MH1") },
+                    singleLine = true, modifier = Modifier.weight(0.9f),
+                )
+                OutlinedTextField(
+                    value = vm.binder, onValueChange = { vm.binder = it },
+                    label = { Text(stringResource(R.string.binder_short)) },
+                    singleLine = true, modifier = Modifier.weight(1.3f),
+                )
+                OutlinedTextField(
+                    value = vm.page, onValueChange = { vm.page = it.filter(Char::isDigit).take(4) },
+                    label = { Text(stringResource(R.string.page)) },
+                    singleLine = true, modifier = Modifier.weight(0.8f),
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
+                )
+            }
+            Text(stringResource(R.string.scan_fields_hint), fontSize = 11.sp, color = LocalNgExtra.current.subtle, modifier = Modifier.fillMaxWidth().padding(top = 2.dp, bottom = 6.dp))
+            Box(Modifier.fillMaxWidth().weight(1f).clipToBounds(), contentAlignment = Alignment.Center) {
                 if (permitted) {
                     AndroidView(
                         factory = { ctx ->
                             PreviewView(ctx).also { view ->
+                                // TextureView in plaats van SurfaceView: blijft netjes binnen zijn vak in Compose.
+                                view.implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+                                view.scaleType = PreviewView.ScaleType.FILL_CENTER
                                 val future = ProcessCameraProvider.getInstance(ctx)
                                 future.addListener({
                                     val provider = future.get()
                                     val preview = Preview.Builder().build().also { it.setSurfaceProvider(view.surfaceProvider) }
                                     runCatching {
                                         provider.unbindAll()
-                                        provider.bindToLifecycle(lifecycle, CameraSelector.DEFAULT_BACK_CAMERA, preview, capture)
+                                        camera = provider.bindToLifecycle(lifecycle, CameraSelector.DEFAULT_BACK_CAMERA, preview, capture)
                                     }
                                 }, ContextCompat.getMainExecutor(ctx))
+                                // Tik om scherp te stellen.
+                                view.setOnTouchListener { v, ev ->
+                                    if (ev.action == android.view.MotionEvent.ACTION_UP) {
+                                        val point = view.meteringPointFactory.createPoint(ev.x, ev.y)
+                                        camera?.cameraControl?.startFocusAndMetering(androidx.camera.core.FocusMeteringAction.Builder(point).build())
+                                        v.performClick()
+                                    }
+                                    true
+                                }
                             }
                         },
                         modifier = Modifier.fillMaxSize(),
@@ -177,9 +209,11 @@ fun ScanScreen(vm: AppViewModel, onResult: () -> Unit) {
                 }
                 if (working) CircularProgressIndicator()
             }
-            error?.let { Text(it, color = NgColors.Error, modifier = Modifier.padding(top = 8.dp), textAlign = TextAlign.Center) }
-            Spacer(Modifier.height(12.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(20.dp), verticalAlignment = Alignment.CenterVertically) {
+            error?.let { Text(it, color = NgColors.Error, modifier = Modifier.padding(top = 6.dp), textAlign = TextAlign.Center) }
+            Row(
+                horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
+            ) {
                 OutlinedButton(onClick = { gallery.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }, enabled = !working) {
                     Icon(Icons.Filled.PhotoLibrary, null); Spacer(Modifier.size(6.dp)); Text(stringResource(R.string.from_photos))
                 }
@@ -213,34 +247,47 @@ fun ScanScreen(vm: AppViewModel, onResult: () -> Unit) {
                         })
                     },
                     enabled = permitted && !working,
-                    modifier = Modifier.size(72.dp),
+                    modifier = Modifier.size(68.dp),
                     colors = IconButtonDefaults.filledIconButtonColors(containerColor = MaterialTheme.colorScheme.primary),
                 ) { Icon(Icons.Filled.CameraAlt, stringResource(R.string.take_photo), modifier = Modifier.size(32.dp)) }
+                IconButton(
+                    onClick = { torch = !torch; camera?.cameraControl?.enableTorch(torch) },
+                    enabled = permitted && camera?.cameraInfo?.hasFlashUnit() == true,
+                ) { Icon(if (torch) Icons.Filled.FlashlightOn else Icons.Filled.FlashlightOff, stringResource(R.string.torch)) }
             }
         }
     }
     DisposableEffect(Unit) { onDispose { runCatching { ProcessCameraProvider.getInstance(context).get().unbindAll() } } }
 }
 
-/** Raster van 3x3 over de camera, met de vaknummers, zodat het blad recht in beeld komt. */
+/**
+ * Richtkader in de vorm van een verzamelblad (3x3 kaarten van 63x88 mm), met alles erbuiten gedimd
+ * en dunne rasterlijnen en vaknummers erin.
+ */
 @Composable
 private fun GridOverlay() {
     val line = NgColors.Amber.copy(alpha = 0.35f)
-    Box(Modifier.fillMaxSize()) {
-        Canvas(Modifier.fillMaxSize()) {
-            val w = size.width; val h = size.height
-            for (i in 1..2) {
-                drawLine(line, Offset(w * i / 3f, 0f), Offset(w * i / 3f, h), strokeWidth = 2f)
-                drawLine(line, Offset(0f, h * i / 3f), Offset(w, h * i / 3f), strokeWidth = 2f)
-            }
-            drawRect(line, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 2.5f))
+    val frame = NgColors.Amber.copy(alpha = 0.8f)
+    Canvas(Modifier.fillMaxSize()) {
+        val ratio = 63f / 88f
+        val maxW = size.width * 0.96f; val maxH = size.height * 0.96f
+        val w = minOf(maxW, maxH * ratio); val h = w / ratio
+        val left = (size.width - w) / 2f; val top = (size.height - h) / 2f
+        val dim = Color.Black.copy(alpha = 0.45f)
+        drawRect(dim, Offset(0f, 0f), androidx.compose.ui.geometry.Size(size.width, top))
+        drawRect(dim, Offset(0f, top + h), androidx.compose.ui.geometry.Size(size.width, size.height - top - h))
+        drawRect(dim, Offset(0f, top), androidx.compose.ui.geometry.Size(left, h))
+        drawRect(dim, Offset(left + w, top), androidx.compose.ui.geometry.Size(size.width - left - w, h))
+        for (i in 1..2) {
+            drawLine(line, Offset(left + w * i / 3f, top), Offset(left + w * i / 3f, top + h), strokeWidth = 2f)
+            drawLine(line, Offset(left, top + h * i / 3f), Offset(left + w, top + h * i / 3f), strokeWidth = 2f)
         }
-        Column(Modifier.fillMaxSize()) {
-            for (r in 0..2) Row(Modifier.weight(1f)) {
-                for (c in 0..2) Box(Modifier.weight(1f).fillMaxSize().padding(6.dp)) {
-                    Text("${r * 3 + c + 1}", color = Color.White.copy(alpha = 0.45f), fontWeight = FontWeight.Bold)
-                }
-            }
+        drawRect(frame, Offset(left, top), androidx.compose.ui.geometry.Size(w, h), style = androidx.compose.ui.graphics.drawscope.Stroke(width = 3f))
+        val paint = android.graphics.Paint().apply {
+            color = android.graphics.Color.argb(115, 255, 255, 255); textSize = 13.dp.toPx(); isAntiAlias = true; isFakeBoldText = true
+        }
+        for (r in 0..2) for (c in 0..2) {
+            drawContext.canvas.nativeCanvas.drawText("${r * 3 + c + 1}", left + w * c / 3f + 6.dp.toPx(), top + h * r / 3f + 17.dp.toPx(), paint)
         }
     }
 }

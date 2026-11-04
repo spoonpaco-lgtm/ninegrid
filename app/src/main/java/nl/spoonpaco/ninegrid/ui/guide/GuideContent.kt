@@ -31,8 +31,8 @@ object Guide {
             H("Scannen"),
             Steps(listOf(
                 "Tik onderaan op Scannen. De eerste keer vraagt de app toestemming voor de camera.",
-                "Vul bij Set van dit blad de setcode in als alle kaarten uit één set komen, bijvoorbeeld MH1. Dat maakt het herkennen veel betrouwbaarder. Gemengd blad? Laat het leeg.",
-                "Leg het blad plat en houd de telefoon er recht boven, zodat het blad het kader vult. Het raster helpt je de negen vakken recht te krijgen.",
+                "Vul bovenaan bij Set de setcode in als alle kaarten uit één set komen, bijvoorbeeld MH1. Dat maakt het herkennen veel betrouwbaarder. Gemengd blad? Laat het leeg. Vul ook Map en Blad in als je wilt bijhouden waar de kaarten liggen; het bladnummer telt na elke scan door.",
+                "Leg het blad plat en houd de telefoon er recht boven, zodat het blad precies in het oranje kader valt. Tik op het beeld om scherp te stellen; de zaklampknop rechtsonder helpt bij weinig licht.",
                 "Tik op de ronde cameraknop. De app leest per kaart de naam bovenaan en de set en het nummer onderaan.",
                 "Je komt in het controlescherm (zie het volgende hoofdstuk).",
             )),
@@ -189,8 +189,8 @@ object Guide {
             H("Scanning"),
             Steps(listOf(
                 "Tap Scan at the bottom. The first time, the app asks for camera permission.",
-                "If all cards are from one set, enter its code under Set of this page, for example MH1. That makes recognition much more reliable. Mixed page? Leave it empty.",
-                "Lay the page flat and hold the phone straight above it so the page fills the frame. The grid helps you line up the nine slots.",
+                "If all cards are from one set, enter its code under Set at the top, for example MH1. That makes recognition much more reliable. Mixed page? Leave it empty. Fill in Binder and Page too if you want to track where cards are; the page number counts up after each scan.",
+                "Lay the page flat and hold the phone straight above it so the page fits the orange frame. Tap the image to focus; the torch button at the bottom right helps in low light.",
                 "Tap the round camera button. The app reads each card's name at the top and its set and number at the bottom.",
                 "You land in the review screen (see the next chapter).",
             )),

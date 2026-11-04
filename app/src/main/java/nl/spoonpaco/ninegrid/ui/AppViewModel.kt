@@ -221,7 +221,8 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                     val pg = if (b != null) page.toIntOrNull() else null
                     val list = items.map { it.toNew(deckId = null, binder = b, page = pg, slot = if (b != null && importSource == ImportSource.SCAN) it.slot else null) }
                     repo.addEntries(list, str(R.string.log_added_collection, count))
-                    message = str(R.string.msg_added, count)
+                    message = if (importSource == ImportSource.SCAN && b != null && pg != null) str(R.string.msg_page_saved, b, pg, count)
+                    else str(R.string.msg_added, count)
                     images.prefetch(list.map { it.print }, settings.value)
                     onDone(null)
                 }

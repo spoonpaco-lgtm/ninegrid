@@ -209,4 +209,8 @@
     <string name="guide_where">You can always find the guide under More → Guide, and via the ? at the top right of each screen.</string>
     <string name="read_guide">Read the guide</string>
     <string name="not_now">Not now</string>
+    <string name="binder_short">Binder</string>
+    <string name="scan_fields_hint">All optional. Set makes recognition more reliable; the page number counts up after each scan.</string>
+    <string name="torch">Torch</string>
+    <string name="msg_page_saved">%1$s page %2$d saved · %3$d cards</string>
 </resources>
