@@ -6,6 +6,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -144,6 +145,13 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Uitsneden van je eigen foto per kaart (sleutel = PendingItem.key). Alleen in het geheugen, nooit bewaard. */
     val crops = androidx.compose.runtime.mutableStateMapOf<Int, androidx.compose.ui.graphics.ImageBitmap>()
+    private val matcher = nl.spoonpaco.ninegrid.data.ImageMatch(c.images)
+    /** Hoe lang het lezen en het opzoeken duurden, voor de melding na een scan. */
+    var lastReadMs by mutableStateOf(0L)
+    var lastRereadSlots by mutableStateOf(0)
+    var lastResolveMs by mutableStateOf(0L)
+    /** Dit hele blad is foil. */
+    var scanFoil by mutableStateOf(false)
 
     /**
      * Zet een scan klaar. Bij een blad (9 vakken) vervangt hij wat er klaarstond; bij losse kaarten (append)
@@ -178,6 +186,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                 query = CardQuery(setCode = set, collectorNumber = r.collectorNumber, name = r.name, altNames = r.altNames),
                 status = if (canLook) ItemStatus.RESOLVING else ItemStatus.NOT_FOUND,
                 language = r.language ?: "",
+                finish = if (scanFoil) Finish.FOIL else Finish.NONFOIL,
             )
         }
         viewModelScope.launch {
@@ -260,7 +269,11 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         if (todo.isEmpty()) return
         viewModelScope.launch {
             busy = true
-            val result = runCatching { repo.resolve(todo.map { it.query }) }
+            val started = System.currentTimeMillis()
+            // Bij een scan: eerst namen verbeteren en controleren tegen de setlijst (grotendeels zonder internet).
+            val queries = if (importSource == ImportSource.SCAN) runCatching { repo.preResolve(todo.map { it.query }) }.getOrElse { todo.map { it.query } }
+                else todo.map { it.query }
+            val result = runCatching { repo.resolve(queries) }
             val err = result.exceptionOrNull()
             if (err is java.io.IOException) {
                 // Geen internet: bewaren en opzoeken zodra er weer verbinding is.
@@ -274,7 +287,20 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                 return@launch
             }
             if (err != null) message = errorText(err)
-            val found = result.getOrElse { List(todo.size) { null } }
+            val found = result.getOrElse { List(todo.size) { null } }.toMutableList()
+            // Twijfel over de print (nummer niet gelezen of anders)? Dan jouw foto vergelijken met de plaatjes van de kandidaten.
+            if (importSource == ImportSource.SCAN) todo.forEachIndexed { i, item ->
+                val card = found[i] ?: return@forEachIndexed
+                val photo = crops[item.key]?.asAndroidBitmap() ?: return@forEachIndexed
+                val q = item.query
+                if (q.collectorNumber != null && card.collectorNumber.equals(q.collectorNumber, true)) return@forEachIndexed
+                runCatching {
+                    val cands = repo.printCandidates(card.name, q.setCode ?: card.set)
+                    val best = matcher.best(photo, cands.map { it.toPrint().imageSmall })
+                    if (best != null) found[i] = cands[best]
+                }
+            }
+            lastResolveMs = System.currentTimeMillis() - started
             todo.forEachIndexed { i, item ->
                 val idx = pending.indexOfFirst { it.key == item.key }
                 if (idx >= 0) {
@@ -654,5 +680,25 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     /** Niet gevonden kaarten als plaklijst, om ze later via Lijst plakken toe te voegen. */
     fun notFoundAsList(): String = importNotFound.joinToString("\n") { c ->
         "${c.quantity} ${c.name} (${c.setCode}) ${c.number}" + (if (c.etched) " *E*" else if (c.foil) " *F*" else "")
+    }
+
+    // ---------- Set compleet ----------
+    var setList by mutableStateOf<nl.spoonpaco.ninegrid.data.SetList?>(null)
+    var setLoading by mutableStateOf(false)
+
+    fun loadSet(code: String, refresh: Boolean = false) = viewModelScope.launch {
+        setLoading = true
+        setList = c.cache.cachedSetList(code)?.takeIf { !refresh }
+        runCatching { c.cache.setList(code, refresh) }.onSuccess { setList = it }.onFailure { if (setList == null) message = errorText(it) }
+        setLoading = false
+    }
+
+    /** Een ontbrekende kaart toevoegen: opzoeken en naar het controlescherm. */
+    fun addMissing(id: String, onReady: () -> Unit) = viewModelScope.launch {
+        busy = true
+        runCatching { repo.scryfall.cardById(id) }.onSuccess { card ->
+            if (card != null) { startSingle(card.toPrint()); onReady() }
+        }.onFailure { message = errorText(it) }
+        busy = false
     }
 }

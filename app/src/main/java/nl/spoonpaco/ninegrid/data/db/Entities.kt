@@ -20,6 +20,8 @@ data class CardPrint(
     val manaCost: String = "",
     val cmc: Double = 0.0,
     val colors: String = "",
+    /** Regeltekst, voor de bracket-signalen (landvernietiging, extra beurten, tutors). */
+    val oracleText: String = "",
     val colorIdentity: String = "",
     val imageSmall: String? = null,
     val imageNormal: String? = null,

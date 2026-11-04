@@ -15,6 +15,9 @@ data class DeckCard(
     val legalities: String,
     val gameChanger: Boolean,
     val proxy: Boolean,
+    val oracleText: String = "",
+    val cmc: Double = 0.0,
+    val manaCost: String = "",
 )
 
 enum class IssueLevel { ERROR, WARNING, INFO }
@@ -29,7 +32,12 @@ data class DeckCheck(
     val gameChangers: List<String>,
     val bracketHint: String?,
     val issues: List<DeckIssue>,
+    /** Waarom de bracket minstens zo hoog is: game changers, landvernietiging, extra beurten, tutors. */
+    val bracketReasons: List<BracketReason> = emptyList(),
 )
+
+/** Een signaal voor de bracket, met de kaarten waar het om gaat. */
+data class BracketReason(val code: String, val cards: List<String>)
 
 object Formats {
     fun isBasicLand(typeLine: String) = typeLine.contains("Basic Land", ignoreCase = true) ||
@@ -43,6 +51,24 @@ object Formats {
     )
 
     private fun limitFree(name: String, typeLine: String) = isBasicLand(typeLine) || name in anyNumber
+
+    private fun lower(t: String) = t.lowercase().replace('\n', ' ')
+
+    /** Massale landvernietiging: Armageddon, Ravages of War, Jokulhaups, Sunder, Winter Orb-achtig. */
+    fun massLandDenial(text: String): Boolean {
+        val t = lower(text)
+        return Regex("""destroy all (?:[a-z, ]*)lands""").containsMatchIn(t) ||
+            Regex("""(?:each player|all players) sacrifices? (?:all|half|[a-z]+ ?)?(?:the )?lands""").containsMatchIn(t) ||
+            t.contains("return all lands") || t.contains("lands don't untap during their controllers' untap steps") ||
+            t.contains("lands don't untap during their controller's untap step")
+    }
+
+    fun extraTurn(text: String) = lower(text).let { it.contains("take an extra turn") || it.contains("takes an extra turn") || it.contains("extra turns") }
+
+    /** Tutor: een willekeurige (niet-land)kaart uit je library zoeken. */
+    fun tutor(text: String): Boolean = lower(text).split('.').any { zin ->
+        zin.contains("search your library for") && !zin.contains("land") && !zin.contains("basic")
+    }
 
     fun legalityOf(legalities: String, format: String): String? =
         legalities.split(',').firstOrNull { it.startsWith("$format=") }?.substringAfter('=')
@@ -78,6 +104,7 @@ object Formats {
         val identity = cards.flatMap { it.colorIdentity.toList() }.distinct().sortedBy { order.indexOf(it) }.joinToString("")
         val gcs = cards.filter { it.gameChanger }.map { it.name }.distinct()
         var bracket: String? = null
+        val reasons = mutableListOf<BracketReason>()
 
         val byName = cards.filter { it.section != Section.SIDEBOARD || format != DeckFormat.COMMANDER }
             .groupBy { it.name }.mapValues { (_, v) -> v.sumOf { it.quantity } to v.first().typeLine }
@@ -96,11 +123,22 @@ object Formats {
                         issues += DeckIssue(IssueLevel.ERROR, "color_identity", it.name)
                     }
                 }
-                bracket = when {
-                    gcs.size > 3 -> "4"
-                    gcs.isNotEmpty() -> "3"
-                    else -> "1-2"
-                }
+                // Officiële brackets kijken ook naar landvernietiging, extra beurten en tutors. Combo's laten we weg:
+                // die zijn niet betrouwbaar te herkennen. Daarom altijd "minstens".
+                val mld = cards.filter { massLandDenial(it.oracleText) }.map { it.name }.distinct()
+                val turns = cards.filter { extraTurn(it.oracleText) }.map { it.name }.distinct()
+                val tutors = cards.filter { tutor(it.oracleText) }.map { it.name }.distinct()
+                if (gcs.isNotEmpty()) reasons += BracketReason("game_changers", gcs)
+                if (mld.isNotEmpty()) reasons += BracketReason("mass_land_denial", mld)
+                if (turns.isNotEmpty()) reasons += BracketReason("extra_turns", turns)
+                if (tutors.isNotEmpty()) reasons += BracketReason("tutors", tutors)
+                val min = listOf(
+                    when { gcs.size > 3 -> 4; gcs.isNotEmpty() -> 3; else -> 1 },
+                    if (mld.isNotEmpty()) 4 else 1,
+                    when { turns.size >= 2 -> 3; turns.size == 1 -> 2; else -> 1 },
+                    when { tutors.size >= 4 -> 3; tutors.isNotEmpty() -> 2; else -> 1 },
+                ).max()
+                bracket = min.toString()
                 if (gcs.size > 3) issues += DeckIssue(IssueLevel.INFO, "game_changers_many", gcs.size.toString())
             }
             DeckFormat.CASUAL -> Unit
@@ -122,7 +160,7 @@ object Formats {
                 }
             }
         }
-        return DeckCheck(mainCount, sideCount, cmdCount, identity, gcs, bracket, issues.distinct())
+        return DeckCheck(mainCount, sideCount, cmdCount, identity, gcs, bracket, issues.distinct(), reasons)
     }
 
     fun toDeckCards(entries: List<Pair<Entry, CardPrint?>>): List<DeckCard> = entries.map { (e, p) ->
@@ -135,6 +173,9 @@ object Formats {
             legalities = p?.legalities ?: "",
             gameChanger = p?.gameChanger ?: false,
             proxy = e.proxy,
+            oracleText = p?.oracleText ?: "",
+            cmc = p?.cmc ?: 0.0,
+            manaCost = p?.manaCost ?: "",
         )
     }
 }

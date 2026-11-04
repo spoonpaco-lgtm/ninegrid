@@ -13,5 +13,6 @@ class AppContainer(val context: Context) {
     val scryfall = ScryfallClient()
     val settings = SettingsStore(context)
     val images = Images(context)
-    val repository = Repository(db, scryfall) { removed -> images.remove(removed) }
+    val cache = nl.spoonpaco.ninegrid.data.CardCache(context, scryfall)
+    val repository = Repository(db, scryfall) { removed -> images.remove(removed) }.also { it.cache = cache }
 }

@@ -40,6 +40,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.background
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -205,8 +208,11 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
                     }
                     if (d.format == DeckFormat.COMMANDER) {
                         Spacer(Modifier.height(6.dp))
-                        Text(stringResource(R.string.bracket_line, check.bracketHint ?: "?", check.gameChangers.size), fontSize = 13.sp)
-                        if (check.gameChangers.isNotEmpty()) Text(check.gameChangers.joinToString(", "), fontSize = 12.sp, color = extra.subtle)
+                        Text(stringResource(R.string.bracket_min, check.bracketHint ?: "?"), fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        if (check.bracketReasons.isEmpty()) Text(stringResource(R.string.bracket_no_signals), fontSize = 12.sp, color = extra.subtle)
+                        check.bracketReasons.forEach { r ->
+                            Text(bracketReasonLabel(r.code) + ": " + r.cards.joinToString(", "), fontSize = 12.sp, color = extra.subtle)
+                        }
                         Text(stringResource(R.string.bracket_note), fontSize = 11.sp, color = extra.subtle)
                     }
                     if (check.issues.isEmpty() && d.format != DeckFormat.CASUAL) {
@@ -216,6 +222,7 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
                     check.issues.forEach { i -> Text("• " + issueText(i), color = if (i.level == IssueLevel.ERROR) NgColors.Error else extra.subtle, fontSize = 13.sp) }
                 }
             }
+            item { DeckStatsPanel(nl.spoonpaco.ninegrid.domain.DeckStatsCalc.compute(Formats.toDeckCards(list.map { it.entry to it.print }))) }
             sections.forEach { s ->
                 val part = list.filter { (it.entry.section ?: Section.MAIN) == s }.sortedBy { it.print?.name ?: "" }
                 if (part.isNotEmpty()) {
@@ -285,4 +292,54 @@ fun issueText(i: DeckIssue): String = when (i.code) {
     "not_legal" -> stringResource(R.string.issue_not_legal, i.detail)
     "game_changers_many" -> stringResource(R.string.issue_game_changers, i.detail)
     else -> i.code
+}
+
+@Composable
+private fun bracketReasonLabel(code: String) = when (code) {
+    "game_changers" -> stringResource(R.string.bracket_gc)
+    "mass_land_denial" -> stringResource(R.string.bracket_mld)
+    "extra_turns" -> stringResource(R.string.bracket_turns)
+    else -> stringResource(R.string.bracket_tutors)
+}
+
+/** Manacurve, kleuren in kosten tegenover kleuren in lands, en de kans op 2 tot 4 lands in je openingshand. */
+@Composable
+private fun DeckStatsPanel(st: nl.spoonpaco.ninegrid.domain.DeckStats) {
+    var open by remember { mutableStateOf(false) }
+    val extra = LocalNgExtra.current
+    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {
+        androidx.compose.material3.TextButton(onClick = { open = !open }, contentPadding = PaddingValues(0.dp)) {
+            Text(stringResource(R.string.deck_stats) + if (open) "  ▲" else "  ▼", fontWeight = FontWeight.Bold)
+        }
+        if (!open) return@Column
+        // Manacurve als staafjes.
+        Text(stringResource(R.string.mana_curve, String.format(java.util.Locale.getDefault(), "%.2f", st.averageCmc)), fontSize = 13.sp)
+        val max = (st.curve.maxOrNull() ?: 1).coerceAtLeast(1)
+        Row(Modifier.fillMaxWidth().height(90.dp), verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            st.curve.forEachIndexed { i, n ->
+                Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("$n", fontSize = 11.sp, color = extra.subtle)
+                    Box(Modifier.fillMaxWidth().height((60f * n / max).dp.coerceAtLeast(2.dp)).background(MaterialTheme.colorScheme.primary))
+                    Text(if (i == 7) "7+" else "$i", fontSize = 11.sp)
+                }
+            }
+        }
+        Spacer(Modifier.height(10.dp))
+        Text(stringResource(R.string.colors_cost_vs_lands), fontSize = 13.sp)
+        val totalSym = st.costSymbols.values.sum().coerceAtLeast(1)
+        "WUBRG".forEach { c ->
+            val sym = st.costSymbols[c] ?: 0; val src = st.landSources[c] ?: 0
+            if (sym > 0 || src > 0) Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.size(12.dp).background(nl.spoonpaco.ninegrid.ui.theme.NgColors.mana(c)))
+                Spacer(Modifier.width(6.dp))
+                Text(stringResource(R.string.color_line, sym, Math.round(sym * 100.0 / totalSym).toInt(), src, st.lands), fontSize = 12.sp)
+            }
+        }
+        Spacer(Modifier.height(10.dp))
+        Text(stringResource(R.string.opening_hand, st.lands, st.deckSize), fontSize = 13.sp)
+        listOf(2, 3, 4).forEach { k ->
+            Text(stringResource(R.string.odds_line, k, Math.round((st.handOdds[k] ?: 0.0) * 1000) / 10.0), fontSize = 12.sp)
+        }
+        Text(stringResource(R.string.odds_total, Math.round(st.oddsTwoToFour * 1000) / 10.0), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+    }
 }

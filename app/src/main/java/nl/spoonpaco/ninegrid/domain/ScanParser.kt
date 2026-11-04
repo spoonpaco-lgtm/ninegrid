@@ -163,6 +163,27 @@ object ScanParser {
         return SlotRead(slot, set, number, lang, ls.sortedBy { it.centerY }.map { it.text }, name, alt)
     }
 
+    /** Mist dit vak naam, set of nummer? Dan loont opnieuw lezen van uitvergrote stroken. */
+    fun needsReread(r: SlotRead) = r.lines.isNotEmpty() && (r.name == null || r.setCode == null || r.collectorNumber == null)
+
+    /**
+     * Vult een vak aan met wat er in de uitvergrote stroken gelezen is: de bovenste strook (naam) en de
+     * onderste strook (nummer, set, taal). Alleen wat nog ontbrak wordt ingevuld.
+     */
+    fun enrich(r: SlotRead, top: List<String>, bottom: List<String>): SlotRead {
+        var number = r.collectorNumber; var set = r.setCode; var lang = r.language
+        for (raw in bottom) {
+            val t = cleanup(raw)
+            if (number == null) {
+                number = (numberSlash.find(t)?.groupValues?.get(1) ?: numberLetterFirst.find(t)?.groupValues?.get(2)
+                    ?: (numberAlone.find(t) ?: numberThenRarity.find(t))?.groupValues?.get(1))?.trimStart('0')?.ifEmpty { "0" }
+            }
+            if (set == null) setLang.find(t)?.let { set = fixSetCode(it.groupValues[1]); lang = langMap[it.groupValues[2]] ?: it.groupValues[2] }
+        }
+        val name = r.name ?: top.firstNotNullOfOrNull { nameCandidate(it) }
+        return r.copy(collectorNumber = number, setCode = set, language = lang, name = name, lines = r.lines + top + bottom)
+    }
+
     /** Eén losse kaart in het kader: alle tekst hoort bij die kaart. */
     fun analyzeSingle(all: List<OcrLine>, width: Int, height: Int, crop: Area?): ScanResult {
         val lines = if (crop != null) all.filter { crop.contains(it.centerX, it.centerY) } else all

@@ -17,7 +17,6 @@
     <string name="binder_page">%1$s, blad %2$d</string>
     <string name="binder_page_slot">%1$s, blad %2$d, vak %3$d</string>
     <string name="bracket_line">Bracket-inschatting: %1$s · %2$d Game Changers</string>
-    <string name="bracket_note">Een inschatting op basis van de Game Changers-lijst. Combo\'s en snelle mana tellen ook mee; overleg met je tafel.</string>
     <string name="bracket_short">Bracket %1$s</string>
     <string name="camera_needed">NineGrid heeft de camera nodig om je kaarten te lezen. Foto\'s worden niet bewaard of verstuurd.</string>
     <string name="cancel">Annuleren</string>
@@ -329,4 +328,28 @@
     <string name="backup_ask_title">Bewaar je collectie veilig</string>
     <string name="backup_ask_body">Alles staat op deze telefoon. Kies een map (bijvoorbeeld Google Drive), dan zet NineGrid daar elke week een back-up neer. Zo ben je je collectie niet kwijt bij een kapotte of nieuwe telefoon.</string>
     <string name="backup_ask_choose">Map kiezen</string>
+    <string name="bracket_min">Minstens bracket %1$s</string>
+    <string name="bracket_no_signals">Geen Game Changers, landvernietiging, extra beurten of tutors gevonden.</string>
+    <string name="bracket_gc">Game Changers</string>
+    <string name="bracket_mld">Massale landvernietiging</string>
+    <string name="bracket_turns">Extra beurten</string>
+    <string name="bracket_tutors">Tutors</string>
+    <string name="bracket_note">Een inschatting: combo\'s van twee kaarten worden niet herkend, en kaarten zonder regeltekst worden pas na de volgende prijsupdate meegeteld. Overleg met je tafel.</string>
+    <string name="deck_stats">Statistieken</string>
+    <string name="mana_curve">Manacurve (gemiddeld %1$s)</string>
+    <string name="colors_cost_vs_lands">Kleuren in de kosten tegenover lands die ze maken</string>
+    <string name="color_line">%1$d symbolen (%2$d%%) · %3$d van %4$d lands</string>
+    <string name="opening_hand">Openingshand (%1$d lands in %2$d kaarten)</string>
+    <string name="odds_line">Precies %1$d lands: %2$s%%</string>
+    <string name="odds_total">2 tot 4 lands: %1$s%%</string>
+    <string name="scan_foil_page">Heel blad foil</string>
+    <string name="scan_foil_card">Foil</string>
+    <string name="last_photo">Laatste foto</string>
+    <string name="scan_timing">Herkenning %1$.1f s (%2$d vakken opnieuw gelezen) · opzoeken %3$.1f s</string>
+    <string name="set_complete">%1$d van %2$d</string>
+    <string name="set_missing_value">Ontbrekende kaarten samen: %1$s</string>
+    <string name="set_show_missing">Toon wat ik mis</string>
+    <string name="set_show_have">Wat ik heb</string>
+    <string name="set_variants">Varianten meetellen</string>
+    <string name="set_variant">variant</string>
 </resources>

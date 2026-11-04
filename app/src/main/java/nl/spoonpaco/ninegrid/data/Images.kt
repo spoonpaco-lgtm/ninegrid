@@ -14,7 +14,7 @@ import nl.spoonpaco.ninegrid.data.db.CardPrint
  * Afbeeldingen van kaarten. Alleen kaarten die je hebt worden bewaard; gaat een kaart uit je
  * collectie, dan verdwijnt zijn afbeelding van de telefoon.
  */
-class Images(private val context: Context) {
+class Images(val context: Context) {
     val loader: ImageLoader = ImageLoader.Builder(context)
         .memoryCache { MemoryCache.Builder(context).maxSizePercent(0.15).build() }
         .diskCache {

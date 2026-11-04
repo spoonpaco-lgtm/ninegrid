@@ -25,7 +25,11 @@ import java.util.concurrent.TimeUnit
 data class SfImageUris(val small: String? = null, val normal: String? = null)
 
 @Serializable
-data class SfFace(@SerialName("image_uris") val imageUris: SfImageUris? = null, @SerialName("mana_cost") val manaCost: String? = null)
+data class SfFace(
+    @SerialName("image_uris") val imageUris: SfImageUris? = null,
+    @SerialName("mana_cost") val manaCost: String? = null,
+    @SerialName("oracle_text") val oracleText: String? = null,
+)
 
 @Serializable
 data class SfPrices(
@@ -50,6 +54,7 @@ data class SfCard(
     val rarity: String = "",
     @SerialName("type_line") val typeLine: String = "",
     @SerialName("mana_cost") val manaCost: String? = null,
+    @SerialName("oracle_text") val oracleText: String? = null,
     val cmc: Double = 0.0,
     val colors: List<String>? = null,
     @SerialName("color_identity") val colorIdentity: List<String> = emptyList(),
@@ -76,6 +81,7 @@ data class SfCard(
             rarity = rarity,
             typeLine = typeLine,
             manaCost = manaCost ?: cardFaces?.firstOrNull()?.manaCost ?: "",
+            oracleText = oracleText ?: cardFaces?.mapNotNull { it.oracleText }?.joinToString("\n//\n") ?: "",
             cmc = cmc,
             colors = sortColors(colors ?: emptyList()),
             colorIdentity = sortColors(colorIdentity),
@@ -105,6 +111,15 @@ data class SfCollection(val data: List<SfCard> = emptyList(), @SerialName("not_f
 
 @Serializable
 data class SfCatalog(val data: List<String> = emptyList())
+
+@Serializable
+data class SfSet(
+    val code: String,
+    val name: String = "",
+    @SerialName("card_count") val cardCount: Int = 0,
+    @SerialName("printed_size") val printedSize: Int? = null,
+    @SerialName("released_at") val releasedAt: String? = null,
+)
 
 /** Eén vraag aan Scryfall: op set en nummer, of alleen op naam. */
 @Serializable
@@ -193,6 +208,33 @@ class ScryfallClient {
     suspend fun autocomplete(q: String): List<String> {
         if (q.length < 2) return emptyList()
         val body = call(Request.Builder().url("https://api.scryfall.com/cards/autocomplete?q=${enc(q)}").build()) ?: return emptyList()
+        return json.decodeFromString(SfCatalog.serializer(), body).data
+    }
+
+    suspend fun set(code: String): SfSet? {
+        val body = call(Request.Builder().url("https://api.scryfall.com/sets/${enc(code.lowercase())}").build()) ?: return null
+        return json.decodeFromString(SfSet.serializer(), body)
+    }
+
+    /** Alle kaarten van een set (alle prints, ook varianten), in setvolgorde. */
+    suspend fun cardsOfSet(code: String): List<SfCard> {
+        val q = enc("set:${code.lowercase()}")
+        val out = mutableListOf<SfCard>()
+        var url: String? = "https://api.scryfall.com/cards/search?q=$q&unique=prints&order=set&include_extras=true&include_variations=true"
+        var pages = 0
+        while (url != null && pages < 15) {
+            val body = call(Request.Builder().url(url).build()) ?: break
+            val list = json.decodeFromString(SfList.serializer(), body)
+            out += list.data
+            url = if (list.hasMore) list.nextPage else null
+            pages++
+        }
+        return out
+    }
+
+    /** Alle kaartnamen (ongeveer 35.000), voor het verbeteren van gelezen namen zonder internet. */
+    suspend fun cardNames(): List<String> {
+        val body = call(Request.Builder().url("https://api.scryfall.com/catalog/card-names").build()) ?: return emptyList()
         return json.decodeFromString(SfCatalog.serializer(), body).data
     }
 

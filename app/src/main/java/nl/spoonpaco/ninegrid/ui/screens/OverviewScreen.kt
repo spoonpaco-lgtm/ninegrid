@@ -90,7 +90,7 @@ private const val MAX_LINES = 6
 /** Zoals het tabblad Overzicht in de Sheet, plus het totaal bovenaan, de grafiek en waarde per rarity. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun OverviewScreen(vm: AppViewModel) {
+fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}) {
     val all by vm.entries.collectAsState()
     val decks by vm.decks.collectAsState()
     val settings by vm.settings.collectAsState()
@@ -272,7 +272,7 @@ fun OverviewScreen(vm: AppViewModel) {
 
             // Sets en decks, twee regels per rij.
             item { SectionTitle(stringResource(R.string.set)) }
-            items(sets, key = { "s_" + it.first }) { (k, c) -> TwoLineRow(k, c, cur) }
+            items(sets, key = { "s_" + it.first }) { (k, c) -> TwoLineRow(k, c, cur, onClick = { onSet(k) }) }
             item { TwoLineRow(labelSets, setTotal, cur, bold = true) }
             item { SectionTitle(stringResource(R.string.decks)) }
             items(deckRows, key = { "d_" + it.first + it.second.total }) { (k, c) -> TwoLineRow(k, c, cur) }
@@ -327,9 +327,10 @@ private fun SectionTitle(t: String) {
 
 /** Optie A: naam en waarde op de eerste regel, aantallen per rarity klein eronder. */
 @Composable
-private fun TwoLineRow(name: String, c: Counts, currency: String, bold: Boolean = false, highlight: Boolean = false) {
+private fun TwoLineRow(name: String, c: Counts, currency: String, bold: Boolean = false, highlight: Boolean = false, onClick: (() -> Unit)? = null) {
     val extra = LocalNgExtra.current
-    val mod = if (highlight) Modifier.background(MaterialTheme.colorScheme.surfaceContainerHigh) else Modifier
+    val base = if (highlight) Modifier.background(MaterialTheme.colorScheme.surfaceContainerHigh) else Modifier
+    val mod = if (onClick != null) base.clickable(onClick = onClick) else base
     Column(mod.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(name, fontWeight = if (bold) FontWeight.Bold else FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))

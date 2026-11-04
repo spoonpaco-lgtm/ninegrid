@@ -41,6 +41,9 @@ class Repository(
 ) {
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
 
+    /** Setlijsten en namenlijst op de telefoon (voor de herkenning). */
+    var cache: CardCache? = null
+
     val allEntries: Flow<List<EntryWithPrint>> = db.entries().observeAll()
     val decks: Flow<List<Deck>> = db.decks().observeAll()
     val changes: Flow<List<ChangeRecord>> = db.changes().observeAll()
@@ -351,6 +354,38 @@ class Repository(
 
     private fun nameOk(q: CardQuery, c: SfCard) = q.name == null || namesLookAlike(q.name, c.name)
 
+    /**
+     * Verbetert gelezen vragen vóór het opzoeken: tikfouten in namen via de namenlijst, en als de set bekend is,
+     * naam en nummer controleren tegen de lijst van die set. Klopt een combinatie, dan wordt het een vraag op id.
+     */
+    suspend fun preResolve(queries: List<CardQuery>): List<CardQuery> {
+        val c = cache ?: return queries
+        runCatching { c.ensureNames() }
+        return queries.map { q0 ->
+            if (q0.id != null) return@map q0
+            val fixedName = q0.name?.let { n -> kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { c.correctName(n) } ?: n }
+            val fixedAlts = q0.altNames.mapNotNull { a -> kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { c.correctName(a) } }
+            var q = q0.copy(name = fixedName ?: q0.name, altNames = (fixedAlts + q0.altNames).distinct())
+            val set = q.setCode ?: return@map q
+            val list = runCatching { c.setList(set) }.getOrNull() ?: c.cachedSetList(set) ?: return@map q
+            val names = listOfNotNull(q.name) + q.altNames
+            fun byName(): SetCard? = names.firstNotNullOfOrNull { n ->
+                list.cards.filter { namesLookAlike(n, it.name) }.let { m -> m.firstOrNull { it.regular } ?: m.firstOrNull() }
+            }
+            val byNumber = q.collectorNumber?.let { nr -> list.cards.firstOrNull { it.number.equals(nr, true) } }
+            val pick = when {
+                // Nummer en naam kloppen samen: zeker.
+                byNumber != null && (names.isEmpty() || names.any { namesLookAlike(it, byNumber.name) }) -> byNumber
+                // Naam staat in de set, nummer niet of verkeerd gelezen: kies de print met dezelfde naam, het liefst met het gelezen nummer.
+                else -> byName()?.let { found ->
+                    list.cards.firstOrNull { it.name == found.name && it.number.equals(q.collectorNumber, true) } ?: found
+                }
+            }
+            if (pick != null) q = q.copy(id = pick.id)
+            q
+        }
+    }
+
     suspend fun resolve(queries: List<CardQuery>, onProgress: ((Int, Int) -> Unit)? = null): List<SfCard?> {
         val first = scryfall.collection(queries).toMutableList()
         // Past de gelezen naam niet bij wat set en nummer opleveren, dan was set of nummer verkeerd gelezen.
@@ -390,6 +425,13 @@ class Repository(
      * Op naam gevonden, maar het gelezen nummer hoort bij een andere print (bijvoorbeeld extended art 374
      * in plaats van 258)? Dan die print, bij voorkeur uit de gelezen set.
      */
+    /** Mogelijke prints van een kaart voor het vergelijken van plaatjes: in de gelezen set, anders de nieuwste 8. */
+    suspend fun printCandidates(name: String, set: String?): List<SfCard> {
+        val all = soft { scryfall.printsOf(name) } ?: return emptyList()
+        val inSet = if (set != null) all.filter { it.set.equals(set, true) } else emptyList()
+        return (if (inSet.size >= 2) inSet else all).take(8)
+    }
+
     private suspend fun betterPrint(q: CardQuery, c: SfCard): SfCard {
         val number = q.collectorNumber ?: return c
         if (c.collectorNumber.equals(number, true) && (q.setCode == null || c.set.equals(q.setCode, true))) return c

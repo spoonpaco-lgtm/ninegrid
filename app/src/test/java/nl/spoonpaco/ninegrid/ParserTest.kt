@@ -155,4 +155,74 @@ class ParserTest {
         val rows = nl.spoonpaco.ninegrid.domain.SheetImport.parseCsv("Set;Nr.;Kaart\nMH1;1;\"A; B\"\n")
         assertEquals("A; B", rows[1][2])
     }
+
+    // ---------- Deckcontrole ----------
+    private fun card(name: String, qty: Int = 1, section: String = nl.spoonpaco.ninegrid.data.db.Section.MAIN, type: String = "Creature", id: String = "B",
+                     gc: Boolean = false, text: String = "", proxy: Boolean = false, legal: String = "commander=legal,modern=legal") =
+        nl.spoonpaco.ninegrid.domain.DeckCard(name, qty, section, type, id, legal, gc, proxy, text)
+
+    @Test
+    fun commanderChecks() {
+        val cards = listOf(card("Edgar Markov", section = nl.spoonpaco.ninegrid.data.db.Section.COMMANDER, id = "RWB")) +
+            (1..98).map { card("Card $it") } + card("Swamp", 1, type = "Basic Land — Swamp")
+        val ok = Formats.check(DeckFormat.COMMANDER, cards)
+        assertTrue(ok.issues.none { it.code == "commander_size" || it.code == "singleton" })
+        val dup = Formats.check(DeckFormat.COMMANDER, cards.dropLast(1) + card("Card 1"))
+        assertTrue(dup.issues.any { it.code == "singleton" && it.detail == "Card 1" })
+        val green = Formats.check(DeckFormat.COMMANDER, cards.dropLast(1) + card("Llanowar Elves", id = "G"))
+        assertTrue(green.issues.any { it.code == "color_identity" })
+    }
+
+    @Test
+    fun bracketSignals() {
+        val base = listOf(card("Cmd", section = nl.spoonpaco.ninegrid.data.db.Section.COMMANDER)) + (1..99).map { card("C$it") }
+        assertEquals("1", Formats.check(DeckFormat.COMMANDER, base).bracketHint)
+        val mld = base.dropLast(1) + card("Armageddon", text = "Destroy all lands.")
+        assertEquals("4", Formats.check(DeckFormat.COMMANDER, mld).bracketHint)
+        val turns = base.dropLast(2) + card("Time Warp", text = "Target player takes an extra turn after this one.") + card("Temporal Manipulation", text = "Take an extra turn after this one.")
+        assertEquals("3", Formats.check(DeckFormat.COMMANDER, turns).bracketHint)
+        val tutor = base.dropLast(1) + card("Demonic Tutor", text = "Search your library for a card, put that card into your hand, then shuffle.")
+        assertEquals("2", Formats.check(DeckFormat.COMMANDER, tutor).bracketHint)
+        val ramp = base.dropLast(1) + card("Cultivate", text = "Search your library for up to two basic land cards, reveal those cards.")
+        assertEquals("1", Formats.check(DeckFormat.COMMANDER, ramp).bracketHint)
+        val gc = base.dropLast(1) + card("Rhystic Study", gc = true)
+        assertEquals("3", Formats.check(DeckFormat.COMMANDER, gc).bracketHint)
+    }
+
+    @Test
+    fun modernChecks() {
+        val cards = (1..14).map { card("Card $it", 4) } + card("Card 15", 5)
+        val c = Formats.check(DeckFormat.MODERN, cards)
+        assertTrue(c.issues.any { it.code == "max_four" && it.detail == "Card 15" })
+        val small = Formats.check(DeckFormat.MODERN, (1..10).map { card("Card $it", 4) })
+        assertTrue(small.issues.any { it.code == "main_size" })
+        val banned = Formats.check(DeckFormat.MODERN, (1..15).map { card("Card $it", 4) } + card("Bad", legal = "modern=banned"))
+        assertTrue(banned.issues.any { it.code == "banned" && it.detail == "Bad" })
+    }
+
+    // ---------- Prijzen ----------
+    private fun print(eur: Double? = 1.0, eurFoil: Double? = 3.0, usd: Double? = 2.0, usdFoil: Double? = null, usdEtched: Double? = 5.0) =
+        nl.spoonpaco.ninegrid.data.db.CardPrint(id = "x", name = "X", setCode = "MH1", collectorNumber = "1", eur = eur, eurFoil = eurFoil, usd = usd, usdFoil = usdFoil, usdEtched = usdEtched)
+
+    private fun entry(finish: String = nl.spoonpaco.ninegrid.data.db.Finish.NONFOIL, qty: Int = 2, proxy: Boolean = false) =
+        nl.spoonpaco.ninegrid.data.db.Entry(printId = "x", finish = finish, quantity = qty, proxy = proxy)
+
+    @Test
+    fun money() {
+        val M = nl.spoonpaco.ninegrid.domain.Money
+        assertEquals(2.0, M.total(entry(), print(), "EUR"), 1e-9)
+        assertEquals(6.0, M.total(entry(nl.spoonpaco.ninegrid.data.db.Finish.FOIL), print(), "EUR"), 1e-9)
+        assertEquals(0.0, M.total(entry(proxy = true), print(), "EUR"), 1e-9)
+        assertEquals(10.0, M.total(entry(nl.spoonpaco.ninegrid.data.db.Finish.ETCHED), print(), "USD"), 1e-9)
+        assertEquals(0.0, M.total(entry(), null, "EUR"), 1e-9)
+    }
+
+    @Test
+    fun openingHandOdds() {
+        val S = nl.spoonpaco.ninegrid.domain.DeckStatsCalc
+        // 99 kaarten met 37 lands: kans op 2-4 lands in 7 is ongeveer 75%.
+        val p = (2..4).sumOf { S.hyper(99, 37, 7, it) }
+        assertTrue(p in 0.72..0.80)
+        assertEquals(1.0, (0..7).sumOf { S.hyper(60, 24, 7, it) }, 1e-9)
+    }
 }

@@ -18,7 +18,6 @@
     <string name="binder_page">%1$s, page %2$d</string>
     <string name="binder_page_slot">%1$s, page %2$d, slot %3$d</string>
     <string name="bracket_line">Bracket estimate: %1$s · %2$d Game Changers</string>
-    <string name="bracket_note">An estimate based on the Game Changers list. Combos and fast mana also count; discuss with your table.</string>
     <string name="bracket_short">Bracket %1$s</string>
     <string name="camera_needed">NineGrid needs the camera to read your cards. Photos are not stored or sent.</string>
     <string name="cancel">Cancel</string>
@@ -330,4 +329,28 @@
     <string name="backup_ask_title">Keep your collection safe</string>
     <string name="backup_ask_body">Everything lives on this phone. Choose a folder (for example Google Drive) and NineGrid puts a backup there every week, so a broken or new phone does not cost you your collection.</string>
     <string name="backup_ask_choose">Choose folder</string>
+    <string name="bracket_min">At least bracket %1$s</string>
+    <string name="bracket_no_signals">No Game Changers, land destruction, extra turns or tutors found.</string>
+    <string name="bracket_gc">Game Changers</string>
+    <string name="bracket_mld">Mass land denial</string>
+    <string name="bracket_turns">Extra turns</string>
+    <string name="bracket_tutors">Tutors</string>
+    <string name="bracket_note">An estimate: two-card combos are not recognised, and cards without rules text yet are only checked after the next price update. Discuss with your table.</string>
+    <string name="deck_stats">Statistics</string>
+    <string name="mana_curve">Mana curve (average %1$s)</string>
+    <string name="colors_cost_vs_lands">Colours in costs vs. lands that make them</string>
+    <string name="color_line">%1$d symbols (%2$d%%) · %3$d of %4$d lands</string>
+    <string name="opening_hand">Opening hand (%1$d lands in %2$d cards)</string>
+    <string name="odds_line">Exactly %1$d lands: %2$s%%</string>
+    <string name="odds_total">2 to 4 lands: %1$s%%</string>
+    <string name="scan_foil_page">Whole page foil</string>
+    <string name="scan_foil_card">Foil</string>
+    <string name="last_photo">Last photo</string>
+    <string name="scan_timing">Reading %1$.1f s (%2$d slots read again) · lookup %3$.1f s</string>
+    <string name="set_complete">%1$d of %2$d</string>
+    <string name="set_missing_value">Missing cards together: %1$s</string>
+    <string name="set_show_missing">Show what I miss</string>
+    <string name="set_show_have">What I have</string>
+    <string name="set_variants">Count variants</string>
+    <string name="set_variant">variant</string>
 </resources>

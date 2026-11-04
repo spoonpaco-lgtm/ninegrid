@@ -19,6 +19,8 @@ import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -73,6 +75,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
@@ -170,6 +173,34 @@ private fun sharpness(bmp: Bitmap, area: Area?): Double {
     return sum2 / n - mean * mean
 }
 
+/** Leest een strook van de foto opnieuw, twee keer vergroot. */
+private suspend fun readStrip(bmp: Bitmap, a: Area): List<String> {
+    val l = a.left.toInt().coerceIn(0, bmp.width - 1); val t = a.top.toInt().coerceIn(0, bmp.height - 1)
+    val w = a.width.toInt().coerceIn(1, bmp.width - l); val h = a.height.toInt().coerceIn(1, bmp.height - t)
+    val part = Bitmap.createBitmap(bmp, l, t, w, h)
+    val big = Bitmap.createScaledBitmap(part, (w * 2).coerceAtMost(2400), (h * 2).coerceAtMost(1200), true)
+    return recognize(InputImage.fromBitmap(big, 0)).textBlocks.flatMap { it.lines }.map { it.text }
+}
+
+/** Vakken die iets missen opnieuw lezen: de naamstrook bovenaan en de strook met set en nummer onderaan. */
+private suspend fun reread(bmp: Bitmap, result: ScanResult, single: Boolean): Pair<ScanResult, Int> {
+    val f = result.frame ?: return result to 0
+    var count = 0
+    val slots = result.slots.map { r ->
+        if (!ScanParser.needsReread(r)) return@map r
+        val cell = if (single) f else {
+            val cw = f.width / 3f; val ch = f.height / 3f
+            val row = (r.slot - 1) / 3; val col = (r.slot - 1) % 3
+            Area(f.left + col * cw, f.top + row * ch, f.left + (col + 1) * cw, f.top + (row + 1) * ch)
+        }
+        count++
+        val top = runCatching { readStrip(bmp, Area(cell.left, cell.top, cell.right, cell.top + cell.height * 0.2f)) }.getOrDefault(emptyList())
+        val bottom = runCatching { readStrip(bmp, Area(cell.left, cell.bottom - cell.height * 0.17f, cell.right, cell.bottom)) }.getOrDefault(emptyList())
+        ScanParser.enrich(r, top, bottom)
+    }
+    return result.copy(slots = slots) to count
+}
+
 /** Uitsnede van een stuk van de foto, verkleind tot een kleine afbeelding voor het controlescherm. */
 private fun cutOut(bmp: Bitmap, a: Area, maxW: Int = 260): Bitmap? = runCatching {
     val l = a.left.toInt().coerceIn(0, bmp.width - 1); val t = a.top.toInt().coerceIn(0, bmp.height - 1)
@@ -247,6 +278,13 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
     var camera by remember { mutableStateOf<androidx.camera.core.Camera?>(null) }
     var torch by remember { mutableStateOf(false) }
     var editFields by remember { mutableStateOf(false) }
+    // Aanduiding dat de foto genomen is: flits, even stilstaand beeld, en een klein plaatje linksonder.
+    val flash = remember { androidx.compose.animation.core.Animatable(0f) }
+    var frozen by remember { mutableStateOf<androidx.compose.ui.graphics.ImageBitmap?>(null) }
+    var lastPhoto by remember { mutableStateOf<androidx.compose.ui.graphics.ImageBitmap?>(null) }
+    var showPhoto by remember { mutableStateOf(false) }
+    val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
+    val shutterSound = remember { android.media.MediaActionSound() }
     val density = LocalDensity.current
     // Ruimte boven en onder die door de balken op het beeld wordt ingenomen; het kader valt daartussen.
     val topBarPx = with(density) { 64.dp.toPx() } + WindowInsets.statusBars.getTop(density)
@@ -278,8 +316,12 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
     fun process(bmp: Bitmap, crop: Area?, fromCamera: Boolean) {
         scope.launch {
             runCatching {
+                val t0 = System.currentTimeMillis()
                 val sharp = withContext(Dispatchers.Default) { runCatching { sharpness(bmp, crop) }.getOrDefault(100.0) }
-                val r = readImage(bmp, crop, single)
+                val first = readImage(bmp, crop, single)
+                val (r, reread) = reread(bmp, first, single)
+                vm.lastReadMs = System.currentTimeMillis() - t0
+                vm.lastRereadSlots = reread
                 val crops = withContext(Dispatchers.Default) { cropsFor(bmp, r, single) }
                 Triple(r, sharp, crops)
             }.onSuccess { (r, sharp, crops) -> handle(r, sharp, fromCamera, crops) }
@@ -303,7 +345,14 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
         working = true
         error = null
         val executor = ContextCompat.getMainExecutor(context)
-        fun shoot() = capture.takePicture(executor, object : ImageCapture.OnImageCapturedCallback() {
+        fun feedback() {
+            scope.launch { flash.snapTo(0.85f); flash.animateTo(0f, androidx.compose.animation.core.tween(180)) }
+            if (settings.haptics) haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+            val audio = context.getSystemService(android.media.AudioManager::class.java)
+            // Alleen geluid als je het aanzette én de telefoon niet op stil of trillen staat.
+            if (settings.shutterSound && audio?.ringerMode == android.media.AudioManager.RINGER_MODE_NORMAL) shutterSound.play(android.media.MediaActionSound.SHUTTER_CLICK)
+        }
+        fun shoot() = capture.also { feedback() }.takePicture(executor, object : ImageCapture.OnImageCapturedCallback() {
             override fun onCaptureSuccess(image: ImageProxy) {
                 // ImageCapture levert JPEG; ML Kit wil dan een bitmap (fromMediaImage werkt alleen met YUV).
                 val bitmap = runCatching {
@@ -315,6 +364,9 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
                 }.getOrNull()
                 image.close()
                 if (bitmap == null) { working = false; error = failText; return }
+                val shown = bitmap.asImageBitmap()
+                frozen = shown; lastPhoto = shown
+                scope.launch { kotlinx.coroutines.delay(500); frozen = null }
                 val crop = if (boxW > 0 && boxH > 0) guideOnImage(guideRect(boxW, boxH, topBarPx, bottomBarPx, single), boxW, boxH, bitmap.width, bitmap.height) else null
                 process(bitmap, crop, fromCamera = true)
             }
@@ -372,7 +424,14 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
                 },
                 modifier = Modifier.fillMaxSize(),
             )
-            GuideOverlay(topBarPx, bottomBarPx, single)
+            val sum = vm.scanSummary
+            val frameColor = when {
+                sum == null || sum.busy -> NgColors.Amber.copy(alpha = 0.9f)
+                sum.allGood -> NgColors.Synced
+                else -> Color(0xFFFF8C00)
+            }
+            frozen?.let { androidx.compose.foundation.Image(it, null, Modifier.fillMaxSize(), contentScale = androidx.compose.ui.layout.ContentScale.Crop) }
+            GuideOverlay(topBarPx, bottomBarPx, single, frameColor)
         } else {
             Column(Modifier.align(Alignment.Center).padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(stringResource(R.string.camera_needed), textAlign = TextAlign.Center, color = Color.White)
@@ -380,7 +439,7 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
                 Button(onClick = { permissionLauncher.launch(Manifest.permission.CAMERA) }) { Text(stringResource(R.string.allow_camera)) }
             }
         }
-        if (working) CircularProgressIndicator(Modifier.align(Alignment.Center))
+        if (flash.value > 0f) Box(Modifier.fillMaxSize().background(Color.White.copy(alpha = flash.value)))
 
         // Bovenbalk: terug, set/map/blad, hulp.
         Row(
@@ -412,6 +471,8 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
                 val colors = FilterChipDefaults.filterChipColors(labelColor = Color.White, selectedContainerColor = MaterialTheme.colorScheme.primary, selectedLabelColor = Color.Black)
                 FilterChip(selected = !single, onClick = { vm.setScanMode("page") }, label = { Text(stringResource(R.string.scan_mode_page)) }, colors = colors)
                 FilterChip(selected = single, onClick = { vm.setScanMode("single") }, label = { Text(stringResource(R.string.scan_mode_single)) }, colors = colors)
+                Spacer(Modifier.width(8.dp))
+                FilterChip(selected = vm.scanFoil, onClick = { vm.scanFoil = !vm.scanFoil }, label = { Text(stringResource(if (single) R.string.scan_foil_card else R.string.scan_foil_page)) }, colors = colors)
             }
             Box(Modifier.fillMaxWidth().height(52.dp).padding(horizontal = 12.dp), contentAlignment = Alignment.Center) {
                 val err = error
@@ -431,17 +492,31 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
                 Modifier.fillMaxWidth().height(96.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically,
             ) {
+                // De laatst genomen foto; tik om hem groot te zien.
+                Box(Modifier.size(52.dp)) {
+                    lastPhoto?.let { p ->
+                        androidx.compose.foundation.Image(
+                            p, stringResource(R.string.last_photo),
+                            Modifier.fillMaxSize().clip(androidx.compose.foundation.shape.RoundedCornerShape(8.dp)).clickable { showPhoto = true },
+                            contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                        )
+                    }
+                }
                 FilledIconButton(
                     onClick = { gallery.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
                     enabled = !working, modifier = Modifier.size(52.dp),
                     colors = IconButtonDefaults.filledIconButtonColors(containerColor = Color.White.copy(alpha = 0.18f), contentColor = Color.White),
                 ) { Icon(Icons.Filled.PhotoLibrary, stringResource(R.string.from_photos)) }
-                FilledIconButton(
-                    onClick = { takePhoto() },
-                    enabled = permitted && !working,
-                    modifier = Modifier.size(76.dp),
-                    colors = IconButtonDefaults.filledIconButtonColors(containerColor = MaterialTheme.colorScheme.primary),
-                ) { Icon(Icons.Filled.CameraAlt, stringResource(R.string.take_photo), modifier = Modifier.size(36.dp)) }
+                Box(contentAlignment = Alignment.Center) {
+                    // Ring om de knop zolang hij scherpstelt, leest of opzoekt.
+                    if (working || vm.scanSummary?.busy == true) CircularProgressIndicator(Modifier.size(88.dp), color = Color.White, strokeWidth = 3.dp)
+                    FilledIconButton(
+                        onClick = { takePhoto() },
+                        enabled = permitted && !working,
+                        modifier = Modifier.size(76.dp),
+                        colors = IconButtonDefaults.filledIconButtonColors(containerColor = MaterialTheme.colorScheme.primary),
+                    ) { Icon(Icons.Filled.CameraAlt, stringResource(R.string.take_photo), modifier = Modifier.size(36.dp)) }
+                }
                 FilledIconButton(
                     onClick = { torch = !torch; camera?.cameraControl?.enableTorch(torch) },
                     enabled = permitted && camera?.cameraInfo?.hasFlashUnit() == true, modifier = Modifier.size(52.dp),
@@ -469,6 +544,12 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
         }
     }
 
+    if (showPhoto) lastPhoto?.let { p ->
+        androidx.compose.ui.window.Dialog(onDismissRequest = { showPhoto = false }) {
+            androidx.compose.foundation.Image(p, null, Modifier.fillMaxWidth().clickable { showPhoto = false }, contentScale = androidx.compose.ui.layout.ContentScale.Fit)
+        }
+    }
+
     quality?.let { (q, reads, crops) ->
         AlertDialog(
             onDismissRequest = { quality = null },
@@ -478,7 +559,7 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
             dismissButton = { TextButton(onClick = { quality = null; startScan(reads, crops) }) { Text(stringResource(R.string.scan_view_anyway)) } },
         )
     }
-    DisposableEffect(Unit) { onDispose { runCatching { ProcessCameraProvider.getInstance(context).get().unbindAll() } } }
+    DisposableEffect(Unit) { onDispose { runCatching { shutterSound.release() }; runCatching { ProcessCameraProvider.getInstance(context).get().unbindAll() } } }
 }
 
 /** De uitkomst van de laatste scan op het camerascherm, met Opslaan als alles klopt. */
@@ -498,7 +579,16 @@ private fun ScanSummaryBar(vm: AppViewModel, sum: AppViewModel.ScanSummary, sing
                 (if (sum.empty > 0) " · " + pluralStringResource(R.plurals.scan_empty_slots, sum.empty, sum.empty) else "")
             else -> stringResource(R.string.scan_some_found, sum.found, sum.doubtful.coerceAtLeast(0))
         }
-        Text(text, color = Color.White, fontSize = 13.sp, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+        Column(Modifier.weight(1f)) {
+            Text(text, color = Color.White, fontSize = 13.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            val st by vm.settings.collectAsState()
+            if (st.showTiming && vm.lastReadMs > 0 && !sum.busy) {
+                Text(
+                    stringResource(R.string.scan_timing, vm.lastReadMs / 1000.0, vm.lastRereadSlots, vm.lastResolveMs / 1000.0),
+                    color = Color.White.copy(alpha = 0.7f), fontSize = 10.sp, maxLines = 1,
+                )
+            }
+        }
         if (!sum.busy) {
             if (single) {
                 Button(onClick = onReview) { Text(stringResource(R.string.done)) }
@@ -518,8 +608,7 @@ private fun ScanSummaryBar(vm: AppViewModel, sum: AppViewModel.ScanSummary, sing
  * met het vaknummer (nog doorzichtiger) ernaast. Alles buiten het kader is gedimd.
  */
 @Composable
-private fun GuideOverlay(topPx: Float, bottomPx: Float, single: Boolean) {
-    val corner = NgColors.Amber.copy(alpha = 0.9f)
+private fun GuideOverlay(topPx: Float, bottomPx: Float, single: Boolean, corner: Color) {
     Canvas(Modifier.fillMaxSize()) {
         val g = guideRect(size.width, size.height, topPx, bottomPx, single)
         val dim = Color.Black.copy(alpha = 0.45f)
