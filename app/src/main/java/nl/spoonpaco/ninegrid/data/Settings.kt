@@ -29,6 +29,10 @@ data class AppSettings(
     val lastBackup: Long = 0,
     val lastUpdateCheck: Long = 0,
     val lastPriceUpdate: Long = 0,
+    /** Grafiek: welke lijnen aan staan (sleutels zoals total, deck:3, set:MH1), waarde of aantal, en de periode. */
+    val chartLines: List<String> = listOf("total"),
+    val chartMetric: String = "value",
+    val chartRange: String = "3M",
 )
 
 class SettingsStore(private val context: Context) {
@@ -42,6 +46,9 @@ class SettingsStore(private val context: Context) {
         val lastBackup = longPreferencesKey("last_backup")
         val lastUpdateCheck = longPreferencesKey("last_update_check")
         val lastPriceUpdate = longPreferencesKey("last_price_update")
+        val chartLines = stringPreferencesKey("chart_lines")
+        val chartMetric = stringPreferencesKey("chart_metric")
+        val chartRange = stringPreferencesKey("chart_range")
     }
 
     val flow: Flow<AppSettings> = context.dataStore.data.map { p -> p.toSettings() }
@@ -58,6 +65,9 @@ class SettingsStore(private val context: Context) {
         lastBackup = this[K.lastBackup] ?: 0,
         lastUpdateCheck = this[K.lastUpdateCheck] ?: 0,
         lastPriceUpdate = this[K.lastPriceUpdate] ?: 0,
+        chartLines = this[K.chartLines]?.split(",")?.filter { it.isNotBlank() } ?: listOf("total"),
+        chartMetric = this[K.chartMetric] ?: "value",
+        chartRange = this[K.chartRange] ?: "3M",
     )
 
     suspend fun setTheme(v: String) = context.dataStore.edit { it[K.theme] = v }
@@ -71,4 +81,7 @@ class SettingsStore(private val context: Context) {
     suspend fun setLastBackup(v: Long) = context.dataStore.edit { it[K.lastBackup] = v }
     suspend fun setLastUpdateCheck(v: Long) = context.dataStore.edit { it[K.lastUpdateCheck] = v }
     suspend fun setLastPriceUpdate(v: Long) = context.dataStore.edit { it[K.lastPriceUpdate] = v }
+    suspend fun setChartLines(v: List<String>) = context.dataStore.edit { it[K.chartLines] = v.joinToString(",") }
+    suspend fun setChartMetric(v: String) = context.dataStore.edit { it[K.chartMetric] = v }
+    suspend fun setChartRange(v: String) = context.dataStore.edit { it[K.chartRange] = v }
 }

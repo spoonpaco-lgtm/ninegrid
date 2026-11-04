@@ -1,17 +1,13 @@
-NineGrid 0.1.7
+NineGrid 0.2.0
 
-Herkenning
-- De set die op een blad het meest voorkomt (of die je zelf invult) wordt gebruikt voor twijfelgevallen; op naam gevonden kaarten krijgen bij voorkeur de print uit die set.
-- Ook andere gelezen regels worden geprobeerd, maar alleen als die kaart in de set van het blad bestaat.
-- Alleen tekst binnen het oranje kader telt mee; een half zichtbaar volgend blad verschuift de vakken niet meer.
-- Vlak voor de foto stelt de camera scherp. Is de foto onscherp of het blad te klein in beeld, dan krijg je een melding met Opnieuw of Toch bekijken.
+Scannen
+- Volledig camerascherm: het beeld vult het hele scherm, de bediening zweeft erop. Set, map en blad bovenaan (tik om in te vullen), onderaan foto's, ontspanknop en zaklamp. Het kader is ongeveer een derde groter.
+- "No connection to Scryfall" bij een vak met alleen een gelezen set is opgelost. Weigert Scryfall een verzoek, dan worden de kaarten één voor één gezocht. "Geen verbinding" verschijnt alleen nog bij echt geen internet.
 
-Scanscherm
-- Kader zonder rasterlijnen, met vaknummers en "Vul het kader met het blad".
-- De uitlegregel staat er alleen zolang Set, Map en Blad leeg zijn.
+Overzicht
+- Totale waarde collectie groot bovenaan, met aantal kaarten en verschil met ongeveer een maand geleden.
+- Grafiek Collectie over tijd: totaal, sets, decks, elk deck en elke set (maximaal 6 lijnen), waarde of aantal kaarten, periode 1M/3M/1J/Alles. Tik of veeg voor de waarden van een dag.
+- Balk Waarde per rarity.
+- Sets en decks op twee regels: naam en waarde, met de aantallen per rarity eronder. Niet meer opzij scrollen.
 
-Controlescherm
-- Altijd alle 9 vakken, ook als er niets gelezen is.
-- Bij niet gevonden kaarten staat wat de scanner wel gelezen heeft.
-- De opslaanknop valt niet meer onder de navigatiebalk.
-- "1 kaart" / "2 kaarten" goed geschreven, rarity met hoofdletter.
+De grafiek vult zich vanaf de dag dat deze versie op je telefoon staat. Je kaarten en decks blijven staan.

@@ -233,4 +233,20 @@
         <item quantity="one">%d kaart toegevoegd</item>
         <item quantity="other">%d kaarten toegevoegd</item>
     </plurals>
+    <string name="line_total">Totaal collectie</string>
+    <string name="since_days">in %1$d dagen</string>
+    <string name="chart_title">Collectie over tijd</string>
+    <string name="chart_empty">De grafiek vult zich vanaf vandaag: elke dag dat je de app opent komt er een punt bij.</string>
+    <string name="chart_value">Waarde</string>
+    <string name="chart_cards">Kaarten</string>
+    <string name="chart_choose_lines">Lijnen kiezen</string>
+    <string name="chart_max_lines">Maximaal %1$d lijnen tegelijk</string>
+    <string name="value_per_rarity">Waarde per rarity</string>
+    <string name="range_1m">1M</string>
+    <string name="range_3m">3M</string>
+    <string name="range_1y">1J</string>
+    <string name="range_all">Alles</string>
+    <string name="scan_fields_empty">Set, map, blad (optioneel)</string>
+    <string name="scan_fields_title">Dit blad</string>
+    <string name="msg_scryfall_error">Scryfall gaf een fout (code %1$d). Probeer het later opnieuw.</string>
 </resources>

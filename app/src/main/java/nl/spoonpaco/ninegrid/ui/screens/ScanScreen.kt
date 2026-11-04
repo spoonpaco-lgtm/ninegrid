@@ -17,6 +17,11 @@ import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Canvas
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -104,15 +109,20 @@ private suspend fun readSlots(image: InputImage, width: Int, height: Int, crop: 
     return ScanParser.analyze(lines, width, height, crop)
 }
 
-/** Het richtkader binnen een vak van w x h: de verhouding van 3x3 kaarten (63x88 mm). */
-private fun guideRect(w: Float, h: Float): Area {
+// Ruimte (px) die de balken boven en onder het beeld innemen; het kader valt daartussen.
+private var guideTop = 0f
+private var guideBottom = 0f
+
+/** Het richtkader binnen een beeld van w x h, tussen de balken: de verhouding van 3x3 kaarten (63x88 mm). */
+private fun guideRect(w: Float, h: Float, topPx: Float = guideTop, bottomPx: Float = guideBottom): Area {
     val ratio = 63f / 88f
-    val gw = minOf(w * 0.96f, h * 0.96f * ratio); val gh = gw / ratio
-    val left = (w - gw) / 2f; val top = (h - gh) / 2f
+    val availTop = topPx + 8f; val availH = (h - topPx - bottomPx - 16f).coerceAtLeast(h * 0.3f)
+    val gw = minOf(w * 0.94f, availH * ratio); val gh = gw / ratio
+    val left = (w - gw) / 2f; val top = availTop + (availH - gh) / 2f
     return Area(left, top, left + gw, top + gh)
 }
 
-/** Zet het kader op het scherm om naar pixels op de foto (het camerabeeld vult het vak, midden uitgesneden). */
+/** Zet het kader op het scherm om naar pixels op de foto (het camerabeeld vult het scherm, midden uitgesneden). */
 private fun guideOnImage(boxW: Float, boxH: Float, imgW: Int, imgH: Int): Area {
     val g = guideRect(boxW, boxH)
     val scale = maxOf(boxW / imgW, boxH / imgH)
@@ -150,7 +160,7 @@ private fun hasCamera(ctx: Context) = ContextCompat.checkSelfPermission(ctx, Man
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ScanScreen(vm: AppViewModel, onResult: () -> Unit) {
+fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
     val context = LocalContext.current
     val lifecycle = LocalLifecycleOwner.current
     val scope = rememberCoroutineScope()
@@ -208,140 +218,172 @@ fun ScanScreen(vm: AppViewModel, onResult: () -> Unit) {
 
     var camera by remember { mutableStateOf<androidx.camera.core.Camera?>(null) }
     var torch by remember { mutableStateOf(false) }
+    var editFields by remember { mutableStateOf(false) }
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    // Ruimte boven en onder die door de balken op het beeld wordt ingenomen; het kader valt daartussen.
+    val topBarPx = with(density) { 64.dp.toPx() } + androidx.compose.foundation.layout.WindowInsets.statusBars.getTop(density)
+    val bottomBarPx = with(density) { (132 + 26).dp.toPx() } + androidx.compose.foundation.layout.WindowInsets.navigationBars.getBottom(density)
+    guideTop = topBarPx; guideBottom = bottomBarPx
 
-    Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.scan_page), fontWeight = FontWeight.Bold) }, actions = { nl.spoonpaco.ninegrid.ui.guide.HelpButton("add") }) }) { pad ->
-        Column(Modifier.padding(pad).fillMaxSize().padding(horizontal = 12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            // Set, map en blad bovenaan, zodat je bij meerdere bladen achter elkaar ziet waar je bent.
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
-                OutlinedTextField(
-                    value = vm.scanSet, onValueChange = { vm.scanSet = it.take(6).uppercase() },
-                    label = { Text(stringResource(R.string.set)) }, placeholder = { Text("MH1") },
-                    singleLine = true, modifier = Modifier.weight(0.9f),
-                )
-                OutlinedTextField(
-                    value = vm.binder, onValueChange = { vm.binder = it },
-                    label = { Text(stringResource(R.string.binder_short)) },
-                    singleLine = true, modifier = Modifier.weight(1.3f),
-                )
-                OutlinedTextField(
-                    value = vm.page, onValueChange = { vm.page = it.filter(Char::isDigit).take(4) },
-                    label = { Text(stringResource(R.string.page)) },
-                    singleLine = true, modifier = Modifier.weight(0.8f),
-                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
-                )
-            }
-            if (vm.scanSet.isBlank() && vm.binder.isBlank() && vm.page.isBlank()) {
-                Text(stringResource(R.string.scan_fields_hint), fontSize = 11.sp, maxLines = 1, color = LocalNgExtra.current.subtle, modifier = Modifier.fillMaxWidth().padding(top = 2.dp))
-            }
-            Spacer(Modifier.height(6.dp))
-            Box(Modifier.fillMaxWidth().weight(1f).clipToBounds().onSizeChanged { boxW = it.width.toFloat(); boxH = it.height.toFloat() }, contentAlignment = Alignment.Center) {
-                if (permitted) {
-                    AndroidView(
-                        factory = { ctx ->
-                            PreviewView(ctx).also { view ->
-                                // TextureView in plaats van SurfaceView: blijft netjes binnen zijn vak in Compose.
-                                view.implementationMode = PreviewView.ImplementationMode.COMPATIBLE
-                                view.scaleType = PreviewView.ScaleType.FILL_CENTER
-                                val future = ProcessCameraProvider.getInstance(ctx)
-                                future.addListener({
-                                    val provider = future.get()
-                                    // Zelfde verhouding als de foto, zodat het kader op het scherm en op de foto hetzelfde stuk is.
-                                    val preview = Preview.Builder()
-                                        .setResolutionSelector(ResolutionSelector.Builder().setAspectRatioStrategy(androidx.camera.core.resolutionselector.AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY).build())
-                                        .build().also { it.setSurfaceProvider(view.surfaceProvider) }
-                                    runCatching {
-                                        provider.unbindAll()
-                                        camera = provider.bindToLifecycle(lifecycle, CameraSelector.DEFAULT_BACK_CAMERA, preview, capture)
-                                    }
-                                }, ContextCompat.getMainExecutor(ctx))
-                                // Tik om scherp te stellen.
-                                view.setOnTouchListener { v, ev ->
-                                    if (ev.action == android.view.MotionEvent.ACTION_UP) {
-                                        val point = view.meteringPointFactory.createPoint(ev.x, ev.y)
-                                        camera?.cameraControl?.startFocusAndMetering(androidx.camera.core.FocusMeteringAction.Builder(point).build())
-                                        v.performClick()
-                                    }
-                                    true
-                                }
+    fun takePhoto() {
+                working = true
+                error = null
+                val executor = ContextCompat.getMainExecutor(context)
+                fun shoot() = capture.takePicture(executor, object : ImageCapture.OnImageCapturedCallback() {
+                    override fun onCaptureSuccess(image: ImageProxy) {
+                        // ImageCapture levert JPEG; ML Kit wil dan een bitmap (fromMediaImage werkt alleen met YUV).
+                        val bitmap = runCatching {
+                            val raw = image.toBitmap()
+                            val rotation = image.imageInfo.rotationDegrees
+                            if (rotation == 0) raw else android.graphics.Bitmap.createBitmap(
+                                raw, 0, 0, raw.width, raw.height, android.graphics.Matrix().apply { postRotate(rotation.toFloat()) }, true,
+                            )
+                        }.getOrNull()
+                        image.close()
+                        if (bitmap == null) { working = false; error = failText; return }
+                        val crop = if (boxW > 0 && boxH > 0) guideOnImage(boxW, boxH, bitmap.width, bitmap.height) else null
+                        scope.launch {
+                            runCatching {
+                                val sharp = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { runCatching { sharpness(bitmap, crop) }.getOrDefault(100.0) }
+                                readSlots(InputImage.fromBitmap(bitmap, 0), bitmap.width, bitmap.height, crop) to sharp
                             }
-                        },
-                        modifier = Modifier.fillMaxSize(),
-                    )
-                    GridOverlay()
-                } else {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(stringResource(R.string.camera_needed), textAlign = TextAlign.Center)
-                        Spacer(Modifier.height(8.dp))
-                        Button(onClick = { permissionLauncher.launch(Manifest.permission.CAMERA) }) { Text(stringResource(R.string.allow_camera)) }
-                    }
-                }
-                if (working) CircularProgressIndicator()
-            }
-            error?.let { Text(it, color = NgColors.Error, modifier = Modifier.padding(top = 6.dp), textAlign = TextAlign.Center) }
-            Row(
-                horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
-            ) {
-                OutlinedButton(onClick = { gallery.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }, enabled = !working) {
-                    Icon(Icons.Filled.PhotoLibrary, null); Spacer(Modifier.size(6.dp)); Text(stringResource(R.string.from_photos))
-                }
-                FilledIconButton(
-                    onClick = {
-                        working = true
-                        error = null
-                        val executor = ContextCompat.getMainExecutor(context)
-                        fun shoot() = capture.takePicture(executor, object : ImageCapture.OnImageCapturedCallback() {
-                            override fun onCaptureSuccess(image: ImageProxy) {
-                                // ImageCapture levert JPEG; ML Kit wil dan een bitmap (fromMediaImage werkt alleen met YUV).
-                                val bitmap = runCatching {
-                                    val raw = image.toBitmap()
-                                    val rotation = image.imageInfo.rotationDegrees
-                                    if (rotation == 0) raw else android.graphics.Bitmap.createBitmap(
-                                        raw, 0, 0, raw.width, raw.height, android.graphics.Matrix().apply { postRotate(rotation.toFloat()) }, true,
-                                    )
-                                }.getOrNull()
-                                image.close()
-                                if (bitmap == null) { working = false; error = failText; return }
-                                val crop = if (boxW > 0 && boxH > 0) guideOnImage(boxW, boxH, bitmap.width, bitmap.height) else null
-                                scope.launch {
-                                    runCatching {
-                                        val sharp = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { runCatching { sharpness(bitmap, crop) }.getOrDefault(100.0) }
-                                        readSlots(InputImage.fromBitmap(bitmap, 0), bitmap.width, bitmap.height, crop) to sharp
-                                    }
-                                        .onSuccess { (r, sharp) -> handle(r, sharp, fromCamera = true) }
-                                        .onFailure { working = false; error = failText }
-                                }
-                            }
-
-                            override fun onError(exception: ImageCaptureException) {
-                                working = false
-                                error = failText
-                            }
-                        })
-                        // Eerst scherpstellen op het midden, dan pas de foto.
-                        val cam = camera
-                        if (cam == null) shoot() else {
-                            val point = androidx.camera.core.SurfaceOrientedMeteringPointFactory(1f, 1f).createPoint(0.5f, 0.5f)
-                            val action = androidx.camera.core.FocusMeteringAction.Builder(point, androidx.camera.core.FocusMeteringAction.FLAG_AF)
-                                .setAutoCancelDuration(3, java.util.concurrent.TimeUnit.SECONDS).build()
-                            var done = false
-                            val go: () -> Unit = { if (!done) { done = true; shoot() }; Unit }
-                            runCatching { cam.cameraControl.startFocusAndMetering(action).addListener({ go() }, executor) }.onFailure { go() }
-                            // Niet langer dan 1,5 seconde wachten op scherpstellen.
-                            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({ go() }, 1500)
+                                .onSuccess { (r, sharp) -> handle(r, sharp, fromCamera = true) }
+                                .onFailure { working = false; error = failText }
                         }
-                    },
+                    }
+
+                    override fun onError(exception: ImageCaptureException) {
+                        working = false
+                        error = failText
+                    }
+                })
+                // Eerst scherpstellen op het midden, dan pas de foto.
+                val cam = camera
+                if (cam == null) shoot() else {
+                    val point = androidx.camera.core.SurfaceOrientedMeteringPointFactory(1f, 1f).createPoint(0.5f, 0.5f)
+                    val action = androidx.camera.core.FocusMeteringAction.Builder(point, androidx.camera.core.FocusMeteringAction.FLAG_AF)
+                        .setAutoCancelDuration(3, java.util.concurrent.TimeUnit.SECONDS).build()
+                    var done = false
+                    val go: () -> Unit = { if (!done) { done = true; shoot() }; Unit }
+                    runCatching { cam.cameraControl.startFocusAndMetering(action).addListener({ go() }, executor) }.onFailure { go() }
+                    // Niet langer dan 1,5 seconde wachten op scherpstellen.
+                    android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({ go() }, 1500)
+                }
+    }
+
+    // Volledig camerascherm: het beeld vult alles, de bediening zweeft erop.
+    Box(Modifier.fillMaxSize().background(Color.Black).onSizeChanged { boxW = it.width.toFloat(); boxH = it.height.toFloat() }) {
+        if (permitted) {
+            AndroidView(
+                factory = { ctx ->
+                    PreviewView(ctx).also { view ->
+                        // TextureView in plaats van SurfaceView: blijft netjes binnen zijn vak in Compose.
+                        view.implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+                        view.scaleType = PreviewView.ScaleType.FILL_CENTER
+                        val future = ProcessCameraProvider.getInstance(ctx)
+                        future.addListener({
+                            val provider = future.get()
+                            // Zelfde verhouding als de foto, zodat het kader op het scherm en op de foto hetzelfde stuk is.
+                            val preview = Preview.Builder()
+                                .setResolutionSelector(ResolutionSelector.Builder().setAspectRatioStrategy(androidx.camera.core.resolutionselector.AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY).build())
+                                .build().also { it.setSurfaceProvider(view.surfaceProvider) }
+                            runCatching {
+                                provider.unbindAll()
+                                camera = provider.bindToLifecycle(lifecycle, CameraSelector.DEFAULT_BACK_CAMERA, preview, capture)
+                            }
+                        }, ContextCompat.getMainExecutor(ctx))
+                        // Tik om scherp te stellen.
+                        view.setOnTouchListener { v, ev ->
+                            if (ev.action == android.view.MotionEvent.ACTION_UP) {
+                                val point = view.meteringPointFactory.createPoint(ev.x, ev.y)
+                                camera?.cameraControl?.startFocusAndMetering(androidx.camera.core.FocusMeteringAction.Builder(point).build())
+                                v.performClick()
+                            }
+                            true
+                        }
+                    }
+                },
+                modifier = Modifier.fillMaxSize(),
+            )
+            GridOverlay(topBarPx, bottomBarPx)
+        } else {
+            Column(Modifier.align(Alignment.Center).padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(stringResource(R.string.camera_needed), textAlign = TextAlign.Center, color = Color.White)
+                Spacer(Modifier.height(8.dp))
+                Button(onClick = { permissionLauncher.launch(Manifest.permission.CAMERA) }) { Text(stringResource(R.string.allow_camera)) }
+            }
+        }
+        if (working) CircularProgressIndicator(Modifier.align(Alignment.Center))
+
+        // Bovenbalk: terug, set/map/blad, hulp.
+        Row(
+            Modifier.align(Alignment.TopCenter).fillMaxWidth().background(Color.Black.copy(alpha = 0.45f)).statusBarsPadding()
+                .height(64.dp).padding(horizontal = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back), tint = Color.White) }
+            val parts = listOfNotNull(
+                vm.scanSet.ifBlank { null }?.let { stringResource(R.string.set) + " " + it },
+                vm.binder.ifBlank { null },
+                vm.page.ifBlank { null }?.let { stringResource(R.string.page).lowercase() + " " + it },
+            )
+            androidx.compose.material3.AssistChip(
+                onClick = { editFields = true },
+                label = { Text(if (parts.isEmpty()) stringResource(R.string.scan_fields_empty) else parts.joinToString(" · "), maxLines = 1, color = Color.White) },
+                leadingIcon = { Icon(Icons.Filled.Edit, null, tint = Color.White, modifier = Modifier.size(16.dp)) },
+                modifier = Modifier.weight(1f),
+            )
+            Box { nl.spoonpaco.ninegrid.ui.guide.HelpButton("add") }
+        }
+
+        // Onderband: foto's, ontspanknop, zaklamp.
+        Column(
+            Modifier.align(Alignment.BottomCenter).fillMaxWidth().background(Color.Black.copy(alpha = 0.45f)).navigationBarsPadding(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            error?.let { Text(it, color = Color.White, fontSize = 13.sp, modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp), textAlign = TextAlign.Center) }
+            Row(
+                Modifier.fillMaxWidth().height(if (error != null) 100.dp else 132.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically,
+            ) {
+                FilledIconButton(
+                    onClick = { gallery.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+                    enabled = !working, modifier = Modifier.size(52.dp),
+                    colors = IconButtonDefaults.filledIconButtonColors(containerColor = Color.White.copy(alpha = 0.18f), contentColor = Color.White),
+                ) { Icon(Icons.Filled.PhotoLibrary, stringResource(R.string.from_photos)) }
+                FilledIconButton(
+                    onClick = { takePhoto() },
                     enabled = permitted && !working,
-                    modifier = Modifier.size(68.dp),
+                    modifier = Modifier.size(78.dp),
                     colors = IconButtonDefaults.filledIconButtonColors(containerColor = MaterialTheme.colorScheme.primary),
-                ) { Icon(Icons.Filled.CameraAlt, stringResource(R.string.take_photo), modifier = Modifier.size(32.dp)) }
-                IconButton(
+                ) { Icon(Icons.Filled.CameraAlt, stringResource(R.string.take_photo), modifier = Modifier.size(36.dp)) }
+                FilledIconButton(
                     onClick = { torch = !torch; camera?.cameraControl?.enableTorch(torch) },
-                    enabled = permitted && camera?.cameraInfo?.hasFlashUnit() == true,
+                    enabled = permitted && camera?.cameraInfo?.hasFlashUnit() == true, modifier = Modifier.size(52.dp),
+                    colors = IconButtonDefaults.filledIconButtonColors(containerColor = Color.White.copy(alpha = 0.18f), contentColor = Color.White),
                 ) { Icon(if (torch) Icons.Filled.FlashlightOn else Icons.Filled.FlashlightOff, stringResource(R.string.torch)) }
             }
         }
     }
+
+    if (editFields) {
+        androidx.compose.material3.ModalBottomSheet(onDismissRequest = { editFields = false }) {
+            Column(Modifier.padding(horizontal = 16.dp).padding(bottom = 24.dp)) {
+                Text(stringResource(R.string.scan_fields_title), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.scan_fields_hint), fontSize = 12.sp, color = LocalNgExtra.current.subtle)
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(vm.scanSet, { vm.scanSet = it.take(6).uppercase() }, label = { Text(stringResource(R.string.set)) }, placeholder = { Text("MH1") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(vm.binder, { vm.binder = it }, label = { Text(stringResource(R.string.binder_short)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(
+                    vm.page, { vm.page = it.filter(Char::isDigit).take(4) }, label = { Text(stringResource(R.string.page)) }, singleLine = true, modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
+                )
+                Spacer(Modifier.height(8.dp))
+                Button(onClick = { editFields = false }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.save)) }
+            }
+        }
+    }
+
     quality?.let { (q, reads) ->
         androidx.compose.material3.AlertDialog(
             onDismissRequest = { quality = null },
@@ -361,11 +403,11 @@ fun ScanScreen(vm: AppViewModel, onResult: () -> Unit) {
  * tussen de hoesjes verschillen per binder, dus lijnen zouden door de kaarten lopen. Alleen vaknummers in de hoeken.
  */
 @Composable
-private fun GridOverlay() {
+private fun GridOverlay(topPx: Float, bottomPx: Float) {
     val frame = NgColors.Amber.copy(alpha = 0.85f)
     val hint = stringResource(R.string.scan_fill_frame)
     Canvas(Modifier.fillMaxSize()) {
-        val g = guideRect(size.width, size.height)
+        val g = guideRect(size.width, size.height, topPx, bottomPx)
         val dim = Color.Black.copy(alpha = 0.45f)
         drawRect(dim, Offset(0f, 0f), androidx.compose.ui.geometry.Size(size.width, g.top))
         drawRect(dim, Offset(0f, g.bottom), androidx.compose.ui.geometry.Size(size.width, size.height - g.bottom))
@@ -382,6 +424,6 @@ private fun GridOverlay() {
             color = android.graphics.Color.argb(200, 255, 255, 255); textSize = 12.dp.toPx(); isAntiAlias = true
             textAlign = android.graphics.Paint.Align.CENTER
         }
-        drawContext.canvas.nativeCanvas.drawText(hint, size.width / 2f, (g.bottom + (size.height - g.bottom) / 2f + 5.dp.toPx()).coerceAtMost(size.height - 4.dp.toPx()), hp)
+        drawContext.canvas.nativeCanvas.drawText(hint, size.width / 2f, g.bottom + 16.dp.toPx(), hp)
     }
 }

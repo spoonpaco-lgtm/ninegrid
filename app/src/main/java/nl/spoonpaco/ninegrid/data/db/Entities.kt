@@ -116,3 +116,18 @@ data class EntryWithPrint(
     @androidx.room.Relation(parentColumn = "printId", entityColumn = "id")
     val print: CardPrint?,
 )
+
+/**
+ * Momentopname van één dag voor één lijn in de grafiek: totaal, sets, decks, een deck (deck:ID) of een set (set:CODE).
+ * Per dag blijft de laatste stand bewaard. Waarde in beide valuta, zodat wisselen van valuta de historie niet breekt.
+ */
+@Serializable
+@Entity(tableName = "snapshots", primaryKeys = ["day", "key"])
+data class Snapshot(
+    val day: String,
+    val key: String,
+    val label: String,
+    val eur: Double,
+    val usd: Double,
+    val count: Int,
+)

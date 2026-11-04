@@ -116,7 +116,7 @@ data class CardQuery(
     val altNames: List<String> = emptyList(),
 )
 
-class ScryfallException(message: String) : Exception(message)
+class ScryfallException(message: String, val code: Int = 0) : Exception(message)
 
 /**
  * Toegang tot Scryfall (gratis, geen sleutel nodig). Scryfall vraagt om rustig aan te doen:
@@ -145,12 +145,17 @@ class ScryfallClient {
             when {
                 resp.isSuccessful -> resp.body?.string()
                 resp.code == 404 -> null
-                else -> throw ScryfallException("Scryfall ${resp.code}")
+                else -> throw ScryfallException("Scryfall ${resp.code}", resp.code)
             }
         }
     }
 
     private fun enc(s: String) = URLEncoder.encode(s, "UTF-8")
+
+    suspend fun cardById(id: String): SfCard? {
+        val body = call(Request.Builder().url("https://api.scryfall.com/cards/${enc(id)}").build())
+        return body?.let { json.decodeFromString(SfCard.serializer(), it) }
+    }
 
     suspend fun cardBySetNumber(set: String, number: String): SfCard? {
         val body = call(Request.Builder().url("https://api.scryfall.com/cards/${enc(set.lowercase())}/${enc(number)}").build())
@@ -190,9 +195,14 @@ class ScryfallClient {
      * Haalt veel kaarten tegelijk op, 75 per verzoek. Geeft per vraag het gevonden kaartobject terug,
      * of null als Scryfall hem niet kent.
      */
+    /** Kan Scryfall met deze vraag iets in een collection-verzoek? (Een lege vraag laat het hele verzoek mislukken.) */
+    private fun usable(q: CardQuery) = q.id != null || (q.setCode != null && q.collectorNumber != null) || q.name != null
+
     suspend fun collection(queries: List<CardQuery>): List<SfCard?> {
         val results = arrayOfNulls<SfCard>(queries.size)
-        queries.chunked(75).forEachIndexed { chunkIndex, chunk ->
+        val idx = queries.indices.filter { usable(queries[it]) }
+        idx.chunked(75).forEach { chunkIdx ->
+            val chunk = chunkIdx.map { queries[it] }
             val payload = buildJsonObject {
                 put("identifiers", buildJsonArray {
                     chunk.forEach { q ->
@@ -210,18 +220,22 @@ class ScryfallClient {
                     }
                 })
             }
-            val body = call(
-                Request.Builder().url("https://api.scryfall.com/cards/collection")
-                    .post(payload.toString().toRequestBody("application/json".toMediaType()))
-                    .build()
-            ) ?: return@forEachIndexed
+            val body = try {
+                call(
+                    Request.Builder().url("https://api.scryfall.com/cards/collection")
+                        .post(payload.toString().toRequestBody("application/json".toMediaType()))
+                        .build()
+                )
+            } catch (e: ScryfallException) {
+                null // Scryfall weigert het verzoek: de kaarten worden daarna één voor één gezocht.
+            } ?: return@forEach
             val coll = json.decodeFromString(SfCollection.serializer(), body)
             // Scryfall geeft gevonden kaarten in volgorde terug, zonder de niet-gevonden vragen.
             val found = coll.data.toMutableList()
             chunk.forEachIndexed { i, q ->
                 val match = found.firstOrNull { c -> matches(q, c) }
                 if (match != null) {
-                    results[chunkIndex * 75 + i] = match
+                    results[chunkIdx[i]] = match
                     found.remove(match)
                 }
             }

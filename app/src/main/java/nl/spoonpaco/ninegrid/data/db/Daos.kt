@@ -133,3 +133,21 @@ interface ChangeDao {
     @Query("DELETE FROM changes")
     suspend fun deleteAll()
 }
+
+@Dao
+interface SnapshotDao {
+    @Upsert
+    suspend fun upsert(items: List<Snapshot>)
+
+    @Query("SELECT * FROM snapshots ORDER BY day")
+    fun observeAll(): Flow<List<Snapshot>>
+
+    @Query("SELECT * FROM snapshots")
+    suspend fun all(): List<Snapshot>
+
+    @Query("DELETE FROM snapshots WHERE day = :day")
+    suspend fun deleteDay(day: String)
+
+    @Query("DELETE FROM snapshots")
+    suspend fun deleteAll()
+}

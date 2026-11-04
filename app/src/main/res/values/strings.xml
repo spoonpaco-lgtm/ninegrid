@@ -234,4 +234,20 @@
         <item quantity="one">%d card added</item>
         <item quantity="other">%d cards added</item>
     </plurals>
+    <string name="line_total">Total collection</string>
+    <string name="since_days">in %1$d days</string>
+    <string name="chart_title">Collection over time</string>
+    <string name="chart_empty">The chart fills up from today: every day you open the app adds a point.</string>
+    <string name="chart_value">Value</string>
+    <string name="chart_cards">Cards</string>
+    <string name="chart_choose_lines">Choose lines</string>
+    <string name="chart_max_lines">At most %1$d lines at a time</string>
+    <string name="value_per_rarity">Value per rarity</string>
+    <string name="range_1m">1M</string>
+    <string name="range_3m">3M</string>
+    <string name="range_1y">1Y</string>
+    <string name="range_all">All</string>
+    <string name="scan_fields_empty">Set, binder, page (optional)</string>
+    <string name="scan_fields_title">This page</string>
+    <string name="msg_scryfall_error">Scryfall returned an error (code %1$d). Try again later.</string>
 </resources>

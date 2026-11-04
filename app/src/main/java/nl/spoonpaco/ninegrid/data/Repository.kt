@@ -27,6 +27,7 @@ data class BackupFile(
     val prints: List<CardPrint>,
     val entries: List<Entry>,
     val decks: List<Deck>,
+    val snapshots: List<nl.spoonpaco.ninegrid.data.db.Snapshot> = emptyList(),
 )
 
 /**
@@ -44,6 +45,33 @@ class Repository(
     val decks: Flow<List<Deck>> = db.decks().observeAll()
     val changes: Flow<List<ChangeRecord>> = db.changes().observeAll()
     val binders: Flow<List<String>> = db.entries().binders()
+    val snapshots = db.snapshots().observeAll()
+
+    /**
+     * Bewaart de stand van vandaag: totaal, sets, decks en elk deck en elke set apart.
+     * Wordt per dag overschreven, zodat alleen de laatste stand van de dag blijft.
+     */
+    suspend fun takeSnapshot() {
+        val day = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date())
+        val entries = db.entries().all().filter { !it.proxy }
+        val prints = db.prints().all().associateBy { it.id }
+        val decks = db.decks().all()
+        fun snap(key: String, label: String, list: List<Entry>) = nl.spoonpaco.ninegrid.data.db.Snapshot(
+            day, key, label,
+            list.sumOf { nl.spoonpaco.ninegrid.domain.Money.total(it, prints[it.printId], "EUR") },
+            list.sumOf { nl.spoonpaco.ninegrid.domain.Money.total(it, prints[it.printId], "USD") },
+            list.sumOf { it.quantity },
+        )
+        val loose = entries.filter { it.deckId == null }
+        val inDecks = entries.filter { it.deckId != null }
+        val rows = mutableListOf(snap("total", "", entries), snap("sets", "", loose), snap("decks", "", inDecks))
+        decks.forEach { d -> rows += snap("deck:${d.id}", d.name, inDecks.filter { it.deckId == d.id }) }
+        loose.groupBy { prints[it.printId]?.setCode ?: "?" }.forEach { (code, l) -> rows += snap("set:$code", code, l) }
+        db.withTransaction {
+            db.snapshots().deleteDay(day)
+            db.snapshots().upsert(rows)
+        }
+    }
 
     fun entriesForPrint(printId: String) = db.entries().observeForPrint(printId)
     fun entriesForDeck(deckId: Long) = db.entries().observeForDeck(deckId)
@@ -279,8 +307,12 @@ class Repository(
         }
         queries.forEachIndexed { i, q ->
             if (first[i] != null) return@forEachIndexed
+            if (q.id != null) {
+                first[i] = runCatching { scryfall.cardById(q.id) }.getOrNull()
+                if (first[i] != null) return@forEachIndexed
+            }
             if (q.setCode != null && q.collectorNumber != null) {
-                for ((s, n) in ScanParser.alternatives(q.setCode, q.collectorNumber)) {
+                for ((s, n) in listOf(q.setCode to q.collectorNumber) + ScanParser.alternatives(q.setCode, q.collectorNumber)) {
                     val c = runCatching { scryfall.cardBySetNumber(s, n) }.getOrNull()
                     if (c != null) { first[i] = c; break }
                 }
@@ -318,6 +350,7 @@ class Repository(
         prints = db.prints().owned(),
         entries = db.entries().all(),
         decks = db.decks().all(),
+        snapshots = db.snapshots().all(),
     )
 
     fun backupToJson(b: BackupFile): String = json.encodeToString(BackupFile.serializer(), b)
@@ -334,6 +367,7 @@ class Repository(
             db.prints().upsert(b.prints)
             db.decks().upsert(b.decks)
             db.entries().upsert(b.entries)
+            if (b.snapshots.isNotEmpty()) { db.snapshots().deleteAll(); db.snapshots().upsert(b.snapshots) }
         }
     }
 

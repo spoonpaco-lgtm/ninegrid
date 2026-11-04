@@ -66,12 +66,27 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     val decks: StateFlow<List<Deck>> = repo.decks.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
     val changes = repo.changes.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
     val binders = repo.binders.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+    val snapshots = repo.snapshots.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    init {
+        // Eén momentopname per dag: bij het openen van de app (en na elke prijsupdate of wijziging).
+        viewModelScope.launch { kotlinx.coroutines.delay(1500); snapshot() }
+    }
+
+    fun snapshot() = viewModelScope.launch { runCatching { repo.takeSnapshot() } }
 
     var message by mutableStateOf<String?>(null)
     var busy by mutableStateOf(false)
     var update by mutableStateOf<UpdateInfo?>(null)
 
     private fun str(id: Int, vararg args: Any) = getApplication<Application>().getString(id, *args)
+
+    /** Alleen "geen verbinding" als er echt geen verbinding is; anders de foutcode van Scryfall. */
+    private fun errorText(t: Throwable): String = when (t) {
+        is nl.spoonpaco.ninegrid.data.scryfall.ScryfallException -> str(R.string.msg_scryfall_error, t.code)
+        is java.io.IOException -> str(R.string.msg_network_error)
+        else -> str(R.string.msg_scryfall_error, 0)
+    }
 
     // ---------- Invoer ----------
     val pending = mutableStateListOf<PendingItem>()
@@ -162,7 +177,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             busy = true
             val found = runCatching { repo.resolve(todo.map { it.query }) }.getOrElse {
-                message = str(R.string.msg_network_error); List(todo.size) { null }
+                message = errorText(it); List(todo.size) { null }
             }
             todo.forEachIndexed { i, item ->
                 val idx = pending.indexOfFirst { it.key == item.key }
@@ -268,6 +283,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
             }
             pending.clear()
             busy = false
+            snapshot()
         }
     }
 
@@ -312,9 +328,10 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         runCatching { repo.refreshPrices() }
             .onSuccess {
                 settingsStore.setLastPriceUpdate(System.currentTimeMillis())
+                snapshot()
                 message = str(R.string.msg_prices_updated, it)
             }
-            .onFailure { message = str(R.string.msg_network_error) }
+            .onFailure { message = errorText(it) }
         busy = false
     }
 
@@ -359,6 +376,9 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     // ---------- Instellingen ----------
     fun setTheme(v: String) = viewModelScope.launch { settingsStore.setTheme(v) }
+    fun setChartLines(v: List<String>) = viewModelScope.launch { settingsStore.setChartLines(v) }
+    fun setChartMetric(v: String) = viewModelScope.launch { settingsStore.setChartMetric(v) }
+    fun setChartRange(v: String) = viewModelScope.launch { settingsStore.setChartRange(v) }
     fun setCurrency(v: String) = viewModelScope.launch { settingsStore.setCurrency(v) }
     fun setWifiOnly(v: Boolean) = viewModelScope.launch { settingsStore.setWifiOnly(v) }
     fun setOnboardingDone() = viewModelScope.launch { settingsStore.setOnboardingDone(true) }

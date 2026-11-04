@@ -85,7 +85,7 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         snackbarHost = { SnackbarHost(snackbar) },
         bottomBar = {
-            if (tabs.any { it.route == route }) {
+            if (tabs.any { it.route == route } && route != "scan") {
                 NavigationBar {
                     tabs.forEach { t ->
                         NavigationBarItem(
@@ -125,7 +125,7 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
             composable("decks") {
                 DecksScreen(vm, onDeck = { nav.navigate("deck/$it") }, onNewDeck = { nav.navigate("paste?asNewDeck=true") })
             }
-            composable("scan") { ScanScreen(vm, onResult = { nav.navigate("review") }) }
+            composable("scan") { ScanScreen(vm, onBack = { if (!nav.popBackStack()) tab("collection") }, onResult = { nav.navigate("review") }) }
             composable("overview") { OverviewScreen(vm) }
             composable("more") {
                 MoreScreen(
