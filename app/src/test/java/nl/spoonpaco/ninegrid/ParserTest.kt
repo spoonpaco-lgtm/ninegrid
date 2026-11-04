@@ -225,4 +225,40 @@ class ParserTest {
         assertTrue(p in 0.72..0.80)
         assertEquals(1.0, (0..7).sumOf { S.hyper(60, 24, 7, it) }, 1e-9)
     }
+
+    @Test
+    fun importsOtherApps() {
+        val I = nl.spoonpaco.ninegrid.domain.SheetImport
+        val mox = I.interpret(listOf("mox" to I.parseCsv(
+            "\"Count\",\"Tradelist Count\",\"Name\",\"Edition\",\"Condition\",\"Language\",\"Foil\",\"Tags\",\"Last Modified\",\"Collector Number\"\n" +
+            "\"2\",\"0\",\"Lightning Bolt\",\"m10\",\"Near Mint\",\"Japanese\",\"foil\",\"\",\"2024\",\"146\"\n")))
+        assertEquals("Moxfield", mox.format)
+        val c = mox.collection.single()
+        assertEquals("M10", c.setCode); assertEquals("146", c.number); assertEquals(2, c.quantity)
+        assertTrue(c.foil); assertEquals("JP", c.language); assertEquals("NM", c.condition)
+
+        val box = I.interpret(listOf("deckbox" to I.parseCsv(
+            "Count,Tradelist Count,Name,Edition,Card Number,Condition,Language,Foil\n1,0,Sol Ring,Commander 2021,263,Lightly Played,English,\n")))
+        assertEquals("Deckbox", box.format)
+        assertEquals("Commander 2021", box.collection.single().setName)
+        assertEquals("LP", box.collection.single().condition)
+
+        val mana = I.interpret(listOf("manabox" to I.parseCsv(
+            "Name,Set code,Set name,Collector number,Foil,Rarity,Quantity,ManaBox ID,Scryfall ID,Language\nMurder,M20,Core Set 2020,109,normal,common,4,1,abc-123,en\n")))
+        assertEquals("ManaBox", mana.format)
+        assertEquals("abc-123", mana.collection.single().scryfallId)
+        assertFalse(mana.collection.single().foil)
+
+        val dragon = I.interpret(listOf("ds" to I.parseCsv(
+            "sep=,\nFolder Name,Quantity,Trade Quantity,Card Name,Set Code,Set Name,Card Number,Condition,Printing,Language\nBinder,3,0,Duress,STA,Strixhaven Mystical Archive,29,NearMint,Foil,English\n")))
+        assertEquals("Dragon Shield", dragon.format)
+        assertEquals(3, dragon.collection.single().quantity)
+        assertTrue(dragon.collection.single().foil)
+
+        val unknown = I.interpret(listOf("x" to I.parseCsv("a,b,c\n1,2,3\n")))
+        assertTrue(unknown.needsMapping)
+        val mapped = I.interpret(listOf("x" to I.parseCsv("a,b,c\nOpt,XLN,65\n")),
+            mapOf(0 to I.Role.NAME, 1 to I.Role.SET, 2 to I.Role.NUMBER))
+        assertEquals("Opt", mapped.collection.single().name)
+    }
 }

@@ -56,6 +56,8 @@ fun ImportScreen(vm: AppViewModel, onBack: () -> Unit, onDone: () -> Unit) {
     val entries by vm.entries.collectAsState()
     val clipboard = LocalClipboardManager.current
     var replace by remember { mutableStateOf(false) }
+    var asDeck by remember { mutableStateOf(false) }
+    var deckName by remember { mutableStateOf("") }
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri -> uri?.let(vm::readImport) }
     val mimeTypes = arrayOf(
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "text/csv", "text/comma-separated-values",
@@ -87,9 +89,33 @@ fun ImportScreen(vm: AppViewModel, onBack: () -> Unit, onDone: () -> Unit) {
                 ImportStep.READING -> Row(verticalAlignment = Alignment.CenterVertically) {
                     CircularProgressIndicator(); Spacer(Modifier.padding(8.dp)); Text(stringResource(R.string.import_reading))
                 }
+                ImportStep.MAPPING -> {
+                    val d = vm.importData ?: return@Column
+                    Text(stringResource(R.string.import_mapping_title), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.import_mapping_explain), fontSize = 13.sp, color = extra.subtle)
+                    Spacer(Modifier.height(8.dp))
+                    val roleLabels = nl.spoonpaco.ninegrid.domain.SheetImport.Role.entries.associate { it.name to roleLabel(it.name) }
+                    d.headers.forEachIndexed { i, head ->
+                        val example = d.sample.mapNotNull { it.getOrNull(i)?.takeIf { v -> v.isNotBlank() } }.take(2).joinToString(", ")
+                        ChoiceRow(
+                            "${head.ifBlank { "#${i + 1}" }}" + if (example.isNotBlank()) " ($example)" else "",
+                            nl.spoonpaco.ninegrid.domain.SheetImport.Role.entries.map { it.name },
+                            (vm.importMapping[i] ?: nl.spoonpaco.ninegrid.domain.SheetImport.Role.IGNORE).name,
+                            { roleLabels[it] ?: it },
+                        ) { r -> vm.importMapping = vm.importMapping + (i to nl.spoonpaco.ninegrid.domain.SheetImport.Role.valueOf(r)) }
+                    }
+                    Spacer(Modifier.height(10.dp))
+                    val ok = vm.importMapping.values.any { it == nl.spoonpaco.ninegrid.domain.SheetImport.Role.NAME || it == nl.spoonpaco.ninegrid.domain.SheetImport.Role.SCRYFALL_ID }
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedButton(onClick = { vm.cancelImport() }) { Text(stringResource(R.string.cancel)) }
+                        Button(onClick = { vm.applyMapping() }, enabled = ok, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.next)) }
+                    }
+                    if (!ok) Text(stringResource(R.string.import_mapping_need_name), fontSize = 12.sp, color = extra.subtle)
+                }
                 ImportStep.READY -> {
                     val d = vm.importData ?: return@Column
                     Text(stringResource(R.string.import_found), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                    if (d.format.isNotBlank()) Text(stringResource(R.string.import_format, d.format), fontSize = 13.sp, color = MaterialTheme.colorScheme.primary)
                     Spacer(Modifier.height(8.dp))
                     Line(stringResource(R.string.import_sheets), d.sheetsRead.joinToString(", "))
                     Line(stringResource(R.string.collection), pluralStringResource(R.plurals.n_cards, d.collectionCount, d.collectionCount))
@@ -110,11 +136,23 @@ fun ImportScreen(vm: AppViewModel, onBack: () -> Unit, onDone: () -> Unit) {
                         }
                         Spacer(Modifier.height(8.dp))
                     }
+                    // Een bestand uit een andere app kan ook één deck zijn.
+                    if (d.decks.isEmpty() && d.collection.isNotEmpty()) {
+                        Text(stringResource(R.string.import_where), fontWeight = FontWeight.Bold)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            RadioButton(selected = !asDeck, onClick = { asDeck = false }); Text(stringResource(R.string.import_to_collection_choice))
+                        }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            RadioButton(selected = asDeck, onClick = { asDeck = true }); Text(stringResource(R.string.import_as_deck))
+                        }
+                        if (asDeck) androidx.compose.material3.OutlinedTextField(deckName, { deckName = it }, singleLine = true, label = { Text(stringResource(R.string.deck_name)) }, modifier = Modifier.fillMaxWidth())
+                        Spacer(Modifier.height(8.dp))
+                    }
                     Text(stringResource(R.string.import_time_hint), fontSize = 12.sp, color = extra.subtle)
                     Spacer(Modifier.height(12.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         OutlinedButton(onClick = { vm.cancelImport() }) { Text(stringResource(R.string.cancel)) }
-                        Button(onClick = { vm.runImport(replace) }, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.import_start)) }
+                        Button(onClick = { vm.runImport(replace, if (asDeck) deckName.trim().ifBlank { vm.importData?.format?.ifBlank { null } ?: "Import" } else null) }, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.import_start)) }
                     }
                 }
                 ImportStep.RESOLVING, ImportStep.SAVING -> {
@@ -157,4 +195,12 @@ private fun Line(label: String, value: String) {
         Text(label, modifier = Modifier.weight(1f))
         Text(value, fontWeight = FontWeight.Bold)
     }
+}
+
+@Composable
+private fun roleLabel(r: String) = when (r) {
+    "NAME" -> stringResource(R.string.role_name); "SET" -> stringResource(R.string.role_set); "SET_NAME" -> stringResource(R.string.role_set_name)
+    "NUMBER" -> stringResource(R.string.role_number); "QUANTITY" -> stringResource(R.string.quantity); "FINISH" -> stringResource(R.string.finish)
+    "LANGUAGE" -> stringResource(R.string.language); "CONDITION" -> stringResource(R.string.condition); "SCRYFALL_ID" -> "Scryfall ID"
+    "PROXY" -> stringResource(R.string.proxy); else -> stringResource(R.string.role_ignore)
 }

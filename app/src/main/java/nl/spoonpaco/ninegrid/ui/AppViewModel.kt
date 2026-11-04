@@ -626,7 +626,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     // ---------- Importeren uit de Sheet (.xlsx of .csv) ----------
-    enum class ImportStep { IDLE, READING, READY, RESOLVING, SAVING, DONE, FAILED }
+    enum class ImportStep { IDLE, READING, MAPPING, READY, RESOLVING, SAVING, DONE, FAILED }
 
     var importStep by mutableStateOf(ImportStep.IDLE)
     var importData by mutableStateOf<nl.spoonpaco.ninegrid.domain.ImportData?>(null)
@@ -634,30 +634,79 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     var importNotFound by mutableStateOf<List<nl.spoonpaco.ninegrid.domain.ImportCard>>(emptyList())
     var importResult by mutableStateOf("")
 
-    fun readImport(uri: Uri) = viewModelScope.launch {
+    private var importUri: Uri? = null
+    private var importName = ""
+    /** Zelf aangewezen kolommen voor een onbekend formaat (op kolomkoppen onthouden). */
+    var importMapping by mutableStateOf<Map<Int, nl.spoonpaco.ninegrid.domain.SheetImport.Role>>(emptyMap())
+
+    private val mappingPrefs get() = getApplication<Application>().getSharedPreferences("import_mappings", android.content.Context.MODE_PRIVATE)
+
+    private fun savedMapping(headers: List<String>): Map<Int, nl.spoonpaco.ninegrid.domain.SheetImport.Role>? =
+        mappingPrefs.getString(headers.joinToString("|"), null)?.split(",")?.mapNotNull { p ->
+            val (i, r) = p.split("=").takeIf { it.size == 2 } ?: return@mapNotNull null
+            i.toIntOrNull()?.let { it to nl.spoonpaco.ninegrid.domain.SheetImport.Role.valueOf(r) }
+        }?.toMap()
+
+    fun readImport(uri: Uri, mapping: Map<Int, nl.spoonpaco.ninegrid.domain.SheetImport.Role>? = null) = viewModelScope.launch {
         importStep = ImportStep.READING
         importNotFound = emptyList()
+        importUri = uri
         runCatching {
             val ctx = getApplication<Application>()
             val name = androidx.documentfile.provider.DocumentFile.fromSingleUri(ctx, uri)?.name ?: "import.xlsx"
+            importName = name
             kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-                ctx.contentResolver.openInputStream(uri)!!.use { nl.spoonpaco.ninegrid.domain.SheetImport.read(name, it) }
+                val first = ctx.contentResolver.openInputStream(uri)!!.use { nl.spoonpaco.ninegrid.domain.SheetImport.read(name, it, mapping) }
+                // Onbekend formaat dat je eerder al aanwees? Dan die indeling meteen gebruiken.
+                val saved = if (first.needsMapping && mapping == null) savedMapping(first.headers) else null
+                if (saved != null) ctx.contentResolver.openInputStream(uri)!!.use { nl.spoonpaco.ninegrid.domain.SheetImport.read(name, it, saved) } else first
             }
-        }.onSuccess { importData = it; importStep = if (it.collection.isEmpty() && it.decks.isEmpty()) ImportStep.FAILED else ImportStep.READY }
-            .onFailure { importStep = ImportStep.FAILED }
+        }.onSuccess {
+            importData = it
+            importStep = when {
+                it.needsMapping -> { importMapping = emptyMap(); ImportStep.MAPPING }
+                it.collection.isEmpty() && it.decks.isEmpty() -> ImportStep.FAILED
+                else -> ImportStep.READY
+            }
+        }.onFailure { importStep = ImportStep.FAILED }
+    }
+
+    /** Zelf aangewezen kolommen toepassen en onthouden. */
+    fun applyMapping() {
+        val uri = importUri ?: return
+        val headers = importData?.headers.orEmpty()
+        mappingPrefs.edit().putString(headers.joinToString("|"), importMapping.entries.joinToString(",") { "${it.key}=${it.value.name}" }).apply()
+        readImport(uri, importMapping)
     }
 
     fun cancelImport() { importStep = ImportStep.IDLE; importData = null; importNotFound = emptyList() }
 
-    fun runImport(replace: Boolean) {
-        val data = importData ?: return
+    fun runImport(replace: Boolean, asDeck: String? = null) {
+        val data0 = importData ?: return
         viewModelScope.launch {
             importStep = ImportStep.RESOLVING
             importProgress = 0f
+            // Setnamen zonder code (Deckbox, TCGplayer) omzetten via de setlijst van Scryfall.
+            var data = data0
+            val needNames = (data.collection + data.decks.flatMap { it.cards }).any { it.setCode.isBlank() && it.setName.isNotBlank() && it.scryfallId == null }
+            if (needNames) {
+                val byName = runCatching { repo.scryfall.allSets() }.getOrDefault(emptyList()).associate { it.name.lowercase() to it.code.uppercase() }
+                fun fix(c: nl.spoonpaco.ninegrid.domain.ImportCard) = if (c.setCode.isBlank()) c.copy(setCode = byName[c.setName.lowercase()] ?: "") else c
+                data = data.copy(collection = data.collection.map(::fix), decks = data.decks.map { d -> d.copy(cards = d.cards.map(::fix)) })
+            }
+            // Eén app-bestand als deck importeren in plaats van in de collectie.
+            if (asDeck != null && data.collection.isNotEmpty()) {
+                data = data.copy(decks = data.decks + nl.spoonpaco.ninegrid.domain.ImportDeck(asDeck, data.collection.map { it.copy(section = it.section ?: "MAIN") }), collection = emptyList())
+            }
             val all = data.collection + data.decks.flatMap { it.cards }
-            // Elke print maar één keer opzoeken.
-            val keys = all.map { Triple(it.setCode.lowercase(), it.number.lowercase(), it.name) }.distinct()
-            val queries = keys.map { (set, nr, name) -> CardQuery(setCode = set, collectorNumber = nr.ifBlank { null }, name = name.ifBlank { null }) }
+            // Elke print maar één keer opzoeken; met een Scryfall-ID is de print meteen zeker.
+            fun keyOf(c: nl.spoonpaco.ninegrid.domain.ImportCard) = c.scryfallId?.let { "id:$it" } ?: "${c.setCode.lowercase()}|${c.number.lowercase()}|${c.name}"
+            val distinct = all.distinctBy { keyOf(it) }
+            val keys = distinct.map { keyOf(it) }
+            val queries = distinct.map { c ->
+                if (c.scryfallId != null) CardQuery(id = c.scryfallId)
+                else CardQuery(setCode = c.setCode.ifBlank { null }, collectorNumber = c.number.ifBlank { null }, name = c.name.ifBlank { null })
+            }
             val found = runCatching {
                 repo.resolve(queries) { i, n -> importProgress = if (n == 0) 1f else i / n.toFloat() }
             }.getOrElse {
@@ -667,10 +716,10 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
             val byKey = keys.zip(found).toMap()
             val notFound = mutableListOf<nl.spoonpaco.ninegrid.domain.ImportCard>()
             fun toNew(c: nl.spoonpaco.ninegrid.domain.ImportCard): NewEntry? {
-                val card = byKey[Triple(c.setCode.lowercase(), c.number.lowercase(), c.name)] ?: run { notFound += c; return null }
+                val card = byKey[keyOf(c)] ?: run { notFound += c; return null }
                 val print = card.toPrint()
                 return NewEntry(print, Entry(
-                    printId = print.id, quantity = c.quantity, proxy = c.proxy, language = c.language,
+                    printId = print.id, quantity = c.quantity, proxy = c.proxy, language = c.language, condition = c.condition,
                     finish = when { c.etched -> Finish.ETCHED; c.foil -> Finish.FOIL; else -> Finish.NONFOIL },
                     section = c.section,
                 ))

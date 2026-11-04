@@ -269,7 +269,6 @@
     <string name="import_title">Importeren</string>
     <string name="import_sub">Je collectie uit de Sheet (.xlsx) of een .csv</string>
     <string name="import_explain">Zet je bestaande collectie in één keer over: settabbladen, Losse kaarten, Decks en Historie uit de MTG Collection Sheet. Niets telt dubbel: kaarten in decks blijven in hun deck.</string>
-    <string name="import_how">Zo krijg je het bestand: open je Sheet in Google Sheets. Op de computer: Bestand → Downloaden → Microsoft Excel (.xlsx). In de Google Sheets-app: ⋮ → Delen en exporteren → Opslaan als → Excel. Kies dat bestand dan hier. Een .csv van één tabblad kan ook.</string>
     <string name="import_choose">Bestand kiezen</string>
     <string name="import_unreadable">Dit bestand kon niet worden gelezen, of er stonden geen kaarten met een aantal in.</string>
     <string name="import_reading">Bestand lezen…</string>
@@ -370,4 +369,17 @@
     <string name="bracket_combo_late">Late combo\'s van twee kaarten</string>
     <string name="privacy_text">Geen account, geen tracking, geen reclame. Foto\'s worden op je telefoon gelezen en nooit bewaard of verstuurd. Alleen kaartnamen en nummers gaan naar Scryfall om kaarten en prijzen op te zoeken, en alleen als je op Combo\'s zoeken tikt gaan de kaartnamen van dat deck naar Commander Spellbook.</string>
     <string name="scryfall_credit">Kaartgegevens en afbeeldingen van Scryfall. Combo-gegevens van Commander Spellbook. NineGrid is niet gemaakt of goedgekeurd door Scryfall of Commander Spellbook.</string>
+    <string name="import_format">Herkend: %1$s</string>
+    <string name="import_mapping_title">Welke kolom is wat?</string>
+    <string name="import_mapping_explain">Dit formaat is onbekend. Kies per kolom wat erin staat. NineGrid onthoudt dit voor bestanden met dezelfde kolommen.</string>
+    <string name="import_mapping_need_name">Kies minstens de kolom met de kaartnaam (of het Scryfall-ID).</string>
+    <string name="import_where">Waarheen</string>
+    <string name="import_to_collection_choice">Naar mijn collectie</string>
+    <string name="import_as_deck">Als één deck</string>
+    <string name="role_name">Kaartnaam</string>
+    <string name="role_set">Setcode</string>
+    <string name="role_set_name">Setnaam</string>
+    <string name="role_number">Kaartnummer</string>
+    <string name="role_ignore">Negeren</string>
+    <string name="import_how">Zo krijg je het bestand: uit je eigen Sheet in Google Sheets via Bestand → Downloaden → Microsoft Excel (.xlsx), of in de Google Sheets-app via ⋮ → Delen en exporteren → Opslaan als → Excel. Exports van Moxfield, Archidekt, ManaBox, Deckbox, Dragon Shield, TCGplayer, Delver Lens en Helvault (.csv) worden vanzelf herkend. Andere formaten: je wijst één keer zelf de kolommen aan.</string>
 </resources>

@@ -113,6 +113,9 @@ data class SfCollection(val data: List<SfCard> = emptyList(), @SerialName("not_f
 data class SfCatalog(val data: List<String> = emptyList())
 
 @Serializable
+data class SfSetList(val data: List<SfSet> = emptyList())
+
+@Serializable
 data class SfSet(
     val code: String,
     val name: String = "",
@@ -225,6 +228,12 @@ class ScryfallClient {
     suspend fun set(code: String): SfSet? {
         val body = call(Request.Builder().url("https://api.scryfall.com/sets/${enc(code.lowercase())}").build()) ?: return null
         return json.decodeFromString(SfSet.serializer(), body)
+    }
+
+    /** Alle sets (voor setnamen omzetten naar codes, bijv. "Modern Horizons" naar MH1). */
+    suspend fun allSets(): List<SfSet> {
+        val body = call(Request.Builder().url("https://api.scryfall.com/sets").build()) ?: return emptyList()
+        return json.decodeFromString(SfSetList.serializer(), body).data
     }
 
     /** Alle kaarten van een set (alle prints, ook varianten), in setvolgorde. */

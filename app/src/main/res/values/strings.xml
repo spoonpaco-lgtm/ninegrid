@@ -270,7 +270,6 @@
     <string name="import_title">Import</string>
     <string name="import_sub">Your collection from the Sheet (.xlsx) or a .csv</string>
     <string name="import_explain">Bring your existing collection over in one go: set tabs, Loose cards, Decks and History from the MTG Collection Sheet. Nothing is counted twice: cards in decks stay in their deck.</string>
-    <string name="import_how">How to get the file: open your Sheet in Google Sheets. On a computer: File → Download → Microsoft Excel (.xlsx). In the Google Sheets app: ⋮ → Share and export → Save as → Excel. Then choose that file here. A .csv of one tab also works.</string>
     <string name="import_choose">Choose file</string>
     <string name="import_unreadable">This file could not be read, or no cards with a quantity were found in it.</string>
     <string name="import_reading">Reading file…</string>
@@ -371,4 +370,17 @@
     <string name="bracket_combo_late">Late two-card combos</string>
     <string name="privacy_text">No account, no tracking, no ads. Photos are read on your phone and never stored or sent. Only card names and numbers go to Scryfall to look up cards and prices, and only when you tap Find combos are the card names of that deck sent to Commander Spellbook.</string>
     <string name="scryfall_credit">Card data and images from Scryfall. Combo data from Commander Spellbook. NineGrid is not produced by or endorsed by Scryfall or Commander Spellbook.</string>
+    <string name="import_format">Recognised: %1$s</string>
+    <string name="import_mapping_title">Which column is what?</string>
+    <string name="import_mapping_explain">This format is unknown. Choose per column what is in it. NineGrid remembers this for files with the same columns.</string>
+    <string name="import_mapping_need_name">Choose at least the column with the card name (or Scryfall ID).</string>
+    <string name="import_where">Where to</string>
+    <string name="import_to_collection_choice">To my collection</string>
+    <string name="import_as_deck">As one deck</string>
+    <string name="role_name">Card name</string>
+    <string name="role_set">Set code</string>
+    <string name="role_set_name">Set name</string>
+    <string name="role_number">Collector number</string>
+    <string name="role_ignore">Ignore</string>
+    <string name="import_how">How to get the file: from your own Sheet in Google Sheets via File → Download → Microsoft Excel (.xlsx), or in the Google Sheets app via ⋮ → Share and export → Save as → Excel. Exports from Moxfield, Archidekt, ManaBox, Deckbox, Dragon Shield, TCGplayer, Delver Lens and Helvault (.csv) are recognised automatically. Other formats: you point out the columns yourself once.</string>
 </resources>

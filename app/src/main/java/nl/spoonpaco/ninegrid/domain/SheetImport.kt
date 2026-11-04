@@ -17,6 +17,11 @@ data class ImportCard(
     val proxy: Boolean,
     /** Commander, Deck of Sideboard, alleen bij decks. */
     val section: String? = null,
+    /** Scryfall-ID uit de export (ManaBox, Archidekt, Helvault): dan is de print meteen zeker. */
+    val scryfallId: String? = null,
+    /** Setnaam als er geen setcode is (Deckbox: "Modern Horizons"). */
+    val setName: String = "",
+    val condition: String = "NM",
 )
 
 data class ImportDeck(val name: String, val cards: List<ImportCard>)
@@ -31,6 +36,12 @@ data class ImportData(
     val history: List<ImportHistory>,
     val sheetsRead: List<String>,
     val skippedRows: Int,
+    /** Herkend formaat, bijvoorbeeld "Moxfield" of "MTG Collection Sheet". */
+    val format: String = "",
+    /** Onbekend formaat: de kolommen moet de gebruiker zelf aanwijzen. */
+    val needsMapping: Boolean = false,
+    val headers: List<String> = emptyList(),
+    val sample: List<List<String>> = emptyList(),
 ) {
     val collectionCount get() = collection.sumOf { it.quantity }
     val deckCount get() = decks.sumOf { d -> d.cards.sumOf { it.quantity } }
@@ -45,38 +56,159 @@ data class ImportData(
 object SheetImport {
     private val SKIP = setOf("overzicht", "overview")
 
-    fun read(fileName: String, input: InputStream): ImportData {
+    /** Rol van een kolom bij zelf aanwijzen. */
+    enum class Role { IGNORE, NAME, SET, SET_NAME, NUMBER, QUANTITY, FINISH, LANGUAGE, CONDITION, SCRYFALL_ID, PROXY }
+
+    fun read(fileName: String, input: InputStream, mapping: Map<Int, Role>? = null): ImportData =
+        interpret(readSheets(fileName, input), mapping)
+
+    fun readSheets(fileName: String, input: InputStream): List<Pair<String, List<List<String>>>> {
         val lower = fileName.lowercase()
-        return if (lower.endsWith(".csv") || lower.endsWith(".txt")) {
-            val rows = parseCsv(input.readBytes().decodeToString())
-            interpret(listOf((fileName.substringBeforeLast('.')) to rows))
-        } else {
-            interpret(readXlsx(input))
-        }
+        return if (lower.endsWith(".csv") || lower.endsWith(".txt") || lower.endsWith(".tsv")) {
+            val text = input.readBytes().decodeToString().removePrefix("\uFEFF")
+            listOf(fileName.substringBeforeLast('.') to parseCsv(text))
+        } else readXlsx(input)
     }
 
     // ---------- Indeling herkennen ----------
 
-    fun interpret(sheets: List<Pair<String, List<List<String>>>>): ImportData {
+    fun interpret(sheets: List<Pair<String, List<List<String>>>>, mapping: Map<Int, Role>? = null): ImportData {
         val collection = mutableListOf<ImportCard>()
         val decks = mutableListOf<ImportDeck>()
         val history = mutableListOf<ImportHistory>()
         val read = mutableListOf<String>()
         var skipped = 0
+        var format = ""
+        var unknown: Pair<List<String>, List<List<String>>>? = null
+        val ourSheet = sheets.any { it.first.trim().lowercase() in setOf("decks", "historie", "overzicht") }
         for ((name, rows) in sheets) {
             val n = name.trim().lowercase()
             when {
                 n in SKIP -> continue
                 n == "historie" || n == "history" -> { history += readHistory(rows); read += name }
-                n == "decks" -> { decks += readDecks(rows); read += name }
+                n == "decks" && ourSheet -> { decks += readDecks(rows); read += name }
                 else -> {
-                    val (cards, sk) = readTable(rows)
-                    if (cards.isNotEmpty() || rows.firstOrNull()?.firstOrNull()?.trim()?.equals("Set", true) == true) read += name
-                    collection += cards; skipped += sk
+                    val t = readGeneric(rows, mapping)
+                    if (t.needsMapping) { if (unknown == null) unknown = t.headers to t.sample; continue }
+                    if (t.cards.isNotEmpty()) read += name
+                    if (format.isEmpty()) format = t.format
+                    collection += t.cards; skipped += t.skipped
                 }
             }
         }
-        return ImportData(collection, decks, history, read, skipped)
+        if (ourSheet) format = "MTG Collection Sheet"
+        val needs = collection.isEmpty() && decks.isEmpty() && unknown != null
+        return ImportData(collection, decks, history, read, skipped, format, needs, unknown?.first.orEmpty(), unknown?.second.orEmpty())
+    }
+
+    // ---------- Andere apps ----------
+
+    private fun h(s: String) = s.trim().lowercase().replace(Regex("""[^a-z0-9#]"""), "")
+
+    /** Namen die apps voor dezelfde kolom gebruiken (zonder spaties, leestekens en hoofdletters). */
+    private val synonyms: Map<Role, Set<String>> = mapOf(
+        Role.NAME to setOf("name", "cardname", "card", "kaart", "naam", "kaartnaam", "cardtitle", "title", "productname", "simplename"),
+        Role.SET to setOf("set", "setcode", "editioncode", "code", "setid", "expansioncode", "edition"),
+        Role.SET_NAME to setOf("setname", "editionname", "expansion", "expansionname", "edition"),
+        Role.NUMBER to setOf("nr", "number", "collectornumber", "collector#", "collectorsnumber", "cardnumber", "no", "num", "cn", "nummer"),
+        Role.QUANTITY to setOf("count", "quantity", "qty", "aantal", "amount", "copies", "have", "havecount", "totalqty"),
+        Role.FINISH to setOf("foil", "finish", "printing", "foiling", "isfoil", "foiletched", "treatment", "extras"),
+        Role.LANGUAGE to setOf("language", "lang", "taal"),
+        Role.CONDITION to setOf("condition", "conditie", "cond", "quality"),
+        Role.SCRYFALL_ID to setOf("scryfallid", "scryfalluuid", "scryfall", "scryfallcardid"),
+        Role.PROXY to setOf("proxy"),
+    )
+
+    /** Welke app het bestand maakte, aan zijn kenmerkende kolommen. */
+    private fun detectApp(hs: Set<String>): String = when {
+        "manaboxid" in hs -> "ManaBox"
+        "foldername" in hs && "tradequantity" in hs -> "Dragon Shield"
+        "tradelistcount" in hs && "mytradelistcount" !in hs && "cardnumber" in hs -> "Deckbox"
+        "tradelistcount" in hs -> "Moxfield"
+        "editioncode" in hs || ("finish" in hs && "scryfallid" in hs && "dateadded" in hs) -> "Archidekt"
+        "tcgplayerproductid" in hs || "productid" in hs || ("printing" in hs && "productname" in hs) -> "TCGplayer"
+        "extras" in hs && "scryfallid" in hs -> "Helvault"
+        "listname" in hs || "delverlens" in hs -> "Delver Lens"
+        "kaart" in hs && "aantal" in hs -> "MTG Collection Sheet"
+        else -> ""
+    }
+
+    private data class Table(val cards: List<ImportCard>, val skipped: Int, val format: String, val needsMapping: Boolean, val headers: List<String>, val sample: List<List<String>>)
+
+    private val codeLike = Regex("""^[A-Za-z0-9]{2,6}$""")
+
+    private fun readGeneric(rows0: List<List<String>>, mapping: Map<Int, Role>?): Table {
+        // Dragon Shield begint met "sep=,"; sommige exports hebben eerst een titelregel.
+        val rows = rows0.filterNot { it.size == 1 && it[0].trim().startsWith("sep=") }
+        val headerIdx = rows.take(10).indexOfFirst { r ->
+            val hs = r.map { h(it) }.toSet()
+            (synonyms.getValue(Role.NAME).any { it in hs } || "scryfallid" in hs) || (hs.contains("set") && hs.contains("kaart"))
+        }
+        if (headerIdx < 0 && mapping == null) return Table(emptyList(), 0, "", true, rows.firstOrNull().orEmpty(), rows.take(4))
+        val header = if (headerIdx >= 0) rows[headerIdx] else rows.firstOrNull().orEmpty()
+        val data = rows.drop((if (headerIdx >= 0) headerIdx else 0) + 1).filter { r -> r.any { it.isNotBlank() } }
+        val hs = header.map { h(it) }
+        val roles = mapping ?: run {
+            val m = mutableMapOf<Int, Role>()
+            hs.forEachIndexed { i, x ->
+                val role = when {
+                    // "Edition": code (MH1) of naam (Modern Horizons)? Kijken naar de waarden.
+                    x == "edition" -> if (data.take(30).map { it.getOrNull(i).orEmpty() }.filter { it.isNotBlank() }.count { codeLike.matches(it) } * 2 >=
+                        data.take(30).count { it.getOrNull(i).orEmpty().isNotBlank() }) Role.SET else Role.SET_NAME
+                    // Moxfield: "Tradelist Count" is niet het aantal dat je hebt.
+                    x.startsWith("tradelist") || x.startsWith("trade") -> null
+                    else -> Role.entries.firstOrNull { r -> r != Role.IGNORE && x in synonyms[r].orEmpty() && !(r == Role.SET_NAME && x == "edition") }
+                }
+                if (role != null && role !in m.values) m[i] = role
+            }
+            m
+        }
+        if (Role.NAME !in roles.values && Role.SCRYFALL_ID !in roles.values) return Table(emptyList(), 0, "", true, header, data.take(4))
+        fun col(r: List<String>, role: Role) = roles.entries.firstOrNull { it.value == role }?.let { r.getOrNull(it.key)?.trim() }.orEmpty()
+        val out = mutableListOf<ImportCard>()
+        var skipped = 0
+        for (r in data) {
+            val qty = if (Role.QUANTITY in roles.values) col(r, Role.QUANTITY).replace(',', '.').toDoubleOrNull()?.toInt() ?: 0 else 1
+            val sid = col(r, Role.SCRYFALL_ID).ifBlank { null }
+            var name = col(r, Role.NAME)
+            if (qty <= 0) continue
+            if (name.isBlank() && sid == null) { skipped++; continue }
+            // Regels zonder set, nummer en id terwijl het bestand die kolommen wel heeft: tellingen of totalen, geen kaart.
+            if (sid == null && Role.SET in roles.values && col(r, Role.SET).isBlank() && col(r, Role.NUMBER).isBlank() && col(r, Role.SET_NAME).isBlank()) continue
+            var lang = language(col(r, Role.LANGUAGE))
+            Regex("""\s*\(([A-Z]{2})\)\s*$""").find(name)?.let { m -> if (lang.isEmpty()) lang = language(m.groupValues[1]); name = name.removeRange(m.range).trim() }
+            val fin = col(r, Role.FINISH).lowercase()
+            val set = col(r, Role.SET).let { if (codeLike.matches(it)) it.uppercase() else "" }
+            out += ImportCard(
+                setCode = set, number = col(r, Role.NUMBER).removeSuffix(".0"), name = name,
+                foil = fin.startsWith("foil") || fin in setOf("true", "yes", "ja", "1", "x", "f"),
+                etched = fin.contains("etched"),
+                language = lang, quantity = qty,
+                proxy = col(r, Role.PROXY).lowercase() in setOf("ja", "yes", "x", "true", "1"),
+                scryfallId = sid, setName = col(r, Role.SET_NAME).ifBlank { if (set.isEmpty()) col(r, Role.SET) else "" },
+                condition = condition(col(r, Role.CONDITION)),
+            )
+        }
+        return Table(out, skipped, detectApp(hs.toSet()), false, header, data.take(4))
+    }
+
+    private val languages = mapOf(
+        "english" to "", "en" to "", "japanese" to "JP", "ja" to "JP", "jp" to "JP", "german" to "DE", "deutsch" to "DE", "de" to "DE",
+        "french" to "FR", "français" to "FR", "fr" to "FR", "italian" to "IT", "it" to "IT", "spanish" to "ES", "es" to "ES", "sp" to "ES",
+        "portuguese" to "PT", "pt" to "PT", "russian" to "RU", "ru" to "RU", "korean" to "KO", "ko" to "KO", "kr" to "KO",
+        "chinese simplified" to "CN", "simplified chinese" to "CN", "zhs" to "CN", "cs" to "CN", "zh" to "CN", "cn" to "CN",
+        "chinese traditional" to "TW", "traditional chinese" to "TW", "zht" to "TW", "ct" to "TW", "tw" to "TW", "phyrexian" to "PH", "ph" to "PH",
+    )
+
+    fun language(v: String): String = languages[v.trim().lowercase()] ?: v.trim().uppercase().take(2).let { if (it == "EN") "" else it }
+
+    fun condition(v: String): String = when (v.trim().lowercase().replace(Regex("[^a-z]"), "")) {
+        "", "m", "mt", "mint", "nm", "nearmint", "nmm" -> "NM"
+        "ex", "excellent", "lp", "lightlyplayed", "lightplayed", "sp", "slightlyplayed", "gd", "good" -> "LP"
+        "mp", "moderatelyplayed", "pl", "played" -> "MP"
+        "hp", "heavilyplayed", "po", "poor" -> "HP"
+        "d", "dmg", "damaged" -> "DMG"
+        else -> "NM"
     }
 
     private data class Cols(val set: Int, val nr: Int, val name: Int, val foil: Int, val lang: Int, val qty: Int, val proxy: Int)
