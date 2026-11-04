@@ -144,6 +144,7 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
     var renaming by remember { mutableStateOf(false) }
     var formatPicker by remember { mutableStateOf(false) }
     var deleting by remember { mutableStateOf(false) }
+    var picking by remember { mutableStateOf(false) }
     val d = deck
     val text = Export.deckText(list, d?.format == DeckFormat.COMMANDER)
     val saveLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/plain")) { uri ->
@@ -161,7 +162,8 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
                 }) { Icon(Icons.Filled.Share, stringResource(R.string.share)) }
                 IconButton(onClick = { menu = true }) { Icon(Icons.Filled.MoreVert, null) }
                 DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                    DropdownMenuItem(text = { Text(stringResource(R.string.add_cards)) }, leadingIcon = { Icon(Icons.Filled.Add, null) }, onClick = { menu = false; onAddCards(deckId) })
+                    DropdownMenuItem(text = { Text(stringResource(R.string.pick_from_collection)) }, leadingIcon = { Icon(Icons.Filled.Add, null) }, onClick = { menu = false; picking = true })
+                    DropdownMenuItem(text = { Text(stringResource(R.string.paste_list)) }, onClick = { menu = false; onAddCards(deckId) })
                     DropdownMenuItem(text = { Text(stringResource(R.string.rename)) }, leadingIcon = { Icon(Icons.Filled.Edit, null) }, onClick = { menu = false; renaming = true })
                     DropdownMenuItem(text = { Text(stringResource(R.string.change_format)) }, onClick = { menu = false; formatPicker = true })
                     DropdownMenuItem(text = { Text(stringResource(R.string.export_text)) }, leadingIcon = { Icon(Icons.Filled.FileDownload, null) }, onClick = { menu = false; saveLauncher.launch("${d?.name ?: "deck"}.txt") })
@@ -192,6 +194,13 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
                         Text(stringResource(R.string.total), modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold)
                         Text(Money.format(list.sumOf { Money.total(it.entry, it.print, settings.currency) }, settings.currency), color = extra.price, fontWeight = FontWeight.Bold)
                     }
+                    Spacer(Modifier.height(8.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        androidx.compose.material3.Button(onClick = { picking = true }) {
+                            Icon(Icons.Filled.Add, null); Spacer(Modifier.width(4.dp)); Text(stringResource(R.string.pick_from_collection))
+                        }
+                        androidx.compose.material3.OutlinedButton(onClick = { onAddCards(deckId) }) { Text(stringResource(R.string.paste_list)) }
+                    }
                     if (d.format == DeckFormat.COMMANDER) {
                         Spacer(Modifier.height(6.dp))
                         Text(stringResource(R.string.bracket_line, check.bracketHint ?: "?", check.gameChangers.size), fontSize = 13.sp)
@@ -215,6 +224,9 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
         }
     }
 
+    if (picking && d != null) {
+        PickFromCollectionDialog(vm, d, onDismiss = { picking = false })
+    }
     if (renaming && d != null) {
         var name by remember { mutableStateOf(d.name) }
         AlertDialog(

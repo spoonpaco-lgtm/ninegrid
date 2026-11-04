@@ -190,4 +190,15 @@
     <string name="wifi_only">Download images only on Wi-Fi</string>
     <string name="your_copies">Your copies (%1$d)</string>
     <string name="scan_set_optional">Set of this page (optional, e.g. MH1)</string>
+    <string name="msg_taken_added">%1$d from collection, %2$d new</string>
+    <string name="review_take">Take from collection (you have %1$d)</string>
+    <string name="review_shortage">%1$d added as new</string>
+    <string name="review_not_owned">Not in your collection · added as new</string>
+    <string name="pick_from_collection">From collection</string>
+    <string name="pick_search_hint">Search name or type</string>
+    <string name="pick_explain">Only cards you own and that are not in a deck. The card moves from your collection into this deck.</string>
+    <string name="pick_empty_title">Nothing found</string>
+    <string name="pick_empty_body">Search differently, or add the card via Paste list.</string>
+    <string name="pick_available">You have %1$d here</string>
+    <string name="pick_put_in_deck">Put in deck</string>
 </resources>

@@ -99,6 +99,66 @@ class Repository(
         return deckId
     }
 
+    /** Een kaart voor een deck: nieuw toevoegen, of eerst uit de collectie halen (en alleen het tekort nieuw). */
+    data class DeckItem(val item: NewEntry, val fromCollection: Boolean)
+
+    data class DeckResult(val deckId: Long, val taken: Int, val added: Int)
+
+    /**
+     * Zet kaarten in een (nieuw of bestaand) deck. Kaarten met fromCollection gaan uit de collectie het deck in,
+     * zodat niets dubbel telt: eerst dezelfde print en afwerking, dan dezelfde print, dan andere prints van dezelfde kaart.
+     * Wat de collectie niet heeft, komt er als nieuw exemplaar bij. Alles in één wijziging, dus in één keer ongedaan te maken.
+     */
+    suspend fun addToDeck(newDeck: Deck?, existingDeckId: Long?, items: List<DeckItem>, summary: (Int, Int) -> String): DeckResult {
+        var result = DeckResult(0, 0, 0)
+        db.withTransaction {
+            val deckId = newDeck?.let { db.decks().insert(it.copy(id = 0)) } ?: existingDeckId ?: return@withTransaction
+            db.prints().upsert(items.map { it.item.print }.distinctBy { it.id })
+            val oracleOf = db.prints().all().associate { it.id to it.oracleId }
+            val cur = db.entries().all().toMutableList()
+            val restore = mutableListOf<Entry>()
+            val created = mutableListOf<Long>()
+            fun snapshot(e: Entry) { if (e.id !in created && restore.none { it.id == e.id }) restore += e }
+            suspend fun put(e: Entry) {
+                val target = e.copy(id = 0, deckId = deckId, binder = null, page = null, slot = null)
+                val match = cur.firstOrNull { sameStack(it, target) }
+                if (match != null) {
+                    snapshot(match)
+                    val upd = match.copy(quantity = match.quantity + target.quantity)
+                    db.entries().upsert(listOf(upd)); cur[cur.indexOf(match)] = upd
+                } else {
+                    val id = db.entries().insert(target); created += id; cur += target.copy(id = id)
+                }
+            }
+            var taken = 0; var added = 0
+            for (di in items) {
+                val want = di.item.entry
+                var rem = want.quantity
+                if (di.fromCollection) {
+                    val oracle = di.item.print.oracleId
+                    val candidates = cur.filter { it.deckId == null && !it.proxy && (it.printId == want.printId || (oracle.isNotEmpty() && oracleOf[it.printId] == oracle)) }
+                        .sortedWith(compareBy({ if (it.printId == want.printId && it.finish == want.finish) 0 else if (it.printId == want.printId) 1 else if (it.finish == want.finish) 2 else 3 }, { -it.quantity }))
+                    for (c in candidates) {
+                        if (rem <= 0) break
+                        val n = minOf(rem, c.quantity)
+                        snapshot(c)
+                        if (n >= c.quantity) { db.entries().deleteIds(listOf(c.id)); cur.removeAll { it.id == c.id } }
+                        else { val upd = c.copy(quantity = c.quantity - n); db.entries().upsert(listOf(upd)); cur[cur.indexOfFirst { it.id == c.id }] = upd }
+                        put(c.copy(quantity = n, section = want.section ?: nl.spoonpaco.ninegrid.data.db.Section.MAIN))
+                        rem -= n; taken += n
+                    }
+                }
+                if (rem > 0) {
+                    put(want.copy(quantity = rem, section = want.section ?: nl.spoonpaco.ninegrid.data.db.Section.MAIN))
+                    added += rem
+                }
+            }
+            log(summary(taken, added), UndoData(restoreEntries = restore, deleteEntryIds = created, deleteDeckIds = if (newDeck != null) listOf(deckId) else emptyList()))
+            result = DeckResult(deckId, taken, added)
+        }
+        return result
+    }
+
     suspend fun updateDeck(deck: Deck, summary: String) {
         db.withTransaction {
             val before = db.decks().get(deck.id) ?: return@withTransaction

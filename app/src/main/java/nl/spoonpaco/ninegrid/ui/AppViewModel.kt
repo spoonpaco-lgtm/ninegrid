@@ -48,6 +48,7 @@ data class PendingItem(
     val proxy: Boolean = false,
     val section: String = Section.MAIN,
     val include: Boolean = true,
+    val fromCollection: Boolean = true,
 )
 
 enum class ImportSource { SCAN, PASTE, SEARCH }
@@ -181,6 +182,14 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    /** Hoeveel exemplaren van deze kaart (alle prints, geen proxies) nu in de collectie liggen. */
+    fun inCollection(print: CardPrint?): Int {
+        if (print == null) return 0
+        return entries.value.filter { it.entry.deckId == null && !it.entry.proxy &&
+            (it.entry.printId == print.id || (print.oracleId.isNotEmpty() && it.print?.oracleId == print.oracleId)) }
+            .sumOf { it.entry.quantity }
+    }
+
     fun updatePending(item: PendingItem) {
         val idx = pending.indexOfFirst { it.key == item.key }
         if (idx >= 0) pending[idx] = item
@@ -216,29 +225,34 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                     images.prefetch(list.map { it.print }, settings.value)
                     onDone(null)
                 }
-                Destination.NEW_DECK -> {
-                    val name = newDeckName.trim().ifBlank { str(R.string.deck_untitled) }
+                Destination.NEW_DECK, Destination.EXISTING_DECK -> {
+                    val isNew = destination == Destination.NEW_DECK
+                    val deckId = if (isNew) null else targetDeckId
+                    if (!isNew && deckId == null) { busy = false; return@launch }
+                    val name = if (isNew) newDeckName.trim().ifBlank { str(R.string.deck_untitled) } else decks.value.firstOrNull { it.id == deckId }?.name ?: ""
+                    val format = if (isNew) newDeckFormat else decks.value.firstOrNull { it.id == deckId }?.format ?: DeckFormat.CASUAL
                     val list = items.map {
                         val sec = when {
-                            newDeckFormat == DeckFormat.COMMANDER && it.section == Section.SIDEBOARD -> Section.MAIN
-                            newDeckFormat != DeckFormat.COMMANDER && it.section == Section.COMMANDER -> Section.MAIN
+                            format == DeckFormat.COMMANDER && it.section == Section.SIDEBOARD -> Section.MAIN
+                            format != DeckFormat.COMMANDER && it.section == Section.COMMANDER -> Section.MAIN
                             else -> it.section
                         }
-                        it.copy(section = sec).toNew(deckId = 0, binder = null, page = null, slot = null)
+                        nl.spoonpaco.ninegrid.data.Repository.DeckItem(
+                            it.copy(section = sec).toNew(deckId = 0, binder = null, page = null, slot = null),
+                            fromCollection = it.fromCollection && !it.proxy,
+                        )
                     }
-                    val id = repo.createDeck(Deck(name = name, format = newDeckFormat), list, str(R.string.log_deck_created, name, count))
-                    message = str(R.string.msg_deck_created, name)
-                    images.prefetch(list.map { it.print }, settings.value)
-                    onDone(id)
-                }
-                Destination.EXISTING_DECK -> {
-                    val deckId = targetDeckId ?: return@launch
-                    val deckName = decks.value.firstOrNull { it.id == deckId }?.name ?: ""
-                    val list = items.map { it.toNew(deckId = deckId, binder = null, page = null, slot = null) }
-                    repo.addEntries(list, str(R.string.log_added_deck, count, deckName))
-                    message = str(R.string.msg_added, count)
-                    images.prefetch(list.map { it.print }, settings.value)
-                    onDone(deckId)
+                    val r = repo.addToDeck(
+                        newDeck = if (isNew) Deck(name = name, format = newDeckFormat) else null,
+                        existingDeckId = deckId,
+                        items = list,
+                    ) { taken, added ->
+                        (if (isNew) str(R.string.log_deck_created, name, count) else str(R.string.log_added_deck, count, name)) +
+                            " · " + str(R.string.msg_taken_added, taken, added)
+                    }
+                    message = (if (isNew) str(R.string.msg_deck_created, name) + " · " else "") + str(R.string.msg_taken_added, r.taken, r.added)
+                    images.prefetch(list.map { it.item.print }, settings.value)
+                    onDone(r.deckId)
                 }
             }
             if (destination == Destination.COLLECTION && importSource == ImportSource.SCAN && binder.isNotBlank()) {

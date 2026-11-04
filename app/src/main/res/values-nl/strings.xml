@@ -189,4 +189,15 @@
     <string name="wifi_only">Afbeeldingen alleen via wifi downloaden</string>
     <string name="your_copies">Jouw exemplaren (%1$d)</string>
     <string name="scan_set_optional">Set van dit blad (optioneel, bijv. MH1)</string>
+    <string name="msg_taken_added">%1$d uit collectie, %2$d nieuw</string>
+    <string name="review_take">Uit collectie halen (je hebt er %1$d)</string>
+    <string name="review_shortage">%1$d nieuw erbij</string>
+    <string name="review_not_owned">Niet in je collectie · komt er nieuw bij</string>
+    <string name="pick_from_collection">Uit collectie kiezen</string>
+    <string name="pick_search_hint">Zoek op naam of type</string>
+    <string name="pick_explain">Alleen kaarten die je hebt en die niet in een deck zitten. De kaart verhuist van je collectie naar dit deck.</string>
+    <string name="pick_empty_title">Niets gevonden</string>
+    <string name="pick_empty_body">Zoek anders, of voeg de kaart toe via Lijst plakken.</string>
+    <string name="pick_available">Je hebt er hier %1$d</string>
+    <string name="pick_put_in_deck">In deck zetten</string>
 </resources>

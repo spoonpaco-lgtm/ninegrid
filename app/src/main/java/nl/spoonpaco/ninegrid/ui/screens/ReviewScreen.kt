@@ -246,6 +246,20 @@ private fun PendingRow(
                 Text("${item.quantity}", fontWeight = FontWeight.Bold)
                 IconButton(onClick = { vm.updatePending(item.copy(quantity = item.quantity + 1)) }) { Icon(Icons.Filled.Add, stringResource(R.string.more_one)) }
             }
+            if (showSection && p != null && !item.proxy) {
+                val have = remember(p.id) { vm.inCollection(p) }
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = 40.dp)) {
+                    if (have > 0) {
+                        Checkbox(checked = item.fromCollection, onCheckedChange = { vm.updatePending(item.copy(fromCollection = it)) })
+                        Text(
+                            stringResource(R.string.review_take, have) + if (item.fromCollection && item.quantity > have) " · " + stringResource(R.string.review_shortage, item.quantity - have) else "",
+                            fontSize = 12.sp,
+                        )
+                    } else {
+                        Text(stringResource(R.string.review_not_owned), fontSize = 12.sp, color = extra.subtle, modifier = Modifier.padding(start = 8.dp, top = 2.dp, bottom = 2.dp))
+                    }
+                }
+            }
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(start = 48.dp)) {
                 FilterChip(selected = item.finish == Finish.FOIL, onClick = {
                     vm.updatePending(item.copy(finish = if (item.finish == Finish.FOIL) Finish.NONFOIL else Finish.FOIL))
