@@ -101,4 +101,18 @@ class ParserTest {
         assertEquals("MH1", slots[4].setCode)
         assertEquals("5", slots[4].collectorNumber)
     }
+
+    @Test
+    fun dominantSetAndCrop() {
+        val reads = listOf(
+            nl.spoonpaco.ninegrid.domain.SlotRead(1, "ONE", "258", "", listOf("x")),
+            nl.spoonpaco.ninegrid.domain.SlotRead(2, "ONE", "249", "", listOf("x")),
+            nl.spoonpaco.ninegrid.domain.SlotRead(3, "WOE", "255", "", listOf("x")),
+            nl.spoonpaco.ninegrid.domain.SlotRead(4, null, null, null, listOf("x")),
+        )
+        assertEquals("ONE", ScanParser.dominantSet(reads))
+        val lines = listOf(OcrLine("Seachrome Coast", 100f, 50f), OcrLine("Other Page Card", 950f, 50f))
+        val r = ScanParser.analyze(lines, 1000, 1000, nl.spoonpaco.ninegrid.domain.Area(0f, 0f, 800f, 1000f))
+        assertEquals(1, r.linesInside)
+    }
 }

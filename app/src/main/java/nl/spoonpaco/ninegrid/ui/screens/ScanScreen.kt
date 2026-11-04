@@ -56,6 +56,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -75,7 +76,9 @@ import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import nl.spoonpaco.ninegrid.R
+import nl.spoonpaco.ninegrid.domain.Area
 import nl.spoonpaco.ninegrid.domain.OcrLine
+import nl.spoonpaco.ninegrid.domain.ScanResult
 import nl.spoonpaco.ninegrid.domain.ScanParser
 import nl.spoonpaco.ninegrid.domain.SlotRead
 import nl.spoonpaco.ninegrid.ui.AppViewModel
@@ -91,15 +94,57 @@ private suspend fun recognize(image: InputImage): MlText = suspendCancellableCor
         .addOnFailureListener { cont.resumeWithException(it); client.close() }
 }
 
-/** Leest alle regels met hun positie en verdeelt ze over de 9 vakken. */
-private suspend fun readSlots(image: InputImage, width: Int, height: Int): List<SlotRead> {
+/** Leest alle regels met hun positie en verdeelt ze over de 9 vakken. Met crop telt alleen tekst binnen het kader. */
+private suspend fun readSlots(image: InputImage, width: Int, height: Int, crop: Area? = null): ScanResult {
     val text = recognize(image)
     val lines = text.textBlocks.flatMap { b -> b.lines }.mapNotNull { l ->
         val box = l.boundingBox ?: return@mapNotNull null
         OcrLine(l.text, box.exactCenterX(), box.exactCenterY())
     }
-    return ScanParser.parse(lines, width, height)
+    return ScanParser.analyze(lines, width, height, crop)
 }
+
+/** Het richtkader binnen een vak van w x h: de verhouding van 3x3 kaarten (63x88 mm). */
+private fun guideRect(w: Float, h: Float): Area {
+    val ratio = 63f / 88f
+    val gw = minOf(w * 0.96f, h * 0.96f * ratio); val gh = gw / ratio
+    val left = (w - gw) / 2f; val top = (h - gh) / 2f
+    return Area(left, top, left + gw, top + gh)
+}
+
+/** Zet het kader op het scherm om naar pixels op de foto (het camerabeeld vult het vak, midden uitgesneden). */
+private fun guideOnImage(boxW: Float, boxH: Float, imgW: Int, imgH: Int): Area {
+    val g = guideRect(boxW, boxH)
+    val scale = maxOf(boxW / imgW, boxH / imgH)
+    val dx = (boxW - imgW * scale) / 2f; val dy = (boxH - imgH * scale) / 2f
+    val padX = g.width * 0.03f; val padY = g.height * 0.03f
+    return Area(
+        ((g.left - padX - dx) / scale).coerceAtLeast(0f), ((g.top - padY - dy) / scale).coerceAtLeast(0f),
+        ((g.right + padX - dx) / scale).coerceAtMost(imgW.toFloat()), ((g.bottom + padY - dy) / scale).coerceAtMost(imgH.toFloat()),
+    )
+}
+
+/** Scherpte van (een deel van) de foto: variantie van de Laplace-filter op een verkleinde grijze versie. */
+private fun sharpness(bmp: android.graphics.Bitmap, area: Area?): Double {
+    val a = area ?: Area(0f, 0f, bmp.width.toFloat(), bmp.height.toFloat())
+    val cropped = android.graphics.Bitmap.createBitmap(bmp, a.left.toInt(), a.top.toInt(), a.width.toInt().coerceAtLeast(1), a.height.toInt().coerceAtLeast(1))
+    val w = 600; val h = (cropped.height * w / cropped.width.toFloat()).toInt().coerceAtLeast(3)
+    val small = android.graphics.Bitmap.createScaledBitmap(cropped, w, h, true)
+    val px = IntArray(w * h); small.getPixels(px, 0, w, 0, 0, w, h)
+    val g = DoubleArray(px.size) { i -> val c = px[i]; 0.299 * ((c shr 16) and 255) + 0.587 * ((c shr 8) and 255) + 0.114 * (c and 255) }
+    var sum = 0.0; var sum2 = 0.0; var n = 0
+    for (y in 1 until h - 1) for (x in 1 until w - 1) {
+        val i = y * w + x
+        val l = g[i - 1] + g[i + 1] + g[i - w] + g[i + w] - 4 * g[i]
+        sum += l; sum2 += l * l; n++
+    }
+    if (n == 0) return 0.0
+    val mean = sum / n
+    return sum2 / n - mean * mean
+}
+
+/** Waarom een foto waarschijnlijk niet goed is, of null. */
+private enum class Quality { BLURRY, TOO_FAR }
 
 private fun hasCamera(ctx: Context) = ContextCompat.checkSelfPermission(ctx, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
 
@@ -115,20 +160,35 @@ fun ScanScreen(vm: AppViewModel, onResult: () -> Unit) {
     val capture = remember {
         ImageCapture.Builder()
             .setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY)
-            .setResolutionSelector(ResolutionSelector.Builder().setResolutionStrategy(ResolutionStrategy.HIGHEST_AVAILABLE_STRATEGY).build())
+            .setResolutionSelector(
+                ResolutionSelector.Builder()
+                    .setAspectRatioStrategy(androidx.camera.core.resolutionselector.AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)
+                    .setResolutionStrategy(ResolutionStrategy.HIGHEST_AVAILABLE_STRATEGY).build(),
+            )
             .build()
     }
     val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { permitted = it }
     val noCardsText = stringResource(R.string.scan_nothing_found)
     val failText = stringResource(R.string.scan_failed)
 
-    fun handle(reads: List<SlotRead>) {
+    var quality by remember { mutableStateOf<Pair<Quality, List<SlotRead>>?>(null) }
+    var boxW by remember { mutableStateOf(0f) }
+    var boxH by remember { mutableStateOf(0f) }
+
+    fun handle(result: ScanResult, sharp: Double, fromCamera: Boolean) {
         working = false
-        if (reads.none { it.lines.isNotEmpty() }) {
-            error = noCardsText
-        } else {
-            vm.startScan(reads)
-            onResult()
+        val reads = result.slots
+        val complete = reads.count { it.complete || it.name != null }
+        val problem = when {
+            complete >= 7 -> null
+            sharp < 35.0 -> Quality.BLURRY
+            fromCamera && result.coverage < 0.35f -> Quality.TOO_FAR
+            else -> null
+        }
+        when {
+            problem != null -> quality = problem to reads
+            reads.none { it.lines.isNotEmpty() } -> error = noCardsText
+            else -> { vm.startScan(reads); onResult() }
         }
     }
 
@@ -138,9 +198,11 @@ fun ScanScreen(vm: AppViewModel, onResult: () -> Unit) {
         error = null
         scope.launch {
             runCatching {
+                val bmp = context.contentResolver.openInputStream(uri)!!.use { android.graphics.BitmapFactory.decodeStream(it) }
                 val img = InputImage.fromFilePath(context, uri)
-                readSlots(img, img.width, img.height)
-            }.onSuccess { handle(it) }.onFailure { working = false; error = failText }
+                val sharp = runCatching { if (img.width == bmp.width && img.height == bmp.height) sharpness(bmp, null) else 100.0 }.getOrDefault(100.0)
+                readSlots(img, img.width, img.height) to sharp
+            }.onSuccess { (r, sharp) -> handle(r, sharp, fromCamera = false) }.onFailure { working = false; error = failText }
         }
     }
 
@@ -168,8 +230,11 @@ fun ScanScreen(vm: AppViewModel, onResult: () -> Unit) {
                     keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
                 )
             }
-            Text(stringResource(R.string.scan_fields_hint), fontSize = 11.sp, color = LocalNgExtra.current.subtle, modifier = Modifier.fillMaxWidth().padding(top = 2.dp, bottom = 6.dp))
-            Box(Modifier.fillMaxWidth().weight(1f).clipToBounds(), contentAlignment = Alignment.Center) {
+            if (vm.scanSet.isBlank() && vm.binder.isBlank() && vm.page.isBlank()) {
+                Text(stringResource(R.string.scan_fields_hint), fontSize = 11.sp, maxLines = 1, color = LocalNgExtra.current.subtle, modifier = Modifier.fillMaxWidth().padding(top = 2.dp))
+            }
+            Spacer(Modifier.height(6.dp))
+            Box(Modifier.fillMaxWidth().weight(1f).clipToBounds().onSizeChanged { boxW = it.width.toFloat(); boxH = it.height.toFloat() }, contentAlignment = Alignment.Center) {
                 if (permitted) {
                     AndroidView(
                         factory = { ctx ->
@@ -180,7 +245,10 @@ fun ScanScreen(vm: AppViewModel, onResult: () -> Unit) {
                                 val future = ProcessCameraProvider.getInstance(ctx)
                                 future.addListener({
                                     val provider = future.get()
-                                    val preview = Preview.Builder().build().also { it.setSurfaceProvider(view.surfaceProvider) }
+                                    // Zelfde verhouding als de foto, zodat het kader op het scherm en op de foto hetzelfde stuk is.
+                                    val preview = Preview.Builder()
+                                        .setResolutionSelector(ResolutionSelector.Builder().setAspectRatioStrategy(androidx.camera.core.resolutionselector.AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY).build())
+                                        .build().also { it.setSurfaceProvider(view.surfaceProvider) }
                                     runCatching {
                                         provider.unbindAll()
                                         camera = provider.bindToLifecycle(lifecycle, CameraSelector.DEFAULT_BACK_CAMERA, preview, capture)
@@ -221,7 +289,8 @@ fun ScanScreen(vm: AppViewModel, onResult: () -> Unit) {
                     onClick = {
                         working = true
                         error = null
-                        capture.takePicture(ContextCompat.getMainExecutor(context), object : ImageCapture.OnImageCapturedCallback() {
+                        val executor = ContextCompat.getMainExecutor(context)
+                        fun shoot() = capture.takePicture(executor, object : ImageCapture.OnImageCapturedCallback() {
                             override fun onCaptureSuccess(image: ImageProxy) {
                                 // ImageCapture levert JPEG; ML Kit wil dan een bitmap (fromMediaImage werkt alleen met YUV).
                                 val bitmap = runCatching {
@@ -233,9 +302,13 @@ fun ScanScreen(vm: AppViewModel, onResult: () -> Unit) {
                                 }.getOrNull()
                                 image.close()
                                 if (bitmap == null) { working = false; error = failText; return }
+                                val crop = if (boxW > 0 && boxH > 0) guideOnImage(boxW, boxH, bitmap.width, bitmap.height) else null
                                 scope.launch {
-                                    runCatching { readSlots(InputImage.fromBitmap(bitmap, 0), bitmap.width, bitmap.height) }
-                                        .onSuccess { handle(it) }
+                                    runCatching {
+                                        val sharp = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { runCatching { sharpness(bitmap, crop) }.getOrDefault(100.0) }
+                                        readSlots(InputImage.fromBitmap(bitmap, 0), bitmap.width, bitmap.height, crop) to sharp
+                                    }
+                                        .onSuccess { (r, sharp) -> handle(r, sharp, fromCamera = true) }
                                         .onFailure { working = false; error = failText }
                                 }
                             }
@@ -245,6 +318,18 @@ fun ScanScreen(vm: AppViewModel, onResult: () -> Unit) {
                                 error = failText
                             }
                         })
+                        // Eerst scherpstellen op het midden, dan pas de foto.
+                        val cam = camera
+                        if (cam == null) shoot() else {
+                            val point = androidx.camera.core.SurfaceOrientedMeteringPointFactory(1f, 1f).createPoint(0.5f, 0.5f)
+                            val action = androidx.camera.core.FocusMeteringAction.Builder(point, androidx.camera.core.FocusMeteringAction.FLAG_AF)
+                                .setAutoCancelDuration(3, java.util.concurrent.TimeUnit.SECONDS).build()
+                            var done = false
+                            val go: () -> Unit = { if (!done) { done = true; shoot() }; Unit }
+                            runCatching { cam.cameraControl.startFocusAndMetering(action).addListener({ go() }, executor) }.onFailure { go() }
+                            // Niet langer dan 1,5 seconde wachten op scherpstellen.
+                            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({ go() }, 1500)
+                        }
                     },
                     enabled = permitted && !working,
                     modifier = Modifier.size(68.dp),
@@ -257,37 +342,46 @@ fun ScanScreen(vm: AppViewModel, onResult: () -> Unit) {
             }
         }
     }
+    quality?.let { (q, reads) ->
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { quality = null },
+            title = { Text(stringResource(if (q == Quality.BLURRY) R.string.scan_blurry_title else R.string.scan_far_title)) },
+            text = { Text(stringResource(if (q == Quality.BLURRY) R.string.scan_blurry_body else R.string.scan_far_body)) },
+            confirmButton = { androidx.compose.material3.TextButton(onClick = { quality = null }) { Text(stringResource(R.string.scan_retry)) } },
+            dismissButton = {
+                androidx.compose.material3.TextButton(onClick = { quality = null; vm.startScan(reads); onResult() }) { Text(stringResource(R.string.scan_view_anyway)) }
+            },
+        )
+    }
     DisposableEffect(Unit) { onDispose { runCatching { ProcessCameraProvider.getInstance(context).get().unbindAll() } } }
 }
 
 /**
- * Richtkader in de vorm van een verzamelblad (3x3 kaarten van 63x88 mm), met alles erbuiten gedimd
- * en dunne rasterlijnen en vaknummers erin.
+ * Richtkader in de vorm van een verzamelblad, met alles erbuiten gedimd. Geen rasterlijnen: de randen
+ * tussen de hoesjes verschillen per binder, dus lijnen zouden door de kaarten lopen. Alleen vaknummers in de hoeken.
  */
 @Composable
 private fun GridOverlay() {
-    val line = NgColors.Amber.copy(alpha = 0.35f)
-    val frame = NgColors.Amber.copy(alpha = 0.8f)
+    val frame = NgColors.Amber.copy(alpha = 0.85f)
+    val hint = stringResource(R.string.scan_fill_frame)
     Canvas(Modifier.fillMaxSize()) {
-        val ratio = 63f / 88f
-        val maxW = size.width * 0.96f; val maxH = size.height * 0.96f
-        val w = minOf(maxW, maxH * ratio); val h = w / ratio
-        val left = (size.width - w) / 2f; val top = (size.height - h) / 2f
+        val g = guideRect(size.width, size.height)
         val dim = Color.Black.copy(alpha = 0.45f)
-        drawRect(dim, Offset(0f, 0f), androidx.compose.ui.geometry.Size(size.width, top))
-        drawRect(dim, Offset(0f, top + h), androidx.compose.ui.geometry.Size(size.width, size.height - top - h))
-        drawRect(dim, Offset(0f, top), androidx.compose.ui.geometry.Size(left, h))
-        drawRect(dim, Offset(left + w, top), androidx.compose.ui.geometry.Size(size.width - left - w, h))
-        for (i in 1..2) {
-            drawLine(line, Offset(left + w * i / 3f, top), Offset(left + w * i / 3f, top + h), strokeWidth = 2f)
-            drawLine(line, Offset(left, top + h * i / 3f), Offset(left + w, top + h * i / 3f), strokeWidth = 2f)
-        }
-        drawRect(frame, Offset(left, top), androidx.compose.ui.geometry.Size(w, h), style = androidx.compose.ui.graphics.drawscope.Stroke(width = 3f))
-        val paint = android.graphics.Paint().apply {
-            color = android.graphics.Color.argb(115, 255, 255, 255); textSize = 13.dp.toPx(); isAntiAlias = true; isFakeBoldText = true
+        drawRect(dim, Offset(0f, 0f), androidx.compose.ui.geometry.Size(size.width, g.top))
+        drawRect(dim, Offset(0f, g.bottom), androidx.compose.ui.geometry.Size(size.width, size.height - g.bottom))
+        drawRect(dim, Offset(0f, g.top), androidx.compose.ui.geometry.Size(g.left, g.height))
+        drawRect(dim, Offset(g.right, g.top), androidx.compose.ui.geometry.Size(size.width - g.right, g.height))
+        drawRect(frame, Offset(g.left, g.top), androidx.compose.ui.geometry.Size(g.width, g.height), style = androidx.compose.ui.graphics.drawscope.Stroke(width = 3f))
+        val num = android.graphics.Paint().apply {
+            color = android.graphics.Color.argb(120, 255, 255, 255); textSize = 13.dp.toPx(); isAntiAlias = true; isFakeBoldText = true
         }
         for (r in 0..2) for (c in 0..2) {
-            drawContext.canvas.nativeCanvas.drawText("${r * 3 + c + 1}", left + w * c / 3f + 6.dp.toPx(), top + h * r / 3f + 17.dp.toPx(), paint)
+            drawContext.canvas.nativeCanvas.drawText("${r * 3 + c + 1}", g.left + g.width * c / 3f + 6.dp.toPx(), g.top + g.height * r / 3f + 17.dp.toPx(), num)
         }
+        val hp = android.graphics.Paint().apply {
+            color = android.graphics.Color.argb(200, 255, 255, 255); textSize = 12.dp.toPx(); isAntiAlias = true
+            textAlign = android.graphics.Paint.Align.CENTER
+        }
+        drawContext.canvas.nativeCanvas.drawText(hint, size.width / 2f, (g.bottom + (size.height - g.bottom) / 2f + 5.dp.toPx()).coerceAtMost(size.height - 4.dp.toPx()), hp)
     }
 }

@@ -48,6 +48,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -114,7 +115,7 @@ fun DecksScreen(vm: AppViewModel, onDeck: (Long) -> Unit, onNewDeck: () -> Unit)
                             Text(
                                 listOfNotNull(
                                     formatLabel(d.format),
-                                    stringResource(R.string.n_cards, list.sumOf { it.entry.quantity }),
+                                    list.sumOf { it.entry.quantity }.let { n -> pluralStringResource(R.plurals.n_cards, n, n) },
                                     check.bracketHint?.let { stringResource(R.string.bracket_short, it) },
                                 ).joinToString(" · "),
                                 fontSize = 12.sp, color = extra.subtle,
@@ -218,7 +219,7 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
             sections.forEach { s ->
                 val part = list.filter { (it.entry.section ?: Section.MAIN) == s }.sortedBy { it.print?.name ?: "" }
                 if (part.isNotEmpty()) {
-                    item(key = "h_$s") { SectionHeader(sectionLabel(s), stringResource(R.string.n_cards, part.sumOf { it.entry.quantity })) }
+                    item(key = "h_$s") { SectionHeader(sectionLabel(s), part.sumOf { it.entry.quantity }.let { n -> pluralStringResource(R.plurals.n_cards, n, n) }) }
                     items(part, key = { it.entry.id }) { e -> CardRow(e.entry, e.print, settings, vm.images) { e.print?.let { onCard(it.id) } } }
                 }
             }

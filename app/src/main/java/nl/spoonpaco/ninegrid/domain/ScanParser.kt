@@ -3,6 +3,16 @@ package nl.spoonpaco.ninegrid.domain
 /** Een stuk herkende tekst met zijn positie op de foto (middelpunt, in pixels). */
 data class OcrLine(val text: String, val centerX: Float, val centerY: Float)
 
+/** Een rechthoek op de foto, in pixels. */
+data class Area(val left: Float, val top: Float, val right: Float, val bottom: Float) {
+    fun contains(x: Float, y: Float) = x in left..right && y in top..bottom
+    val width get() = right - left
+    val height get() = bottom - top
+}
+
+/** Uitkomst van een scan: de vakken, en hoeveel van het kader de tekst beslaat (0..1). */
+data class ScanResult(val slots: List<SlotRead>, val coverage: Float, val linesInside: Int)
+
 /** Wat de scanner in één vak van het 3x3-blad heeft gevonden. */
 data class SlotRead(
     val slot: Int,
@@ -11,6 +21,8 @@ data class SlotRead(
     val language: String?,
     val lines: List<String>,
     val name: String? = null,
+    /** Andere regels uit de bovenkant van het vak die een naam kunnen zijn, voor als de eerste niets oplevert. */
+    val altNames: List<String> = emptyList(),
 ) {
     val complete get() = setCode != null && collectorNumber != null
 }
@@ -39,14 +51,15 @@ object ScanParser {
     /** Het kader van het blad: de uiterste tekst op de foto, iets ruimer genomen. Valt terug op de hele foto. */
     private data class Frame(val left: Float, val top: Float, val right: Float, val bottom: Float)
 
-    private fun frameOf(lines: List<OcrLine>, width: Int, height: Int): Frame {
-        if (lines.size < 6) return Frame(0f, 0f, width.toFloat(), height.toFloat())
+    private fun frameOf(lines: List<OcrLine>, width: Int, height: Int, bounds: Area? = null): Frame {
+        val full = bounds?.let { Frame(it.left, it.top, it.right, it.bottom) } ?: Frame(0f, 0f, width.toFloat(), height.toFloat())
+        if (lines.size < 6) return full
         val minX = lines.minOf { it.centerX }; val maxX = lines.maxOf { it.centerX }
         val minY = lines.minOf { it.centerY }; val maxY = lines.maxOf { it.centerY }
         val padX = (maxX - minX) * 0.06f; val padY = (maxY - minY) * 0.04f
-        val f = Frame((minX - padX).coerceAtLeast(0f), (minY - padY).coerceAtLeast(0f), (maxX + padX).coerceAtMost(width.toFloat()), (maxY + padY).coerceAtMost(height.toFloat()))
-        // Te klein (bijvoorbeeld maar één rij kaarten tekst gevonden)? Dan de hele foto.
-        return if (f.right - f.left < width * 0.4f || f.bottom - f.top < height * 0.4f) Frame(0f, 0f, width.toFloat(), height.toFloat()) else f
+        val f = Frame((minX - padX).coerceAtLeast(full.left), (minY - padY).coerceAtLeast(full.top), (maxX + padX).coerceAtMost(full.right), (maxY + padY).coerceAtMost(full.bottom))
+        // Te klein (bijvoorbeeld maar één rij kaarten tekst gevonden)? Dan het hele kader.
+        return if (f.right - f.left < (full.right - full.left) * 0.4f || f.bottom - f.top < (full.bottom - full.top) * 0.4f) full else f
     }
 
     private fun slotIn(f: Frame, x: Float, y: Float): Int {
@@ -68,8 +81,37 @@ object ScanParser {
         return t
     }
 
-    fun parse(lines: List<OcrLine>, width: Int, height: Int): List<SlotRead> {
-        val frame = frameOf(lines, width, height)
+    /**
+     * Leest een foto. Met [crop] telt alleen tekst binnen het richtkader mee, zodat een half zichtbaar
+     * volgend blad de vakken niet verschuift.
+     */
+    fun analyze(all: List<OcrLine>, width: Int, height: Int, crop: Area? = null): ScanResult {
+        val lines = if (crop != null) all.filter { crop.contains(it.centerX, it.centerY) } else all
+        val area = crop ?: Area(0f, 0f, width.toFloat(), height.toFloat())
+        val coverage = if (lines.size < 2) 0f else {
+            val w = (lines.maxOf { it.centerX } - lines.minOf { it.centerX }) / area.width
+            val h = (lines.maxOf { it.centerY } - lines.minOf { it.centerY }) / area.height
+            (w.coerceIn(0f, 1f) * h.coerceIn(0f, 1f))
+        }
+        return ScanResult(parse(lines, width, height, crop), coverage, lines.size)
+    }
+
+    private fun looseName(raw: String): String? {
+        val t = raw.replace(Regex("""[^\p{L} ,'\-]"""), " ").replace(Regex("""\s+"""), " ").trim()
+        if (t.length < 4 || t.length > 45) return null
+        return if (t.count { it.isLetter() } >= raw.length * 0.5) t else null
+    }
+
+    /** De set die op een blad het vaakst voorkomt, als die duidelijk de meerderheid is. */
+    fun dominantSet(reads: List<SlotRead>): String? {
+        val sets = reads.mapNotNull { it.setCode }
+        if (sets.size < 2) return null
+        val (best, n) = sets.groupingBy { it }.eachCount().maxBy { it.value }
+        return if (n >= 2 && n * 2 >= sets.size) best else null
+    }
+
+    fun parse(lines: List<OcrLine>, width: Int, height: Int, crop: Area? = null): List<SlotRead> {
+        val frame = frameOf(lines, width, height, crop)
         val cellH = (frame.bottom - frame.top) / 3f
         val bySlot = lines.groupBy { slotIn(frame, it.centerX, it.centerY) }
         return (1..9).map { slot ->
@@ -94,10 +136,14 @@ object ScanParser {
             // De naam staat bovenaan de kaart: de bovenste regel in het bovenste deel van het vak die op een naam lijkt.
             val row = (slot - 1) / 3
             val cellTop = frame.top + row * cellH
-            val name = ls.filter { it.centerY < cellTop + cellH * 0.35f }
-                .sortedBy { it.centerY }
-                .firstNotNullOfOrNull { nameCandidate(it.text) }
-            SlotRead(slot, set, number, lang, ls.sortedBy { it.centerY }.map { it.text }, name)
+            val top = ls.filter { it.centerY < cellTop + cellH * 0.35f }.sortedBy { it.centerY }
+            val names = top.mapNotNull { nameCandidate(it.text) }.distinct()
+            // Ruimer: ook regels uit de bovenste helft die vooral uit letters bestaan.
+            val loose = ls.filter { it.centerY < cellTop + cellH * 0.5f }.sortedBy { it.centerY }
+                .mapNotNull { looseName(it.text) }.filter { it !in names }.distinct()
+            val name = names.firstOrNull()
+            val alt = (names.drop(1) + loose).take(4)
+            SlotRead(slot, set, number, lang, ls.sortedBy { it.centerY }.map { it.text }, name, alt)
         }
     }
 

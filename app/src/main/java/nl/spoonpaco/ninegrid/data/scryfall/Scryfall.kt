@@ -107,7 +107,14 @@ data class SfCollection(val data: List<SfCard> = emptyList(), @SerialName("not_f
 data class SfCatalog(val data: List<String> = emptyList())
 
 /** Eén vraag aan Scryfall: op set en nummer, of alleen op naam. */
-data class CardQuery(val setCode: String? = null, val collectorNumber: String? = null, val name: String? = null, val id: String? = null)
+data class CardQuery(
+    val setCode: String? = null,
+    val collectorNumber: String? = null,
+    val name: String? = null,
+    val id: String? = null,
+    /** Andere gelezen regels die de naam kunnen zijn; alleen geaccepteerd als de kaart in [setCode] bestaat. */
+    val altNames: List<String> = emptyList(),
+)
 
 class ScryfallException(message: String) : Exception(message)
 

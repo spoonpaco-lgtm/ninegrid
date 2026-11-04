@@ -121,16 +121,23 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         unreadableLines = emptyList()
         destination = Destination.COLLECTION
         val forcedSet = scanSet.trim().uppercase().ifBlank { null }
-        reads.filter { it.lines.isNotEmpty() || it.complete }.forEach { r ->
+        // Komen de meeste kaarten uit één set, dan is dat de set voor de twijfelgevallen op dit blad.
+        val pageSet = forcedSet ?: nl.spoonpaco.ninegrid.domain.ScanParser.dominantSet(reads)
+        // Altijd alle 9 vakken tonen, ook als er niets gelezen is: dan zie je dat er een kaart gemist is.
+        (1..9).map { slot -> reads.firstOrNull { it.slot == slot } ?: SlotRead(slot, null, null, null, emptyList()) }.forEach { r ->
             // De set die je zelf opgeeft wint: de setcode is het kleinste tekstje en wordt het vaakst verkeerd gelezen.
-            val set = forcedSet ?: r.setCode
-            val canLook = (set != null && r.collectorNumber != null) || r.name != null
+            val set = forcedSet ?: r.setCode ?: pageSet
+            val canLook = (set != null && r.collectorNumber != null) || r.name != null || (set != null && r.altNames.isNotEmpty())
+            val readParts = listOfNotNull(
+                listOfNotNull(r.setCode, r.collectorNumber).joinToString(" ").ifBlank { null },
+                (r.name ?: r.altNames.firstOrNull())?.let { "‘" + it.take(22) + "’" },
+            )
             pending += PendingItem(
                 key = nextKey++,
                 slot = r.slot,
-                label = listOfNotNull(r.name, listOfNotNull(set, r.collectorNumber).joinToString(" ").ifBlank { null })
-                    .joinToString(" · ").ifBlank { r.lines.take(3).joinToString(" · ") },
-                query = CardQuery(setCode = set, collectorNumber = r.collectorNumber, name = r.name),
+                label = if (readParts.isEmpty() && r.lines.isEmpty()) str(R.string.scan_nothing_read)
+                    else str(R.string.scan_read_as, (readParts.ifEmpty { r.lines.take(2).map { it.take(22) } }).joinToString(" · ")),
+                query = CardQuery(setCode = set, collectorNumber = r.collectorNumber, name = r.name, altNames = r.altNames),
                 status = if (canLook) ItemStatus.RESOLVING else ItemStatus.NOT_FOUND,
                 language = r.language ?: "",
             )
@@ -222,7 +229,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                     val list = items.map { it.toNew(deckId = null, binder = b, page = pg, slot = if (b != null && importSource == ImportSource.SCAN) it.slot else null) }
                     repo.addEntries(list, str(R.string.log_added_collection, count))
                     message = if (importSource == ImportSource.SCAN && b != null && pg != null) str(R.string.msg_page_saved, b, pg, count)
-                    else str(R.string.msg_added, count)
+                    else getApplication<Application>().resources.getQuantityString(R.plurals.msg_added, count, count)
                     images.prefetch(list.map { it.print }, settings.value)
                     onDone(null)
                 }

@@ -102,7 +102,6 @@
     <string name="more_one">Eén meer</string>
     <string name="more_options">Meer opties</string>
     <string name="move">Verplaatsen</string>
-    <string name="msg_added">%1$d kaarten toegevoegd</string>
     <string name="msg_backup_failed">Bestand kon niet worden opgeslagen</string>
     <string name="msg_backup_saved">Back-up opgeslagen</string>
     <string name="msg_deck_created">Deck %1$s gemaakt</string>
@@ -115,7 +114,6 @@
     <string name="msg_restored">Back-up teruggezet</string>
     <string name="msg_undone">Ongedaan gemaakt</string>
     <string name="msg_up_to_date">Je hebt de nieuwste versie</string>
-    <string name="n_cards">%1$d kaarten</string>
     <string name="new_deck">Nieuw deck</string>
     <string name="next">Volgende</string>
     <string name="nonfoil">Non-foil</string>
@@ -138,9 +136,7 @@
     <string name="restore">Terugzetten</string>
     <string name="restore_warning">Dit vervangt alles op deze telefoon door de inhoud van de back-up.</string>
     <string name="review_commander_hint">Tik op Commander bij de kaart die het deck aanvoert.</string>
-    <string name="review_missing">%1$d kaarten niet gevonden. Tik om ze zelf te kiezen, of laat ze weg.</string>
     <string name="review_pick_commander">Kies de commander</string>
-    <string name="review_save">%1$d kaarten opslaan</string>
     <string name="review_title">Kaarten controleren</string>
     <string name="review_unreadable">Niet begrepen: %1$s</string>
     <string name="save">Opslaan</string>
@@ -209,7 +205,32 @@
     <string name="read_guide">Handleiding lezen</string>
     <string name="not_now">Nu niet</string>
     <string name="binder_short">Map</string>
-    <string name="scan_fields_hint">Alles optioneel. Set maakt herkennen betrouwbaarder; het bladnummer telt na elke scan door.</string>
+    <string name="scan_fields_hint">Optioneel. Set maakt herkennen betrouwbaarder.</string>
     <string name="torch">Zaklamp</string>
     <string name="msg_page_saved">%1$s blad %2$d opgeslagen · %3$d kaarten</string>
+    <string name="scan_nothing_read">Niets gelezen in dit vak</string>
+    <string name="scan_read_as">Gelezen: %1$s</string>
+    <string name="scan_fill_frame">Vul het kader met het blad</string>
+    <string name="scan_blurry_title">Foto lijkt onscherp</string>
+    <string name="scan_blurry_body">Houd de telefoon stil en iets dichterbij, en tik op het beeld om scherp te stellen.</string>
+    <string name="scan_far_title">Dichterbij</string>
+    <string name="scan_far_body">Het blad vult maar een klein deel van het kader, waardoor de kleine tekst onderaan de kaarten slecht leesbaar is.</string>
+    <string name="scan_retry">Opnieuw</string>
+    <string name="scan_view_anyway">Toch bekijken</string>
+    <plurals name="review_missing">
+        <item quantity="one">%d kaart niet gevonden. Tik om hem zelf te kiezen, of laat hem weg.</item>
+        <item quantity="other">%d kaarten niet gevonden. Tik om ze zelf te kiezen, of laat ze weg.</item>
+    </plurals>
+    <plurals name="review_save">
+        <item quantity="one">%d kaart opslaan</item>
+        <item quantity="other">%d kaarten opslaan</item>
+    </plurals>
+    <plurals name="n_cards">
+        <item quantity="one">%d kaart</item>
+        <item quantity="other">%d kaarten</item>
+    </plurals>
+    <plurals name="msg_added">
+        <item quantity="one">%d kaart toegevoegd</item>
+        <item quantity="other">%d kaarten toegevoegd</item>
+    </plurals>
 </resources>

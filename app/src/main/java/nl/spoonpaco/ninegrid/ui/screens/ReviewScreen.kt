@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -47,6 +48,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -102,14 +104,14 @@ fun ReviewScreen(vm: AppViewModel, onBack: () -> Unit, onSaved: (Long?) -> Unit)
             )
         },
         bottomBar = {
-            Column(Modifier.padding(12.dp)) {
-                if (missing > 0) Text(stringResource(R.string.review_missing, missing), color = NgColors.Error, fontSize = 13.sp)
+            Column(Modifier.navigationBarsPadding().padding(12.dp)) {
+                if (missing > 0) Text(pluralStringResource(R.plurals.review_missing, missing, missing), color = NgColors.Error, fontSize = 13.sp)
                 if (noCommanderChosen) Text(stringResource(R.string.review_pick_commander), color = NgColors.Error, fontSize = 13.sp)
                 Button(
                     onClick = { save() },
                     enabled = found > 0 && !vm.busy && (vm.destination != Destination.EXISTING_DECK || vm.targetDeckId != null),
                     modifier = Modifier.fillMaxWidth(),
-                ) { Text(stringResource(R.string.review_save, items.filter { it.include && it.print != null }.sumOf { it.quantity })) }
+                ) { val n = items.filter { it.include && it.print != null }.sumOf { it.quantity }; Text(pluralStringResource(R.plurals.review_save, n, n)) }
             }
         },
     ) { pad ->
@@ -235,7 +237,7 @@ private fun PendingRow(
                         ItemStatus.NOT_FOUND -> Text(stringResource(R.string.not_found), color = NgColors.Error, fontWeight = FontWeight.Bold)
                     }
                     Text(
-                        if (p != null) "${p.setCode} ${p.collectorNumber} · ${p.rarity}" + (if (showSection) " · " + sectionLabelPlain(item.section) else "")
+                        if (p != null) "${p.setCode} ${p.collectorNumber} · ${p.rarity.replaceFirstChar { it.uppercase() }}" + (if (showSection) " · " + sectionLabelPlain(item.section) else "")
                         else item.label,
                         fontSize = 12.sp, color = extra.subtle, maxLines = 2,
                     )

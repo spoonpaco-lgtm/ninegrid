@@ -286,15 +286,32 @@ class Repository(
                 }
             }
             if (first[i] == null && q.name != null) {
-                first[i] = runCatching { scryfall.cardByName(q.name, q.setCode) }.getOrNull()
-                // Gevonden op naam maar in een andere set? Probeer dan de print uit de opgegeven set.
-                val c = first[i]
-                if (c != null && q.setCode != null && !c.set.equals(q.setCode, true)) {
-                    runCatching { scryfall.cardByName(c.name, q.setCode) }.getOrNull()?.takeIf { it.set.equals(q.setCode, true) }?.let { first[i] = it }
+                first[i] = byNameInSet(q.name, q.setCode, strict = false)
+            }
+            // Laatste poging: andere gelezen regels, maar alleen als die kaart in de set van dit blad bestaat.
+            if (first[i] == null && q.setCode != null) {
+                for (alt in q.altNames) {
+                    val c = byNameInSet(alt, q.setCode, strict = true)
+                    if (c != null) { first[i] = c; break }
                 }
             }
         }
         return first
+    }
+
+    /**
+     * Zoekt op naam en geeft bij voorkeur de print uit [set]. Met strict alleen een kaart die echt in die set bestaat
+     * en waarvan de naam lijkt op wat er gelezen is.
+     */
+    private suspend fun byNameInSet(name: String, set: String?, strict: Boolean): SfCard? {
+        val c = runCatching { scryfall.cardByName(name, set) }.getOrNull() ?: return null
+        if (set == null || c.set.equals(set, true)) return if (!strict || namesLookAlike(name, c.name)) c else null
+        val inSet = runCatching { scryfall.cardByName(c.name, set) }.getOrNull()?.takeIf { it.set.equals(set, true) }
+        return when {
+            inSet != null && (!strict || namesLookAlike(name, inSet.name)) -> inSet
+            strict -> null
+            else -> c
+        }
     }
 
     suspend fun exportBackup(): BackupFile = BackupFile(

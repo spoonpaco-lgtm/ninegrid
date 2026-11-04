@@ -54,7 +54,7 @@ object Guide {
             P("Tik in Collectie op + → Kaart zoeken, typ een deel van de naam, kies de kaart en daarna de juiste print."),
         )),
         Chapter("review", "Het controlescherm", "Kaarten nakijken voordat ze worden opgeslagen.", listOf(
-            P("Na scannen of plakken zie je elke kaart met plaatje, set, nummer en aantal. Kaarten die niet gevonden zijn, staan in rood."),
+            P("Na scannen of plakken zie je elke kaart met plaatje, set, nummer en aantal. Kaarten die niet gevonden zijn, staan in rood, met wat de scanner wel gelezen heeft. Bij scannen staan altijd alle 9 vakken erin; is een vak echt leeg, haal dan het vinkje weg."),
             Steps(listOf(
                 "Niet gevonden? Tik op het vergrootglas en zoek de kaart zelf. Je ziet wat de scanner las, dat helpt bij het zoeken.",
                 "Verkeerde print? Tik op de kaart → Meer opties → Andere print kiezen.",
@@ -212,7 +212,7 @@ object Guide {
             P("Tap + in Collection → Search card, type part of the name, pick the card and then the right print."),
         )),
         Chapter("review", "The review screen", "Checking cards before they are saved.", listOf(
-            P("After scanning or pasting you see every card with image, set, number and quantity. Cards that were not found are shown in red."),
+            P("After scanning or pasting you see every card with image, set, number and quantity. Cards that were not found are shown in red, with what the scanner did read. A scan always lists all 9 slots; if a slot is really empty, untick it."),
             Steps(listOf(
                 "Not found? Tap the magnifier and search the card yourself. You can see what the scanner read, which helps.",
                 "Wrong print? Tap the card → More options → Choose other print.",
