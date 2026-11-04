@@ -83,4 +83,22 @@ class ParserTest {
         assertEquals("CMM", slots[8].setCode); assertEquals("859", slots[8].collectorNumber); assertEquals("DE", slots[8].language)
         assertFalse(slots[4].complete)
     }
+
+    @Test
+    fun scanFindsNamesAndLooseSeparator() {
+        val w = 900; val h = 1200
+        val lines = mutableListOf<OcrLine>()
+        for (r in 0..2) for (c in 0..2) {
+            val x = 150f + c * 300f; val top = r * 400f
+            lines += OcrLine("Card Name ${'A' + (r * 3 + c)}", x, top + 30f)
+            lines += OcrLine("Creature — Vampire", x, top + 220f)
+            lines += OcrLine("${r * 3 + c + 1}/254 R", x, top + 370f)
+            lines += OcrLine("MH1 EN", x, top + 385f)
+        }
+        val slots = ScanParser.parse(lines, w, h)
+        assertEquals("Card Name A", slots[0].name)
+        assertEquals("Card Name I", slots[8].name)
+        assertEquals("MH1", slots[4].setCode)
+        assertEquals("5", slots[4].collectorNumber)
+    }
 }

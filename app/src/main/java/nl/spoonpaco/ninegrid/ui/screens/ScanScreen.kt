@@ -8,7 +8,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
-import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
@@ -40,6 +39,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -98,7 +98,7 @@ private suspend fun readSlots(image: InputImage, width: Int, height: Int): List<
 
 private fun hasCamera(ctx: Context) = ContextCompat.checkSelfPermission(ctx, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalGetImage::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScanScreen(vm: AppViewModel, onResult: () -> Unit) {
     val context = LocalContext.current
@@ -142,7 +142,13 @@ fun ScanScreen(vm: AppViewModel, onResult: () -> Unit) {
     Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.scan_page), fontWeight = FontWeight.Bold) }) }) { pad ->
         Column(Modifier.padding(pad).fillMaxSize().padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Text(stringResource(R.string.scan_explain), fontSize = 13.sp, color = LocalNgExtra.current.subtle, textAlign = TextAlign.Center)
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(6.dp))
+            OutlinedTextField(
+                value = vm.scanSet, onValueChange = { vm.scanSet = it.take(6) },
+                label = { Text(stringResource(R.string.scan_set_optional)) },
+                singleLine = true, modifier = Modifier.fillMaxWidth(),
+            )
+            Spacer(Modifier.height(8.dp))
             Box(Modifier.fillMaxWidth().aspectRatio(0.75f), contentAlignment = Alignment.Center) {
                 if (permitted) {
                     AndroidView(
@@ -183,16 +189,20 @@ fun ScanScreen(vm: AppViewModel, onResult: () -> Unit) {
                         error = null
                         capture.takePicture(ContextCompat.getMainExecutor(context), object : ImageCapture.OnImageCapturedCallback() {
                             override fun onCaptureSuccess(image: ImageProxy) {
-                                val media = image.image
-                                if (media == null) { image.close(); working = false; error = failText; return }
-                                val rotation = image.imageInfo.rotationDegrees
-                                val input = InputImage.fromMediaImage(media, rotation)
-                                val (w, h) = if (rotation == 90 || rotation == 270) image.height to image.width else image.width to image.height
+                                // ImageCapture levert JPEG; ML Kit wil dan een bitmap (fromMediaImage werkt alleen met YUV).
+                                val bitmap = runCatching {
+                                    val raw = image.toBitmap()
+                                    val rotation = image.imageInfo.rotationDegrees
+                                    if (rotation == 0) raw else android.graphics.Bitmap.createBitmap(
+                                        raw, 0, 0, raw.width, raw.height, android.graphics.Matrix().apply { postRotate(rotation.toFloat()) }, true,
+                                    )
+                                }.getOrNull()
+                                image.close()
+                                if (bitmap == null) { working = false; error = failText; return }
                                 scope.launch {
-                                    runCatching { readSlots(input, w, h) }
+                                    runCatching { readSlots(InputImage.fromBitmap(bitmap, 0), bitmap.width, bitmap.height) }
                                         .onSuccess { handle(it) }
                                         .onFailure { working = false; error = failText }
-                                    image.close()
                                 }
                             }
 

@@ -212,6 +212,11 @@ class Repository(
      */
     suspend fun resolve(queries: List<CardQuery>): List<SfCard?> {
         val first = scryfall.collection(queries).toMutableList()
+        // Nummer verkeerd gelezen? Als de gelezen naam duidelijk niet past bij de gevonden kaart, opnieuw op naam zoeken.
+        queries.forEachIndexed { i, q ->
+            val c = first[i]
+            if (c != null && q.id == null && q.name != null && q.collectorNumber != null && !namesLookAlike(q.name, c.name)) first[i] = null
+        }
         queries.forEachIndexed { i, q ->
             if (first[i] != null) return@forEachIndexed
             if (q.setCode != null && q.collectorNumber != null) {
@@ -222,6 +227,11 @@ class Repository(
             }
             if (first[i] == null && q.name != null) {
                 first[i] = runCatching { scryfall.cardByName(q.name, q.setCode) }.getOrNull()
+                // Gevonden op naam maar in een andere set? Probeer dan de print uit de opgegeven set.
+                val c = first[i]
+                if (c != null && q.setCode != null && !c.set.equals(q.setCode, true)) {
+                    runCatching { scryfall.cardByName(c.name, q.setCode) }.getOrNull()?.takeIf { it.set.equals(q.setCode, true) }?.let { first[i] = it }
+                }
             }
         }
         return first
@@ -251,4 +261,18 @@ class Repository(
     }
 
     suspend fun allPrintsOwned() = db.prints().owned()
+
+    private fun namesLookAlike(read: String, real: String): Boolean {
+        fun norm(x: String) = x.lowercase().filter { it.isLetter() }
+        val a = norm(read); val b = norm(real.substringBefore(" // "))
+        if (a.isEmpty() || b.isEmpty()) return true
+        if (b.contains(a) || a.contains(b)) return true
+        val d = Array(a.length + 1) { IntArray(b.length + 1) }
+        for (x in 0..a.length) d[x][0] = x
+        for (y in 0..b.length) d[0][y] = y
+        for (x in 1..a.length) for (y in 1..b.length) {
+            d[x][y] = minOf(d[x - 1][y] + 1, d[x][y - 1] + 1, d[x - 1][y - 1] + if (a[x - 1] == b[y - 1]) 0 else 1)
+        }
+        return d[a.length][b.length] <= maxOf(a.length, b.length) / 2
+    }
 }

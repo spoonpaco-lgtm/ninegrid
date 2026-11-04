@@ -82,6 +82,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     var newDeckFormat by mutableStateOf(DeckFormat.CASUAL)
     var targetDeckId by mutableStateOf<Long?>(null)
     var unreadableLines by mutableStateOf<List<String>>(emptyList())
+    var scanSet by mutableStateOf("")
     private var nextKey = 0
 
     fun startPaste(text: String, intoDeck: Long?, asNewDeck: Boolean) {
@@ -118,13 +119,18 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         importSource = ImportSource.SCAN
         unreadableLines = emptyList()
         destination = Destination.COLLECTION
+        val forcedSet = scanSet.trim().uppercase().ifBlank { null }
         reads.filter { it.lines.isNotEmpty() || it.complete }.forEach { r ->
+            // De set die je zelf opgeeft wint: de setcode is het kleinste tekstje en wordt het vaakst verkeerd gelezen.
+            val set = forcedSet ?: r.setCode
+            val canLook = (set != null && r.collectorNumber != null) || r.name != null
             pending += PendingItem(
                 key = nextKey++,
                 slot = r.slot,
-                label = if (r.complete) "${r.setCode} ${r.collectorNumber}" else r.lines.take(3).joinToString(" · "),
-                query = CardQuery(setCode = r.setCode, collectorNumber = r.collectorNumber),
-                status = if (r.complete) ItemStatus.RESOLVING else ItemStatus.NOT_FOUND,
+                label = listOfNotNull(r.name, listOfNotNull(set, r.collectorNumber).joinToString(" ").ifBlank { null })
+                    .joinToString(" · ").ifBlank { r.lines.take(3).joinToString(" · ") },
+                query = CardQuery(setCode = set, collectorNumber = r.collectorNumber, name = r.name),
+                status = if (canLook) ItemStatus.RESOLVING else ItemStatus.NOT_FOUND,
                 language = r.language ?: "",
             )
         }

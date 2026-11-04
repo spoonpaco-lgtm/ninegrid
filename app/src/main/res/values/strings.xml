@@ -189,4 +189,5 @@
     <string name="version_x">Version %1$s</string>
     <string name="wifi_only">Download images only on Wi-Fi</string>
     <string name="your_copies">Your copies (%1$d)</string>
+    <string name="scan_set_optional">Set of this page (optional, e.g. MH1)</string>
 </resources>

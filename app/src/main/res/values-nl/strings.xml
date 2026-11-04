@@ -188,4 +188,5 @@
     <string name="version_x">Versie %1$s</string>
     <string name="wifi_only">Afbeeldingen alleen via wifi downloaden</string>
     <string name="your_copies">Jouw exemplaren (%1$d)</string>
+    <string name="scan_set_optional">Set van dit blad (optioneel, bijv. MH1)</string>
 </resources>
