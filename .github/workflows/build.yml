@@ -58,7 +58,8 @@ jobs:
       - name: Ondertekening controleren
         if: success()
         run: |
-          keytool -printcert -jarfile app/build/outputs/apk/release/app-release.apk | grep -E "Owner|SHA256:" | head -2 | tee -a build.log
+          APKSIGNER=$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)apksigner
+          "$APKSIGNER" verify --print-certs app/build/outputs/apk/release/app-release.apk | grep -E "DN:|SHA-256" | head -2 | tee -a build.log || true
 
       - name: Release maken (nieuwe versionName op main)
         if: success() && github.ref == 'refs/heads/main'
