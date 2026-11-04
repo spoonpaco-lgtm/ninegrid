@@ -17,6 +17,9 @@ import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -221,8 +224,8 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
     var editFields by remember { mutableStateOf(false) }
     val density = androidx.compose.ui.platform.LocalDensity.current
     // Ruimte boven en onder die door de balken op het beeld wordt ingenomen; het kader valt daartussen.
-    val topBarPx = with(density) { 64.dp.toPx() } + androidx.compose.foundation.layout.WindowInsets.statusBars.getTop(density)
-    val bottomBarPx = with(density) { (132 + 26).dp.toPx() } + androidx.compose.foundation.layout.WindowInsets.navigationBars.getBottom(density)
+    val topBarPx = with(density) { 64.dp.toPx() } + WindowInsets.statusBars.getTop(density)
+    val bottomBarPx = with(density) { (132 + 26).dp.toPx() } + WindowInsets.navigationBars.getBottom(density)
     guideTop = topBarPx; guideBottom = bottomBarPx
 
     fun takePhoto() {
