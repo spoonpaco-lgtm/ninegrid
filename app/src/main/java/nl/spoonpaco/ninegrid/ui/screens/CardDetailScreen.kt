@@ -56,6 +56,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import nl.spoonpaco.ninegrid.R
 import nl.spoonpaco.ninegrid.data.ImageMode
 import nl.spoonpaco.ninegrid.data.db.Deck
@@ -97,12 +99,18 @@ fun CardDetailScreen(vm: AppViewModel, printId: String, onBack: () -> Unit) {
         Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
             if (p == null) return@Column
             Row {
-                AsyncImage(
-                    model = vm.images.request(p.imageNormal ?: p.imageSmall, settings.copy(imageMode = if (settings.imageMode == ImageMode.OFF) ImageMode.OFF else settings.imageMode)),
-                    imageLoader = vm.images.loader,
-                    contentDescription = p.name,
-                    modifier = Modifier.width(150.dp).aspectRatio(0.716f).clip(RoundedCornerShape(8.dp)),
-                )
+                var imageError by remember(p.id) { mutableStateOf<String?>(null) }
+                Box(Modifier.width(150.dp).aspectRatio(0.716f).clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.surfaceContainerHigh), contentAlignment = Alignment.Center) {
+                    AsyncImage(
+                        model = vm.images.request(vm.images.urlFor(p, large = true), settings),
+                        imageLoader = vm.images.loader,
+                        contentDescription = p.name,
+                        onError = { imageError = it.result.throwable.let { t -> t::class.simpleName + ": " + (t.message ?: "") }.take(160) },
+                        onSuccess = { imageError = null },
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                    imageError?.let { Text(it, fontSize = 10.sp, color = extra.subtle, textAlign = androidx.compose.ui.text.style.TextAlign.Center, modifier = Modifier.padding(6.dp)) }
+                }
                 Spacer(Modifier.width(14.dp))
                 Column(Modifier.weight(1f)) {
                     Text(p.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
@@ -125,7 +133,9 @@ fun CardDetailScreen(vm: AppViewModel, printId: String, onBack: () -> Unit) {
                 p.scryfallUri?.let { u ->
                     OutlinedButton(onClick = { uri.openUri(u) }) { Icon(Icons.AutoMirrored.Filled.OpenInNew, null); Spacer(Modifier.width(4.dp)); Text("Scryfall") }
                 }
-                val market = if (settings.currency == "USD") p.tcgplayerUri else p.cardmarketUri
+                // De doorverwijslink van Scryfall wordt door Cardmarket soms geblokkeerd; zoeken op naam werkt altijd.
+                val market = if (settings.currency == "USD") p.tcgplayerUri
+                else "https://www.cardmarket.com/en/Magic/Products/Search?searchString=" + java.net.URLEncoder.encode(p.name.substringBefore(" // "), "UTF-8")
                 market?.let { u ->
                     OutlinedButton(onClick = { uri.openUri(u) }) {
                         Icon(Icons.AutoMirrored.Filled.OpenInNew, null); Spacer(Modifier.width(4.dp))

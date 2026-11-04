@@ -89,7 +89,7 @@ fun SmallTag(text: String, color: Color = MaterialTheme.colorScheme.onSurfaceVar
 fun CardThumb(print: CardPrint?, images: Images, settings: AppSettings, width: Int = 40) {
     if (settings.imageMode == ImageMode.OFF) return
     AsyncImage(
-        model = images.request(print?.imageSmall, settings),
+        model = images.request(images.urlFor(print, large = false), settings),
         imageLoader = images.loader,
         contentDescription = print?.name,
         contentScale = ContentScale.Crop,

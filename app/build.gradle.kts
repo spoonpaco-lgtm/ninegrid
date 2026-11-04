@@ -8,7 +8,7 @@ plugins {
     id("com.google.devtools.ksp")
 }
 
-val versionNameValue = "0.1.1"
+val versionNameValue = "0.1.2"
 val versionCodeValue = (System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 1)
 
 android {

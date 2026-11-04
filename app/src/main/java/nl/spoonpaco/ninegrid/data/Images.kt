@@ -23,6 +23,18 @@ class Images(private val context: Context) {
                 .maxSizeBytes(400L * 1024 * 1024)
                 .build()
         }
+        .okHttpClient {
+            okhttp3.OkHttpClient.Builder()
+                .addInterceptor { chain ->
+                    chain.proceed(
+                        chain.request().newBuilder()
+                            .header("User-Agent", "NineGrid/${nl.spoonpaco.ninegrid.BuildConfig.VERSION_NAME} (+https://github.com/spoonpaco-lgtm/ninegrid)")
+                            .header("Accept", "image/*")
+                            .build()
+                    )
+                }
+                .build()
+        }
         .respectCacheHeaders(false)
         .crossfade(true)
         .build()
@@ -34,6 +46,12 @@ class Images(private val context: Context) {
 
     /** Mag de app nu afbeeldingen downloaden? */
     fun networkAllowed(settings: AppSettings): Boolean = !(settings.wifiOnly && onMeteredNetwork())
+
+    /** Afbeelding via Scryfall op id, voor als er geen adres is opgeslagen. */
+    fun urlFor(p: CardPrint?, large: Boolean): String? = p?.let {
+        (if (large) it.imageNormal ?: it.imageSmall else it.imageSmall ?: it.imageNormal)
+            ?: "https://api.scryfall.com/cards/${it.id}?format=image&version=${if (large) "normal" else "small"}"
+    }
 
     fun request(url: String?, settings: AppSettings): ImageRequest =
         ImageRequest.Builder(context)
