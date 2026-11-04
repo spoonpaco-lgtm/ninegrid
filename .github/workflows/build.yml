@@ -66,7 +66,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          VER="v$(grep -oP 'versionName = "\K[^"]+' app/build.gradle.kts)"
+          VER="v$(grep -oP 'versionNameValue = "\K[^"]+' app/build.gradle.kts)"
           if gh release view "$VER" >/dev/null 2>&1; then
             echo "Release $VER bestaat al." | tee -a build.log
           else
