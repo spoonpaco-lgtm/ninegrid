@@ -18,25 +18,43 @@ private data class GhRelease(
 
 data class UpdateInfo(val version: String, val url: String)
 
+/** Uitkomst van een controle: nieuwe versie, al de nieuwste, of controleren lukte niet (met reden). */
+sealed interface UpdateResult {
+    data class Available(val info: UpdateInfo) : UpdateResult
+    data object UpToDate : UpdateResult
+    data class Failed(val reason: String) : UpdateResult
+}
+
 /** Kijkt op GitHub Releases of er een nieuwere versie is. */
 object UpdateChecker {
     const val REPO = "spoonpaco-lgtm/ninegrid"
     private val json = Json { ignoreUnknownKeys = true }
 
-    suspend fun check(): UpdateInfo? = withContext(Dispatchers.IO) {
-        runCatching {
+    suspend fun check(): UpdateResult = withContext(Dispatchers.IO) {
+        try {
             val req = Request.Builder()
                 .url("https://api.github.com/repos/$REPO/releases/latest")
                 .header("Accept", "application/vnd.github+json")
                 .header("User-Agent", "NineGrid/${BuildConfig.VERSION_NAME}")
                 .build()
             OkHttpClient().newCall(req).execute().use { resp ->
-                if (!resp.isSuccessful) return@use null
-                val r = json.decodeFromString(GhRelease.serializer(), resp.body?.string() ?: return@use null)
-                val latest = r.tag.removePrefix("v")
-                if (isNewer(latest, BuildConfig.VERSION_NAME)) UpdateInfo(latest, r.url) else null
+                when {
+                    // Een privé-repository geeft zonder inloggen ook "niet gevonden".
+                    resp.code == 404 -> UpdateResult.Failed("GitHub 404")
+                    resp.code == 403 || resp.code == 429 -> UpdateResult.Failed("GitHub ${resp.code}")
+                    !resp.isSuccessful -> UpdateResult.Failed("GitHub ${resp.code}")
+                    else -> {
+                        val r = json.decodeFromString(GhRelease.serializer(), resp.body?.string().orEmpty())
+                        val latest = r.tag.removePrefix("v")
+                        if (isNewer(latest, BuildConfig.VERSION_NAME)) UpdateResult.Available(UpdateInfo(latest, r.url)) else UpdateResult.UpToDate
+                    }
+                }
             }
-        }.getOrNull()
+        } catch (e: java.io.IOException) {
+            UpdateResult.Failed("offline")
+        } catch (e: Exception) {
+            UpdateResult.Failed(e.javaClass.simpleName)
+        }
     }
 
     fun isNewer(a: String, b: String): Boolean {

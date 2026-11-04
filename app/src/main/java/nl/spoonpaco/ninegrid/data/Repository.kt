@@ -28,6 +28,8 @@ data class BackupFile(
     val entries: List<Entry>,
     val decks: List<Deck>,
     val snapshots: List<nl.spoonpaco.ninegrid.data.db.Snapshot> = emptyList(),
+    val moments: List<nl.spoonpaco.ninegrid.data.db.Moment> = emptyList(),
+    val prices: List<nl.spoonpaco.ninegrid.data.db.PricePoint> = emptyList(),
 )
 
 /**
@@ -40,6 +42,7 @@ class Repository(
     private val onPrintsRemoved: suspend (List<CardPrint>) -> Unit = {},
 ) {
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
+    private companion object { const val PART = 250_000; const val PARTS = "@parts" }
 
     /** Setlijsten en namenlijst op de telefoon (voor de herkenning). */
     var cache: CardCache? = null
@@ -91,7 +94,14 @@ class Repository(
     suspend fun entriesAtSlot(binder: String, page: Int, slot: Int) = db.entries().atSlot(binder, page, slot)
 
     private suspend fun log(summary: String, undo: UndoData) {
-        db.changes().insert(ChangeRecord(summary = summary, undoJson = json.encodeToString(UndoData.serializer(), undo)))
+        val text = json.encodeToString(UndoData.serializer(), undo)
+        if (text.length <= PART) {
+            db.changes().insert(ChangeRecord(summary = summary, undoJson = text))
+        } else {
+            // Groot (bijv. een import): in stukken, zodat het wijzigingslog nooit vastloopt.
+            val id = db.changes().insert(ChangeRecord(summary = summary, undoJson = PARTS))
+            db.changes().insertParts(text.chunked(PART).mapIndexed { i, part -> nl.spoonpaco.ninegrid.data.db.UndoPart(id, i, part) })
+        }
     }
 
     private fun sameStack(a: Entry, b: Entry) = a.printId == b.printId && a.finish == b.finish &&
@@ -308,7 +318,8 @@ class Repository(
         var done = false
         db.withTransaction {
             val change = db.changes().latestActive() ?: return@withTransaction
-            val undo = json.decodeFromString(UndoData.serializer(), change.undoJson)
+            val text = if (change.undoJson == PARTS) db.changes().parts(change.id).joinToString("") { it.data } else change.undoJson
+            val undo = json.decodeFromString(UndoData.serializer(), text)
             // In stukken: SQLite accepteert op oudere telefoons hoogstens 999 waarden per opdracht.
             undo.deleteEntryIds.chunked(500).forEach { db.entries().deleteIds(it) }
             if (undo.restoreDecks.isNotEmpty()) db.decks().upsert(undo.restoreDecks)
@@ -331,10 +342,10 @@ class Repository(
     }
 
     /** Ververst de prijzen en gegevens van alle kaarten die je hebt. */
-    suspend fun refreshPrices(): Int {
+    suspend fun refreshPrices(background: Boolean = false): Int {
         val prints = db.prints().owned()
         if (prints.isEmpty()) return 0
-        val cards = scryfall.collection(prints.map { CardQuery(id = it.id) })
+        val cards = scryfall.collection(prints.map { CardQuery(id = it.id) }, background)
         val updated = cards.filterNotNull().map { it.toPrint() }
         db.prints().upsert(updated)
         recordPrices(updated)
@@ -358,20 +369,28 @@ class Repository(
      * Verbetert gelezen vragen vóór het opzoeken: tikfouten in namen via de namenlijst, en als de set bekend is,
      * naam en nummer controleren tegen de lijst van die set. Klopt een combinatie, dan wordt het een vraag op id.
      */
+    /** Tijd van de laatste preResolve: namen verbeteren en setlijsten. */
+    var lastNamesMs = 0L
+        private set
+
     suspend fun preResolve(queries: List<CardQuery>): List<CardQuery> {
         val c = cache ?: return queries
+        val t0 = System.currentTimeMillis()
         runCatching { c.ensureNames() }
-        return queries.map { q0 ->
+        val out = queries.map { q0 ->
             if (q0.id != null) return@map q0
+            // Alleen de naam bovenaan de kaart wordt verbeterd; andere regels tellen alleen als ze letterlijk een kaartnaam zijn.
             val fixedName = q0.name?.let { n -> kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { c.correctName(n) } ?: n }
-            val fixedAlts = q0.altNames.mapNotNull { a -> kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { c.correctName(a) } }
-            var q = q0.copy(name = fixedName ?: q0.name, altNames = (fixedAlts + q0.altNames).distinct())
+            val alts = if (c.namesLoaded) q0.altNames.filter { c.isExactName(it) } else emptyList()
+            var q = q0.copy(name = fixedName ?: q0.name, altNames = alts)
             val set = q.setCode ?: return@map q
             val list = runCatching { c.setList(set) }.getOrNull() ?: c.cachedSetList(set) ?: return@map q
-            val names = listOfNotNull(q.name) + q.altNames
-            fun byName(): SetCard? = names.firstNotNullOfOrNull { n ->
-                list.cards.filter { namesLookAlike(n, it.name) }.let { m -> m.firstOrNull { it.regular } ?: m.firstOrNull() }
+            fun byName(): SetCard? {
+                q.name?.let { n -> list.cards.filter { namesLookAlike(n, it.name) }.let { m -> (m.firstOrNull { it.regular } ?: m.firstOrNull())?.let { return it } } }
+                // Andere regels: alleen exact.
+                return q.altNames.firstNotNullOfOrNull { a -> list.cards.firstOrNull { it.name.equals(a, true) } }
             }
+            val names = listOfNotNull(q.name) + q.altNames
             val byNumber = q.collectorNumber?.let { nr -> list.cards.firstOrNull { it.number.equals(nr, true) } }
             val pick = when {
                 // Nummer en naam kloppen samen: zeker.
@@ -384,6 +403,8 @@ class Repository(
             if (pick != null) q = q.copy(id = pick.id)
             q
         }
+        lastNamesMs = System.currentTimeMillis() - t0
+        return out
     }
 
     suspend fun resolve(queries: List<CardQuery>, onProgress: ((Int, Int) -> Unit)? = null): List<SfCard?> {
@@ -426,15 +447,20 @@ class Repository(
      * in plaats van 258)? Dan die print, bij voorkeur uit de gelezen set.
      */
     /** Mogelijke prints van een kaart voor het vergelijken van plaatjes: in de gelezen set, anders de nieuwste 8. */
-    suspend fun printCandidates(name: String, set: String?): List<SfCard> {
-        val all = soft { scryfall.printsOf(name) } ?: return emptyList()
-        val inSet = if (set != null) all.filter { it.set.equals(set, true) } else emptyList()
-        return (if (inSet.size >= 2) inSet else all).take(8)
+    /** Prints met dezelfde naam in de setlijst op de telefoon (bijv. gewoon en extended art): id en klein plaatje. */
+    fun printCandidates(name: String, set: String?): List<SetCard> {
+        val list = set?.let { cache?.cachedSetList(it) } ?: return emptyList()
+        return list.cards.filter { it.name == name }
     }
 
     private suspend fun betterPrint(q: CardQuery, c: SfCard): SfCard {
         val number = q.collectorNumber ?: return c
         if (c.collectorNumber.equals(number, true) && (q.setCode == null || c.set.equals(q.setCode, true))) return c
+        // Eerst de setlijst op de telefoon: geen zoekopdracht bij Scryfall nodig.
+        cache?.cachedSetList(q.setCode ?: c.set)?.cards?.firstOrNull { it.name == c.name && it.number.equals(number, true) }?.let { hit ->
+            if (hit.id == c.id) return c
+            soft { scryfall.cardById(hit.id) }?.let { return it }
+        }
         if (q.setCode != null) {
             soft { scryfall.cardBySetNumber(q.setCode, number) }?.takeIf { it.name == c.name }?.let { return it }
         }
@@ -463,6 +489,8 @@ class Repository(
         entries = db.entries().all(),
         decks = db.decks().all(),
         snapshots = db.snapshots().all(),
+        moments = db.moments().all(),
+        prices = db.prices().all(),
     )
 
     fun backupToJson(b: BackupFile): String = json.encodeToString(BackupFile.serializer(), b)
@@ -476,10 +504,13 @@ class Repository(
             db.decks().deleteAll()
             db.prints().deleteAll()
             db.changes().deleteAll()
+            db.changes().deleteAllParts()
             db.prints().upsert(b.prints)
             db.decks().upsert(b.decks)
             db.entries().upsert(b.entries)
             if (b.snapshots.isNotEmpty()) { db.snapshots().deleteAll(); db.snapshots().upsert(b.snapshots) }
+            if (b.moments.isNotEmpty()) { db.moments().deleteAll(); b.moments.chunked(500).forEach { db.moments().upsert(it) } }
+            if (b.prices.isNotEmpty()) { db.prices().deleteAll(); b.prices.chunked(500).forEach { db.prices().upsert(it) } }
         }
     }
 
@@ -520,7 +551,7 @@ class Repository(
             gone.map { it.id }.chunked(500).forEach { db.entries().deleteIds(it) }
             if (decks.isNotEmpty()) db.decks().deleteIds(decks.map { it.id })
             if (o.history) { db.snapshots().deleteAll(); db.moments().deleteAll(); db.prices().deleteAll() }
-            if (o.changeLog) db.changes().deleteAll()
+            if (o.changeLog) { db.changes().deleteAll(); db.changes().deleteAllParts() }
             else if (gone.isNotEmpty() || decks.isNotEmpty()) log(summary, UndoData(restoreEntries = gone, restoreDecks = decks))
             removed = cleanupPrints()
         }

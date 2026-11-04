@@ -121,8 +121,18 @@ interface ChangeDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(change: ChangeRecord): Long
 
-    @Query("SELECT * FROM changes ORDER BY timestamp DESC LIMIT 500")
+    /** Voor de lijst alleen de samenvatting: de ongedaan-maak-gegevens kunnen groot zijn. */
+    @Query("SELECT id, timestamp, summary, '' AS undoJson, reverted FROM changes ORDER BY timestamp DESC LIMIT 500")
     fun observeAll(): Flow<List<ChangeRecord>>
+
+    @Insert
+    suspend fun insertParts(parts: List<UndoPart>)
+
+    @Query("SELECT * FROM undo_parts WHERE changeId = :id ORDER BY idx")
+    suspend fun parts(id: Long): List<UndoPart>
+
+    @Query("DELETE FROM undo_parts")
+    suspend fun deleteAllParts()
 
     @Query("SELECT * FROM changes WHERE reverted = 0 ORDER BY timestamp DESC LIMIT 1")
     suspend fun latestActive(): ChangeRecord?
@@ -163,6 +173,9 @@ interface MomentDao {
     @Query("SELECT * FROM moments ORDER BY ts")
     fun observeAll(): Flow<List<Moment>>
 
+    @Query("SELECT * FROM moments")
+    suspend fun all(): List<Moment>
+
     @Query("DELETE FROM moments WHERE ts > :after")
     suspend fun deleteAfter(after: Long)
 
@@ -176,8 +189,11 @@ interface PriceDao {
     suspend fun upsert(items: List<PricePoint>)
 
     /** Per print de laatst bekende prijs op of vóór [day]. */
-    @Query("SELECT * FROM price_history p WHERE p.day = (SELECT MAX(q.day) FROM price_history q WHERE q.printId = p.printId AND q.day <= :day)")
+    @Query("SELECT p.* FROM price_history p JOIN (SELECT printId AS pid, MAX(day) AS d FROM price_history WHERE day <= :day GROUP BY printId) m ON p.printId = m.pid AND p.day = m.d")
     suspend fun asOf(day: String): List<PricePoint>
+
+    @Query("SELECT * FROM price_history")
+    suspend fun all(): List<PricePoint>
 
     @Query("SELECT MIN(day) FROM price_history")
     suspend fun firstDay(): String?

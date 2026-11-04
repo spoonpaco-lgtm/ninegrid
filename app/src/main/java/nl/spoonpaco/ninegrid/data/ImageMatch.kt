@@ -5,6 +5,8 @@ import androidx.core.graphics.drawable.toBitmap
 import coil.request.ImageRequest
 import coil.request.SuccessResult
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 
 /**
@@ -44,7 +46,11 @@ class ImageMatch(private val images: Images) {
         if (candidateUrls.size < 2) return@withContext null
         // Het vak is ruimer dan de kaart: neem het midden van de foto.
         val mine = signature(photo, 0.06f)
-        val scores = candidateUrls.map { u -> u?.let { runCatching { load(it) }.getOrNull() }?.let { similarity(mine, signature(it, 0f)) } }
+        // Alle plaatjes tegelijk ophalen (de plaatjesserver van Scryfall heeft geen limiet).
+        val bitmaps = kotlinx.coroutines.coroutineScope {
+            candidateUrls.map { u -> async(Dispatchers.IO) { u?.let { runCatching { load(it) }.getOrNull() } } }.awaitAll()
+        }
+        val scores = bitmaps.map { b -> b?.let { similarity(mine, signature(it, 0f)) } }
         val ranked = scores.withIndex().filter { it.value != null }.sortedByDescending { it.value }
         if (ranked.size < 2) return@withContext ranked.firstOrNull()?.index
         // Alleen als de beste duidelijk beter is dan de tweede.

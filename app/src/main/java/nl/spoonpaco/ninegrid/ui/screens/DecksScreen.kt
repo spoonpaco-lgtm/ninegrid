@@ -178,7 +178,13 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
         )
     }) { pad ->
         if (d == null) return@Scaffold
-        val check = Formats.check(d.format, Formats.toDeckCards(list.map { it.entry to it.print }))
+        androidx.compose.runtime.LaunchedEffect(deckId, list.size) { vm.loadCachedCombos(deckId) }
+        val report = vm.comboReport?.takeIf { vm.comboDeckId == deckId }
+        val signals = report?.let { r ->
+            fun cardsOf(ids: List<String>) = ids.mapNotNull { id -> r.included.firstOrNull { it.id == id }?.cards }
+            Formats.ComboSignals(cardsOf(r.earlyTwoCard), cardsOf(r.lateTwoCard))
+        }
+        val check = Formats.check(d.format, Formats.toDeckCards(list.map { it.entry to it.print }), signals)
         val sections = listOf(Section.COMMANDER, Section.MAIN, Section.SIDEBOARD)
         LazyColumn(Modifier.padding(pad), contentPadding = PaddingValues(bottom = 40.dp)) {
             item {
@@ -223,6 +229,7 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
                 }
             }
             item { DeckStatsPanel(nl.spoonpaco.ninegrid.domain.DeckStatsCalc.compute(Formats.toDeckCards(list.map { it.entry to it.print }))) }
+            item { CombosPanel(vm, d, report) }
             sections.forEach { s ->
                 val part = list.filter { (it.entry.section ?: Section.MAIN) == s }.sortedBy { it.print?.name ?: "" }
                 if (part.isNotEmpty()) {
@@ -299,6 +306,8 @@ private fun bracketReasonLabel(code: String) = when (code) {
     "game_changers" -> stringResource(R.string.bracket_gc)
     "mass_land_denial" -> stringResource(R.string.bracket_mld)
     "extra_turns" -> stringResource(R.string.bracket_turns)
+    "combos_early" -> stringResource(R.string.bracket_combo_early)
+    "combos_late" -> stringResource(R.string.bracket_combo_late)
     else -> stringResource(R.string.bracket_tutors)
 }
 
@@ -342,4 +351,59 @@ private fun DeckStatsPanel(st: nl.spoonpaco.ninegrid.domain.DeckStats) {
         }
         Text(stringResource(R.string.odds_total, Math.round(st.oddsTwoToFour * 1000) / 10.0), fontSize = 12.sp, fontWeight = FontWeight.Bold)
     }
+}
+
+/** Combo's in het deck en bijna-combo's (één kaart mist), via Commander Spellbook. */
+@Composable
+private fun CombosPanel(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.db.Deck, report: nl.spoonpaco.ninegrid.data.ComboReport?) {
+    val extra = LocalNgExtra.current
+    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(stringResource(R.string.combos_title), fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+            androidx.compose.material3.OutlinedButton(onClick = { vm.findCombos(deck.id) }, enabled = !vm.comboLoading) {
+                Text(stringResource(if (report == null) R.string.combos_find else R.string.combos_refresh))
+            }
+        }
+        if (vm.comboLoading) androidx.compose.material3.LinearProgressIndicator(Modifier.fillMaxWidth())
+        if (report == null) {
+            Text(stringResource(R.string.combos_explain), fontSize = 12.sp, color = extra.subtle)
+            return@Column
+        }
+        report.spellbookTag?.let { Text(stringResource(R.string.combos_spellbook_tag, spellbookTagLabel(it)), fontSize = 12.sp) }
+        if (report.included.isEmpty()) Text(stringResource(R.string.combos_none), fontSize = 13.sp, color = extra.subtle)
+        report.included.forEach { c ->
+            Column(Modifier.padding(vertical = 4.dp)) {
+                Text(c.cards.joinToString(" + "), fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                if (c.produces.isNotEmpty()) Text("→ " + c.produces.joinToString(", "), fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
+                if (c.prerequisites.isNotBlank()) Text(c.prerequisites, fontSize = 11.sp, color = extra.subtle)
+                if (c.twoCard) Text(stringResource(R.string.combos_two_card), fontSize = 11.sp, color = nl.spoonpaco.ninegrid.ui.theme.NgColors.Error)
+            }
+        }
+        if (report.almost.isNotEmpty()) {
+            Spacer(Modifier.height(8.dp))
+            Text(stringResource(R.string.combos_almost), fontWeight = FontWeight.Bold, fontSize = 13.sp)
+            report.almost.forEach { c ->
+                val missing = c.missing.first()
+                val own = vm.inCollectionByName(missing)
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 3.dp)) {
+                    Column(Modifier.weight(1f)) {
+                        Text(c.cards.joinToString(" + "), fontSize = 12.sp)
+                        Text(
+                            stringResource(R.string.combos_missing, missing) + if (own != null) " · " + (locationText(own.entry, emptyMap()) ?: stringResource(R.string.collection_loose)) else " · " + stringResource(R.string.combos_not_owned),
+                            fontSize = 11.sp, color = if (own != null) nl.spoonpaco.ninegrid.ui.theme.NgColors.Synced else extra.subtle,
+                        )
+                    }
+                    if (own != null) androidx.compose.material3.TextButton(onClick = { vm.moveEntry(own.entry, 1, deck.id, Section.MAIN, null, null, null) }) {
+                        Text(stringResource(R.string.pick_put_in_deck))
+                    }
+                }
+            }
+        }
+        Text(stringResource(R.string.combos_credit), fontSize = 10.sp, color = extra.subtle, modifier = Modifier.padding(top = 6.dp))
+    }
+}
+
+@Composable
+private fun spellbookTagLabel(t: String) = when (t) {
+    "R" -> "Ruthless"; "S" -> "Spicy"; "P" -> "Powerful"; "O" -> "Oddball"; "PA" -> "Precon Appropriate"; "C" -> "Casual"; else -> t
 }

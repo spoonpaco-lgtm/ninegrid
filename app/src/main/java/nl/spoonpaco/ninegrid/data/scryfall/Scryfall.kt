@@ -150,6 +150,17 @@ class ScryfallClient {
     private var lastCall = 0L
     private var lastSlowCall = 0L
 
+    /** Scans hebben voorrang: zolang er een camerascherm open is of een scan wordt opgezocht, wacht de achtergrond. */
+    private val foreground = java.util.concurrent.atomic.AtomicInteger(0)
+    fun holdForeground() { foreground.incrementAndGet() }
+    fun releaseForeground() { foreground.updateAndGet { (it - 1).coerceAtLeast(0) } }
+
+    /** Wacht (hoogstens [maxMs]) tot er geen scan meer bezig is. Voor de prijsupdate op de achtergrond. */
+    suspend fun yieldToForeground(maxMs: Long = 30 * 60_000L) {
+        val until = System.currentTimeMillis() + maxMs
+        while (foreground.get() > 0 && System.currentTimeMillis() < until) delay(1000)
+    }
+
     /** Wordt aangeroepen als Scryfall om pauze vraagt, zodat de app een melding kan tonen. */
     var onThrottled: (() -> Unit)? = null
 
@@ -261,10 +272,11 @@ class ScryfallClient {
     /** Kan Scryfall met deze vraag iets in een collection-verzoek? (Een lege vraag laat het hele verzoek mislukken.) */
     private fun usable(q: CardQuery) = q.id != null || (q.setCode != null && q.collectorNumber != null) || q.name != null
 
-    suspend fun collection(queries: List<CardQuery>): List<SfCard?> {
+    suspend fun collection(queries: List<CardQuery>, background: Boolean = false): List<SfCard?> {
         val results = arrayOfNulls<SfCard>(queries.size)
         val idx = queries.indices.filter { usable(queries[it]) }
         idx.chunked(75).forEach { chunkIdx ->
+            if (background) yieldToForeground()
             val chunk = chunkIdx.map { queries[it] }
             val payload = buildJsonObject {
                 put("identifiers", buildJsonArray {

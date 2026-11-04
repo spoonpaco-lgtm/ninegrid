@@ -559,7 +559,15 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
             dismissButton = { TextButton(onClick = { quality = null; startScan(reads, crops) }) { Text(stringResource(R.string.scan_view_anyway)) } },
         )
     }
-    DisposableEffect(Unit) { onDispose { runCatching { shutterSound.release() }; runCatching { ProcessCameraProvider.getInstance(context).get().unbindAll() } } }
+    // Zolang het camerascherm open is, wacht de prijsupdate op de achtergrond.
+    DisposableEffect(Unit) {
+        vm.repo.scryfall.holdForeground()
+        onDispose {
+            vm.repo.scryfall.releaseForeground()
+            runCatching { shutterSound.release() }
+            runCatching { ProcessCameraProvider.getInstance(context).get().unbindAll() }
+        }
+    }
 }
 
 /** De uitkomst van de laatste scan op het camerascherm, met Opslaan als alles klopt. */
@@ -584,7 +592,7 @@ private fun ScanSummaryBar(vm: AppViewModel, sum: AppViewModel.ScanSummary, sing
             val st by vm.settings.collectAsState()
             if (st.showTiming && vm.lastReadMs > 0 && !sum.busy) {
                 Text(
-                    stringResource(R.string.scan_timing, vm.lastReadMs / 1000.0, vm.lastRereadSlots, vm.lastResolveMs / 1000.0),
+                    stringResource(R.string.scan_timing_steps, vm.lastReadMs / 1000.0, vm.lastRereadSlots, vm.lastNamesMs / 1000.0, vm.lastLookupMs / 1000.0, vm.lastImagesMs / 1000.0),
                     color = Color.White.copy(alpha = 0.7f), fontSize = 10.sp, maxLines = 1,
                 )
             }

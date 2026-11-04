@@ -91,7 +91,10 @@ object Formats {
         }
     }
 
-    fun check(format: String, cards: List<DeckCard>): DeckCheck {
+    /** Combo's van twee kaarten uit Commander Spellbook: vroeg in het spel (minstens 4) of laat (minstens 3). */
+    data class ComboSignals(val early: List<List<String>> = emptyList(), val late: List<List<String>> = emptyList())
+
+    fun check(format: String, cards: List<DeckCard>, combos: ComboSignals? = null): DeckCheck {
         val real = cards.filter { !it.proxy }
         val commanders = cards.filter { it.section == Section.COMMANDER }
         val main = cards.filter { it.section == Section.MAIN }
@@ -132,7 +135,10 @@ object Formats {
                 if (mld.isNotEmpty()) reasons += BracketReason("mass_land_denial", mld)
                 if (turns.isNotEmpty()) reasons += BracketReason("extra_turns", turns)
                 if (tutors.isNotEmpty()) reasons += BracketReason("tutors", tutors)
+                combos?.early?.takeIf { it.isNotEmpty() }?.let { reasons += BracketReason("combos_early", it.map { c -> c.joinToString(" + ") }) }
+                combos?.late?.takeIf { it.isNotEmpty() }?.let { reasons += BracketReason("combos_late", it.map { c -> c.joinToString(" + ") }) }
                 val min = listOf(
+                    when { combos?.early?.isNotEmpty() == true -> 4; combos?.late?.isNotEmpty() == true -> 3; else -> 1 },
                     when { gcs.size > 3 -> 4; gcs.isNotEmpty() -> 3; else -> 1 },
                     if (mld.isNotEmpty()) 4 else 1,
                     when { turns.size >= 2 -> 3; turns.size == 1 -> 2; else -> 1 },

@@ -127,7 +127,6 @@
     <string name="price_normal">Normal %1$s</string>
     <string name="prices_from_import">Prices from when cards were added</string>
     <string name="prices_updated_at">Prices updated %1$s</string>
-    <string name="privacy_text">No account, no tracking, no ads. Photos are read on your phone and never stored or sent. Only card names and numbers go to Scryfall to look up cards and prices.</string>
     <string name="proxy">Proxy</string>
     <string name="proxy_explain">Proxies are shown in grey and do not count in totals or value.</string>
     <string name="quantity">Quantity</string>
@@ -143,7 +142,6 @@
     <string name="scan_failed">Reading the photo failed. Try again with more light.</string>
     <string name="scan_nothing_found">No cards found. Hold the phone closer and keep the page straight.</string>
     <string name="scan_page">Scan</string>
-    <string name="scryfall_credit">Card data and images from Scryfall. NineGrid is not produced by or endorsed by Scryfall.</string>
     <string name="search_card">Search card</string>
     <string name="search_hint">Search your cards</string>
     <string name="section">Section</string>
@@ -353,4 +351,24 @@
     <string name="set_show_have">What I have</string>
     <string name="set_variants">Count variants</string>
     <string name="set_variant">variant</string>
+    <string name="msg_update_offline">Could not check for updates: no internet.</string>
+    <string name="msg_update_not_found">Could not check for updates: GitHub did not find the releases (is the repository public?).</string>
+    <string name="msg_update_failed">Could not check for updates (%1$s).</string>
+    <string name="scan_timing_steps">reading %1$.1f s (%2$d again) · names %3$.1f s · lookup %4$.1f s · images %5$.1f s</string>
+    <string name="combos_title">Combos</string>
+    <string name="combos_find">Find combos</string>
+    <string name="combos_refresh">Search again</string>
+    <string name="combos_explain">Looks up combos in this deck at Commander Spellbook. Only card names are sent; you need internet.</string>
+    <string name="combos_spellbook_tag">Commander Spellbook estimate: %1$s</string>
+    <string name="combos_none">No combos found.</string>
+    <string name="combos_two_card">Two-card combo</string>
+    <string name="combos_almost">Almost: one card missing</string>
+    <string name="combos_missing">Missing: %1$s</string>
+    <string name="combos_not_owned">not in your collection</string>
+    <string name="combos_credit">Combo data from Commander Spellbook.</string>
+    <string name="msg_combo_failed">Commander Spellbook could not be reached (%1$s).</string>
+    <string name="bracket_combo_early">Early two-card combos</string>
+    <string name="bracket_combo_late">Late two-card combos</string>
+    <string name="privacy_text">No account, no tracking, no ads. Photos are read on your phone and never stored or sent. Only card names and numbers go to Scryfall to look up cards and prices, and only when you tap Find combos are the card names of that deck sent to Commander Spellbook.</string>
+    <string name="scryfall_credit">Card data and images from Scryfall. Combo data from Commander Spellbook. NineGrid is not produced by or endorsed by Scryfall or Commander Spellbook.</string>
 </resources>

@@ -42,6 +42,8 @@ class CardCache(private val context: Context, private val scryfall: ScryfallClie
     private val sets = mutableMapOf<String, SetList>()
     @Volatile private var names: List<String>? = null
     @Volatile private var normalized: Map<String, String>? = null
+    /** Namen per lengte (genormaliseerd), zodat verbeteren alleen namen van ongeveer dezelfde lengte bekijkt. */
+    @Volatile private var byLength: Map<Int, List<Pair<String, String>>>? = null
 
     private fun isRegular(c: SfCard, printed: Int): Boolean {
         val n = c.collectorNumber.toIntOrNull() ?: return false
@@ -98,7 +100,13 @@ class CardCache(private val context: Context, private val scryfall: ScryfallClie
     private fun setNames(list: List<String>) {
         names = list
         normalized = list.associateBy { norm(it) }
+        byLength = list.map { norm(it) to it }.groupBy { it.first.length }
     }
+
+    /** Is dit letterlijk een kaartnaam (zonder op hoofdletters en leestekens te letten)? */
+    fun isExactName(read: String): Boolean = normalized?.containsKey(norm(read)) == true
+
+    val namesLoaded get() = names != null
 
     private fun norm(s: String) = s.substringBefore(" // ").lowercase().filter { it.isLetterOrDigit() }
 
@@ -107,18 +115,21 @@ class CardCache(private val context: Context, private val scryfall: ScryfallClie
      * dichtstbijzijnde naam met hoogstens een kwart verschil. Geeft null als niets duidelijk past.
      */
     fun correctName(read: String): String? {
-        val all = names ?: return null
         val map = normalized ?: return null
+        val buckets = byLength ?: return null
         val n = norm(read)
         if (n.length < 3) return null
+        // Klopt de naam al, dan meteen klaar (de meeste gevallen).
         map[n]?.let { return it }
         val maxDist = (n.length / 4).coerceAtLeast(1)
         var best: String? = null; var bestD = Int.MAX_VALUE
-        for (name in all) {
-            val m = norm(name)
-            if (kotlin.math.abs(m.length - n.length) > maxDist) continue
-            val d = distance(n, m, maxDist)
-            if (d < bestD) { bestD = d; best = name; if (d == 0) break }
+        // Alleen namen van ongeveer dezelfde lengte, en met dezelfde eerste of laatste letter.
+        for (len in (n.length - maxDist)..(n.length + maxDist)) {
+            for ((m, name) in buckets[len].orEmpty()) {
+                if (m[0] != n[0] && m[m.length - 1] != n[n.length - 1]) continue
+                val d = distance(n, m, maxDist)
+                if (d < bestD) { bestD = d; best = name; if (d == 0) return name }
+            }
         }
         return if (bestD <= maxDist) best else null
     }

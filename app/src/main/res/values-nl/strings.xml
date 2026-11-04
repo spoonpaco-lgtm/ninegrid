@@ -126,7 +126,6 @@
     <string name="price_normal">Normaal %1$s</string>
     <string name="prices_from_import">Prijzen van het moment van toevoegen</string>
     <string name="prices_updated_at">Prijzen bijgewerkt op %1$s</string>
-    <string name="privacy_text">Geen account, geen tracking, geen reclame. Foto\'s worden op je telefoon gelezen en nooit bewaard of verstuurd. Alleen kaartnamen en nummers gaan naar Scryfall om kaarten en prijzen op te zoeken.</string>
     <string name="proxy">Proxy</string>
     <string name="proxy_explain">Proxies worden grijs getoond en tellen niet mee in aantallen of waarde.</string>
     <string name="quantity">Aantal</string>
@@ -142,7 +141,6 @@
     <string name="scan_failed">Het lezen van de foto is mislukt. Probeer het opnieuw met meer licht.</string>
     <string name="scan_nothing_found">Geen kaarten gevonden. Houd de telefoon dichterbij en het blad recht.</string>
     <string name="scan_page">Scannen</string>
-    <string name="scryfall_credit">Kaartgegevens en afbeeldingen van Scryfall. NineGrid is niet gemaakt of goedgekeurd door Scryfall.</string>
     <string name="search_card">Kaart zoeken</string>
     <string name="search_hint">Zoek in je kaarten</string>
     <string name="section">Deel</string>
@@ -352,4 +350,24 @@
     <string name="set_show_have">Wat ik heb</string>
     <string name="set_variants">Varianten meetellen</string>
     <string name="set_variant">variant</string>
+    <string name="msg_update_offline">Kon niet controleren op updates: geen internet.</string>
+    <string name="msg_update_not_found">Kon niet controleren op updates: GitHub vond de releases niet (is de repository openbaar?).</string>
+    <string name="msg_update_failed">Kon niet controleren op updates (%1$s).</string>
+    <string name="scan_timing_steps">lezen %1$.1f s (%2$d opnieuw) · namen %3$.1f s · opzoeken %4$.1f s · plaatjes %5$.1f s</string>
+    <string name="combos_title">Combo\'s</string>
+    <string name="combos_find">Combo\'s zoeken</string>
+    <string name="combos_refresh">Opnieuw zoeken</string>
+    <string name="combos_explain">Zoekt combo\'s in dit deck bij Commander Spellbook. Alleen kaartnamen worden verstuurd; je hebt internet nodig.</string>
+    <string name="combos_spellbook_tag">Schatting van Commander Spellbook: %1$s</string>
+    <string name="combos_none">Geen combo\'s gevonden.</string>
+    <string name="combos_two_card">Combo van twee kaarten</string>
+    <string name="combos_almost">Bijna: mist één kaart</string>
+    <string name="combos_missing">Mist: %1$s</string>
+    <string name="combos_not_owned">niet in je collectie</string>
+    <string name="combos_credit">Combo-gegevens van Commander Spellbook.</string>
+    <string name="msg_combo_failed">Commander Spellbook was niet bereikbaar (%1$s).</string>
+    <string name="bracket_combo_early">Vroege combo\'s van twee kaarten</string>
+    <string name="bracket_combo_late">Late combo\'s van twee kaarten</string>
+    <string name="privacy_text">Geen account, geen tracking, geen reclame. Foto\'s worden op je telefoon gelezen en nooit bewaard of verstuurd. Alleen kaartnamen en nummers gaan naar Scryfall om kaarten en prijzen op te zoeken, en alleen als je op Combo\'s zoeken tikt gaan de kaartnamen van dat deck naar Commander Spellbook.</string>
+    <string name="scryfall_credit">Kaartgegevens en afbeeldingen van Scryfall. Combo-gegevens van Commander Spellbook. NineGrid is niet gemaakt of goedgekeurd door Scryfall of Commander Spellbook.</string>
 </resources>

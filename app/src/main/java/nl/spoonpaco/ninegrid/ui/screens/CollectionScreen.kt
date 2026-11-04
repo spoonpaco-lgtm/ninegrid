@@ -71,18 +71,37 @@ fun CollectionScreen(
     var sort by rememberSaveable { mutableStateOf("set") }
     var menu by remember { mutableStateOf(false) }
     var search by remember { mutableStateOf(false) }
-    val deckNames = decks.associate { it.id to it.name }
+    val deckNames = remember(decks) { decks.associate { it.id to it.name } }
 
-    val filtered = all.filter { e ->
-        (includeDecks || e.entry.deckId == null) &&
-            (query.isBlank() || (e.print?.name ?: "").contains(query.trim(), ignoreCase = true) ||
-                (e.print?.setCode ?: "").equals(query.trim(), ignoreCase = true)) &&
-            (rarity == null || e.print?.rarity == rarity) &&
-            (!foilOnly || e.entry.finish != Finish.NONFOIL) &&
-            (color == null || (if (color == 'C') (e.print?.colors ?: "").isEmpty() else (e.print?.colors ?: "").contains(color!!)))
+    // Alleen opnieuw uitrekenen als de kaarten of de filters echt veranderen (scheelt veel bij duizenden kaarten).
+    val filtered = remember(all, query, rarity, foilOnly, color, includeDecks) {
+        all.filter { e ->
+            (includeDecks || e.entry.deckId == null) &&
+                (query.isBlank() || (e.print?.name ?: "").contains(query.trim(), ignoreCase = true) ||
+                    (e.print?.setCode ?: "").equals(query.trim(), ignoreCase = true)) &&
+                (rarity == null || e.print?.rarity == rarity) &&
+                (!foilOnly || e.entry.finish != Finish.NONFOIL) &&
+                (color == null || (if (color == 'C') (e.print?.colors ?: "").isEmpty() else (e.print?.colors ?: "").contains(color!!)))
+        }
     }
-    val count = filtered.sumOf { it.entry.quantity }
-    val value = filtered.sumOf { Money.total(it.entry, it.print, settings.currency) }
+    val count = remember(filtered) { filtered.sumOf { it.entry.quantity } }
+    val value = remember(filtered, settings.currency) { filtered.sumOf { Money.total(it.entry, it.print, settings.currency) } }
+    data class Group(val set: String, val name: String, val count: Int, val value: Double, val cards: List<nl.spoonpaco.ninegrid.data.db.EntryWithPrint>)
+    val groups = remember(filtered, sort, settings.currency) {
+        if (sort != "set") emptyList() else filtered.groupBy { it.print?.setCode ?: "?" }.toSortedMap().map { (set, list) ->
+            Group(
+                set, list.firstOrNull()?.print?.setName ?: "", list.sumOf { it.entry.quantity }, list.sumOf { Money.total(it.entry, it.print, settings.currency) },
+                list.sortedWith(compareBy({ it.print?.collectorNumber?.filter { c -> c.isDigit() }?.toIntOrNull() ?: 0 }, { it.print?.collectorNumber })),
+            )
+        }
+    }
+    val sortedFlat = remember(filtered, sort, settings.currency) {
+        when (sort) {
+            "price" -> filtered.sortedByDescending { Money.total(it.entry, it.print, settings.currency) }
+            "name" -> filtered.sortedBy { it.print?.name ?: "" }
+            else -> emptyList()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -141,23 +160,16 @@ fun CollectionScreen(
             } else {
                 LazyColumn(contentPadding = PaddingValues(bottom = 96.dp)) {
                     if (sort == "set") {
-                        val groups = filtered.groupBy { it.print?.setCode ?: "?" }.toSortedMap()
-                        groups.forEach { (set, list) ->
-                            item(key = "h_$set") {
-                                val name = list.firstOrNull()?.print?.setName ?: ""
-                                SectionHeader(
-                                    "$set · $name",
-                                    stringResource(R.string.count_value, list.sumOf { it.entry.quantity }, Money.format(list.sumOf { Money.total(it.entry, it.print, settings.currency) }, settings.currency)),
-                                )
+                        groups.forEach { g ->
+                            item(key = "h_${g.set}") {
+                                SectionHeader("${g.set} · ${g.name}", stringResource(R.string.count_value, g.count, Money.format(g.value, settings.currency)))
                             }
-                            items(list.sortedWith(compareBy({ it.print?.collectorNumber?.filter { c -> c.isDigit() }?.toIntOrNull() ?: 0 }, { it.print?.collectorNumber })), key = { it.entry.id }) { e ->
+                            items(g.cards, key = { it.entry.id }) { e ->
                                 CardRow(e.entry, e.print, settings, vm.images, location = locationText(e.entry, deckNames)) { e.print?.let { onCard(it.id) } }
                             }
                         }
                     } else {
-                        val sorted = if (sort == "price") filtered.sortedByDescending { Money.total(it.entry, it.print, settings.currency) }
-                        else filtered.sortedBy { it.print?.name ?: "" }
-                        items(sorted, key = { it.entry.id }) { e ->
+                        items(sortedFlat, key = { it.entry.id }) { e ->
                             CardRow(e.entry, e.print, settings, vm.images, location = locationText(e.entry, deckNames)) { e.print?.let { onCard(it.id) } }
                         }
                     }

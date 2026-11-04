@@ -10,6 +10,9 @@ Gratis Android-app (8.0+) voor je Magic: The Gathering-collectie en decks.
 - Locations (binder / page / slot), change log with undo, backup and export
 - English and Dutch, day and night theme
 
+## Versions
+0.x: test versions of part 1. 1.0 arrives when part 2 is done (Google Sheet sync and deck suggestions).
+
 ## Install
 Download the latest `NineGrid-vX.Y.Z.apk` from [Releases](../../releases) and open it on your phone
 (allow "install unknown apps" for your browser or file manager).

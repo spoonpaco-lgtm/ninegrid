@@ -150,6 +150,9 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     var lastReadMs by mutableStateOf(0L)
     var lastRereadSlots by mutableStateOf(0)
     var lastResolveMs by mutableStateOf(0L)
+    var lastNamesMs by mutableStateOf(0L)
+    var lastLookupMs by mutableStateOf(0L)
+    var lastImagesMs by mutableStateOf(0L)
     /** Dit hele blad is foil. */
     var scanFoil by mutableStateOf(false)
 
@@ -270,6 +273,8 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             busy = true
             val started = System.currentTimeMillis()
+            val scan = importSource == ImportSource.SCAN
+            if (scan) repo.scryfall.holdForeground()
             // Bij een scan: eerst namen verbeteren en controleren tegen de setlijst (grotendeels zonder internet).
             val queries = if (importSource == ImportSource.SCAN) runCatching { repo.preResolve(todo.map { it.query }) }.getOrElse { todo.map { it.query } }
                 else todo.map { it.query }
@@ -283,23 +288,31 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                 }
                 message = str(R.string.msg_waiting_for_network)
                 savePendingToDisk()
+                if (scan) repo.scryfall.releaseForeground()
                 busy = false
                 return@launch
             }
             if (err != null) message = errorText(err)
             val found = result.getOrElse { List(todo.size) { null } }.toMutableList()
-            // Twijfel over de print (nummer niet gelezen of anders)? Dan jouw foto vergelijken met de plaatjes van de kandidaten.
+            lastLookupMs = System.currentTimeMillis() - started - repo.lastNamesMs
+            lastNamesMs = repo.lastNamesMs
+            val tImages = System.currentTimeMillis()
+            // Twijfel over de print (nummer niet gelezen of anders)? Vergelijk jouw foto met de prints met die naam
+            // uit de setlijst op de telefoon. Alleen als er echt meer dan één print is.
             if (importSource == ImportSource.SCAN) todo.forEachIndexed { i, item ->
                 val card = found[i] ?: return@forEachIndexed
                 val photo = crops[item.key]?.asAndroidBitmap() ?: return@forEachIndexed
                 val q = item.query
                 if (q.collectorNumber != null && card.collectorNumber.equals(q.collectorNumber, true)) return@forEachIndexed
+                val cands = repo.printCandidates(card.name, q.setCode ?: card.set)
+                if (cands.size < 2) return@forEachIndexed
                 runCatching {
-                    val cands = repo.printCandidates(card.name, q.setCode ?: card.set)
-                    val best = matcher.best(photo, cands.map { it.toPrint().imageSmall })
-                    if (best != null) found[i] = cands[best]
+                    val best = matcher.best(photo, cands.map { it.image })
+                    if (best != null && cands[best].id != card.id) repo.scryfall.cardById(cands[best].id)?.let { found[i] = it }
                 }
             }
+            lastImagesMs = System.currentTimeMillis() - tImages
+            if (scan) repo.scryfall.releaseForeground()
             lastResolveMs = System.currentTimeMillis() - started
             todo.forEachIndexed { i, item ->
                 val idx = pending.indexOfFirst { it.key == item.key }
@@ -557,8 +570,14 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     var priceChanges by mutableStateOf<List<PriceChange>>(emptyList())
 
+    private var priceChangesKey = ""
+
     fun computePriceChanges() = viewModelScope.launch {
         val cur = settings.value.currency
+        // Uitkomst per dag bewaren: dezelfde dag, valuta en prijsupdate rekent niet opnieuw.
+        val key = java.time.LocalDate.now().toString() + cur + settings.value.lastPriceUpdate
+        if (key == priceChangesKey) return@launch
+        priceChangesKey = key
         val list = entries.value.filter { !it.entry.proxy && it.print != null }
         val result = listOf(7, 30).mapNotNull { days ->
             val day = java.time.LocalDate.now().minusDays(days.toLong()).toString()
@@ -590,9 +609,15 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         val s = settingsStore.current()
         if (!manual && System.currentTimeMillis() - s.lastUpdateCheck < 24 * 3600 * 1000L) return@launch
         settingsStore.setLastUpdateCheck(System.currentTimeMillis())
-        val u = UpdateChecker.check()
-        update = u
-        if (u == null && manual) message = str(R.string.msg_up_to_date)
+        when (val r = UpdateChecker.check()) {
+            is nl.spoonpaco.ninegrid.data.UpdateResult.Available -> update = r.info
+            nl.spoonpaco.ninegrid.data.UpdateResult.UpToDate -> if (manual) message = str(R.string.msg_up_to_date)
+            is nl.spoonpaco.ninegrid.data.UpdateResult.Failed -> if (manual) message = when (r.reason) {
+                "offline" -> str(R.string.msg_update_offline)
+                "GitHub 404" -> str(R.string.msg_update_not_found)
+                else -> str(R.string.msg_update_failed, r.reason)
+            }
+        }
     }
 
     init {
@@ -701,4 +726,35 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         }.onFailure { message = errorText(it) }
         busy = false
     }
+
+    // ---------- Combo's (Commander Spellbook) ----------
+    var comboReport by mutableStateOf<nl.spoonpaco.ninegrid.data.ComboReport?>(null)
+    var comboDeckId by mutableStateOf<Long?>(null)
+    var comboLoading by mutableStateOf(false)
+
+    private fun deckLists(deckId: Long): Pair<List<Pair<String, Int>>, List<Pair<String, Int>>> {
+        val list = entries.value.filter { it.entry.deckId == deckId && it.print != null }
+        fun group(l: List<EntryWithPrint>) = l.groupBy { it.print!!.name }.map { (n, v) -> n to v.sumOf { it.entry.quantity } }
+        return group(list.filter { it.entry.section == Section.COMMANDER }) to group(list.filter { it.entry.section != Section.COMMANDER && it.entry.section != Section.SIDEBOARD })
+    }
+
+    /** Bewaarde uitkomst laden als het deck niet veranderde. */
+    fun loadCachedCombos(deckId: Long) {
+        val (cmd, main) = deckLists(deckId)
+        comboDeckId = deckId
+        comboReport = c.combos.cached(deckId, c.combos.hashOf(cmd, main))
+    }
+
+    fun findCombos(deckId: Long) = viewModelScope.launch {
+        val (cmd, main) = deckLists(deckId)
+        comboLoading = true
+        comboDeckId = deckId
+        runCatching { c.combos.find(deckId, cmd, main) }
+            .onSuccess { comboReport = it }
+            .onFailure { message = if (it is java.io.IOException && it.message?.startsWith("Commander") != true) str(R.string.msg_network_error) else str(R.string.msg_combo_failed, it.message ?: "") }
+        comboLoading = false
+    }
+
+    /** Ligt deze kaart (los) in je collectie? Geeft het exemplaar terug, of null. */
+    fun inCollectionByName(name: String) = entries.value.firstOrNull { it.entry.deckId == null && !it.entry.proxy && it.print?.name.equals(name, true) }
 }

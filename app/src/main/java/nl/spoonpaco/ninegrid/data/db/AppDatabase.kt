@@ -8,8 +8,8 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
-    entities = [CardPrint::class, Entry::class, Deck::class, ChangeRecord::class, Snapshot::class, Moment::class, PricePoint::class],
-    version = 5,
+    entities = [CardPrint::class, Entry::class, Deck::class, ChangeRecord::class, Snapshot::class, Moment::class, PricePoint::class, UndoPart::class],
+    version = 6,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -24,8 +24,16 @@ abstract class AppDatabase : RoomDatabase() {
     companion object {
         fun create(context: Context): AppDatabase =
             Room.databaseBuilder(context, AppDatabase::class.java, "ninegrid.db")
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
                 .build()
+
+        /** Versie 6: grote ongedaan-maak-gegevens in stukken, en een index op de prijzenhistorie per dag. */
+        val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("CREATE TABLE IF NOT EXISTS `undo_parts` (`changeId` INTEGER NOT NULL, `idx` INTEGER NOT NULL, `data` TEXT NOT NULL, PRIMARY KEY(`changeId`, `idx`))")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_price_history_day` ON `price_history` (`day`)")
+            }
+        }
 
         /** Versie 5: regeltekst per print. Bestaande kaarten krijgen hem bij de volgende prijsupdate. */
         val MIGRATION_4_5 = object : Migration(4, 5) {

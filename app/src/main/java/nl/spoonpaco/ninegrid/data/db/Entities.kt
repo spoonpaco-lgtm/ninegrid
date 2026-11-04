@@ -135,6 +135,7 @@ data class Snapshot(
 )
 
 /** Momenten binnen een dag (bij elke wijziging en prijsupdate), voor 1D, 1W en 1M. Na een maand opgeruimd. */
+@Serializable
 @Entity(tableName = "moments", primaryKeys = ["ts", "key"])
 data class Moment(
     val ts: Long,
@@ -146,7 +147,7 @@ data class Moment(
 
 /** Prijs van één print op één dag, voor het koersverschil. Een maand per dag, daarna één per maand. */
 @Serializable
-@Entity(tableName = "price_history", primaryKeys = ["printId", "day"])
+@Entity(tableName = "price_history", primaryKeys = ["printId", "day"], indices = [Index("day")])
 data class PricePoint(
     val printId: String,
     val day: String,
@@ -156,3 +157,7 @@ data class PricePoint(
     val usdFoil: Double?,
     val usdEtched: Double?,
 )
+
+/** Stukken van een grote ongedaan-maak-gegevens (bijv. een import van duizenden kaarten), zodat één regel nooit te groot wordt. */
+@Entity(tableName = "undo_parts", primaryKeys = ["changeId", "idx"])
+data class UndoPart(val changeId: Long, val idx: Int, val data: String)

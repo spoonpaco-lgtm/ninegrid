@@ -14,5 +14,6 @@ class AppContainer(val context: Context) {
     val settings = SettingsStore(context)
     val images = Images(context)
     val cache = nl.spoonpaco.ninegrid.data.CardCache(context, scryfall)
+    val combos = nl.spoonpaco.ninegrid.data.ComboService(context)
     val repository = Repository(db, scryfall) { removed -> images.remove(removed) }.also { it.cache = cache }
 }

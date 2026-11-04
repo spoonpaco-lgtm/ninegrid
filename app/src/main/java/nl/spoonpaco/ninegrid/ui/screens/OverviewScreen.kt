@@ -100,11 +100,16 @@ fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}) {
     val extra = LocalNgExtra.current
     var choosing by remember { mutableStateOf(false) }
 
-    val collection = all.filter { it.entry.deckId == null }
-    val sets = collection.groupBy { it.print?.setCode ?: "?" }.toSortedMap().map { (k, v) -> k to count(v, cur) }
-    val setTotal = sets.fold(Counts.ZERO) { a, b -> a + b.second }
-    val deckRows = decks.map { d -> d.name to count(all.filter { it.entry.deckId == d.id }, cur) }
-    val deckTotal = deckRows.fold(Counts.ZERO) { a, b -> a + b.second }
+    // Alleen opnieuw uitrekenen als de kaarten, decks of valuta veranderen.
+    val sets = remember(all, cur) {
+        all.filter { it.entry.deckId == null }.groupBy { it.print?.setCode ?: "?" }.toSortedMap().map { (k, v) -> k to count(v, cur) }
+    }
+    val setTotal = remember(sets) { sets.fold(Counts.ZERO) { a, b -> a + b.second } }
+    val deckRows = remember(all, decks, cur) {
+        val byDeck = all.filter { it.entry.deckId != null }.groupBy { it.entry.deckId }
+        decks.map { d -> d.name to count(byDeck[d.id].orEmpty(), cur) }
+    }
+    val deckTotal = remember(deckRows) { deckRows.fold(Counts.ZERO) { a, b -> a + b.second } }
     val grand = setTotal + deckTotal
 
     // Namen van alle lijnen die je kunt kiezen.
@@ -149,7 +154,8 @@ fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}) {
                 val monthAgo = LocalDate.now().minusDays(30).toString()
                 val base = totalSnaps.lastOrNull { it.day <= monthAgo } ?: totalSnaps.firstOrNull()?.takeIf { it.day < LocalDate.now().toString() }
                 val diff = base?.let { grand.value - (if (cur == "USD") it.usd else it.eur) }
-                androidx.compose.runtime.LaunchedEffect(all.size, cur, settings.lastPriceUpdate) { vm.computePriceChanges() }
+                // Alleen bij het openen van Overzicht, en hoogstens één keer per dag (of na een prijsupdate).
+                androidx.compose.runtime.LaunchedEffect(cur, settings.lastPriceUpdate) { vm.computePriceChanges() }
                 Panel {
                     Text(stringResource(R.string.total_collection), color = extra.subtle, fontSize = 13.sp)
                     Text(Money.format(grand.value, cur), fontSize = 30.sp, fontWeight = FontWeight.Bold, color = extra.price)

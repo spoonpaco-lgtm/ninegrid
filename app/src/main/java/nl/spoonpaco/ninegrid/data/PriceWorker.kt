@@ -20,7 +20,7 @@ class PriceWorker(context: Context, params: WorkerParameters) : CoroutineWorker(
     override suspend fun doWork(): Result {
         val c = (applicationContext as NineGridApp).container
         return runCatching {
-            c.repository.refreshPrices()
+            c.repository.refreshPrices(background = true)
             c.settings.setLastPriceUpdate(System.currentTimeMillis())
             c.repository.takeSnapshot()
             Result.success()
