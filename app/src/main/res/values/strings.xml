@@ -271,4 +271,34 @@
         <item quantity="one">%d empty slot</item>
         <item quantity="other">%d empty slots</item>
     </plurals>
+    <string name="import_title">Import</string>
+    <string name="import_sub">Your collection from the Sheet (.xlsx) or a .csv</string>
+    <string name="import_explain">Bring your existing collection over in one go: set tabs, Loose cards, Decks and History from the MTG Collection Sheet. Nothing is counted twice: cards in decks stay in their deck.</string>
+    <string name="import_how">How to get the file: open your Sheet in Google Sheets. On a computer: File → Download → Microsoft Excel (.xlsx). In the Google Sheets app: ⋮ → Share and export → Save as → Excel. Then choose that file here. A .csv of one tab also works.</string>
+    <string name="import_choose">Choose file</string>
+    <string name="import_unreadable">This file could not be read, or no cards with a quantity were found in it.</string>
+    <string name="import_reading">Reading file…</string>
+    <string name="import_found">Found in the file</string>
+    <string name="import_sheets">Tabs</string>
+    <string name="import_decks_line">%1$d decks · %2$d cards</string>
+    <string name="import_history">History</string>
+    <string name="import_history_line">%1$d days</string>
+    <string name="import_skipped">%1$d rows skipped because the set code was not recognised.</string>
+    <string name="import_existing">You already have cards in the app</string>
+    <string name="import_add">Add to what is there</string>
+    <string name="import_replace">Replace everything</string>
+    <string name="import_time_hint">Scryfall allows two lookups per second, so a large collection takes a few minutes.</string>
+    <string name="import_start">Import</string>
+    <string name="import_looking_up">Looking up cards at Scryfall…</string>
+    <string name="import_saving">Saving…</string>
+    <string name="import_keep_open">Keep the app open until it is done.</string>
+    <string name="import_done">%1$d cards imported, %2$d decks. %3$d not found.</string>
+    <string name="import_undo_hint">The whole import is one change: you can undo it in one go via More → Change log.</string>
+    <string name="import_not_found_title">Not found</string>
+    <string name="import_copy_not_found">Copy as list</string>
+    <string name="import_not_found_hint">Paste this list via Paste list, correct the lines and add them that way.</string>
+    <string name="import_to_collection">To my collection</string>
+    <string name="copied">Copied</string>
+    <string name="log_imported">Imported %1$d cards and %2$d decks</string>
+    <string name="msg_import_failed">Import failed, nothing was changed.</string>
 </resources>

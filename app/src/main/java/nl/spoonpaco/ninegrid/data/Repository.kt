@@ -193,6 +193,42 @@ class Repository(
         return result
     }
 
+    /**
+     * Importeert een hele collectie in één keer, als één wijziging (dus in één keer ongedaan te maken).
+     * Met replace wordt eerst alles verwijderd; ongedaan maken zet het oude dan terug.
+     */
+    suspend fun importAll(
+        collection: List<NewEntry>,
+        decks: List<Pair<Deck, List<NewEntry>>>,
+        history: List<nl.spoonpaco.ninegrid.data.db.Snapshot>,
+        replace: Boolean,
+        summary: String,
+    ) {
+        db.withTransaction {
+            val oldEntries = if (replace) db.entries().all() else emptyList()
+            val oldDecks = if (replace) db.decks().all() else emptyList()
+            if (replace) { db.entries().deleteAll(); db.decks().deleteAll() }
+            val prints = (collection + decks.flatMap { it.second }).map { it.print }.distinctBy { it.id }
+            db.prints().upsert(prints)
+            val created = mutableListOf<Long>()
+            val deckIds = mutableListOf<Long>()
+            // Collectie: gelijke exemplaren samenvoegen tot één stapel.
+            collection.groupBy { Triple(it.print.id, it.entry.finish, Triple(it.entry.language, it.entry.proxy, it.entry.condition)) }.forEach { (_, list) ->
+                val e = list.first().entry.copy(id = 0, printId = list.first().print.id, quantity = list.sumOf { it.entry.quantity }, deckId = null, section = null)
+                created += db.entries().insert(e)
+            }
+            for ((deck, cards) in decks) {
+                val id = db.decks().insert(deck.copy(id = 0)); deckIds += id
+                cards.groupBy { Triple(it.print.id, it.entry.finish, Triple(it.entry.section, it.entry.proxy, it.entry.language)) }.forEach { (_, list) ->
+                    val e = list.first().entry.copy(id = 0, printId = list.first().print.id, quantity = list.sumOf { it.entry.quantity }, deckId = id, binder = null, page = null, slot = null)
+                    created += db.entries().insert(e)
+                }
+            }
+            if (history.isNotEmpty()) db.snapshots().upsert(history)
+            log(summary, UndoData(restoreEntries = oldEntries, deleteEntryIds = created, restoreDecks = oldDecks, deleteDeckIds = deckIds))
+        }
+    }
+
     suspend fun updateDeck(deck: Deck, summary: String) {
         db.withTransaction {
             val before = db.decks().get(deck.id) ?: return@withTransaction
@@ -270,10 +306,11 @@ class Repository(
         db.withTransaction {
             val change = db.changes().latestActive() ?: return@withTransaction
             val undo = json.decodeFromString(UndoData.serializer(), change.undoJson)
-            if (undo.deleteEntryIds.isNotEmpty()) db.entries().deleteIds(undo.deleteEntryIds)
+            // In stukken: SQLite accepteert op oudere telefoons hoogstens 999 waarden per opdracht.
+            undo.deleteEntryIds.chunked(500).forEach { db.entries().deleteIds(it) }
             if (undo.restoreDecks.isNotEmpty()) db.decks().upsert(undo.restoreDecks)
-            if (undo.restoreEntries.isNotEmpty()) db.entries().upsert(undo.restoreEntries)
-            if (undo.deleteDeckIds.isNotEmpty()) db.decks().deleteIds(undo.deleteDeckIds)
+            undo.restoreEntries.chunked(500).forEach { db.entries().upsert(it) }
+            undo.deleteDeckIds.chunked(500).forEach { db.decks().deleteIds(it) }
             db.changes().markReverted(change.id)
             done = true
         }

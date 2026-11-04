@@ -115,4 +115,44 @@ class ParserTest {
         val r = ScanParser.analyze(lines, 1000, 1000, nl.spoonpaco.ninegrid.domain.Area(0f, 0f, 800f, 1000f))
         assertEquals(1, r.linesInside)
     }
+
+    @Test
+    fun readsNumberWithoutSlash() {
+        val lines = listOf(
+            OcrLine("Seachrome Coast", 50f, 20f), OcrLine("Land", 50f, 200f),
+            OcrLine("374 R", 30f, 290f), OcrLine("ONE • EN", 40f, 296f),
+        )
+        val r = ScanParser.analyzeSingle(lines, 100, 300, null)
+        assertEquals("374", r.slots[0].collectorNumber)
+        assertEquals("ONE", r.slots[0].setCode)
+        assertEquals("Seachrome Coast", r.slots[0].name)
+    }
+
+    @Test
+    fun importsSheetLayout() {
+        val header = listOf("Set", "Nr.", "Kaart", "Rarity", "Foil", "Taal", "Aantal", "Prijs/stuk (€)", "Totaal (€)", "Proxy")
+        val mh1 = listOf(header, listOf("MH1", "1", "Morophon", "rare", "", "", "", "", "", ""), listOf("MH1", "2", "Sliver", "rare", "foil", "", "2", "", "", ""))
+        val decks = listOf(
+            listOf("Edgar Markov"), header,
+            listOf("", "", "Commander"), listOf("INR", "328", "Edgar Markov", "mythic", "", "", "1", "", "", ""),
+            listOf("", "", "Deck"), listOf("C21", "263", "Sol Ring", "uncommon", "", "", "1", "", "", "ja"),
+            emptyList(), listOf("", "", "mythic", "", "", "", "1"), emptyList(), emptyList(),
+            listOf("Krenko"), header, listOf("M20", "109", "Murder (FR)", "common", "", "", "4", "", "", ""),
+        )
+        val d = nl.spoonpaco.ninegrid.domain.SheetImport.interpret(listOf("MH1" to mh1, "Decks" to decks, "Overzicht" to listOf(listOf("x"))))
+        assertEquals(1, d.collection.size)
+        assertTrue(d.collection[0].foil)
+        assertEquals(2, d.decks.size)
+        assertEquals("COMMANDER", d.decks[0].cards[0].section)
+        assertTrue(d.decks[0].cards[1].proxy)
+        assertEquals(2, d.decks[0].cards.size)
+        assertEquals("FR", d.decks[1].cards[0].language)
+        assertEquals("Murder", d.decks[1].cards[0].name)
+    }
+
+    @Test
+    fun parsesCsv() {
+        val rows = nl.spoonpaco.ninegrid.domain.SheetImport.parseCsv("Set;Nr.;Kaart\nMH1;1;\"A; B\"\n")
+        assertEquals("A; B", rows[1][2])
+    }
 }

@@ -130,6 +130,7 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
                     onScan = { tab("scan") },
                     onPaste = { nav.navigate("paste") },
                     onReview = { nav.navigate("review") },
+                    onImport = { nav.navigate("import") },
                 )
             }
             composable("decks") {
@@ -144,6 +145,7 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
                     onSettings = { nav.navigate("settings") },
                     onAbout = { nav.navigate("about") },
                     onGuide = { nav.navigate("guide") },
+                    onImport = { nav.navigate("import") },
                 )
             }
             composable("card/{printId}", arguments = listOf(navArgument("printId") { type = NavType.StringType })) {
@@ -183,6 +185,9 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
                 GuideChapterScreen(it.arguments?.getString("id") ?: "start", onBack = { nav.popBackStack() }, onChapter = { id ->
                     nav.navigate("guide/$id") { popUpTo("guide") }
                 })
+            }
+            composable("import") {
+                nl.spoonpaco.ninegrid.ui.screens.ImportScreen(vm, onBack = { nav.popBackStack() }, onDone = { tab("collection") })
             }
             composable("changes") { ChangeLogScreen(vm, onBack = { nav.popBackStack() }) }
             composable("settings") { SettingsScreen(vm, onBack = { nav.popBackStack() }) }

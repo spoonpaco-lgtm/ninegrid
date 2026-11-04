@@ -18,6 +18,8 @@ import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.ui.Alignment
+import androidx.compose.material.icons.filled.FileOpen
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
@@ -56,6 +58,7 @@ fun CollectionScreen(
     onScan: () -> Unit,
     onPaste: () -> Unit,
     onReview: () -> Unit,
+    onImport: () -> Unit = {},
 ) {
     val settings by vm.settings.collectAsState()
     val all by vm.entries.collectAsState()
@@ -100,6 +103,7 @@ fun CollectionScreen(
                     DropdownMenuItem(text = { Text(stringResource(R.string.scan_page)) }, leadingIcon = { Icon(Icons.Filled.CameraAlt, null) }, onClick = { menu = false; onScan() })
                     DropdownMenuItem(text = { Text(stringResource(R.string.paste_list)) }, leadingIcon = { Icon(Icons.Filled.ContentPaste, null) }, onClick = { menu = false; onPaste() })
                     DropdownMenuItem(text = { Text(stringResource(R.string.search_card)) }, leadingIcon = { Icon(Icons.Filled.Search, null) }, onClick = { menu = false; search = true })
+                    DropdownMenuItem(text = { Text(stringResource(R.string.import_title)) }, leadingIcon = { Icon(Icons.Filled.FileOpen, null) }, onClick = { menu = false; onImport() })
                 }
             }
         },
@@ -127,7 +131,13 @@ fun CollectionScreen(
                 FilterChip(selected = sort == "name", onClick = { sort = if (sort == "name") "set" else "name" }, label = { Text(stringResource(R.string.sort_name)) })
             }
             if (all.isEmpty()) {
-                EmptyState(stringResource(R.string.empty_collection_title), stringResource(R.string.empty_collection_body))
+                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                    EmptyState(stringResource(R.string.empty_collection_title), stringResource(R.string.empty_collection_body))
+                    // Je hebt al een collectie in de Sheet? Dan in één keer importeren.
+                    androidx.compose.material3.Button(onClick = onImport) {
+                        Icon(Icons.Filled.FileOpen, null); androidx.compose.foundation.layout.Spacer(Modifier.padding(4.dp)); Text(stringResource(R.string.import_title))
+                    }
+                }
             } else {
                 LazyColumn(contentPadding = PaddingValues(bottom = 96.dp)) {
                     if (sort == "set") {

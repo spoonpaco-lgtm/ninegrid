@@ -512,4 +512,86 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         runCatching { connectivity?.registerDefaultNetworkCallback(networkCallback) }
         loadSavedPending()
     }
+
+    // ---------- Importeren uit de Sheet (.xlsx of .csv) ----------
+    enum class ImportStep { IDLE, READING, READY, RESOLVING, SAVING, DONE, FAILED }
+
+    var importStep by mutableStateOf(ImportStep.IDLE)
+    var importData by mutableStateOf<nl.spoonpaco.ninegrid.domain.ImportData?>(null)
+    var importProgress by mutableStateOf(0f)
+    var importNotFound by mutableStateOf<List<nl.spoonpaco.ninegrid.domain.ImportCard>>(emptyList())
+    var importResult by mutableStateOf("")
+
+    fun readImport(uri: Uri) = viewModelScope.launch {
+        importStep = ImportStep.READING
+        importNotFound = emptyList()
+        runCatching {
+            val ctx = getApplication<Application>()
+            val name = androidx.documentfile.provider.DocumentFile.fromSingleUri(ctx, uri)?.name ?: "import.xlsx"
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                ctx.contentResolver.openInputStream(uri)!!.use { nl.spoonpaco.ninegrid.domain.SheetImport.read(name, it) }
+            }
+        }.onSuccess { importData = it; importStep = if (it.collection.isEmpty() && it.decks.isEmpty()) ImportStep.FAILED else ImportStep.READY }
+            .onFailure { importStep = ImportStep.FAILED }
+    }
+
+    fun cancelImport() { importStep = ImportStep.IDLE; importData = null; importNotFound = emptyList() }
+
+    fun runImport(replace: Boolean) {
+        val data = importData ?: return
+        viewModelScope.launch {
+            importStep = ImportStep.RESOLVING
+            importProgress = 0f
+            val all = data.collection + data.decks.flatMap { it.cards }
+            // Elke print maar één keer opzoeken.
+            val keys = all.map { Triple(it.setCode.lowercase(), it.number.lowercase(), it.name) }.distinct()
+            val queries = keys.map { (set, nr, name) -> CardQuery(setCode = set, collectorNumber = nr.ifBlank { null }, name = name.ifBlank { null }) }
+            val found = runCatching {
+                repo.resolve(queries) { i, n -> importProgress = if (n == 0) 1f else i / n.toFloat() }
+            }.getOrElse {
+                message = errorText(it); importStep = ImportStep.READY; return@launch
+            }
+            importStep = ImportStep.SAVING
+            val byKey = keys.zip(found).toMap()
+            val notFound = mutableListOf<nl.spoonpaco.ninegrid.domain.ImportCard>()
+            fun toNew(c: nl.spoonpaco.ninegrid.domain.ImportCard): NewEntry? {
+                val card = byKey[Triple(c.setCode.lowercase(), c.number.lowercase(), c.name)] ?: run { notFound += c; return null }
+                val print = card.toPrint()
+                return NewEntry(print, Entry(
+                    printId = print.id, quantity = c.quantity, proxy = c.proxy, language = c.language,
+                    finish = when { c.etched -> Finish.ETCHED; c.foil -> Finish.FOIL; else -> Finish.NONFOIL },
+                    section = c.section,
+                ))
+            }
+            val collection = data.collection.mapNotNull { toNew(it) }
+            val decks = data.decks.map { d ->
+                val cards = d.cards.mapNotNull { toNew(it) }
+                val parsed = d.cards.map {
+                    nl.spoonpaco.ninegrid.domain.ParsedLine(
+                        it.quantity, it.name, null, null, false, false,
+                        when (it.section) { "COMMANDER" -> DeckListParser.COMMANDER; "SIDEBOARD" -> DeckListParser.SIDEBOARD; else -> DeckListParser.MAIN }, 0, "",
+                    )
+                }
+                val typeLines = cards.associate { it.print.name to it.print.typeLine }
+                Deck(name = d.name, format = Formats.suggest(parsed, typeLines)) to cards
+            }
+            val history = data.history.map { h ->
+                nl.spoonpaco.ninegrid.data.db.Snapshot(h.day, "total", "", h.value, 0.0, h.count)
+            }
+            val count = collection.sumOf { it.entry.quantity } + decks.sumOf { d -> d.second.sumOf { it.entry.quantity } }
+            runCatching {
+                repo.importAll(collection, decks, history, replace, str(R.string.log_imported, count, decks.size))
+            }.onFailure { message = str(R.string.msg_import_failed); importStep = ImportStep.READY; return@launch }
+            importNotFound = notFound
+            importResult = str(R.string.import_done, count, decks.size, notFound.sumOf { it.quantity })
+            importStep = ImportStep.DONE
+            images.prefetch(repo.allPrintsOwned(), settings.value)
+            snapshot()
+        }
+    }
+
+    /** Niet gevonden kaarten als plaklijst, om ze later via Lijst plakken toe te voegen. */
+    fun notFoundAsList(): String = importNotFound.joinToString("\n") { c ->
+        "${c.quantity} ${c.name} (${c.setCode}) ${c.number}" + (if (c.etched) " *E*" else if (c.foil) " *F*" else "")
+    }
 }
