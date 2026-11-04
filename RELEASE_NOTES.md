@@ -1,4 +1,4 @@
-NineGrid 0.1.2
+NineGrid 0.1.3
 
-- Kaartafbeeldingen: eigen herkenning (User-Agent) richting Scryfall en een reserveadres als er geen afbeelding is opgeslagen. Lukt laden niet, dan staat de reden in het vak.
-- De knop Cardmarket opent nu de zoekpagina op kaartnaam; de doorverwijslink werd door Cardmarket geblokkeerd.
+- Scannen: de cameraknop en de knop "Uit foto's" vielen onder het scherm. Het camerabeeld past zich nu aan, zodat beide knoppen altijd zichtbaar zijn.
+- Rasterlijnen en vaknummers zijn transparanter.

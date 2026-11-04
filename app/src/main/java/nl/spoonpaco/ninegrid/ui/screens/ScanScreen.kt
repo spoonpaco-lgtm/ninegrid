@@ -140,7 +140,7 @@ fun ScanScreen(vm: AppViewModel, onResult: () -> Unit) {
     }
 
     Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.scan_page), fontWeight = FontWeight.Bold) }) }) { pad ->
-        Column(Modifier.padding(pad).fillMaxSize().padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(Modifier.padding(pad).fillMaxSize().padding(horizontal = 12.dp, vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Text(stringResource(R.string.scan_explain), fontSize = 13.sp, color = LocalNgExtra.current.subtle, textAlign = TextAlign.Center)
             Spacer(Modifier.height(6.dp))
             OutlinedTextField(
@@ -149,7 +149,7 @@ fun ScanScreen(vm: AppViewModel, onResult: () -> Unit) {
                 singleLine = true, modifier = Modifier.fillMaxWidth(),
             )
             Spacer(Modifier.height(8.dp))
-            Box(Modifier.fillMaxWidth().aspectRatio(0.75f), contentAlignment = Alignment.Center) {
+            Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
                 if (permitted) {
                     AndroidView(
                         factory = { ctx ->
@@ -179,7 +179,7 @@ fun ScanScreen(vm: AppViewModel, onResult: () -> Unit) {
             }
             error?.let { Text(it, color = NgColors.Error, modifier = Modifier.padding(top = 8.dp), textAlign = TextAlign.Center) }
             Spacer(Modifier.height(12.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(24.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(horizontalArrangement = Arrangement.spacedBy(20.dp), verticalAlignment = Alignment.CenterVertically) {
                 OutlinedButton(onClick = { gallery.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }, enabled = !working) {
                     Icon(Icons.Filled.PhotoLibrary, null); Spacer(Modifier.size(6.dp)); Text(stringResource(R.string.from_photos))
                 }
@@ -225,20 +225,20 @@ fun ScanScreen(vm: AppViewModel, onResult: () -> Unit) {
 /** Raster van 3x3 over de camera, met de vaknummers, zodat het blad recht in beeld komt. */
 @Composable
 private fun GridOverlay() {
-    val line = NgColors.Amber.copy(alpha = 0.85f)
+    val line = NgColors.Amber.copy(alpha = 0.35f)
     Box(Modifier.fillMaxSize()) {
         Canvas(Modifier.fillMaxSize()) {
             val w = size.width; val h = size.height
             for (i in 1..2) {
-                drawLine(line, Offset(w * i / 3f, 0f), Offset(w * i / 3f, h), strokeWidth = 3f)
-                drawLine(line, Offset(0f, h * i / 3f), Offset(w, h * i / 3f), strokeWidth = 3f)
+                drawLine(line, Offset(w * i / 3f, 0f), Offset(w * i / 3f, h), strokeWidth = 2f)
+                drawLine(line, Offset(0f, h * i / 3f), Offset(w, h * i / 3f), strokeWidth = 2f)
             }
-            drawRect(line, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 4f))
+            drawRect(line, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 2.5f))
         }
         Column(Modifier.fillMaxSize()) {
             for (r in 0..2) Row(Modifier.weight(1f)) {
                 for (c in 0..2) Box(Modifier.weight(1f).fillMaxSize().padding(6.dp)) {
-                    Text("${r * 3 + c + 1}", color = Color.White.copy(alpha = 0.8f), fontWeight = FontWeight.Bold)
+                    Text("${r * 3 + c + 1}", color = Color.White.copy(alpha = 0.45f), fontWeight = FontWeight.Bold)
                 }
             }
         }
