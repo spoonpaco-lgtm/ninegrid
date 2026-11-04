@@ -80,21 +80,48 @@ class CardCache(private val context: Context, private val scryfall: ScryfallClie
 
     private val namesFile get() = File(dir, "card-names.json")
 
-    /** De namenlijst; haalt hem op als hij ontbreekt of ouder is dan een week. */
+    /**
+     * De namenlijst. Zit in de app zelf (door de bouwstraat meegegeven), dus werkt meteen en offline.
+     * Eens per week kijkt de app of er sinds die lijst nieuwe sets zijn; alleen dan haalt hij de lijst opnieuw op.
+     */
     suspend fun ensureNames() {
+        if (names == null) loadNames()
         val f = namesFile
-        val fresh = f.exists() && System.currentTimeMillis() - f.lastModified() < week
-        if (fresh && names != null) return
-        if (fresh) { loadNames(); return }
+        val checkedFile = File(dir, "names-checked")
+        if (System.currentTimeMillis() - checkedFile.lastModified() < week) return
+        runCatching { checkedFile.writeText("") }
+        val newest = runCatching { scryfall.allSets() }.getOrNull()?.mapNotNull { it.releasedAt }?.filter { it <= java.time.LocalDate.now().toString() }?.maxOrNull()
+        val listDate = if (f.exists()) java.time.Instant.ofEpochMilli(f.lastModified()).atZone(java.time.ZoneId.systemDefault()).toLocalDate().toString() else bundledDate()
+        if (newest != null && newest <= listDate) return
         val list = runCatching { scryfall.cardNames() }.getOrNull()
         if (!list.isNullOrEmpty()) {
             withContext(Dispatchers.IO) { runCatching { f.writeText(json.encodeToString(ListSerializer(String.serializer()), list)) } }
             setNames(list)
-        } else loadNames()
+        }
     }
 
+    /** Datum van de app zelf (en dus van de ingebouwde lijst). */
+    private fun bundledDate(): String = runCatching {
+        val info = context.packageManager.getPackageInfo(context.packageName, 0)
+        java.time.Instant.ofEpochMilli(info.lastUpdateTime).atZone(java.time.ZoneId.systemDefault()).toLocalDate().toString()
+    }.getOrDefault("2000-01-01")
+
     private suspend fun loadNames() = withContext(Dispatchers.IO) {
-        runCatching { setNames(json.decodeFromString(ListSerializer(String.serializer()), namesFile.readText())) }
+        // Eerst de opgehaalde lijst, anders de ingebouwde.
+        val fromFile = runCatching { json.decodeFromString(ListSerializer(String.serializer()), namesFile.readText()) }.getOrNull()
+        val list = fromFile ?: runCatching {
+            context.assets.open("card-names.json").use { s -> json.decodeFromString(nl.spoonpaco.ninegrid.data.scryfall.SfCatalog.serializer(), s.readBytes().decodeToString()).data }
+        }.getOrNull()
+        if (!list.isNullOrEmpty()) setNames(list)
+    }
+
+    /** Alle sets (naam → code), uit de app zelf of van Scryfall. Voor het omzetten van setnamen bij importeren. */
+    suspend fun setCodesByName(): Map<String, String> = withContext(Dispatchers.IO) {
+        val bundled = runCatching {
+            context.assets.open("sets.json").use { s -> json.decodeFromString(nl.spoonpaco.ninegrid.data.scryfall.SfSetList.serializer(), s.readBytes().decodeToString()).data }
+        }.getOrDefault(emptyList())
+        val live = if (bundled.isEmpty()) runCatching { scryfall.allSets() }.getOrDefault(emptyList()) else emptyList()
+        (bundled + live).associate { it.name.lowercase() to it.code.uppercase() }
     }
 
     private fun setNames(list: List<String>) {

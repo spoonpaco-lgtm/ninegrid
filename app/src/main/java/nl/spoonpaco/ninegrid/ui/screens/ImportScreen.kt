@@ -58,7 +58,17 @@ fun ImportScreen(vm: AppViewModel, onBack: () -> Unit, onDone: () -> Unit) {
     var replace by remember { mutableStateOf(false) }
     var asDeck by remember { mutableStateOf(false) }
     var deckName by remember { mutableStateOf("") }
-    val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri -> uri?.let(vm::readImport) }
+    val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri -> uri?.let { vm.readImport(it) } }
+    // Voor de melding met de voortgang (Android 13 en nieuwer). Ook zonder toestemming loopt de import door.
+    var pendingStart by remember { mutableStateOf<(() -> Unit)?>(null) }
+    val notifPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { pendingStart?.invoke(); pendingStart = null }
+    val context = androidx.compose.ui.platform.LocalContext.current
+    fun withNotifications(start: () -> Unit) {
+        if (android.os.Build.VERSION.SDK_INT >= 33 &&
+            androidx.core.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            pendingStart = start; notifPermission.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+        } else start()
+    }
     val mimeTypes = arrayOf(
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "text/csv", "text/comma-separated-values",
         "application/vnd.ms-excel", "text/plain", "application/octet-stream",
@@ -152,17 +162,25 @@ fun ImportScreen(vm: AppViewModel, onBack: () -> Unit, onDone: () -> Unit) {
                     Spacer(Modifier.height(12.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         OutlinedButton(onClick = { vm.cancelImport() }) { Text(stringResource(R.string.cancel)) }
-                        Button(onClick = { vm.runImport(replace, if (asDeck) deckName.trim().ifBlank { vm.importData?.format?.ifBlank { null } ?: "Import" } else null) }, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.import_start)) }
+                        Button(onClick = { val dn = if (asDeck) deckName.trim().ifBlank { vm.importData?.format?.ifBlank { null } ?: "Import" } else null; withNotifications { vm.runImport(replace, dn) } }, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.import_start)) }
                     }
                 }
                 ImportStep.RESOLVING, ImportStep.SAVING -> {
-                    Text(stringResource(if (vm.importStep == ImportStep.SAVING) R.string.import_saving else R.string.import_looking_up), fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.import_looking_up), fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(10.dp))
                     LinearProgressIndicator(progress = { vm.importProgress }, modifier = Modifier.fillMaxWidth())
                     Spacer(Modifier.height(6.dp))
-                    Text("${(vm.importProgress * 100).toInt()}%", color = extra.subtle)
+                    if (vm.importTotal > 0) Text(stringResource(R.string.import_progress_line, vm.importFound, vm.importTotal, vm.importPass), color = extra.subtle)
+                    // Scryfall vraagt pauze: aftellen in plaats van opgeven.
+                    val now by androidx.compose.runtime.produceState(System.currentTimeMillis()) { while (true) { value = System.currentTimeMillis(); kotlinx.coroutines.delay(1000) } }
+                    if (vm.importWaitUntil > now) {
+                        val left = ((vm.importWaitUntil - now) / 1000).toInt()
+                        Text(stringResource(R.string.import_waiting, left / 60, left % 60), color = NgColors.Pending, fontWeight = FontWeight.Bold)
+                    }
                     Spacer(Modifier.height(10.dp))
-                    Text(stringResource(R.string.import_keep_open), fontSize = 12.sp, color = extra.subtle)
+                    Text(stringResource(R.string.import_background_hint), fontSize = 12.sp, color = extra.subtle)
+                    Spacer(Modifier.height(10.dp))
+                    OutlinedButton(onClick = { vm.stopImport() }) { Text(stringResource(R.string.import_stop)) }
                 }
                 ImportStep.DONE -> {
                     Text(vm.importResult, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)

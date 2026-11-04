@@ -709,75 +709,63 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         readImport(uri, importMapping)
     }
 
-    fun cancelImport() { importStep = ImportStep.IDLE; importData = null; importNotFound = emptyList() }
+    fun cancelImport() {
+        if (importStep == ImportStep.DONE) nl.spoonpaco.ninegrid.data.ImportWorker.clearOutcome(getApplication())
+        importStep = ImportStep.IDLE; importData = null; importNotFound = emptyList()
+    }
 
+    /** Een lopende import stoppen (wat al is opgezocht, wordt niet opgeslagen). */
+    fun stopImport() {
+        androidx.work.WorkManager.getInstance(getApplication()).cancelUniqueWork(nl.spoonpaco.ninegrid.data.ImportWorker.NAME)
+        importStep = ImportStep.IDLE
+    }
+
+    /** Tot wanneer Scryfall om pauze vroeg (voor de aftelling), 0 = niet. */
+    var importWaitUntil by mutableStateOf(0L)
+    var importFound by mutableStateOf(0)
+    var importTotal by mutableStateOf(0)
+    var importPass by mutableStateOf(1)
+    /** Via de melding geopend: meteen naar Importeren. */
+    var openImport by mutableStateOf(false)
+
+    /** Start de import als achtergrondtaak; je kunt de app intussen gebruiken of sluiten. */
     fun runImport(replace: Boolean, asDeck: String? = null) {
-        val data0 = importData ?: return
-        viewModelScope.launch {
-            importStep = ImportStep.RESOLVING
-            importProgress = 0f
-            // Setnamen zonder code (Deckbox, TCGplayer) omzetten via de setlijst van Scryfall.
-            var data = data0
-            val needNames = (data.collection + data.decks.flatMap { it.cards }).any { it.setCode.isBlank() && it.setName.isNotBlank() && it.scryfallId == null }
-            if (needNames) {
-                val byName = runCatching { repo.scryfall.allSets() }.getOrDefault(emptyList()).associate { it.name.lowercase() to it.code.uppercase() }
-                fun fix(c: nl.spoonpaco.ninegrid.domain.ImportCard) = if (c.setCode.isBlank()) c.copy(setCode = byName[c.setName.lowercase()] ?: "") else c
-                data = data.copy(collection = data.collection.map(::fix), decks = data.decks.map { d -> d.copy(cards = d.cards.map(::fix)) })
-            }
-            // Eén app-bestand als deck importeren in plaats van in de collectie.
-            if (asDeck != null && data.collection.isNotEmpty()) {
-                data = data.copy(decks = data.decks + nl.spoonpaco.ninegrid.domain.ImportDeck(asDeck, data.collection.map { it.copy(section = it.section ?: "MAIN") }), collection = emptyList())
-            }
-            val all = data.collection + data.decks.flatMap { it.cards }
-            // Elke print maar één keer opzoeken; met een Scryfall-ID is de print meteen zeker.
-            fun keyOf(c: nl.spoonpaco.ninegrid.domain.ImportCard) = c.scryfallId?.let { "id:$it" } ?: "${c.setCode.lowercase()}|${c.number.lowercase()}|${c.name}"
-            val distinct = all.distinctBy { keyOf(it) }
-            val keys = distinct.map { keyOf(it) }
-            val queries = distinct.map { c ->
-                if (c.scryfallId != null) CardQuery(id = c.scryfallId)
-                else CardQuery(setCode = c.setCode.ifBlank { null }, collectorNumber = c.number.ifBlank { null }, name = c.name.ifBlank { null })
-            }
-            val found = runCatching {
-                repo.resolve(queries) { i, n -> importProgress = if (n == 0) 1f else i / n.toFloat() }
-            }.getOrElse {
-                message = errorText(it); importStep = ImportStep.READY; return@launch
-            }
-            importStep = ImportStep.SAVING
-            val byKey = keys.zip(found).toMap()
-            val notFound = mutableListOf<nl.spoonpaco.ninegrid.domain.ImportCard>()
-            fun toNew(c: nl.spoonpaco.ninegrid.domain.ImportCard): NewEntry? {
-                val card = byKey[keyOf(c)] ?: run { notFound += c; return null }
-                val print = card.toPrint()
-                return NewEntry(print, Entry(
-                    printId = print.id, quantity = c.quantity, proxy = c.proxy, language = c.language, condition = c.condition,
-                    finish = when { c.etched -> Finish.ETCHED; c.foil -> Finish.FOIL; else -> Finish.NONFOIL },
-                    section = c.section,
-                ))
-            }
-            val collection = data.collection.mapNotNull { toNew(it) }
-            val decks = data.decks.map { d ->
-                val cards = d.cards.mapNotNull { toNew(it) }
-                val parsed = d.cards.map {
-                    nl.spoonpaco.ninegrid.domain.ParsedLine(
-                        it.quantity, it.name, null, null, false, false,
-                        when (it.section) { "COMMANDER" -> DeckListParser.COMMANDER; "SIDEBOARD" -> DeckListParser.SIDEBOARD; else -> DeckListParser.MAIN }, 0, "",
-                    )
+        val data = importData ?: return
+        nl.spoonpaco.ninegrid.data.ImportWorker.start(getApplication(), nl.spoonpaco.ninegrid.data.ImportJob(data, replace, asDeck))
+        importStep = ImportStep.RESOLVING
+        importProgress = 0f
+    }
+
+    private fun watchImport() = viewModelScope.launch {
+        val wm = androidx.work.WorkManager.getInstance(getApplication())
+        wm.getWorkInfosForUniqueWorkFlow(nl.spoonpaco.ninegrid.data.ImportWorker.NAME).collect { infos ->
+            val w = infos.firstOrNull() ?: return@collect
+            when (w.state) {
+                androidx.work.WorkInfo.State.RUNNING, androidx.work.WorkInfo.State.ENQUEUED, androidx.work.WorkInfo.State.BLOCKED -> {
+                    importStep = ImportStep.RESOLVING
+                    importFound = w.progress.getInt("done", importFound)
+                    importTotal = w.progress.getInt("total", importTotal)
+                    importPass = w.progress.getInt("pass", importPass)
+                    importProgress = if (importTotal == 0) 0f else importFound / importTotal.toFloat()
                 }
-                val typeLines = cards.associate { it.print.name to it.print.typeLine }
-                Deck(name = d.name, format = Formats.suggest(parsed, typeLines)) to cards
+                androidx.work.WorkInfo.State.SUCCEEDED, androidx.work.WorkInfo.State.FAILED -> {
+                    val o = nl.spoonpaco.ninegrid.data.ImportWorker.outcome(getApplication())
+                    if (o != null) {
+                        importNotFound = o.notFound
+                        importResult = if (o.failed != null) str(R.string.msg_import_failed) else str(R.string.import_done, o.cards, o.decks, o.notFound.sumOf { it.quantity })
+                        importStep = ImportStep.DONE
+                    }
+                }
+                else -> Unit
             }
-            val history = data.history.map { h ->
-                nl.spoonpaco.ninegrid.data.db.Snapshot(h.day, "total", "", h.value, 0.0, h.count)
-            }
-            val count = collection.sumOf { it.entry.quantity } + decks.sumOf { d -> d.second.sumOf { it.entry.quantity } }
-            runCatching {
-                repo.importAll(collection, decks, history, replace, str(R.string.log_imported, count, decks.size))
-            }.onFailure { message = str(R.string.msg_import_failed); importStep = ImportStep.READY; return@launch }
-            importNotFound = notFound
-            importResult = str(R.string.import_done, count, decks.size, notFound.sumOf { it.quantity })
-            importStep = ImportStep.DONE
-            images.prefetch(repo.allPrintsOwned(), settings.value)
-            snapshot()
+        }
+    }
+
+    /** Aftelling bijwerken als Scryfall om pauze vraagt. */
+    private fun watchThrottle() = viewModelScope.launch {
+        while (true) {
+            importWaitUntil = repo.scryfall.throttledUntil
+            kotlinx.coroutines.delay(1000)
         }
     }
 
@@ -836,4 +824,9 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Ligt deze kaart (los) in je collectie? Geeft het exemplaar terug, of null. */
     fun inCollectionByName(name: String) = entries.value.firstOrNull { it.entry.deckId == null && !it.entry.proxy && it.print?.name.equals(name, true) }
+
+    init {
+        watchImport()
+        watchThrottle()
+    }
 }

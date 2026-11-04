@@ -86,6 +86,7 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
         vm.message = null
     }
     LaunchedEffect(Unit) { vm.checkUpdate(manual = false) }
+    LaunchedEffect(vm.openImport) { if (vm.openImport) { vm.openImport = false; nav.navigate("import") } }
 
     // Na de eerste 20 kaarten één keer vragen om een back-upmap, zodat je collectie niet zomaar weg kan zijn.
     val entries by vm.entries.collectAsState()

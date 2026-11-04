@@ -281,11 +281,9 @@
     <string name="import_existing">Je hebt al kaarten in de app</string>
     <string name="import_add">Toevoegen aan wat er staat</string>
     <string name="import_replace">Alles vervangen</string>
-    <string name="import_time_hint">Scryfall staat twee opzoekingen per seconde toe, dus een grote collectie duurt een paar minuten.</string>
     <string name="import_start">Importeren</string>
     <string name="import_looking_up">Kaarten opzoeken bij Scryfall…</string>
     <string name="import_saving">Opslaan…</string>
-    <string name="import_keep_open">Houd de app open tot het klaar is.</string>
     <string name="import_done">%1$d kaarten geïmporteerd, %2$d decks. %3$d niet gevonden.</string>
     <string name="import_undo_hint">De hele import is één wijziging: je maakt hem in één keer ongedaan via Meer → Wijzigingslog.</string>
     <string name="import_not_found_title">Niet gevonden</string>
@@ -391,4 +389,16 @@
     <string name="auto_normal">Standaard (0,5 s)</string>
     <string name="auto_sure">Zeker (1 s)</string>
     <string name="setting_volume">Op het scanscherm maken de volumeknoppen ook een foto.</string>
+    <string name="tab_cards">Kaarten</string>
+    <string name="combos_tab_count">Combo\'s (%1$d)</string>
+    <string name="import_preparing">Voorbereiden…</string>
+    <string name="import_notif_title">NineGrid importeert</string>
+    <string name="import_notif_progress">%1$d van %2$d gevonden (ronde %3$d van 3)</string>
+    <string name="import_notif_done">Import klaar</string>
+    <string name="import_progress_line">%1$d van %2$d gevonden · ronde %3$d van 3</string>
+    <string name="import_waiting">Scryfall vraagt pauze, verder over %1$d:%2$02d</string>
+    <string name="import_background_hint">Dit loopt op de achtergrond: je kunt de app gebruiken of sluiten. Je krijgt een melding als het klaar is. Herstart de telefoon, dan gaat de import verder waar hij was.</string>
+    <string name="import_stop">Import stoppen</string>
+    <string name="import_time_hint">Scryfall staat twee opzoekingen per seconde toe; de app zoekt in rondes van 75 kaarten, dus ook een grote collectie duurt maar een paar minuten. Het loopt op de achtergrond.</string>
+    <string name="import_keep_open">Je kunt de app sluiten; de import gaat door.</string>
 </resources>

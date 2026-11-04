@@ -33,6 +33,15 @@ jobs:
             echo "Geen sleutel ingesteld: release wordt met de debug-sleutel ondertekend."
           fi
 
+      - name: Namenlijst en setlijst van Scryfall in de app stoppen
+        run: |
+          mkdir -p app/src/main/assets
+          UA="NineGridBuild/1.0 (+https://github.com/spoonpaco-lgtm/ninegrid)"
+          curl -sSf -A "$UA" -H "Accept: application/json" https://api.scryfall.com/catalog/card-names -o app/src/main/assets/card-names.json || echo "Namenlijst niet gelukt"
+          sleep 1
+          curl -sSf -A "$UA" -H "Accept: application/json" https://api.scryfall.com/sets -o app/src/main/assets/sets.json || echo "Setlijst niet gelukt"
+          ls -la app/src/main/assets | tee -a build.log
+
       - name: Bouwen en testen
         env:
           NINEGRID_KEYSTORE_PASSWORD: ${{ secrets.NINEGRID_KEYSTORE_PASSWORD }}

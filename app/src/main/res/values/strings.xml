@@ -282,11 +282,9 @@
     <string name="import_existing">You already have cards in the app</string>
     <string name="import_add">Add to what is there</string>
     <string name="import_replace">Replace everything</string>
-    <string name="import_time_hint">Scryfall allows two lookups per second, so a large collection takes a few minutes.</string>
     <string name="import_start">Import</string>
     <string name="import_looking_up">Looking up cards at Scryfall…</string>
     <string name="import_saving">Saving…</string>
-    <string name="import_keep_open">Keep the app open until it is done.</string>
     <string name="import_done">%1$d cards imported, %2$d decks. %3$d not found.</string>
     <string name="import_undo_hint">The whole import is one change: you can undo it in one go via More → Change log.</string>
     <string name="import_not_found_title">Not found</string>
@@ -392,4 +390,16 @@
     <string name="auto_normal">Normal (0.5 s)</string>
     <string name="auto_sure">Sure (1 s)</string>
     <string name="setting_volume">On the scan screen the volume buttons also take a photo.</string>
+    <string name="tab_cards">Cards</string>
+    <string name="combos_tab_count">Combos (%1$d)</string>
+    <string name="import_preparing">Preparing…</string>
+    <string name="import_notif_title">NineGrid is importing</string>
+    <string name="import_notif_progress">%1$d of %2$d found (round %3$d of 3)</string>
+    <string name="import_notif_done">Import finished</string>
+    <string name="import_progress_line">%1$d of %2$d found · round %3$d of 3</string>
+    <string name="import_waiting">Scryfall asks for a pause, continuing in %1$d:%2$02d</string>
+    <string name="import_background_hint">This runs in the background: you can use or close the app. You will get a notification when it is done. If the phone restarts, the import continues where it was.</string>
+    <string name="import_stop">Stop import</string>
+    <string name="import_time_hint">Scryfall allows two lookups per second; the app searches in rounds of 75 cards, so even a large collection only takes a few minutes. It runs in the background.</string>
+    <string name="import_keep_open">You can close the app; the import continues.</string>
 </resources>

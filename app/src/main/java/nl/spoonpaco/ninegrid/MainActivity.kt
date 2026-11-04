@@ -23,6 +23,12 @@ class MainActivity : AppCompatActivity() {
     // Op het camerascherm zijn de volumeknoppen de ontspanknop.
     private fun isVolume(code: Int) = code == android.view.KeyEvent.KEYCODE_VOLUME_DOWN || code == android.view.KeyEvent.KEYCODE_VOLUME_UP
 
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        // Getikt op de melding van de import: naar het scherm Importeren.
+        if (intent.getBooleanExtra(nl.spoonpaco.ninegrid.data.ImportWorker.EXTRA_OPEN_IMPORT, false)) vm.openImport = true
+    }
+
     override fun onKeyDown(keyCode: Int, event: android.view.KeyEvent): Boolean {
         val shutter = nl.spoonpaco.ninegrid.ui.screens.ScanKeys.onShutter
         if (shutter != null && isVolume(keyCode)) {
@@ -39,6 +45,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (intent?.getBooleanExtra(nl.spoonpaco.ninegrid.data.ImportWorker.EXTRA_OPEN_IMPORT, false) == true) vm.openImport = true
         enableEdgeToEdge()
         setContent {
             // Wacht tot de instellingen geladen zijn, zodat de uitleg niet even opflitst.

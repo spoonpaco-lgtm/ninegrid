@@ -1,11 +1,13 @@
 package nl.spoonpaco.ninegrid.domain
 
 import java.io.InputStream
+import kotlinx.serialization.Serializable
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.zip.ZipInputStream
 
 /** Eén kaartregel uit de Sheet. */
+@Serializable
 data class ImportCard(
     val setCode: String,
     val number: String,
@@ -24,12 +26,15 @@ data class ImportCard(
     val condition: String = "NM",
 )
 
+@Serializable
 data class ImportDeck(val name: String, val cards: List<ImportCard>)
 
 /** Een dag uit het tabblad Historie. */
+@Serializable
 data class ImportHistory(val day: String, val value: Double, val count: Int)
 
 /** Alles wat er uit het bestand gehaald is. */
+@Serializable
 data class ImportData(
     val collection: List<ImportCard>,
     val decks: List<ImportDeck>,

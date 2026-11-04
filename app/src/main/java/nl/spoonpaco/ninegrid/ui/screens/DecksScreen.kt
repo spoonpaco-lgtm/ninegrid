@@ -136,7 +136,7 @@ fun DecksScreen(vm: AppViewModel, onDeck: (Long) -> Unit, onNewDeck: () -> Unit)
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard: (String) -> Unit, onAddCards: (Long) -> Unit) {
     val deck by vm.repo.deck(deckId).collectAsState(initial = null)
@@ -149,6 +149,7 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
     var formatPicker by remember { mutableStateOf(false) }
     var deleting by remember { mutableStateOf(false) }
     var picking by remember { mutableStateOf(false) }
+    var tab by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(0) }
     val d = deck
     val text = Export.deckText(list, d?.format == DeckFormat.COMMANDER)
     val saveLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/plain")) { uri ->
@@ -228,9 +229,19 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
                     check.issues.forEach { i -> Text("• " + issueText(i), color = if (i.level == IssueLevel.ERROR) NgColors.Error else extra.subtle, fontSize = 13.sp) }
                 }
             }
-            item { DeckStatsPanel(nl.spoonpaco.ninegrid.domain.DeckStatsCalc.compute(Formats.toDeckCards(list.map { it.entry to it.print }))) }
-            item { CombosPanel(vm, d, report) }
-            sections.forEach { s ->
+            // Tabbladen: Kaarten | Statistieken | Combo's. De controle hierboven blijft altijd staan.
+            stickyHeader(key = "tabs") {
+                androidx.compose.material3.TabRow(selectedTabIndex = tab) {
+                    androidx.compose.material3.Tab(selected = tab == 0, onClick = { tab = 0 }, text = { Text(stringResource(R.string.tab_cards)) })
+                    androidx.compose.material3.Tab(selected = tab == 1, onClick = { tab = 1 }, text = { Text(stringResource(R.string.deck_stats)) })
+                    androidx.compose.material3.Tab(selected = tab == 2, onClick = { tab = 2 }, text = {
+                        Text(if (report == null) stringResource(R.string.combos_title) else stringResource(R.string.combos_tab_count, report.included.size), maxLines = 1)
+                    })
+                }
+            }
+            if (tab == 1) item { DeckStatsPanel(nl.spoonpaco.ninegrid.domain.DeckStatsCalc.compute(Formats.toDeckCards(list.map { it.entry to it.print }))) }
+            if (tab == 2) item { CombosPanel(vm, d, report) }
+            if (tab == 0) sections.forEach { s ->
                 val part = list.filter { (it.entry.section ?: Section.MAIN) == s }.sortedBy { it.print?.name ?: "" }
                 if (part.isNotEmpty()) {
                     item(key = "h_$s") { SectionHeader(sectionLabel(s), part.sumOf { it.entry.quantity }.let { n -> pluralStringResource(R.plurals.n_cards, n, n) }) }
@@ -314,13 +325,8 @@ private fun bracketReasonLabel(code: String) = when (code) {
 /** Manacurve, kleuren in kosten tegenover kleuren in lands, en de kans op 2 tot 4 lands in je openingshand. */
 @Composable
 private fun DeckStatsPanel(st: nl.spoonpaco.ninegrid.domain.DeckStats) {
-    var open by remember { mutableStateOf(false) }
     val extra = LocalNgExtra.current
-    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {
-        androidx.compose.material3.TextButton(onClick = { open = !open }, contentPadding = PaddingValues(0.dp)) {
-            Text(stringResource(R.string.deck_stats) + if (open) "  ▲" else "  ▼", fontWeight = FontWeight.Bold)
-        }
-        if (!open) return@Column
+    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
         // Manacurve als staafjes.
         Text(stringResource(R.string.mana_curve, String.format(java.util.Locale.getDefault(), "%.2f", st.averageCmc)), fontSize = 13.sp)
         val max = (st.curve.maxOrNull() ?: 1).coerceAtLeast(1)
@@ -358,6 +364,7 @@ private fun DeckStatsPanel(st: nl.spoonpaco.ninegrid.domain.DeckStats) {
 private fun CombosPanel(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.db.Deck, report: nl.spoonpaco.ninegrid.data.ComboReport?) {
     val extra = LocalNgExtra.current
     Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {
+        Spacer(Modifier.height(8.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(stringResource(R.string.combos_title), fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
             androidx.compose.material3.OutlinedButton(onClick = { vm.findCombos(deck.id) }, enabled = !vm.comboLoading) {

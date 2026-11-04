@@ -1,15 +1,11 @@
-NineGrid 0.6.0
+NineGrid 0.7.1
 
-Importeren uit andere apps
-- Exports van Moxfield, Archidekt, ManaBox, Deckbox, Dragon Shield, TCGplayer, Delver Lens en Helvault worden vanzelf herkend, naast je eigen Sheet.
-- Met een Scryfall-ID in het bestand is elke kaart meteen de juiste print. Setnamen ("Modern Horizons") worden omgezet naar codes.
-- Taal, foil/etched en conditie worden vertaald ("Japanese" → JP, "Lightly Played" → LP).
-- Onbekend formaat: je wijst één keer zelf de kolommen aan, de app onthoudt het.
-- Een bestand uit een andere app kan naar je collectie of als één deck.
+Importeren
+- Een grote import loopt niet meer vast op een weigering van Scryfall (429). De app zoekt in rondes van 75 kaarten (id of set en nummer, dan naam en set, dan naam) in plaats van kaart voor kaart, en wacht geduldig met een aftelling als Scryfall om pauze vraagt.
+- Importeren loopt op de achtergrond met een melding. Je kunt de app intussen gebruiken of sluiten; na een herstart gaat hij verder waar hij was. Je krijgt een melding als het klaar is.
 
-Doorlopend scannen (1 kaart)
-- Automatisch: ligt een kaart stil in het kader, dan maakt de app zelf de foto (groen knipperend kader, tril).
-- Dezelfde kaart nog eens neerleggen nadat het kader even leeg was: telt er één bij (×2, ×3).
-- De laatste drie kaarten onderaan, weg te tikken met het kruisje; Klaar naar het controlescherm.
-- De volumeknoppen zijn een ontspanknop op het scanscherm.
-- Gevoeligheid instelbaar (snel, standaard, zeker); na twee minuten zonder kaart pauzeert het meekijken.
+Herkenning
+- De namenlijst en de setlijst van Scryfall zitten nu in de app zelf: namen verbeteren en setnamen omzetten werkt meteen, ook offline. Eens per week kijkt de app of er nieuwe sets zijn.
+
+Decks
+- Tabbladen Kaarten, Statistieken en Combo's. De controle (legaliteit en bracket) blijft bovenaan.

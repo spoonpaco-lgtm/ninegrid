@@ -167,10 +167,20 @@ class ScryfallClient {
     /** Wordt aangeroepen als Scryfall om pauze vraagt, zodat de app een melding kan tonen. */
     var onThrottled: (() -> Unit)? = null
 
+    /** Geduldige stand (importeren): bij een weigering langer wachten en vaker opnieuw proberen, nooit opgeven. */
+    private val patient = java.util.concurrent.atomic.AtomicInteger(0)
+    fun holdPatient() { patient.incrementAndGet() }
+    fun releasePatient() { patient.updateAndGet { (it - 1).coerceAtLeast(0) } }
+
+    /** Tot wanneer we wachten na een weigering (millis), voor een aftelling op het scherm. 0 = niet aan het wachten. */
+    @Volatile var throttledUntil = 0L
+        private set
+
     private fun isSlow(url: String) = listOf("/cards/search", "/cards/named", "/cards/random", "/cards/collection").any { url.contains(it) }
 
     private suspend fun call(request: Request): String? = withContext(Dispatchers.IO) {
-        for (attempt in 0..1) {
+        val waits = if (patient.get() > 0) listOf(30_000L, 60_000L, 120_000L, 120_000L, 240_000L) else listOf(30_000L)
+        for (attempt in 0..waits.size) {
             val slow = isSlow(request.url.encodedPath)
             gate.withLock {
                 val now = System.currentTimeMillis()
@@ -189,10 +199,13 @@ class ScryfallClient {
             when {
                 result.first in 200..299 -> return@withContext result.second
                 result.first == 404 -> return@withContext null
-                result.first == 429 && attempt == 0 -> {
+                result.first == 429 && attempt < waits.size -> {
+                    val pause = waits[attempt]
+                    throttledUntil = System.currentTimeMillis() + pause
                     onThrottled?.invoke()
-                    // Iedereen wacht: ook andere verzoeken mogen in deze 30 seconden niet.
-                    gate.withLock { delay(30_000); lastCall = System.currentTimeMillis(); lastSlowCall = lastCall }
+                    // Iedereen wacht: ook andere verzoeken mogen in deze tijd niet.
+                    gate.withLock { delay(pause); lastCall = System.currentTimeMillis(); lastSlowCall = lastCall }
+                    throttledUntil = 0L
                 }
                 else -> throw ScryfallException("Scryfall ${result.first}", result.first)
             }
