@@ -42,6 +42,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.FlashlightOff
 import androidx.compose.material.icons.filled.FlashlightOn
@@ -679,7 +680,7 @@ private fun ScanSummaryBar(vm: AppViewModel, sum: AppViewModel.ScanSummary, sing
                     androidx.compose.material3.InputChip(
                         selected = false, onClick = { vm.removePending(p.key) },
                         label = { Text((p.print?.name ?: p.query.name ?: "?") + if (p.quantity > 1) " ×${p.quantity}" else "", fontSize = 11.sp, color = Color.White, maxLines = 1) },
-                        trailingIcon = { Icon(androidx.compose.material.icons.Icons.Filled.Close, stringResource(R.string.undo), tint = Color.White, modifier = Modifier.size(14.dp)) },
+                        trailingIcon = { Icon(Icons.Filled.Close, stringResource(R.string.undo), tint = Color.White, modifier = Modifier.size(14.dp)) },
                         modifier = Modifier.height(26.dp),
                     )
                 }
