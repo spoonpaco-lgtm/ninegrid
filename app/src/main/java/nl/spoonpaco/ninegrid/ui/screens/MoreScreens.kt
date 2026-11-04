@@ -135,6 +135,7 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit) {
     val all by vm.entries.collectAsState()
     val decks by vm.decks.collectAsState()
     var confirmRestore by remember { mutableStateOf<android.net.Uri?>(null) }
+    var wiping by remember { mutableStateOf(false) }
     val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
     val backup = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { it?.let(vm::backupTo) }
     val restore = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { confirmRestore = it }
@@ -195,12 +196,34 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit) {
             OutlinedButton(onClick = { csv.launch("ninegrid-collectie-$today.csv") }) { Text(stringResource(R.string.export_csv)) }
 
             Spacer(Modifier.height(16.dp))
+            Text(stringResource(R.string.scanning), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.setting_timing), modifier = Modifier.weight(1f))
+                Switch(checked = settings.showTiming, onCheckedChange = { vm.setShowTiming(it) })
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.setting_haptics), modifier = Modifier.weight(1f))
+                Switch(checked = settings.haptics, onCheckedChange = { vm.setHaptics(it) })
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.setting_shutter), modifier = Modifier.weight(1f))
+                Switch(checked = settings.shutterSound, onCheckedChange = { vm.setShutterSound(it) })
+            }
+
+            Spacer(Modifier.height(16.dp))
+            Text(stringResource(R.string.wipe_title), fontWeight = FontWeight.Bold, color = NgColorsError)
+            Text(stringResource(R.string.wipe_explain), fontSize = 12.sp, color = LocalNgExtra.current.subtle)
+            OutlinedButton(onClick = { wiping = true }) { Text(stringResource(R.string.wipe_button), color = NgColorsError) }
+
+            Spacer(Modifier.height(16.dp))
             Text(stringResource(R.string.updates), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
             Text(stringResource(R.string.version_x, BuildConfig.VERSION_NAME), fontSize = 13.sp)
             OutlinedButton(onClick = { vm.checkUpdate(manual = true) }) { Text(stringResource(R.string.check_updates)) }
             Spacer(Modifier.height(24.dp))
         }
     }
+
+    if (wiping) WipeDialog(vm, hasFolder = settings.backupFolder != null, onDismiss = { wiping = false })
 
     confirmRestore?.let { uri ->
         AlertDialog(
@@ -290,5 +313,59 @@ fun OnboardingScreen(onDone: () -> Unit, onGuide: () -> Unit) {
         }
         Spacer(Modifier.height(12.dp))
         Text("${page + 1} / ${pages.size}", color = LocalNgExtra.current.subtle)
+    }
+}
+
+private val NgColorsError = nl.spoonpaco.ninegrid.ui.theme.NgColors.Error
+
+/**
+ * Alles wissen: kiezen wat, eerst een back-up, en bevestigen door WISSEN te typen.
+ */
+@Composable
+private fun WipeDialog(vm: AppViewModel, hasFolder: Boolean, onDismiss: () -> Unit) {
+    var collection by remember { mutableStateOf(true) }
+    var decks by remember { mutableStateOf(true) }
+    var history by remember { mutableStateOf(false) }
+    var changeLog by remember { mutableStateOf(false) }
+    var images by remember { mutableStateOf(false) }
+    var typed by remember { mutableStateOf("") }
+    val word = stringResource(R.string.wipe_word)
+    val options = nl.spoonpaco.ninegrid.data.Repository.WipeOptions(collection, decks, history, changeLog, images)
+    val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+    // Geen back-upmap? Dan eerst zelf een plek kiezen voor de back-up.
+    val saveBackup = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
+        if (uri != null) { vm.wipe(options, uri); onDismiss() }
+    }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.wipe_title)) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState())) {
+                CheckRow(R.string.wipe_collection, collection) { collection = it }
+                CheckRow(R.string.wipe_decks, decks) { decks = it }
+                CheckRow(R.string.wipe_history, history) { history = it }
+                CheckRow(R.string.wipe_changelog, changeLog) { changeLog = it }
+                CheckRow(R.string.wipe_images, images) { images = it }
+                Spacer(Modifier.height(6.dp))
+                Text(stringResource(if (hasFolder) R.string.wipe_backup_folder else R.string.wipe_backup_choose), fontSize = 12.sp)
+                if (changeLog && (collection || decks)) Text(stringResource(R.string.wipe_no_undo), fontSize = 12.sp, color = NgColorsError)
+                Spacer(Modifier.height(8.dp))
+                androidx.compose.material3.OutlinedTextField(typed, { typed = it }, singleLine = true, label = { Text(stringResource(R.string.wipe_type, word)) })
+            }
+        },
+        confirmButton = {
+            TextButton(
+                enabled = typed.trim().equals(word, ignoreCase = true) && (collection || decks || history || changeLog || images),
+                onClick = { if (hasFolder) { vm.wipe(options, null); onDismiss() } else saveBackup.launch("ninegrid-backup-voor-wissen-$today.json") },
+            ) { Text(stringResource(R.string.wipe_button), color = NgColorsError) }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
+    )
+}
+
+@Composable
+private fun CheckRow(label: Int, v: Boolean, set: (Boolean) -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        androidx.compose.material3.Checkbox(checked = v, onCheckedChange = set); Text(stringResource(label))
     }
 }

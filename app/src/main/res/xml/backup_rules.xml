@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android-back-up (Android 11 en ouder): de database en de instellingen, niet de plaatjes of de wachtrij. -->
+<full-backup-content>
+    <include domain="database" path="ninegrid.db" />
+    <include domain="database" path="ninegrid.db-wal" />
+    <include domain="file" path="datastore/" />
+</full-backup-content>

@@ -149,6 +149,7 @@ fun OverviewScreen(vm: AppViewModel) {
                 val monthAgo = LocalDate.now().minusDays(30).toString()
                 val base = totalSnaps.lastOrNull { it.day <= monthAgo } ?: totalSnaps.firstOrNull()?.takeIf { it.day < LocalDate.now().toString() }
                 val diff = base?.let { grand.value - (if (cur == "USD") it.usd else it.eur) }
+                androidx.compose.runtime.LaunchedEffect(all.size, cur, settings.lastPriceUpdate) { vm.computePriceChanges() }
                 Panel {
                     Text(stringResource(R.string.total_collection), color = extra.subtle, fontSize = 13.sp)
                     Text(Money.format(grand.value, cur), fontSize = 30.sp, fontWeight = FontWeight.Bold, color = extra.price)
@@ -162,6 +163,22 @@ fun OverviewScreen(vm: AppViewModel) {
                             )
                         }
                     }
+                    Spacer(Modifier.height(8.dp))
+                    // Koersverschil: alleen door prijzen, niet door kaarten die je toevoegde of wegdeed.
+                    Text(stringResource(R.string.price_change_title), fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    if (vm.priceChanges.isEmpty()) {
+                        Text(stringResource(R.string.price_change_later), fontSize = 12.sp, color = extra.subtle)
+                    } else vm.priceChanges.forEach { pc ->
+                        val up = pc.diff >= 0
+                        Row {
+                            Text(stringResource(if (pc.days <= 7) R.string.price_change_week else R.string.price_change_month), fontSize = 13.sp, modifier = Modifier.weight(1f))
+                            Text(
+                                (if (up) "▲ " else "▼ ") + Money.format(kotlin.math.abs(pc.diff), cur) + String.format(java.util.Locale.getDefault(), " (%+.1f%%)", pc.pct),
+                                fontSize = 13.sp, fontWeight = FontWeight.Bold, color = if (up) NgColors.Synced else NgColors.Error,
+                            )
+                        }
+                    }
+                    Text(stringResource(R.string.price_change_explain), fontSize = 11.sp, color = extra.subtle)
                 }
             }
 

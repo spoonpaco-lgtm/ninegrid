@@ -154,6 +154,9 @@ interface SnapshotDao {
 
 @Dao
 interface MomentDao {
+    @Query("DELETE FROM moments")
+    suspend fun deleteAll()
+
     @Upsert
     suspend fun upsert(items: List<Moment>)
 
@@ -165,4 +168,24 @@ interface MomentDao {
 
     @Query("DELETE FROM moments WHERE ts < :before")
     suspend fun deleteBefore(before: Long)
+}
+
+@Dao
+interface PriceDao {
+    @Upsert
+    suspend fun upsert(items: List<PricePoint>)
+
+    /** Per print de laatst bekende prijs op of vóór [day]. */
+    @Query("SELECT * FROM price_history p WHERE p.day = (SELECT MAX(q.day) FROM price_history q WHERE q.printId = p.printId AND q.day <= :day)")
+    suspend fun asOf(day: String): List<PricePoint>
+
+    @Query("SELECT MIN(day) FROM price_history")
+    suspend fun firstDay(): String?
+
+    /** Ouder dan een maand: alleen de eerste meting van elke maand bewaren. */
+    @Query("DELETE FROM price_history WHERE day < :cutoff AND day NOT IN (SELECT MIN(q.day) FROM price_history q WHERE q.printId = price_history.printId GROUP BY substr(q.day, 1, 7))")
+    suspend fun thin(cutoff: String)
+
+    @Query("DELETE FROM price_history")
+    suspend fun deleteAll()
 }

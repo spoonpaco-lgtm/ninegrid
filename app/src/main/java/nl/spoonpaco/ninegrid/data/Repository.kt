@@ -334,6 +334,7 @@ class Repository(
         val cards = scryfall.collection(prints.map { CardQuery(id = it.id) })
         val updated = cards.filterNotNull().map { it.toPrint() }
         db.prints().upsert(updated)
+        recordPrices(updated)
         return updated.size
     }
 
@@ -441,6 +442,48 @@ class Repository(
     }
 
     suspend fun allPrintsOwned() = db.prints().owned()
+
+    private fun today() = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date())
+
+    /** Prijzen van vandaag bewaren voor het koersverschil; ouder dan een maand alleen één per maand. */
+    suspend fun recordPrices(prints: List<CardPrint>? = null) {
+        val list = prints ?: db.prints().owned()
+        if (list.isEmpty()) return
+        val day = today()
+        list.chunked(500).forEach { part ->
+            db.prices().upsert(part.map { nl.spoonpaco.ninegrid.data.db.PricePoint(it.id, day, it.eur, it.eurFoil, it.usd, it.usdFoil, it.usdEtched) })
+        }
+        val cutoff = java.time.LocalDate.now().minusDays(31).toString()
+        db.prices().thin(cutoff)
+    }
+
+    /** Prijzen zoals ze op [day] waren (laatst bekende op of voor die dag), per print. */
+    suspend fun pricesAsOf(day: String) = db.prices().asOf(day).associateBy { it.printId }
+
+    suspend fun firstPriceDay() = db.prices().firstDay()
+
+    /** Wat je kunt wissen. */
+    data class WipeOptions(val collection: Boolean, val decks: Boolean, val history: Boolean, val changeLog: Boolean, val images: Boolean)
+
+    /**
+     * Wist (een deel van) alles. Collectie en decks komen als één wijziging in het log, zodat je het
+     * ongedaan kunt maken, tenzij je het log ook wist. Historie en plaatjes zijn niet ongedaan te maken.
+     */
+    suspend fun wipe(o: WipeOptions, summary: String) {
+        var removed: List<CardPrint> = emptyList()
+        db.withTransaction {
+            val entries = db.entries().all()
+            val gone = entries.filter { (o.collection && it.deckId == null) || (o.decks && it.deckId != null) }
+            val decks = if (o.decks) db.decks().all() else emptyList()
+            gone.map { it.id }.chunked(500).forEach { db.entries().deleteIds(it) }
+            if (decks.isNotEmpty()) db.decks().deleteIds(decks.map { it.id })
+            if (o.history) { db.snapshots().deleteAll(); db.moments().deleteAll(); db.prices().deleteAll() }
+            if (o.changeLog) db.changes().deleteAll()
+            else if (gone.isNotEmpty() || decks.isNotEmpty()) log(summary, UndoData(restoreEntries = gone, restoreDecks = decks))
+            removed = cleanupPrints()
+        }
+        if (!o.images && removed.isNotEmpty()) onPrintsRemoved(removed)
+    }
 
     fun namesLookAlike(read: String, real: String): Boolean {
         fun norm(x: String) = x.lowercase().filter { it.isLetter() }

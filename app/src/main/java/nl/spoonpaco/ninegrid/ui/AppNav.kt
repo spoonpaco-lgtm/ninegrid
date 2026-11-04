@@ -18,6 +18,9 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -83,6 +86,18 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
         vm.message = null
     }
     LaunchedEffect(Unit) { vm.checkUpdate(manual = false) }
+
+    // Na de eerste 20 kaarten één keer vragen om een back-upmap, zodat je collectie niet zomaar weg kan zijn.
+    val entries by vm.entries.collectAsState()
+    val settings by vm.settings.collectAsState()
+    val cardCount = entries.sumOf { it.entry.quantity }
+    var askBackup by remember { mutableStateOf(false) }
+    LaunchedEffect(cardCount, settings.backupFolder, settings.backupAsked) {
+        if (cardCount >= 20 && settings.backupFolder == null && !settings.backupAsked) askBackup = true
+    }
+    val folderPicker = androidx.activity.compose.rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.OpenDocumentTree()) { uri ->
+        if (uri != null) vm.setBackupFolder(uri)
+    }
 
     fun tab(r: String) = nav.navigate(r) {
         popUpTo(nav.graph.findStartDestination().id) { saveState = true }
@@ -197,6 +212,16 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
         }
     }
 
+    }
+
+    if (askBackup) {
+        AlertDialog(
+            onDismissRequest = { askBackup = false; vm.setBackupAsked() },
+            title = { Text(stringResource(R.string.backup_ask_title)) },
+            text = { Text(stringResource(R.string.backup_ask_body)) },
+            confirmButton = { TextButton(onClick = { askBackup = false; vm.setBackupAsked(); folderPicker.launch(null) }) { Text(stringResource(R.string.backup_ask_choose)) } },
+            dismissButton = { TextButton(onClick = { askBackup = false; vm.setBackupAsked() }) { Text(stringResource(R.string.later)) } },
+        )
     }
 
     vm.update?.let { u ->

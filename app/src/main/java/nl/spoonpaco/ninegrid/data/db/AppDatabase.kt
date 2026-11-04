@@ -8,8 +8,8 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
-    entities = [CardPrint::class, Entry::class, Deck::class, ChangeRecord::class, Snapshot::class, Moment::class],
-    version = 3,
+    entities = [CardPrint::class, Entry::class, Deck::class, ChangeRecord::class, Snapshot::class, Moment::class, PricePoint::class],
+    version = 4,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -19,12 +19,23 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun changes(): ChangeDao
     abstract fun snapshots(): SnapshotDao
     abstract fun moments(): MomentDao
+    abstract fun prices(): PriceDao
 
     companion object {
         fun create(context: Context): AppDatabase =
             Room.databaseBuilder(context, AppDatabase::class.java, "ninegrid.db")
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                 .build()
+
+        /** Versie 4: prijzen per print per dag, voor het koersverschil. */
+        val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `price_history` (`printId` TEXT NOT NULL, `day` TEXT NOT NULL, `eur` REAL, `eurFoil` REAL, " +
+                        "`usd` REAL, `usdFoil` REAL, `usdEtched` REAL, PRIMARY KEY(`printId`, `day`))"
+                )
+            }
+        }
 
         /** Versie 3: momenten binnen een dag voor de grafiek (1D, 1W, 1M). */
         val MIGRATION_2_3 = object : Migration(2, 3) {

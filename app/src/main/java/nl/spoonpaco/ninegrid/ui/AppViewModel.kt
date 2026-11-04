@@ -79,7 +79,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     init {
         // Eén momentopname per dag: bij het openen van de app (en na elke prijsupdate of wijziging).
-        viewModelScope.launch { kotlinx.coroutines.delay(1500); snapshot() }
+        viewModelScope.launch { kotlinx.coroutines.delay(1500); snapshot(); runCatching { repo.recordPrices() } }
         repo.scryfall.onThrottled = { viewModelScope.launch { message = str(R.string.msg_scryfall_pause) } }
     }
 
@@ -490,6 +490,67 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun setChartMetric(v: String) = viewModelScope.launch { settingsStore.setChartMetric(v) }
     fun setChartRange(v: String) = viewModelScope.launch { settingsStore.setChartRange(v) }
     fun setScanMode(v: String) = viewModelScope.launch { settingsStore.setScanMode(v) }
+    fun setBackupAsked() = viewModelScope.launch { settingsStore.setBackupAsked(true) }
+    fun setShowTiming(v: Boolean) = viewModelScope.launch { settingsStore.setShowTiming(v) }
+    fun setHaptics(v: Boolean) = viewModelScope.launch { settingsStore.setHaptics(v) }
+    fun setShutterSound(v: Boolean) = viewModelScope.launch { settingsStore.setShutterSound(v) }
+
+    /**
+     * Alles (of een deel) wissen. Eerst een back-up: in de back-upmap als die er is, anders naar [backupUri].
+     */
+    fun wipe(o: nl.spoonpaco.ninegrid.data.Repository.WipeOptions, backupUri: Uri?) = viewModelScope.launch {
+        busy = true
+        val ok = runCatching {
+            val ctx = getApplication<Application>()
+            val folder = settings.value.backupFolder
+            when {
+                backupUri != null -> {
+                    val text = repo.backupToJson(repo.exportBackup())
+                    ctx.contentResolver.openOutputStream(backupUri)?.use { it.write(text.toByteArray()) } ?: error("no stream")
+                }
+                folder != null -> BackupWorker.writeBackup(ctx, repo, Uri.parse(folder))
+                else -> error("no backup")
+            }
+            settingsStore.setLastBackup(System.currentTimeMillis())
+        }.isSuccess
+        if (!ok) { message = str(R.string.msg_wipe_no_backup); busy = false; return@launch }
+        repo.wipe(o, str(R.string.log_wiped))
+        if (o.images) images.clearAll()
+        clearPending()
+        message = str(R.string.msg_wiped)
+        messageUndo = !o.changeLog && (o.collection || o.decks)
+        busy = false
+        snapshot()
+    }
+
+    /** Koersverschil: wat dezelfde kaarten nu waard zijn tegenover [days] dagen terug (zonder toegevoegde of weggedane kaarten). */
+    data class PriceChange(val days: Int, val now: Double, val then: Double, val cards: Int) {
+        val diff get() = now - then
+        val pct get() = if (then > 0) diff / then * 100 else 0.0
+    }
+
+    var priceChanges by mutableStateOf<List<PriceChange>>(emptyList())
+
+    fun computePriceChanges() = viewModelScope.launch {
+        val cur = settings.value.currency
+        val list = entries.value.filter { !it.entry.proxy && it.print != null }
+        val result = listOf(7, 30).mapNotNull { days ->
+            val day = java.time.LocalDate.now().minusDays(days.toLong()).toString()
+            val first = repo.firstPriceDay() ?: return@mapNotNull null
+            if (first > day) return@mapNotNull null
+            val old = repo.pricesAsOf(day)
+            var now = 0.0; var then = 0.0; var n = 0
+            for (e in list) {
+                val p = old[e.entry.printId] ?: continue
+                val oldPrint = e.print!!.copy(eur = p.eur, eurFoil = p.eurFoil, usd = p.usd, usdFoil = p.usdFoil, usdEtched = p.usdEtched)
+                now += nl.spoonpaco.ninegrid.domain.Money.total(e.entry, e.print, cur)
+                then += nl.spoonpaco.ninegrid.domain.Money.total(e.entry, oldPrint, cur)
+                n += e.entry.quantity
+            }
+            if (n == 0) null else PriceChange(days, now, then, n)
+        }
+        priceChanges = result
+    }
     fun setCurrency(v: String) = viewModelScope.launch { settingsStore.setCurrency(v) }
     fun setWifiOnly(v: Boolean) = viewModelScope.launch { settingsStore.setWifiOnly(v) }
     fun setOnboardingDone() = viewModelScope.launch { settingsStore.setOnboardingDone(true) }

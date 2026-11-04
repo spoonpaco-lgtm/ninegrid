@@ -9,5 +9,7 @@ class NineGridApp : Application() {
     override fun onCreate() {
         super.onCreate()
         container = AppContainer(this)
+        // Elke dag de prijzen bijwerken op de achtergrond (alleen via wifi).
+        nl.spoonpaco.ninegrid.data.PriceWorker.schedule(this)
     }
 }

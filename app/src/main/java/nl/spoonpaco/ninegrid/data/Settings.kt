@@ -35,6 +35,14 @@ data class AppSettings(
     val chartRange: String = "3M",
     /** Scannen: een blad van 9 ("page") of losse kaarten ("single"). */
     val scanMode: String = "page",
+    /** Al een keer gevraagd om een back-upmap. */
+    val backupAsked: Boolean = false,
+    /** Na elke scan tonen hoe lang de herkenning duurde. */
+    val showTiming: Boolean = true,
+    /** Trillen als de foto genomen is. */
+    val haptics: Boolean = true,
+    /** Sluitergeluid (standaard uit). */
+    val shutterSound: Boolean = false,
 )
 
 class SettingsStore(private val context: Context) {
@@ -52,6 +60,10 @@ class SettingsStore(private val context: Context) {
         val chartMetric = stringPreferencesKey("chart_metric")
         val chartRange = stringPreferencesKey("chart_range")
         val scanMode = stringPreferencesKey("scan_mode")
+        val backupAsked = booleanPreferencesKey("backup_asked")
+        val showTiming = booleanPreferencesKey("show_timing")
+        val haptics = booleanPreferencesKey("haptics")
+        val shutterSound = booleanPreferencesKey("shutter_sound")
     }
 
     val flow: Flow<AppSettings> = context.dataStore.data.map { p -> p.toSettings() }
@@ -72,6 +84,10 @@ class SettingsStore(private val context: Context) {
         chartMetric = this[K.chartMetric] ?: "value",
         chartRange = this[K.chartRange] ?: "3M",
         scanMode = this[K.scanMode] ?: "page",
+        backupAsked = this[K.backupAsked] ?: false,
+        showTiming = this[K.showTiming] ?: true,
+        haptics = this[K.haptics] ?: true,
+        shutterSound = this[K.shutterSound] ?: false,
     )
 
     suspend fun setTheme(v: String) = context.dataStore.edit { it[K.theme] = v }
@@ -89,4 +105,8 @@ class SettingsStore(private val context: Context) {
     suspend fun setChartMetric(v: String) = context.dataStore.edit { it[K.chartMetric] = v }
     suspend fun setChartRange(v: String) = context.dataStore.edit { it[K.chartRange] = v }
     suspend fun setScanMode(v: String) = context.dataStore.edit { it[K.scanMode] = v }
+    suspend fun setBackupAsked(v: Boolean) = context.dataStore.edit { it[K.backupAsked] = v }
+    suspend fun setShowTiming(v: Boolean) = context.dataStore.edit { it[K.showTiming] = v }
+    suspend fun setHaptics(v: Boolean) = context.dataStore.edit { it[K.haptics] = v }
+    suspend fun setShutterSound(v: Boolean) = context.dataStore.edit { it[K.shutterSound] = v }
 }

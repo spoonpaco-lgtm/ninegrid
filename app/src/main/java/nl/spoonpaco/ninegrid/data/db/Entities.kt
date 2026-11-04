@@ -141,3 +141,16 @@ data class Moment(
     val usd: Double,
     val count: Int,
 )
+
+/** Prijs van één print op één dag, voor het koersverschil. Een maand per dag, daarna één per maand. */
+@Serializable
+@Entity(tableName = "price_history", primaryKeys = ["printId", "day"])
+data class PricePoint(
+    val printId: String,
+    val day: String,
+    val eur: Double?,
+    val eurFoil: Double?,
+    val usd: Double?,
+    val usdFoil: Double?,
+    val usdEtched: Double?,
+)
