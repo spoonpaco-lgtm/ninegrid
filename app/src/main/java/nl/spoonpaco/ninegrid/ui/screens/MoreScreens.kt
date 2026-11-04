@@ -202,6 +202,13 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit) {
                 Switch(checked = settings.showTiming, onCheckedChange = { vm.setShowTiming(it) })
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.setting_auto), modifier = Modifier.weight(1f))
+                Switch(checked = settings.autoCapture, onCheckedChange = { vm.setAutoCapture(it) })
+            }
+            val speedLabels = mapOf("fast" to stringResource(R.string.auto_fast), "normal" to stringResource(R.string.auto_normal), "sure" to stringResource(R.string.auto_sure))
+            ChoiceRow(stringResource(R.string.setting_auto_speed), listOf("fast", "normal", "sure"), settings.autoSpeed, { speedLabels[it] ?: it }) { vm.setAutoSpeed(it) }
+            Text(stringResource(R.string.setting_volume), fontSize = 12.sp, color = LocalNgExtra.current.subtle)
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(stringResource(R.string.setting_haptics), modifier = Modifier.weight(1f))
                 Switch(checked = settings.haptics, onCheckedChange = { vm.setHaptics(it) })
             }

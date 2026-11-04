@@ -383,4 +383,13 @@
     <string name="role_number">Collector number</string>
     <string name="role_ignore">Ignore</string>
     <string name="import_how">How to get the file: from your own Sheet in Google Sheets via File → Download → Microsoft Excel (.xlsx), or in the Google Sheets app via ⋮ → Share and export → Save as → Excel. Exports from Moxfield, Archidekt, ManaBox, Deckbox, Dragon Shield, TCGplayer, Delver Lens and Helvault (.csv) are recognised automatically. Other formats: you point out the columns yourself once.</string>
+    <string name="scan_auto">Automatic</string>
+    <string name="scan_auto_paused">Paused · tap</string>
+    <string name="scan_looking_up_n">%1$d looking up</string>
+    <string name="setting_auto">1 card: take the photo automatically when the card lies still</string>
+    <string name="setting_auto_speed">Lie still for</string>
+    <string name="auto_fast">Fast (0.3 s)</string>
+    <string name="auto_normal">Normal (0.5 s)</string>
+    <string name="auto_sure">Sure (1 s)</string>
+    <string name="setting_volume">On the scan screen the volume buttons also take a photo.</string>
 </resources>

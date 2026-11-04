@@ -43,6 +43,10 @@ data class AppSettings(
     val haptics: Boolean = true,
     /** Sluitergeluid (standaard uit). */
     val shutterSound: Boolean = false,
+    /** Doorlopend scannen bij 1 kaart: zelf de foto maken als de kaart stilligt. */
+    val autoCapture: Boolean = true,
+    /** Hoe lang de kaart stil moet liggen: fast (0,3 s), normal (0,5 s) of sure (1 s). */
+    val autoSpeed: String = "normal",
 )
 
 class SettingsStore(private val context: Context) {
@@ -64,6 +68,8 @@ class SettingsStore(private val context: Context) {
         val showTiming = booleanPreferencesKey("show_timing")
         val haptics = booleanPreferencesKey("haptics")
         val shutterSound = booleanPreferencesKey("shutter_sound")
+        val autoCapture = booleanPreferencesKey("auto_capture")
+        val autoSpeed = stringPreferencesKey("auto_speed")
     }
 
     val flow: Flow<AppSettings> = context.dataStore.data.map { p -> p.toSettings() }
@@ -88,6 +94,8 @@ class SettingsStore(private val context: Context) {
         showTiming = this[K.showTiming] ?: true,
         haptics = this[K.haptics] ?: true,
         shutterSound = this[K.shutterSound] ?: false,
+        autoCapture = this[K.autoCapture] ?: true,
+        autoSpeed = this[K.autoSpeed] ?: "normal",
     )
 
     suspend fun setTheme(v: String) = context.dataStore.edit { it[K.theme] = v }
@@ -109,4 +117,6 @@ class SettingsStore(private val context: Context) {
     suspend fun setShowTiming(v: Boolean) = context.dataStore.edit { it[K.showTiming] = v }
     suspend fun setHaptics(v: Boolean) = context.dataStore.edit { it[K.haptics] = v }
     suspend fun setShutterSound(v: Boolean) = context.dataStore.edit { it[K.shutterSound] = v }
+    suspend fun setAutoCapture(v: Boolean) = context.dataStore.edit { it[K.autoCapture] = v }
+    suspend fun setAutoSpeed(v: String) = context.dataStore.edit { it[K.autoSpeed] = v }
 }

@@ -382,4 +382,13 @@
     <string name="role_number">Kaartnummer</string>
     <string name="role_ignore">Negeren</string>
     <string name="import_how">Zo krijg je het bestand: uit je eigen Sheet in Google Sheets via Bestand → Downloaden → Microsoft Excel (.xlsx), of in de Google Sheets-app via ⋮ → Delen en exporteren → Opslaan als → Excel. Exports van Moxfield, Archidekt, ManaBox, Deckbox, Dragon Shield, TCGplayer, Delver Lens en Helvault (.csv) worden vanzelf herkend. Andere formaten: je wijst één keer zelf de kolommen aan.</string>
+    <string name="scan_auto">Automatisch</string>
+    <string name="scan_auto_paused">Gepauzeerd · tik</string>
+    <string name="scan_looking_up_n">%1$d opzoeken</string>
+    <string name="setting_auto">1 kaart: automatisch fotograferen als de kaart stilligt</string>
+    <string name="setting_auto_speed">Stil liggen</string>
+    <string name="auto_fast">Snel (0,3 s)</string>
+    <string name="auto_normal">Standaard (0,5 s)</string>
+    <string name="auto_sure">Zeker (1 s)</string>
+    <string name="setting_volume">Op het scanscherm maken de volumeknoppen ook een foto.</string>
 </resources>

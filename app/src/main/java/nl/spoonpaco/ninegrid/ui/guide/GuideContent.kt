@@ -30,7 +30,8 @@ object Guide {
         Chapter("import", "Importeren uit de Sheet", "Je bestaande collectie in één keer overzetten.", listOf(
             Steps(listOf(
                 "Open je MTG Collection Sheet in Google Sheets. Op de computer: Bestand → Downloaden → Microsoft Excel (.xlsx). In de Google Sheets-app: ⋮ → Delen en exporteren → Opslaan als → Excel.",
-                "Ga in NineGrid naar Meer → Importeren (of Collectie → + → Importeren) en kies dat bestand.",
+                "Ga in NineGrid naar Meer → Importeren (of Collectie → + → Importeren) en kies dat bestand. Exports van Moxfield, Archidekt, ManaBox, Deckbox, Dragon Shield, TCGplayer, Delver Lens en Helvault worden vanzelf herkend; bij een onbekend formaat wijs je één keer zelf de kolommen aan.",
+                "Bij een bestand uit een andere app kies je of het naar je collectie gaat of één deck wordt.",
                 "Je ziet wat er gevonden is: tabbladen, kaarten in je collectie, decks en historie. Staan er al kaarten in de app, kies dan Toevoegen of Alles vervangen.",
                 "Tik op Importeren. De app zoekt elke print op bij Scryfall; bij een grote collectie duurt dat een paar minuten.",
                 "Kaarten die niet gevonden zijn, kopieer je als lijst en voeg je later toe via Lijst plakken.",
@@ -54,10 +55,13 @@ object Guide {
             Note("Foto's worden alleen op je telefoon gelezen en nergens bewaard of verstuurd."),
             H("Losse kaarten scannen"),
             Steps(listOf(
-                "Kies onderaan 1 kaart. Het kader krijgt de vorm van één kaart.",
-                "Fotografeer de kaarten één voor één. Je blijft in de camera; onderaan zie je hoeveel kaarten je hebt en de laatste namen.",
+                "Kies onderaan 1 kaart. Het kader krijgt de vorm van één kaart, en Automatisch staat aan.",
+                "Leg een kaart in het kader en houd de telefoon stil. Na een halve seconde maakt de app zelf de foto: je ziet het kader groen knipperen en de telefoon trilt.",
+                "Leg de volgende kaart neer. Dezelfde kaart nog eens? Haal hem even weg en leg hem terug: dan telt hij er één bij (×2, ×3).",
+                "Onderaan staan de laatste drie kaarten. Een vergissing tik je weg met het kruisje.",
                 "Tik op Klaar om ze allemaal in het controlescherm te zien en op te slaan.",
             )),
+            Tip("De volumeknoppen zijn ook een ontspanknop. Hoe lang de kaart stil moet liggen stel je in onder Instellingen (snel, standaard of zeker). Zie je twee minuten geen kaart, dan pauzeert het meekijken; tik op Gepauzeerd om verder te gaan."),
             Tip("De app onthoudt of je de laatste keer Blad of 1 kaart gebruikte."),
             H("Zonder internet"),
             P("Heb je geen verbinding, dan bewaart de app de scan als Wacht op verbinding, ook als je de app sluit. Zodra je weer internet hebt, worden de kaarten vanzelf opgezocht."),
@@ -240,7 +244,8 @@ object Guide {
         Chapter("import", "Importing from the Sheet", "Bring your existing collection over in one go.", listOf(
             Steps(listOf(
                 "Open your MTG Collection Sheet in Google Sheets. On a computer: File → Download → Microsoft Excel (.xlsx). In the Google Sheets app: ⋮ → Share and export → Save as → Excel.",
-                "In NineGrid go to More → Import (or Collection → + → Import) and choose that file.",
+                "In NineGrid go to More → Import (or Collection → + → Import) and choose that file. Exports from Moxfield, Archidekt, ManaBox, Deckbox, Dragon Shield, TCGplayer, Delver Lens and Helvault are recognised automatically; for an unknown format you point out the columns once.",
+                "For a file from another app you choose whether it goes to your collection or becomes one deck.",
                 "You see what was found: tabs, cards in your collection, decks and history. If the app already has cards, choose Add or Replace everything.",
                 "Tap Import. The app looks up every print at Scryfall; a large collection takes a few minutes.",
                 "Cards that were not found can be copied as a list and added later via Paste list.",
@@ -264,10 +269,13 @@ object Guide {
             Note("Photos are only read on your phone and never stored or sent."),
             H("Scanning single cards"),
             Steps(listOf(
-                "Choose 1 card at the bottom. The frame takes the shape of one card.",
-                "Photograph the cards one by one. You stay in the camera; at the bottom you see how many cards you have and the last names.",
+                "Choose 1 card at the bottom. The frame takes the shape of one card, and Automatic is on.",
+                "Put a card in the frame and hold the phone still. After half a second the app takes the photo itself: the frame blinks green and the phone vibrates.",
+                "Put down the next card. The same card again? Take it away briefly and put it back: it counts one more (×2, ×3).",
+                "The last three cards are shown at the bottom. Remove a mistake with the cross.",
                 "Tap Done to see them all in the review screen and save them.",
             )),
+            Tip("The volume buttons are also a shutter button. How long the card must lie still is set in Settings (fast, normal or sure). If no card is seen for two minutes, watching pauses; tap Paused to continue."),
             Tip("The app remembers whether you last used Page or 1 card."),
             H("Without internet"),
             P("Without a connection the app keeps the scan as Waiting for connection, even if you close the app. As soon as you are online again, the cards are looked up automatically."),

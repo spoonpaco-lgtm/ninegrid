@@ -20,6 +20,23 @@ import nl.spoonpaco.ninegrid.ui.theme.NineGridTheme
 class MainActivity : AppCompatActivity() {
     private val vm: AppViewModel by viewModels()
 
+    // Op het camerascherm zijn de volumeknoppen de ontspanknop.
+    private fun isVolume(code: Int) = code == android.view.KeyEvent.KEYCODE_VOLUME_DOWN || code == android.view.KeyEvent.KEYCODE_VOLUME_UP
+
+    override fun onKeyDown(keyCode: Int, event: android.view.KeyEvent): Boolean {
+        val shutter = nl.spoonpaco.ninegrid.ui.screens.ScanKeys.onShutter
+        if (shutter != null && isVolume(keyCode)) {
+            if (event.repeatCount == 0) shutter()
+            return true
+        }
+        return super.onKeyDown(keyCode, event)
+    }
+
+    override fun onKeyUp(keyCode: Int, event: android.view.KeyEvent): Boolean {
+        if (nl.spoonpaco.ninegrid.ui.screens.ScanKeys.onShutter != null && isVolume(keyCode)) return true
+        return super.onKeyUp(keyCode, event)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()

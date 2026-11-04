@@ -267,9 +267,13 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         pending += PendingItem(key = nextKey++, label = print.name, query = CardQuery(id = print.id), print = print, status = ItemStatus.FOUND)
     }
 
+    /** Kaarten die nu al worden opgezocht (doorlopend scannen start steeds een nieuwe ronde). */
+    private val inFlight = mutableSetOf<Int>()
+
     private fun resolveAll() {
-        val todo = pending.filter { it.status == ItemStatus.RESOLVING }
+        val todo = pending.filter { it.status == ItemStatus.RESOLVING && it.key !in inFlight }
         if (todo.isEmpty()) return
+        inFlight += todo.map { it.key }
         viewModelScope.launch {
             busy = true
             val started = System.currentTimeMillis()
@@ -289,6 +293,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                 message = str(R.string.msg_waiting_for_network)
                 savePendingToDisk()
                 if (scan) repo.scryfall.releaseForeground()
+                inFlight -= todo.map { it.key }.toSet()
                 busy = false
                 return@launch
             }
@@ -330,6 +335,22 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                 }
             }
             if (pending.none { it.status == ItemStatus.WAITING }) clearSavedPending()
+            // Losse kaarten: dezelfde kaart nog eens = één erbij in plaats van een nieuwe regel.
+            if (scan && pending.isNotEmpty() && pending.all { it.slot == null }) {
+                val seen = mutableMapOf<Pair<String, String>, Int>()
+                pending.toList().forEach { p ->
+                    val id = p.print?.id ?: return@forEach
+                    val k = id to p.finish
+                    val idx = seen[k]
+                    if (idx == null) seen[k] = pending.indexOfFirst { it.key == p.key }
+                    else {
+                        val keep = pending[idx]
+                        pending[idx] = keep.copy(quantity = keep.quantity + p.quantity)
+                        removePending(p.key)
+                        seen.keys.forEach { key -> seen[key] = pending.indexOfFirst { it.print?.id == key.first && it.finish == key.second } }
+                    }
+                }
+            }
             if (importSource == ImportSource.PASTE) {
                 val typeLines = pending.mapNotNull { p -> p.print?.let { it.name to it.typeLine } }.toMap()
                 val parsed = pending.map {
@@ -341,6 +362,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                 }
                 newDeckFormat = Formats.suggest(parsed, typeLines)
             }
+            inFlight -= todo.map { it.key }.toSet()
             busy = false
         }
     }
@@ -533,6 +555,14 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun setShowTiming(v: Boolean) = viewModelScope.launch { settingsStore.setShowTiming(v) }
     fun setHaptics(v: Boolean) = viewModelScope.launch { settingsStore.setHaptics(v) }
     fun setShutterSound(v: Boolean) = viewModelScope.launch { settingsStore.setShutterSound(v) }
+    fun setAutoCapture(v: Boolean) = viewModelScope.launch { settingsStore.setAutoCapture(v) }
+    fun setAutoSpeed(v: String) = viewModelScope.launch { settingsStore.setAutoSpeed(v) }
+
+    /** Laatste losse kaart uit de lijst halen (doorlopend scannen). */
+    fun removePending(key: Int) {
+        pending.removeAll { it.key == key }
+        crops.remove(key)
+    }
 
     /**
      * Alles (of een deel) wissen. Eerst een back-up: in de back-upmap als die er is, anders naar [backupUri].

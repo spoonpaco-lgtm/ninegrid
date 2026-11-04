@@ -23,6 +23,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -131,6 +132,9 @@ private suspend fun readImage(bmp: Bitmap, crop: Area?, single: Boolean): ScanRe
 }
 
 private const val CARD_RATIO = 63f / 88f
+
+/** Wat er gebeurt als de kaart stilligt (doorlopend scannen); gezet door het camerascherm. */
+private var watcherTrigger: () -> Unit = {}
 
 /** Het richtkader binnen een beeld van w x h, tussen de balken boven en onder. */
 private fun guideRect(w: Float, h: Float, topPx: Float, bottomPx: Float, single: Boolean): Area {
@@ -285,6 +289,12 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
     var showPhoto by remember { mutableStateOf(false) }
     val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
     val shutterSound = remember { android.media.MediaActionSound() }
+    var provider by remember { mutableStateOf<ProcessCameraProvider?>(null) }
+    var preview by remember { mutableStateOf<Preview?>(null) }
+    // Doorlopend scannen bij 1 kaart.
+    val auto = single && settings.autoCapture
+    var autoPaused by remember { mutableStateOf(false) }
+    var autoBlink by remember { mutableStateOf(false) }
     val density = LocalDensity.current
     // Ruimte boven en onder die door de balken op het beeld wordt ingenomen; het kader valt daartussen.
     val topBarPx = with(density) { 64.dp.toPx() } + WindowInsets.statusBars.getTop(density)
@@ -390,6 +400,76 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
         }
     }
 
+    val watcher = remember { AutoCapture(500) { watcherTrigger() } }
+    watcher.stableMs = when (settings.autoSpeed) { "fast" -> 300L; "sure" -> 1000L; else -> 500L }
+    watcher.busy = working
+    val triggerRef = androidx.compose.runtime.rememberUpdatedState {
+        if (!working) {
+            autoBlink = true
+            scope.launch { kotlinx.coroutines.delay(400); autoBlink = false }
+            takePhoto()
+        }
+    }
+    val analyzerExecutor = remember { java.util.concurrent.Executors.newSingleThreadExecutor() }
+    val recognizer = remember { TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS) }
+    val analysis = remember {
+        androidx.camera.core.ImageAnalysis.Builder()
+            .setResolutionSelector(
+                ResolutionSelector.Builder()
+                    .setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)
+                    .setResolutionStrategy(ResolutionStrategy(android.util.Size(1280, 960), ResolutionStrategy.FALLBACK_RULE_CLOSEST_LOWER_THEN_HIGHER))
+                    .build(),
+            )
+            .setBackpressureStrategy(androidx.camera.core.ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+            .build()
+    }
+    val mainExecutor = remember { ContextCompat.getMainExecutor(context) }
+    // De camera opnieuw koppelen als de stand verandert: meekijken alleen bij 1 kaart met Automatisch aan.
+    androidx.compose.runtime.LaunchedEffect(provider, preview, auto) {
+        val p = provider ?: return@LaunchedEffect
+        val pv = preview ?: return@LaunchedEffect
+        runCatching {
+            p.unbindAll()
+            camera = if (auto) p.bindToLifecycle(lifecycle, CameraSelector.DEFAULT_BACK_CAMERA, pv, capture, analysis)
+            else p.bindToLifecycle(lifecycle, CameraSelector.DEFAULT_BACK_CAMERA, pv, capture)
+        }.onFailure {
+            // Sommige telefoons kunnen geen drie dingen tegelijk: dan zonder meekijken.
+            runCatching { p.unbindAll(); camera = p.bindToLifecycle(lifecycle, CameraSelector.DEFAULT_BACK_CAMERA, pv, capture) }
+        }
+        watcher.reset(); autoPaused = false
+    }
+    DisposableEffect(auto) {
+        var last = 0L
+        if (auto) analysis.setAnalyzer(analyzerExecutor) { proxy ->
+            val now = System.currentTimeMillis()
+            val media = proxy.image
+            // Een paar beelden per seconde is genoeg, en niet als het meekijken gepauzeerd is.
+            if (media == null || now - last < 300 || autoPaused || boxW <= 0f) { proxy.close(); return@setAnalyzer }
+            last = now
+            val rot = proxy.imageInfo.rotationDegrees
+            val (w, h) = if (rot == 90 || rot == 270) proxy.height to proxy.width else proxy.width to proxy.height
+            recognizer.process(InputImage.fromMediaImage(media, rot))
+                .addOnSuccessListener { text ->
+                    val lines = text.textBlocks.flatMap { it.lines }.mapNotNull { l -> l.boundingBox?.let { b -> OcrLine(l.text, b.exactCenterX(), b.exactCenterY()) } }
+                    val crop = guideOnImage(guideRect(boxW, boxH, topBarPx, bottomBarPx, true), boxW, boxH, w, h)
+                    val name = ScanParser.analyzeSingle(lines, w, h, crop).slots.firstOrNull()?.name
+                    mainExecutor.execute {
+                        watcher.onFrame(name?.lowercase()?.filter { it.isLetter() }?.takeIf { it.length >= 3 })
+                        if (watcher.idle()) autoPaused = true
+                    }
+                }
+                .addOnCompleteListener { proxy.close() }
+        }
+        onDispose { analysis.clearAnalyzer() }
+    }
+    // Wat de watcher doet als de kaart stilligt.
+    androidx.compose.runtime.SideEffect { watcherTrigger = { triggerRef.value() } }
+    // De volumeknoppen als ontspanknop.
+    DisposableEffect(Unit) {
+        ScanKeys.onShutter = { if (!working) takePhoto() }
+        onDispose { ScanKeys.onShutter = null }
+    }
+
     // Volledig camerascherm: het beeld vult alles, de bediening zweeft erop.
     Box(Modifier.fillMaxSize().background(Color.Black).onSizeChanged { boxW = it.width.toFloat(); boxH = it.height.toFloat() }) {
         if (permitted) {
@@ -401,15 +481,11 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
                         view.scaleType = PreviewView.ScaleType.FILL_CENTER
                         val future = ProcessCameraProvider.getInstance(ctx)
                         future.addListener({
-                            val provider = future.get()
                             // Zelfde verhouding als de foto, zodat het kader op het scherm en op de foto hetzelfde stuk is.
-                            val preview = Preview.Builder()
+                            preview = Preview.Builder()
                                 .setResolutionSelector(ResolutionSelector.Builder().setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY).build())
                                 .build().also { it.setSurfaceProvider(view.surfaceProvider) }
-                            runCatching {
-                                provider.unbindAll()
-                                camera = provider.bindToLifecycle(lifecycle, CameraSelector.DEFAULT_BACK_CAMERA, preview, capture)
-                            }
+                            provider = future.get()
                         }, ContextCompat.getMainExecutor(ctx))
                         // Tik om scherp te stellen.
                         view.setOnTouchListener { v, ev ->
@@ -426,6 +502,7 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
             )
             val sum = vm.scanSummary
             val frameColor = when {
+                autoBlink -> NgColors.Synced
                 sum == null || sum.busy -> NgColors.Amber.copy(alpha = 0.9f)
                 sum.allGood -> NgColors.Synced
                 else -> Color(0xFFFF8C00)
@@ -467,11 +544,16 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
             Modifier.align(Alignment.BottomCenter).fillMaxWidth().background(Color.Black.copy(alpha = 0.5f)).navigationBarsPadding(),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Row(Modifier.height(40.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.height(40.dp).horizontalScroll(androidx.compose.foundation.rememberScrollState()).padding(horizontal = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 val colors = FilterChipDefaults.filterChipColors(labelColor = Color.White, selectedContainerColor = MaterialTheme.colorScheme.primary, selectedLabelColor = Color.Black)
                 FilterChip(selected = !single, onClick = { vm.setScanMode("page") }, label = { Text(stringResource(R.string.scan_mode_page)) }, colors = colors)
                 FilterChip(selected = single, onClick = { vm.setScanMode("single") }, label = { Text(stringResource(R.string.scan_mode_single)) }, colors = colors)
                 Spacer(Modifier.width(8.dp))
+                if (single) FilterChip(
+                    selected = settings.autoCapture && !autoPaused,
+                    onClick = { if (autoPaused) { autoPaused = false; watcher.reset() } else vm.setAutoCapture(!settings.autoCapture) },
+                    label = { Text(stringResource(if (autoPaused) R.string.scan_auto_paused else R.string.scan_auto)) }, colors = colors,
+                )
                 FilterChip(selected = vm.scanFoil, onClick = { vm.scanFoil = !vm.scanFoil }, label = { Text(stringResource(if (single) R.string.scan_foil_card else R.string.scan_foil_page)) }, colors = colors)
             }
             Box(Modifier.fillMaxWidth().height(52.dp).padding(horizontal = 12.dp), contentAlignment = Alignment.Center) {
@@ -564,6 +646,8 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
         vm.repo.scryfall.holdForeground()
         onDispose {
             vm.repo.scryfall.releaseForeground()
+            runCatching { recognizer.close() }
+            runCatching { analyzerExecutor.shutdown() }
             runCatching { shutterSound.release() }
             runCatching { ProcessCameraProvider.getInstance(context).get().unbindAll() }
         }
@@ -579,16 +663,27 @@ private fun ScanSummaryBar(vm: AppViewModel, sum: AppViewModel.ScanSummary, sing
             Spacer(Modifier.width(8.dp))
         }
         val text = when {
+            single -> pluralStringResource(R.plurals.scan_single_count, vm.pending.sumOf { it.quantity }, vm.pending.sumOf { it.quantity }) +
+                (vm.pending.count { it.status == nl.spoonpaco.ninegrid.ui.ItemStatus.RESOLVING }.takeIf { it > 0 }?.let { " · " + stringResource(R.string.scan_looking_up_n, it) } ?: "")
             sum.busy -> stringResource(R.string.looking_up)
-            single -> pluralStringResource(R.plurals.scan_single_count, sum.total, sum.total) + " · " +
-                vm.pending.takeLast(3).joinToString(", ") { it.print?.name ?: "?" }
             sum.waiting > 0 -> stringResource(R.string.scan_waiting)
             sum.allGood -> stringResource(R.string.scan_all_found, sum.found, sum.total - sum.empty) +
                 (if (sum.empty > 0) " · " + pluralStringResource(R.plurals.scan_empty_slots, sum.empty, sum.empty) else "")
             else -> stringResource(R.string.scan_some_found, sum.found, sum.doubtful.coerceAtLeast(0))
         }
         Column(Modifier.weight(1f)) {
-            Text(text, color = Color.White, fontSize = 13.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Text(text, color = Color.White, fontSize = 13.sp, maxLines = if (single) 1 else 2, overflow = TextOverflow.Ellipsis)
+            // Losse kaarten: de laatste drie, met een kruisje om een vergissing weg te halen.
+            if (single) Row(Modifier.horizontalScroll(androidx.compose.foundation.rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                vm.pending.takeLast(3).reversed().forEach { p ->
+                    androidx.compose.material3.InputChip(
+                        selected = false, onClick = { vm.removePending(p.key) },
+                        label = { Text((p.print?.name ?: p.query.name ?: "?") + if (p.quantity > 1) " ×${p.quantity}" else "", fontSize = 11.sp, color = Color.White, maxLines = 1) },
+                        trailingIcon = { Icon(androidx.compose.material.icons.Icons.Filled.Close, stringResource(R.string.undo), tint = Color.White, modifier = Modifier.size(14.dp)) },
+                        modifier = Modifier.height(26.dp),
+                    )
+                }
+            }
             val st by vm.settings.collectAsState()
             if (st.showTiming && vm.lastReadMs > 0 && !sum.busy) {
                 Text(
@@ -597,7 +692,7 @@ private fun ScanSummaryBar(vm: AppViewModel, sum: AppViewModel.ScanSummary, sing
                 )
             }
         }
-        if (!sum.busy) {
+        if (!sum.busy || single) {
             if (single) {
                 Button(onClick = onReview) { Text(stringResource(R.string.done)) }
             } else {
