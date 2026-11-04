@@ -30,7 +30,7 @@ object Guide {
         Chapter("import", "Importeren uit de Sheet", "Je bestaande collectie in één keer overzetten.", listOf(
             Steps(listOf(
                 "Open je MTG Collection Sheet in Google Sheets. Op de computer: Bestand → Downloaden → Microsoft Excel (.xlsx). In de Google Sheets-app: ⋮ → Delen en exporteren → Opslaan als → Excel.",
-                "Ga in NineGrid naar Meer → Importeren (of Collectie → + → Importeren) en kies dat bestand. Exports van Moxfield, Archidekt, ManaBox, Deckbox, Dragon Shield, TCGplayer, Delver Lens en Helvault worden vanzelf herkend; bij een onbekend formaat wijs je één keer zelf de kolommen aan.",
+                "Ga in NineGrid naar Meer → Importeren (of Collectie → + → Importeren). Tik op Sheet kiezen in Google Drive en kies je Sheet: Android levert hem als Excel aan, je hoeft niets te downloaden. Een gedownload bestand kies je met Bestand kiezen. Exports van Moxfield, Archidekt, ManaBox, Deckbox, Dragon Shield, TCGplayer, Delver Lens en Helvault worden vanzelf herkend; bij een onbekend formaat wijs je één keer zelf de kolommen aan.",
                 "Bij een bestand uit een andere app kies je of het naar je collectie gaat of één deck wordt.",
                 "Je ziet wat er gevonden is: tabbladen, kaarten in je collectie, decks en historie. Staan er al kaarten in de app, kies dan Toevoegen of Alles vervangen.",
                 "Tik op Importeren. Dit loopt op de achtergrond, met een melding in je meldingenbalk: je kunt de app intussen gebruiken of sluiten. Vraagt Scryfall om pauze, dan wacht de app en gaat daarna vanzelf verder. Herstart de telefoon, dan gaat de import verder waar hij was.",
@@ -39,7 +39,7 @@ object Guide {
             )),
             P("Settabbladen en Losse kaarten gaan naar je collectie, het tabblad Decks wordt per deck overgezet met Commander, Deck en Sideboard. Foil, etched, taal, aantal en proxy gaan mee. Uit Historie komt de lijn van de grafiek. Het tabblad Overzicht wordt overgeslagen."),
             Tip("De hele import is één wijziging: via Meer → Wijzigingslog maak je hem in één keer ongedaan."),
-            Note("Direct koppelen met Google Sheets (zonder bestand) volgt later; daarvoor is een Google-koppeling nodig."),
+            Note("Terugschrijven naar je Sheet (synchroniseren) volgt later; daarvoor is een Google-koppeling nodig."),
         )),
         Chapter("add", "Kaarten toevoegen", "Scannen, een bestaande foto, een lijst plakken of één kaart zoeken.", listOf(
             H("Scannen"),
@@ -144,7 +144,17 @@ object Guide {
             P("De app noemt het minstens bracket X en laat zien waarom: Game Changers, massale landvernietiging, extra beurten en tutors uit de regeltekst."),
             Note("De bracket is een inschatting. Combo's telt de app pas mee als je ze hebt laten zoeken: overleg ook met je tafel."),
             H("Statistieken"),
-            P("Een deck heeft drie tabbladen: Kaarten, Statistieken en Combo's. De controle (legaliteit en bracket) staat altijd bovenaan. Tik op Statistieken voor de manacurve, de kleuren in de kosten tegenover de lands die ze maken, en de kans op 2, 3 of 4 lands in je openingshand."),
+            P("Een deck heeft vier tabbladen: Kaarten, Statistieken, Combo's en Suggesties. De controle (legaliteit en bracket) staat altijd bovenaan. Tik op Statistieken voor de manacurve, de kleuren in de kosten tegenover de lands die ze maken, en de kans op 2, 3 of 4 lands in je openingshand."),
+            H("Suggesties"),
+            Steps(listOf(
+                "Open in een deck het tabblad Suggesties. De app kijkt in je collectie welke kaarten passen: binnen het format, de kleuren van je commander en je eigen regels.",
+                "Regels voor dit deck: vul bij Alleen creatures van type bijvoorbeeld Vampire in (de app raadt het type van je commander), en kies eventueel een hoogste bracket. Tik op Toepassen.",
+                "Je ziet per rol (ramp, kaarten trekken, removal, board wipes) hoeveel het deck er heeft tegenover een streefgetal.",
+                "Erin uit je collectie: met de reden erbij, en In deck zetten verhuist de kaart uit je collectie.",
+                "Betere lands: niet-basic lands in je kleuren; Wisselen zet het land erin en een passend basic land terug in je collectie.",
+                "Kan eruit: kaarten die niet bij het deck of je regels passen; Naar collectie haalt ze eruit.",
+            )),
+            Tip("Alles verhuist, niets telt dubbel, en elke stap kun je ongedaan maken via het wijzigingslog."),
             H("Combo's"),
             Steps(listOf(
                 "Open in een deck het tabblad Combo's en tik op Combo's zoeken. De app stuurt alleen de kaartnamen naar Commander Spellbook, de grote openbare combodatabase; je hebt internet nodig.",
@@ -245,7 +255,7 @@ object Guide {
         Chapter("import", "Importing from the Sheet", "Bring your existing collection over in one go.", listOf(
             Steps(listOf(
                 "Open your MTG Collection Sheet in Google Sheets. On a computer: File → Download → Microsoft Excel (.xlsx). In the Google Sheets app: ⋮ → Share and export → Save as → Excel.",
-                "In NineGrid go to More → Import (or Collection → + → Import) and choose that file. Exports from Moxfield, Archidekt, ManaBox, Deckbox, Dragon Shield, TCGplayer, Delver Lens and Helvault are recognised automatically; for an unknown format you point out the columns once.",
+                "In NineGrid go to More → Import (or Collection → + → Import). Tap Choose Sheet in Google Drive and pick your Sheet: Android delivers it as Excel, no download needed. A downloaded file you pick with Choose a file. Exports from Moxfield, Archidekt, ManaBox, Deckbox, Dragon Shield, TCGplayer, Delver Lens and Helvault are recognised automatically; for an unknown format you point out the columns once.",
                 "For a file from another app you choose whether it goes to your collection or becomes one deck.",
                 "You see what was found: tabs, cards in your collection, decks and history. If the app already has cards, choose Add or Replace everything.",
                 "Tap Import. This runs in the background with a notification: you can use or close the app meanwhile. If Scryfall asks for a pause, the app waits and continues by itself. If the phone restarts, the import continues where it was.",
@@ -254,7 +264,7 @@ object Guide {
             )),
             P("Set tabs and Loose cards go to your collection, the Decks tab is imported per deck with Commander, Deck and Sideboard. Foil, etched, language, quantity and proxy come along. History becomes the chart line. The Overview tab is skipped."),
             Tip("The whole import is one change: undo it in one go via More → Change log."),
-            Note("Linking directly to Google Sheets (without a file) comes later; that needs a Google connection."),
+            Note("Writing back to your Sheet (syncing) comes later; that needs a Google connection."),
         )),
         Chapter("add", "Adding cards", "Scanning, an existing photo, pasting a list or searching one card.", listOf(
             H("Scanning"),
@@ -359,7 +369,17 @@ object Guide {
             P("The app calls it at least bracket X and shows why: Game Changers, mass land denial, extra turns and tutors from the rules text."),
             Note("The bracket is an estimate. Combos only count once you have searched for them: also talk to your table."),
             H("Statistics"),
-            P("A deck has three tabs: Cards, Statistics and Combos. The check (legality and bracket) is always at the top. Tap Statistics for the mana curve, colours in costs versus the lands that make them, and the chance of 2, 3 or 4 lands in your opening hand."),
+            P("A deck has four tabs: Cards, Statistics, Combos and Suggestions. The check (legality and bracket) is always at the top. Tap Statistics for the mana curve, colours in costs versus the lands that make them, and the chance of 2, 3 or 4 lands in your opening hand."),
+            H("Suggestions"),
+            Steps(listOf(
+                "Open the Suggestions tab in a deck. The app looks in your collection for cards that fit: within the format, your commander's colours and your own rules.",
+                "Rules for this deck: enter for example Vampire under Only creatures of type (the app guesses your commander's type), and choose a highest bracket if you like. Tap Apply.",
+                "You see per role (ramp, card draw, removal, board wipes) how many the deck has against a target.",
+                "In from your collection: with the reason, and Put in deck moves the card out of your collection.",
+                "Better lands: nonbasic lands in your colours; Swap puts the land in and a matching basic land back in your collection.",
+                "Could go out: cards that do not fit the deck or your rules; To collection takes them out.",
+            )),
+            Tip("Everything moves, nothing counts twice, and every step can be undone via the change log."),
             H("Combos"),
             Steps(listOf(
                 "Open the Combos tab in a deck and tap Find combos. The app sends only the card names to Commander Spellbook, the large public combo database; you need internet.",

@@ -261,4 +261,32 @@ class ParserTest {
             mapOf(0 to nl.spoonpaco.ninegrid.domain.SheetImport.Role.NAME, 1 to nl.spoonpaco.ninegrid.domain.SheetImport.Role.SET, 2 to nl.spoonpaco.ninegrid.domain.SheetImport.Role.NUMBER))
         assertEquals("Opt", mapped.collection.single().name)
     }
+
+    @Test
+    fun suggestionsRespectTribeAndColors() {
+        val S = nl.spoonpaco.ninegrid.domain.Suggestions
+        val cmd = card("Edgar Markov", section = nl.spoonpaco.ninegrid.data.db.Section.COMMANDER, type = "Legendary Creature — Vampire Knight", id = "RWB")
+        val deck = listOf(cmd) + (1..30).map { card("Vamp $it", type = "Creature — Vampire", id = "B", text = "Whenever another Vampire enters, create a 1/1 token.") } +
+            card("Bear", type = "Creature — Bear", id = "G") + card("Swamp", 30, type = "Basic Land — Swamp")
+        val tribe = S.guessTribe(deck)
+        assertEquals("Vampire", tribe)
+        fun cand(id: Long, name: String, type: String, ci: String, text: String = "") =
+            nl.spoonpaco.ninegrid.domain.Candidate(id, name, type, text, "", 2.0, ci, "commander=legal", false)
+        val pool = listOf(
+            cand(1, "Bloodghast", "Creature — Vampire Spirit", "B", "Whenever a Vampire enters, create a token."),
+            cand(2, "Grizzly Bears", "Creature — Bear", "G"),
+            cand(3, "Llanowar Elves", "Creature — Elf Druid", "G", "{T}: Add {G}."),
+            cand(4, "Night's Whisper", "Sorcery", "B", "You draw two cards and you lose 2 life."),
+            cand(5, "Elf Lord", "Creature — Elf", "B", "Draw a card."),
+            cand(6, "Godless Shrine", "Land — Plains Swamp", "WB"),
+        )
+        val r = S.suggest(DeckFormat.COMMANDER, deck, emptyMap(), pool, nl.spoonpaco.ninegrid.domain.DeckRules(tribe = tribe))
+        val names = r.adds.map { it.card.name }
+        assertTrue("Bloodghast" in names)
+        assertTrue("Night's Whisper" in names)
+        assertFalse("Grizzly Bears" in names) // buiten de kleuren
+        assertFalse("Elf Lord" in names) // geen Vampire
+        assertTrue(r.lands.any { it.card.name == "Godless Shrine" })
+        assertTrue(r.cuts.any { it.name == "Bear" && it.reasons.any { w -> w.startsWith("not_tribe") } })
+    }
 }

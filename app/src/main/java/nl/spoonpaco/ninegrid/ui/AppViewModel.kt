@@ -683,13 +683,20 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         importUri = uri
         runCatching {
             val ctx = getApplication<Application>()
-            val name = androidx.documentfile.provider.DocumentFile.fromSingleUri(ctx, uri)?.name ?: "import.xlsx"
+            var name = androidx.documentfile.provider.DocumentFile.fromSingleUri(ctx, uri)?.name ?: "import.xlsx"
+            // Een Google Sheet uit Drive is een "virtueel" bestand: Android levert hem dan als Excel aan.
+            val xlsx = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            val virtual = runCatching { ctx.contentResolver.getStreamTypes(uri, "*/*")?.contains(xlsx) == true && ctx.contentResolver.getType(uri)?.startsWith("application/vnd.google-apps") == true }.getOrDefault(false)
+            if (virtual && !name.endsWith(".xlsx")) name += ".xlsx"
             importName = name
+            fun open(): java.io.InputStream =
+                if (virtual) ctx.contentResolver.openTypedAssetFileDescriptor(uri, xlsx, null)!!.createInputStream()
+                else ctx.contentResolver.openInputStream(uri)!!
             kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-                val first = ctx.contentResolver.openInputStream(uri)!!.use { nl.spoonpaco.ninegrid.domain.SheetImport.read(name, it, mapping) }
+                val first = open().use { nl.spoonpaco.ninegrid.domain.SheetImport.read(name, it, mapping) }
                 // Onbekend formaat dat je eerder al aanwees? Dan die indeling meteen gebruiken.
                 val saved = if (first.needsMapping && mapping == null) savedMapping(first.headers) else null
-                if (saved != null) ctx.contentResolver.openInputStream(uri)!!.use { nl.spoonpaco.ninegrid.domain.SheetImport.read(name, it, saved) } else first
+                if (saved != null) open().use { nl.spoonpaco.ninegrid.domain.SheetImport.read(name, it, saved) } else first
             }
         }.onSuccess {
             importData = it
@@ -828,5 +835,74 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     init {
         watchImport()
         watchThrottle()
+    }
+
+    // ---------- Suggesties per deck ----------
+    private val rulesPrefs get() = getApplication<Application>().getSharedPreferences("deck_rules", android.content.Context.MODE_PRIVATE)
+    private val rulesJson = kotlinx.serialization.json.Json { ignoreUnknownKeys = true; encodeDefaults = true }
+
+    /** Eigen regels van een deck; staat er nog niets, dan raadt de app het creaturetype van de commander. */
+    fun deckRules(deckId: Long): nl.spoonpaco.ninegrid.domain.DeckRules =
+        rulesPrefs.getString(deckId.toString(), null)?.let { runCatching { rulesJson.decodeFromString(nl.spoonpaco.ninegrid.domain.DeckRules.serializer(), it) }.getOrNull() }
+            ?: nl.spoonpaco.ninegrid.domain.DeckRules(tribe = nl.spoonpaco.ninegrid.domain.Suggestions.guessTribe(deckCards(deckId)))
+
+    fun setDeckRules(deckId: Long, r: nl.spoonpaco.ninegrid.domain.DeckRules) {
+        rulesPrefs.edit().putString(deckId.toString(), rulesJson.encodeToString(nl.spoonpaco.ninegrid.domain.DeckRules.serializer(), r)).apply()
+        computeSuggestions(deckId)
+    }
+
+    private fun deckCards(deckId: Long) = Formats.toDeckCards(entries.value.filter { it.entry.deckId == deckId }.map { it.entry to it.print })
+
+    var suggestions by mutableStateOf<nl.spoonpaco.ninegrid.domain.SuggestionReport?>(null)
+    var suggestionsDeckId by mutableStateOf<Long?>(null)
+
+    fun computeSuggestions(deckId: Long) = viewModelScope.launch {
+        val deck = decks.value.firstOrNull { it.id == deckId } ?: return@launch
+        val rules = deckRules(deckId)
+        val all = entries.value
+        val deckNames = decks.value.associate { it.id to it.name }
+        val report = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+            val mine = all.filter { it.entry.deckId == deckId }
+            val pool = all.filter { e ->
+                e.print != null && !e.entry.proxy && e.entry.deckId != deckId && (e.entry.deckId == null || rules.includeOtherDecks)
+            }.map { e ->
+                val p = e.print!!
+                nl.spoonpaco.ninegrid.domain.Candidate(e.entry.id, p.name, p.typeLine, p.oracleText, p.manaCost, p.cmc, p.colorIdentity, p.legalities, p.gameChanger,
+                    e.entry.deckId?.let { deckNames[it] })
+            }
+            nl.spoonpaco.ninegrid.domain.Suggestions.suggest(
+                deck.format, Formats.toDeckCards(mine.map { it.entry to it.print }),
+                mine.filter { it.print != null }.associate { it.print!!.name to it.entry.id }, pool, rules,
+            )
+        }
+        suggestions = report
+        suggestionsDeckId = deckId
+    }
+
+    /** Een voorgestelde kaart uit je collectie in het deck zetten (verhuist, telt niet dubbel). */
+    fun addSuggestion(entryId: Long, deckId: Long) {
+        val e = entries.value.firstOrNull { it.entry.id == entryId }?.entry ?: return
+        moveEntry(e, 1, deckId, Section.MAIN, null, null, null)
+        viewModelScope.launch { kotlinx.coroutines.delay(400); computeSuggestions(deckId) }
+    }
+
+    /** Een land erin, en één basic land van een passende kleur terug naar de collectie. */
+    fun swapLand(entryId: Long, deckId: Long) {
+        val land = entries.value.firstOrNull { it.entry.id == entryId } ?: return
+        val colors = land.print?.colorIdentity.orEmpty().toSet()
+        val basicType = mapOf('W' to "Plains", 'U' to "Island", 'B' to "Swamp", 'R' to "Mountain", 'G' to "Forest")
+        val basic = entries.value.filter { it.entry.deckId == deckId && Formats.isBasicLand(it.print?.typeLine.orEmpty()) }
+            .sortedByDescending { b -> colors.any { c -> b.print?.typeLine.orEmpty().contains(basicType[c] ?: "-") } }
+            .firstOrNull()
+        moveEntry(land.entry, 1, deckId, Section.MAIN, null, null, null)
+        basic?.let { moveEntry(it.entry, 1, null, null, null, null, null) }
+        viewModelScope.launch { kotlinx.coroutines.delay(400); computeSuggestions(deckId) }
+    }
+
+    /** Een kaart uit het deck terug naar de collectie. */
+    fun cutSuggestion(entryId: Long, deckId: Long) {
+        val e = entries.value.firstOrNull { it.entry.id == entryId }?.entry ?: return
+        moveEntry(e, 1, null, null, null, null, null)
+        viewModelScope.launch { kotlinx.coroutines.delay(400); computeSuggestions(deckId) }
     }
 }

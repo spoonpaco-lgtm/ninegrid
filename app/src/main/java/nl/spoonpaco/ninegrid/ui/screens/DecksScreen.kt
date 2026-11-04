@@ -231,16 +231,18 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
             }
             // Tabbladen: Kaarten | Statistieken | Combo's. De controle hierboven blijft altijd staan.
             stickyHeader(key = "tabs") {
-                androidx.compose.material3.TabRow(selectedTabIndex = tab) {
+                androidx.compose.material3.ScrollableTabRow(selectedTabIndex = tab, edgePadding = 8.dp) {
                     androidx.compose.material3.Tab(selected = tab == 0, onClick = { tab = 0 }, text = { Text(stringResource(R.string.tab_cards)) })
                     androidx.compose.material3.Tab(selected = tab == 1, onClick = { tab = 1 }, text = { Text(stringResource(R.string.deck_stats)) })
                     androidx.compose.material3.Tab(selected = tab == 2, onClick = { tab = 2 }, text = {
                         Text(if (report == null) stringResource(R.string.combos_title) else stringResource(R.string.combos_tab_count, report.included.size), maxLines = 1)
                     })
+                    androidx.compose.material3.Tab(selected = tab == 3, onClick = { tab = 3 }, text = { Text(stringResource(R.string.tab_suggestions), maxLines = 1) })
                 }
             }
             if (tab == 1) item { DeckStatsPanel(nl.spoonpaco.ninegrid.domain.DeckStatsCalc.compute(Formats.toDeckCards(list.map { it.entry to it.print }))) }
             if (tab == 2) item { CombosPanel(vm, d, report) }
+            if (tab == 3) item { SuggestionsPanel(vm, d, list.size) }
             if (tab == 0) sections.forEach { s ->
                 val part = list.filter { (it.entry.section ?: Section.MAIN) == s }.sortedBy { it.print?.name ?: "" }
                 if (part.isNotEmpty()) {
@@ -413,4 +415,109 @@ private fun CombosPanel(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.db.De
 @Composable
 private fun spellbookTagLabel(t: String) = when (t) {
     "R" -> "Ruthless"; "S" -> "Spicy"; "P" -> "Powerful"; "O" -> "Oddball"; "PA" -> "Precon Appropriate"; "C" -> "Casual"; else -> t
+}
+
+/** Suggesties uit je eigen collectie: erin, betere lands, en wat eruit kan. Met eigen regels per deck. */
+@Composable
+private fun SuggestionsPanel(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.db.Deck, deckSize: Int) {
+    val extra = LocalNgExtra.current
+    var rules by remember(deck.id) { mutableStateOf(vm.deckRules(deck.id)) }
+    androidx.compose.runtime.LaunchedEffect(deck.id, deckSize) { vm.computeSuggestions(deck.id) }
+    val r = vm.suggestions?.takeIf { vm.suggestionsDeckId == deck.id }
+    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
+        Text(stringResource(R.string.sugg_rules), fontWeight = FontWeight.Bold)
+        androidx.compose.material3.OutlinedTextField(
+            rules.tribe, { rules = rules.copy(tribe = it.trim().replaceFirstChar { c -> c.uppercase() }) }, singleLine = true,
+            label = { Text(stringResource(R.string.sugg_tribe)) }, placeholder = { Text("Vampire") }, modifier = Modifier.fillMaxWidth(),
+        )
+        if (deck.format == DeckFormat.COMMANDER) {
+            Text(stringResource(R.string.sugg_max_bracket), fontSize = 13.sp, modifier = Modifier.padding(top = 6.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                (0..4).forEach { b ->
+                    androidx.compose.material3.FilterChip(selected = rules.maxBracket == b, onClick = { rules = rules.copy(maxBracket = b) },
+                        label = { Text(if (b == 0) stringResource(R.string.sugg_no_limit) else "$b") })
+                }
+            }
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            androidx.compose.material3.Checkbox(checked = rules.includeOtherDecks, onCheckedChange = { rules = rules.copy(includeOtherDecks = it) })
+            Text(stringResource(R.string.sugg_other_decks), fontSize = 13.sp)
+        }
+        androidx.compose.material3.OutlinedButton(onClick = { vm.setDeckRules(deck.id, rules) }) { Text(stringResource(R.string.sugg_apply)) }
+        if (r == null) { androidx.compose.material3.LinearProgressIndicator(Modifier.fillMaxWidth().padding(top = 8.dp)); return@Column }
+
+        // Wat het deck per rol heeft tegenover een streefgetal.
+        Spacer(Modifier.height(10.dp))
+        Text(stringResource(R.string.sugg_roles), fontWeight = FontWeight.Bold)
+        r.roles.filter { it.value.second > 0 }.forEach { (role, v) ->
+            Text(roleName(role) + ": ${v.first} / ${v.second}", fontSize = 12.sp, color = if (v.first < v.second) nl.spoonpaco.ninegrid.ui.theme.NgColors.Error else extra.subtle)
+        }
+
+        Spacer(Modifier.height(10.dp))
+        Text(stringResource(R.string.sugg_adds), fontWeight = FontWeight.Bold)
+        if (r.adds.isEmpty()) Text(stringResource(R.string.sugg_none), fontSize = 12.sp, color = extra.subtle)
+        r.adds.forEach { s ->
+            SuggestionRow(s.card.name + (s.card.where?.let { " · $it" } ?: ""), s.reasons.map { reasonText(it) }.joinToString(" · "), stringResource(R.string.pick_put_in_deck)) {
+                vm.addSuggestion(s.card.key, deck.id)
+            }
+        }
+        if (r.lands.isNotEmpty()) {
+            Spacer(Modifier.height(10.dp))
+            Text(stringResource(R.string.sugg_lands), fontWeight = FontWeight.Bold)
+            r.lands.forEach { s ->
+                SuggestionRow(s.card.name + (s.card.where?.let { " · $it" } ?: ""), stringResource(R.string.sugg_land_swap), stringResource(R.string.sugg_swap)) {
+                    vm.swapLand(s.card.key, deck.id)
+                }
+            }
+        }
+        Spacer(Modifier.height(10.dp))
+        Text(stringResource(R.string.sugg_cuts), fontWeight = FontWeight.Bold)
+        if (r.cuts.isEmpty()) Text(stringResource(R.string.sugg_none), fontSize = 12.sp, color = extra.subtle)
+        r.cuts.forEach { c ->
+            SuggestionRow(c.name, c.reasons.map { reasonText(it) }.joinToString(" · "), stringResource(R.string.sugg_to_collection)) {
+                vm.cutSuggestion(c.entryKey, deck.id)
+            }
+        }
+        Text(stringResource(R.string.sugg_note), fontSize = 11.sp, color = extra.subtle, modifier = Modifier.padding(top = 8.dp))
+    }
+}
+
+@Composable
+private fun SuggestionRow(title: String, why: String, action: String, onClick: () -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 3.dp)) {
+        Column(Modifier.weight(1f)) {
+            Text(title, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+            if (why.isNotBlank()) Text(why, fontSize = 11.sp, color = LocalNgExtra.current.subtle)
+        }
+        androidx.compose.material3.TextButton(onClick = onClick) { Text(action) }
+    }
+}
+
+@Composable
+private fun roleName(r: nl.spoonpaco.ninegrid.domain.Role) = when (r) {
+    nl.spoonpaco.ninegrid.domain.Role.RAMP -> stringResource(R.string.role_ramp)
+    nl.spoonpaco.ninegrid.domain.Role.DRAW -> stringResource(R.string.role_draw)
+    nl.spoonpaco.ninegrid.domain.Role.REMOVAL -> stringResource(R.string.role_removal)
+    nl.spoonpaco.ninegrid.domain.Role.WIPE -> stringResource(R.string.role_wipe)
+    nl.spoonpaco.ninegrid.domain.Role.COUNTER -> stringResource(R.string.role_counter)
+    nl.spoonpaco.ninegrid.domain.Role.PROTECTION -> stringResource(R.string.role_protection)
+    nl.spoonpaco.ninegrid.domain.Role.TOKENS -> stringResource(R.string.role_tokens)
+    nl.spoonpaco.ninegrid.domain.Role.RECURSION -> stringResource(R.string.role_recursion)
+}
+
+@Composable
+private fun reasonText(code: String): String {
+    val arg = code.substringAfter(':', "")
+    return when (code.substringBefore(':')) {
+        "tribe" -> stringResource(R.string.why_tribe, arg)
+        "tribe_text" -> stringResource(R.string.why_tribe_text, arg)
+        "not_tribe" -> stringResource(R.string.why_not_tribe, arg)
+        "role" -> stringResource(R.string.why_role, roleName(nl.spoonpaco.ninegrid.domain.Role.valueOf(arg)))
+        "theme" -> stringResource(R.string.why_theme, arg)
+        "cheap" -> stringResource(R.string.why_cheap)
+        "expensive" -> stringResource(R.string.why_expensive)
+        "no_role" -> stringResource(R.string.why_no_role)
+        "over_bracket" -> stringResource(R.string.why_over_bracket)
+        else -> ""
+    }
 }

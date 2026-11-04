@@ -59,6 +59,8 @@ fun ImportScreen(vm: AppViewModel, onBack: () -> Unit, onDone: () -> Unit) {
     var asDeck by remember { mutableStateOf(false) }
     var deckName by remember { mutableStateOf("") }
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri -> uri?.let { vm.readImport(it) } }
+    // Google Sheets in Drive zijn "virtuele" bestanden: die laat de gewone kiezer niet zien. Deze wel.
+    val drivePicker = rememberLauncherForActivityResult(OpenVirtualDocument()) { uri -> uri?.let { vm.readImport(it) } }
     // Voor de melding met de voortgang (Android 13 en nieuwer). Ook zonder toestemming loopt de import door.
     var pendingStart by remember { mutableStateOf<(() -> Unit)?>(null) }
     val notifPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { pendingStart?.invoke(); pendingStart = null }
@@ -88,8 +90,13 @@ fun ImportScreen(vm: AppViewModel, onBack: () -> Unit, onDone: () -> Unit) {
                     Spacer(Modifier.height(10.dp))
                     Text(stringResource(R.string.import_how), fontSize = 13.sp, color = extra.subtle)
                     Spacer(Modifier.height(16.dp))
-                    Button(onClick = { picker.launch(mimeTypes) }, modifier = Modifier.fillMaxWidth()) {
-                        Icon(Icons.Filled.FileOpen, null); Spacer(Modifier.padding(4.dp)); Text(stringResource(R.string.import_choose))
+                    Button(onClick = { drivePicker.launch(arrayOf("application/vnd.google-apps.spreadsheet")) }, modifier = Modifier.fillMaxWidth()) {
+                        Icon(Icons.Filled.FileOpen, null); Spacer(Modifier.padding(4.dp)); Text(stringResource(R.string.import_from_drive))
+                    }
+                    Text(stringResource(R.string.import_from_drive_hint), fontSize = 12.sp, color = extra.subtle)
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedButton(onClick = { picker.launch(mimeTypes) }, modifier = Modifier.fillMaxWidth()) {
+                        Text(stringResource(R.string.import_choose))
                     }
                     if (vm.importStep == ImportStep.FAILED) {
                         Spacer(Modifier.height(10.dp))
@@ -221,4 +228,10 @@ private fun roleLabel(r: String) = when (r) {
     "NUMBER" -> stringResource(R.string.role_number); "QUANTITY" -> stringResource(R.string.quantity); "FINISH" -> stringResource(R.string.finish)
     "LANGUAGE" -> stringResource(R.string.language); "CONDITION" -> stringResource(R.string.condition); "SCRYFALL_ID" -> "Scryfall ID"
     "PROXY" -> stringResource(R.string.proxy); else -> stringResource(R.string.role_ignore)
+}
+
+/** Bestandskiezer zonder "openable"-filter, zodat Google Sheets uit Drive (virtuele bestanden) te kiezen zijn. */
+private class OpenVirtualDocument : ActivityResultContracts.OpenDocument() {
+    override fun createIntent(context: android.content.Context, input: Array<String>): android.content.Intent =
+        super.createIntent(context, input).apply { removeCategory(android.content.Intent.CATEGORY_OPENABLE) }
 }

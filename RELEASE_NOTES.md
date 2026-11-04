@@ -1,11 +1,12 @@
-NineGrid 0.7.1
+NineGrid 0.8.0 (eerste deel van deel 2)
 
-Importeren
-- Een grote import loopt niet meer vast op een weigering van Scryfall (429). De app zoekt in rondes van 75 kaarten (id of set en nummer, dan naam en set, dan naam) in plaats van kaart voor kaart, en wacht geduldig met een aftelling als Scryfall om pauze vraagt.
-- Importeren loopt op de achtergrond met een melding. Je kunt de app intussen gebruiken of sluiten; na een herstart gaat hij verder waar hij was. Je krijgt een melding als het klaar is.
+Importeren rechtstreeks uit Google Drive
+- Importeren → Sheet kiezen in Google Drive: kies je MTG Collection Sheet in Drive, Android levert hem als Excel aan. Je hoeft niets te downloaden en er is geen Google-koppeling nodig.
 
-Herkenning
-- De namenlijst en de setlijst van Scryfall zitten nu in de app zelf: namen verbeteren en setnamen omzetten werkt meteen, ook offline. Eens per week kijkt de app of er nieuwe sets zijn.
+Suggesties per deck
+- Nieuw tabblad Suggesties in elk deck: wat uit je collectie erin past, betere lands in plaats van basic lands, en wat eruit kan, met de reden erbij.
+- Eigen regels per deck: alleen creatures van een type (de app raadt het type van je commander), hoogste bracket, en of kaarten uit andere decks mogen.
+- Per rol (ramp, kaarten trekken, removal, board wipes) zie je hoeveel het deck heeft tegenover een streefgetal.
+- In deck zetten, Wisselen en Naar collectie verhuizen de kaart: niets telt dubbel, alles is ongedaan te maken.
 
-Decks
-- Tabbladen Kaarten, Statistieken en Combo's. De controle (legaliteit en bracket) blijft bovenaan.
+Synchroniseren met de Google Sheet volgt in een volgende versie.
