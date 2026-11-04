@@ -258,7 +258,7 @@ class ParserTest {
         val unknown = I.interpret(listOf("x" to I.parseCsv("a,b,c\n1,2,3\n")))
         assertTrue(unknown.needsMapping)
         val mapped = I.interpret(listOf("x" to I.parseCsv("a,b,c\nOpt,XLN,65\n")),
-            mapOf(0 to I.Role.NAME, 1 to I.Role.SET, 2 to I.Role.NUMBER))
+            mapOf(0 to nl.spoonpaco.ninegrid.domain.SheetImport.Role.NAME, 1 to nl.spoonpaco.ninegrid.domain.SheetImport.Role.SET, 2 to nl.spoonpaco.ninegrid.domain.SheetImport.Role.NUMBER))
         assertEquals("Opt", mapped.collection.single().name)
     }
 }
