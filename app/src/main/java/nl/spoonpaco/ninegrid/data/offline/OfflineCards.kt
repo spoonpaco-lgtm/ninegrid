@@ -139,14 +139,12 @@ class OfflineCards(private val context: Context) {
      * Leest de bulk-download van Scryfall stuk voor stuk in (nooit het hele bestand in het geheugen) en schrijft per
      * 1.000 kaarten. Alleen als alles gelukt is, gaan de kaarten van de vorige download weg.
      */
-    @OptIn(ExperimentalSerializationApi::class)
     suspend fun importFrom(input: InputStream, onCount: suspend (Int) -> Unit): Int {
         val d = open()
         val gen = System.currentTimeMillis()
         var n = 0
         val batch = ArrayList<OfflineCard>(1000)
-        val seq = json.decodeToSequence(input, SfCard.serializer(), DecodeSequenceMode.ARRAY_WRAPPED)
-        for (c in seq) {
+        for (c in cards(input)) {
             if (c.digital) continue
             batch += OfflineCard.from(c, gen)
             if (batch.size >= 1000) {
@@ -169,6 +167,27 @@ class OfflineCards(private val context: Context) {
 
     companion object {
         const val FILE = "offline-cards.db"
+
+        /**
+         * Kaarten uit een bulk-bestand, één voor één. Scryfall levert nu JSON Lines (één kaart per regel), ingepakt
+         * met gzip; vroeger één grote JSON-lijst. Beide worden herkend, zodat een wijziging bij Scryfall niet meteen breekt.
+         */
+        @OptIn(ExperimentalSerializationApi::class)
+        fun cards(raw: InputStream): Sequence<SfCard> {
+            val buffered = java.io.BufferedInputStream(raw, 1 shl 16)
+            buffered.mark(2)
+            val gz = buffered.read() == 0x1f && buffered.read() == 0x8b
+            buffered.reset()
+            val input = java.io.BufferedInputStream(if (gz) java.util.zip.GZIPInputStream(buffered, 1 shl 16) else buffered, 1 shl 16)
+            input.mark(64)
+            var first = input.read()
+            while (first == ' '.code || first == '\n'.code || first == '\r'.code || first == '\t'.code || first == 0xEF || first == 0xBB || first == 0xBF) first = input.read()
+            input.reset()
+            return if (first == '['.code) json.decodeToSequence(input, SfCard.serializer(), DecodeSequenceMode.ARRAY_WRAPPED)
+            else input.bufferedReader().lineSequence().filter { it.isNotBlank() }.mapNotNull { line ->
+                runCatching { json.decodeFromString(SfCard.serializer(), line) }.getOrNull()
+            }
+        }
         private val json = Json { ignoreUnknownKeys = true; coerceInputValues = true }
     }
 }

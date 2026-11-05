@@ -432,8 +432,8 @@ class ParserTest {
         val json = kotlinx.serialization.json.Json { ignoreUnknownKeys = true; coerceInputValues = true }
         val t0 = System.currentTimeMillis()
         var n = 0; var digital = 0
-        java.io.File(path).inputStream().buffered(1 shl 16).use { input ->
-            for (c in json.decodeToSequence(input, nl.spoonpaco.ninegrid.data.scryfall.SfCard.serializer(), kotlinx.serialization.json.DecodeSequenceMode.ARRAY_WRAPPED)) {
+        java.io.File(path).inputStream().use { input ->
+            for (c in nl.spoonpaco.ninegrid.data.offline.OfflineCards.cards(input)) {
                 if (c.digital) { digital++; continue }
                 nl.spoonpaco.ninegrid.data.offline.OfflineCard.from(c, 1L); n++
             }

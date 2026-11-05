@@ -203,7 +203,7 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit) {
             Text(stringResource(R.string.offline_pros), fontSize = 12.sp)
             Text(stringResource(R.string.offline_cons), fontSize = 12.sp, color = LocalNgExtra.current.subtle)
             vm.offlineDbInfo?.let { info ->
-                Text(stringResource(R.string.offline_size, info.size / (1024 * 1024)), fontSize = 12.sp, color = LocalNgExtra.current.subtle)
+                Text(stringResource(R.string.offline_size, info.downloadBytes / (1024 * 1024)), fontSize = 12.sp, color = LocalNgExtra.current.subtle)
             }
             val dbLabels = mapOf(
                 nl.spoonpaco.ninegrid.data.OfflineDb.OFF to stringResource(R.string.offline_off),
@@ -239,7 +239,7 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit) {
             if (vm.confirmMobileDownload) AlertDialog(
                 onDismissRequest = { vm.confirmMobileDownload = false },
                 title = { Text(stringResource(R.string.offline_db)) },
-                text = { Text(stringResource(R.string.offline_mobile_confirm, (vm.offlineDbInfo?.size ?: 0L) / (1024 * 1024))) },
+                text = { Text(stringResource(R.string.offline_mobile_confirm, (vm.offlineDbInfo?.downloadBytes ?: 0L) / (1024 * 1024))) },
                 confirmButton = { TextButton(onClick = { vm.updateOfflineDbNow(confirmed = true) }) { Text(stringResource(R.string.offline_mobile_yes)) } },
                 dismissButton = { TextButton(onClick = { vm.confirmMobileDownload = false }) { Text(stringResource(R.string.cancel)) } },
             )

@@ -30,10 +30,17 @@ import java.util.concurrent.TimeUnit
 /** Wat Scryfall over de bulk-download zegt: waar hij staat, hoe groot hij is en wanneer bijgewerkt. */
 @Serializable
 data class BulkInfo(
-    @SerialName("download_uri") val downloadUri: String,
+    /** Oud: één JSON-bestand. Nu levert Scryfall JSON Lines met gzip (jsonl_download_uri). */
+    @SerialName("download_uri") val downloadUri: String? = null,
+    @SerialName("jsonl_download_uri") val jsonlDownloadUri: String? = null,
     val size: Long = 0,
+    @SerialName("compressed_size") val compressedSize: Long = 0,
     @SerialName("updated_at") val updatedAt: String = "",
-)
+) {
+    val uri get() = jsonlDownloadUri ?: downloadUri
+    /** Wat je echt downloadt. */
+    val downloadBytes get() = if (compressedSize > 0) compressedSize else size
+}
 
 /**
  * Downloadt de kaartgegevens van Scryfall (Default Cards) en leest ze stuk voor stuk in de offline
@@ -45,9 +52,10 @@ class OfflineDbWorker(context: Context, params: WorkerParameters) : CoroutineWor
         channel()
         runCatching { setForeground(info(0)) }
         return try {
-            val meta = fetchInfo() ?: return Result.retry()
+            val meta = fetchInfo() ?: return if (runAttemptCount < 3) Result.retry() else Result.failure()
+            val uri = meta.uri ?: return Result.failure()
             val count = withContext(Dispatchers.IO) {
-                val resp = http.newCall(Request.Builder().url(meta.downloadUri).header("User-Agent", UA).build()).execute()
+                val resp = http.newCall(Request.Builder().url(uri).header("User-Agent", UA).build()).execute()
                 resp.use { r ->
                     if (!r.isSuccessful) error("HTTP ${r.code}")
                     r.body!!.byteStream().buffered(1 shl 16).use { input ->

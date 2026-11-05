@@ -14,8 +14,9 @@ jobs:
           UA="NineGrid-diag/1.0 (+https://github.com/spoonpaco-lgtm/ninegrid)"
           curl -sSf -A "$UA" -H "Accept: application/json" https://api.scryfall.com/bulk-data/default-cards -o meta.json
           cat meta.json | head -c 800; echo
-          URI=$(python3 -c "import json;print(json.load(open('meta.json'))['download_uri'])")
-          curl -sS -A "$UA" -D headers.txt --compressed "$URI" -o bulk.json
+          URI=$(python3 -c "import json;d=json.load(open('meta.json'));print(d.get('jsonl_download_uri') or d['download_uri'])")
+          echo "URI: $URI"
+          curl -sS -A "$UA" -D headers.txt "$URI" -o bulk.json
           cat headers.txt
           ls -la bulk.json
       - name: Inlezen zoals de app
