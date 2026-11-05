@@ -22,4 +22,4 @@ jobs:
       - name: Inlezen zoals de app
         run: |
           chmod +x gradlew
-          BULK_FILE=$PWD/bulk.json ./gradlew --no-daemon testReleaseUnitTest --tests '*realBulkParses*' -i 2>&1 | grep -E "BULK|FAIL|Exception|tests completed|BUILD" | head -40
+          BULK_FILE=$PWD/bulk.json ./gradlew --no-daemon testReleaseUnitTest --tests '*realBulkParses*' --tests '*testWorkbookImports*' -i 2>&1 | grep -E "TESTFILE|BULK|FAIL|Exception|tests completed|BUILD" | head -40

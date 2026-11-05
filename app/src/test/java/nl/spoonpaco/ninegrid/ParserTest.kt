@@ -441,4 +441,15 @@ class ParserTest {
         println("BULK parsed=$n digital=$digital ms=${System.currentTimeMillis() - t0} mem=${(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1048576}MB")
         assertTrue(n > 50000)
     }
+
+    @Test
+    fun testWorkbookImports() {
+        val f = javaClass.classLoader!!.getResourceAsStream("NineGrid-testcollectie.xlsx") ?: return
+        val d = nl.spoonpaco.ninegrid.domain.SheetImport.read("NineGrid-testcollectie.xlsx", f)
+        println("TESTFILE format=${d.format} collection=${d.collection.size} decks=${d.decks.map { it.name + ":" + it.cards.size }} history=${d.history.size} " +
+            "fr=${d.collection.count { it.language == "FR" }} proxy=${d.collection.count { it.proxy }} foil=${d.collection.count { it.foil }}")
+        assertEquals(18, d.collection.size)
+        assertEquals(2, d.decks.size)
+        assertTrue(d.history.size > 100)
+    }
 }
