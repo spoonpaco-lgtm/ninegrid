@@ -29,6 +29,7 @@ data class SfFace(
     @SerialName("image_uris") val imageUris: SfImageUris? = null,
     @SerialName("mana_cost") val manaCost: String? = null,
     @SerialName("oracle_text") val oracleText: String? = null,
+    @SerialName("printed_name") val printedName: String? = null,
 )
 
 @Serializable
@@ -67,6 +68,8 @@ data class SfCard(
     @SerialName("game_changer") val gameChanger: Boolean = false,
     @SerialName("released_at") val releasedAt: String = "",
     @SerialName("produced_mana") val producedMana: List<String>? = null,
+    /** Naam zoals gedrukt op een niet-Engelse print. */
+    @SerialName("printed_name") val printedName: String? = null,
     /** Alleen digitaal (MTG Arena/Online): niet in de offline kaartdatabase. */
     val digital: Boolean = false,
 ) {
@@ -140,6 +143,10 @@ data class CardQuery(
     val id: String? = null,
     /** Andere gelezen regels die de naam kunnen zijn; alleen geaccepteerd als de kaart in [setCode] bestaat. */
     val altNames: List<String> = emptyList(),
+    /** Taal van de gescande kaart (Scryfall-code: fr, de, ja ...); null = Engels of onbekend. */
+    val lang: String? = null,
+    /** De gelezen naam op een niet-Engelse kaart; wordt gecontroleerd tegen de gedrukte naam, niet tegen de Engelse. */
+    val printedName: String? = null,
 )
 
 class ScryfallException(message: String, val code: Int = 0) : Exception(message)
@@ -242,6 +249,13 @@ class ScryfallClient {
         val body = call(Request.Builder().url("https://api.scryfall.com/cards/named?exact=${enc(name)}$setPart").build())
             ?: call(Request.Builder().url("https://api.scryfall.com/cards/named?fuzzy=${enc(name)}").build())
         return body?.let { json.decodeFromString(SfCard.serializer(), it) }
+    }
+
+    /** De gedrukte naam van een print in een andere taal (bijv. Frans), of null als die print niet bestaat. */
+    suspend fun printedName(set: String, number: String, lang: String): String? {
+        val body = call(Request.Builder().url("https://api.scryfall.com/cards/${enc(set.lowercase())}/${enc(number)}/${enc(lang)}").build()) ?: return null
+        val c = json.decodeFromString(SfCard.serializer(), body)
+        return c.printedName ?: c.cardFaces?.firstOrNull()?.printedName ?: c.name
     }
 
     suspend fun autocomplete(q: String): List<String> {

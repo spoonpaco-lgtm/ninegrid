@@ -8,9 +8,9 @@ plugins {
     id("com.google.devtools.ksp")
 }
 
-val versionNameValue = "0.8.6"
+val versionNameValue = "0.8.7"
 /** Elke versie krijgt de naam van een planeswalker die bij de aanpassingen past. */
-val versionCodenameValue = "Tamiyo"
+val versionCodenameValue = "Teferi"
 val versionCodeValue = (System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 1)
 
 android {

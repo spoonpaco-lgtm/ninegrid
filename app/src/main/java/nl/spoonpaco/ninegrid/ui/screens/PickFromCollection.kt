@@ -61,10 +61,11 @@ fun PickFromCollectionDialog(vm: AppViewModel, deck: Deck, onDismiss: () -> Unit
     val settings by vm.settings.collectAsState()
     var query by remember { mutableStateOf("") }
     var picking by remember { mutableStateOf<EntryWithPrint?>(null) }
-    val q = query.trim().lowercase()
-    val list = all.filter { it.entry.deckId == null && it.print != null }
-        .filter { q.isEmpty() || it.print!!.name.lowercase().contains(q) || it.print.typeLine.lowercase().contains(q) }
-        .sortedWith(compareBy({ it.print!!.name }, { it.print!!.setCode }))
+    val filter = remember(settings.filters["pick"]) { nl.spoonpaco.ninegrid.ui.components.CardFilter.fromJson(settings.filters["pick"]).copy(decks = false) }
+    val list = remember(all, query, filter) {
+        all.filter { it.entry.deckId == null && it.print != null && filter.matches(it, query) }
+            .sortedWith(compareBy({ it.print!!.name }, { it.print!!.setCode }))
+    }
 
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Scaffold(topBar = {
@@ -74,11 +75,12 @@ fun PickFromCollectionDialog(vm: AppViewModel, deck: Deck, onDismiss: () -> Unit
             )
         }) { pad ->
             Column(Modifier.padding(pad).fillMaxSize()) {
-                OutlinedTextField(
-                    value = query, onValueChange = { query = it },
-                    leadingIcon = { Icon(Icons.Filled.Search, null) },
-                    placeholder = { Text(stringResource(R.string.pick_search_hint)) },
-                    singleLine = true, modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp),
+                Spacer(Modifier.height(6.dp))
+                nl.spoonpaco.ninegrid.ui.components.FilterSearchBar(
+                    query = query, onQuery = { query = it }, placeholder = stringResource(R.string.pick_search_hint),
+                    filter = filter, onFilter = { vm.setFilter("pick", it) },
+                    groups = setOf(nl.spoonpaco.ninegrid.ui.components.FilterGroup.RARITY, nl.spoonpaco.ninegrid.ui.components.FilterGroup.COLOR,
+                        nl.spoonpaco.ninegrid.ui.components.FilterGroup.TYPE, nl.spoonpaco.ninegrid.ui.components.FilterGroup.FOIL, nl.spoonpaco.ninegrid.ui.components.FilterGroup.TEXT),
                 )
                 Text(stringResource(R.string.pick_explain), fontSize = 12.sp, color = LocalNgExtra.current.subtle, modifier = Modifier.padding(horizontal = 16.dp))
                 if (list.isEmpty()) {

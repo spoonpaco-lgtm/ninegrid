@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
@@ -43,6 +44,8 @@ fun HistoryChart(
     formatY: (Double) -> String,
     axisColor: Color,
     textColor: Color,
+    /** Datum (en tijd) onder de grafiek en in het kader, volgens de instellingen. */
+    formatX: ((Long, Boolean) -> String)? = null,
     /** Meer dan dit tussen twee punten (buiten de Sheet-historie) is een gat: stippellijn. 0 = nooit. */
     gapMs: Long = 0,
     modifier: Modifier = Modifier,
@@ -52,7 +55,7 @@ fun HistoryChart(
     val dateFmt = remember(showTime) {
         if (showTime) DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT) else DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)
     }
-    fun label(ms: Long) = java.time.Instant.ofEpochMilli(ms).atZone(zone).format(dateFmt)
+    fun label(ms: Long) = formatX?.invoke(ms, showTime) ?: java.time.Instant.ofEpochMilli(ms).atZone(zone).format(dateFmt)
     val allPoints = series.flatMap { it.points }
     val rawMax = allPoints.maxOfOrNull { it.second } ?: 1.0
     val rawMin = minOf(0.0, allPoints.minOfOrNull { it.second } ?: 0.0)
@@ -85,7 +88,7 @@ fun HistoryChart(
         val w = right - left; val h = bottom - top
         fun x(day: Long) = left + w * ((day - fromDay).toDouble() / span).toFloat()
         fun y(v: Double) = bottom - h * ((v - minY) / rangeY).toFloat()
-        val paint = android.graphics.Paint().apply { color = textColor.toArgb(); textSize = 10.dp.toPx(); isAntiAlias = true }
+        val paint = android.graphics.Paint().apply { color = textColor.toArgb(); textSize = 10.sp.toPx(); isAntiAlias = true }
 
         // Hulplijnen met waarden.
         if (minY < 0) drawLine(axisColor.copy(alpha = 0.6f), Offset(left, y(0.0)), Offset(right, y(0.0)), strokeWidth = 1.5f)
@@ -135,8 +138,8 @@ fun HistoryChart(
             drawLine(axisColor.copy(alpha = 0.6f), Offset(xx, top), Offset(xx, bottom), strokeWidth = 1.5f)
             val rows = listOf(label(day) to Color.Unspecified) +
                 series.mapNotNull { s -> s.points.firstOrNull { it.first == day }?.let { "${s.label}: ${formatY(it.second)}" to s.color } }
-            val tp = android.graphics.Paint().apply { textSize = 11.dp.toPx(); isAntiAlias = true }
-            val lineH = 14.dp.toPx()
+            val tp = android.graphics.Paint().apply { textSize = 11.sp.toPx(); isAntiAlias = true }
+            val lineH = 14.sp.toPx()
             val boxW = rows.maxOf { tp.measureText(it.first) } + 16.dp.toPx()
             val boxH = rows.size * lineH + 8.dp.toPx()
             val bx = if (xx + boxW + 8.dp.toPx() < right) xx + 6.dp.toPx() else xx - boxW - 6.dp.toPx()

@@ -1,21 +1,27 @@
-NineGrid 0.8.6 – Tamiyo
+NineGrid 0.8.7 – Teferi
 
-Vanaf deze versie heeft elke versie de naam van een planeswalker. Tamiyo, de verzamelaar van verhalen, past bij een versie over kennis bewaren en bijhouden wat je hebt.
+Teferi beheerst de tijd. Deze versie gaat over datum en tijd, en over overzicht op je schermen.
 
-Offline kaartdatabase (optie, standaard uit)
-- Meer → Instellingen: alle kaarten van Scryfall op je telefoon. Scannen zonder internet en een grote collectie veel sneller importeren.
-- Bijwerken: uit, bij nieuwe set (aanbevolen) of alleen handmatig, plus de knop Nu bijwerken. Automatisch alleen via wifi en tijdens het opladen.
-- Prijzen blijven via de dagelijkse prijsupdate komen. Staat een kaart er nog niet in, dan zoekt de app hem online.
-- Wordt één keer aangeboden bij een grote import of als Scryfall de app laat wachten.
+Scannen
+- Anderstalige kaarten (bijv. MH1 • FR): set en nummer zijn leidend, de taal komt bij de kaart, en met internet wordt de gedrukte naam gecontroleerd. Geen afgekeurde of verkeerde kaarten meer door de Engelse naam.
+- De set is een eigen knop bovenaan en wordt onthouden.
+- Foil per vak: tik na de foto op een vak om alleen die kaart foil te maken; lang drukken = bekijken.
 
-Overzicht
-- Winner of the Week: de kaart met de grootste stijging van de week, in geld over je eigen exemplaren.
-- Breakout-melding: een kaart die op één dag minstens €3 én 25% stijgt, bijvoorbeeld "Breakout Creature".
-- Sets in een eigen scherm: sorteren op waarde, naam, datum of aantal, zoeken, rarity als balkje, hoe compleet je bent, en het setsymbool.
+Datum en tijd (Meer → Instellingen)
+- 24 of 12 uur, volgorde van de datum, begin van de week en weekdag tonen. Alleen de weergave: opslaan, exports en back-ups blijven 2026-11-05.
+
+Decks
+- Kop met de commander, één samenvattende regel, tik voor de details.
+- Knoppen om kaarten toe te voegen alleen bij Kaarten; kortere uitleg bij de bracket.
+- Statistieken: manacurve klopt ook bij grote letters, kleuren als bolletjes met ⚠ als je lands achterlopen, openingshand in één regel.
+- "1 card" in plaats van "1 cards".
+
+Collectie
+- Eén knop Filter met een paneel (meerdere keuzes per groep), actieve filters met een kruisje, aparte sorteerknop. Filters en sortering worden onthouden.
+- Hetzelfde paneel bij Uit collectie kiezen en in de setlijst.
+- De +-knop verdwijnt bij naar beneden scrollen.
 
 Verder
-- Suggesties: de knop heet Bekijk ruil en de hele regel is tikbaar.
-- Lands die meerdere landtypen zoeken (Krosan Verge) krijgen al hun kleuren.
-- Collectie: filteren op kaarttype en zoeken in de regeltekst.
-- Sneller: lichtere grafiek, de dagstand wordt na een reeks scans één keer berekend, minder schrijfwerk bij het openen, en gericht zoeken bij verplaatsen en ruilen.
+- Offline kaartdatabase ook via mobiele data (met een vraag vooraf).
+- Scanner en grafiek groeien mee met grote letters.
 - Handleiding bijgewerkt.

@@ -56,7 +56,13 @@ fun SetScreen(vm: AppViewModel, code: String, onBack: () -> Unit, onReview: () -
     val list = vm.setList?.takeIf { it.code.equals(code, true) }
     // Wat je hebt: elk nummer in deze set, in je collectie of in een deck (geen proxies).
     val owned = all.filter { !it.entry.proxy && it.print?.setCode.equals(code, true) }.mapNotNull { it.print?.collectorNumber?.lowercase() }.toSet()
+    var query by remember { mutableStateOf("") }
+    val filter = remember(settings.filters["set"]) { nl.spoonpaco.ninegrid.ui.components.CardFilter.fromJson(settings.filters["set"]) }
     val cards = list?.cards.orEmpty().filter { variants || it.regular }
+    // Zoeken en filteren gelden voor de lijst, niet voor de telling van hoe compleet je bent.
+    fun shownOf(l: List<nl.spoonpaco.ninegrid.data.SetCard>) = l.filter { c ->
+        (query.isBlank() || c.name.contains(query.trim(), true) || c.number.equals(query.trim(), true)) && (filter.rarities.isEmpty() || c.rarity in filter.rarities)
+    }
     val have = cards.filter { it.number.lowercase() in owned }
     val missing = cards.filter { it.number.lowercase() !in owned }
 
@@ -82,6 +88,12 @@ fun SetScreen(vm: AppViewModel, code: String, onBack: () -> Unit, onReview: () -
                         val missingValue = missing.sumOf { (if (settings.currency == "USD") it.usd else it.eur) ?: 0.0 }
                         Text(stringResource(R.string.set_missing_value, Money.format(missingValue, settings.currency)), fontSize = 13.sp, color = extra.subtle)
                         Spacer(Modifier.height(8.dp))
+                        nl.spoonpaco.ninegrid.ui.components.FilterSearchBar(
+                            query = query, onQuery = { query = it }, placeholder = stringResource(R.string.sets_search_card),
+                            filter = filter, onFilter = { vm.setFilter("set", it) },
+                            groups = setOf(nl.spoonpaco.ninegrid.ui.components.FilterGroup.RARITY),
+                        )
+                        Spacer(Modifier.height(6.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             FilterChip(selected = showMissing, onClick = { showMissing = true }, label = { Text(stringResource(R.string.set_show_missing)) })
                             FilterChip(selected = !showMissing, onClick = { showMissing = false }, label = { Text(stringResource(R.string.set_show_have)) })
@@ -90,7 +102,7 @@ fun SetScreen(vm: AppViewModel, code: String, onBack: () -> Unit, onReview: () -
                     }
                 }
             }
-            items(if (showMissing) missing else have, key = { it.id }) { c ->
+            items(shownOf(if (showMissing) missing else have), key = { it.id }) { c ->
                 ListItem(
                     headlineContent = { Text(c.name) },
                     supportingContent = { Text("#${c.number} · ${c.rarity.replaceFirstChar { it.uppercase() }}" + if (!c.regular) " · " + stringResource(R.string.set_variant) else "", color = NgColors.rarity(c.rarity)) },

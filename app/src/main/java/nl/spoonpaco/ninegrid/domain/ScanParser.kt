@@ -45,6 +45,14 @@ object ScanParser {
     private val numberAlone = Regex("""^\s*(\d{1,4})\s*([CURMSLTP])?\s*$""")
     private val numberThenRarity = Regex("""^\s*(\d{1,4})\s+[CURMSLTP](?![A-Z])""")
 
+    /** Van de code achter de setcode (FR, JP, CN ...) naar de taalcode van Scryfall; null = Engels. */
+    fun scryfallLang(code: String?): String? = when (code?.uppercase()) {
+        null, "", "EN" -> null
+        "FR" -> "fr"; "DE" -> "de"; "IT" -> "it"; "ES" -> "es"; "PT" -> "pt"; "RU" -> "ru"
+        "JP", "JA" -> "ja"; "KO" -> "ko"; "CN", "ZH", "CS" -> "zhs"; "TW", "CT" -> "zht"; "PH" -> "ph"
+        else -> null
+    }
+
     private val langMap = mapOf("EN" to "", "JA" to "JP", "ZH" to "CN", "CS" to "CN", "CT" to "TW")
 
     fun slotOf(x: Float, y: Float, width: Int, height: Int): Int {

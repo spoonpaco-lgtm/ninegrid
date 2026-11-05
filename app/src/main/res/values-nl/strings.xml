@@ -17,7 +17,6 @@
     <string name="binder_page">%1$s, blad %2$d</string>
     <string name="binder_page_slot">%1$s, blad %2$d, vak %3$d</string>
     <string name="bracket_line">Bracket-inschatting: %1$s · %2$d Game Changers</string>
-    <string name="bracket_short">Bracket %1$s</string>
     <string name="camera_needed">NineGrid heeft de camera nodig om je kaarten te lezen. Foto\'s worden niet bewaard of verstuurd.</string>
     <string name="cancel">Annuleren</string>
     <string name="card_name">Kaartnaam</string>
@@ -489,7 +488,7 @@
     <string name="offline_db_notif">Kaartdatabase downloaden</string>
     <string name="offline_db_progress">%1$d kaarten ingelezen</string>
     <string name="offline_pros">+ Scannen zonder internet: set, nummer en naam worden op je telefoon gecontroleerd.\n+ Een grote collectie veel sneller importeren, zonder wachten op Scryfall.\n+ Elke kaart is op te zoeken, ook kaarten die je nog niet hebt.</string>
-    <string name="offline_cons">− Eén grote download, alleen via wifi (automatisch bijwerken ook alleen tijdens het opladen).\n− Neemt ruimte in op je telefoon (staat hieronder na het downloaden).\n− Prijzen komen nog steeds uit de dagelijkse prijsupdate.</string>
+    <string name="offline_cons">− Eén grote download, standaard via wifi (mobiele data kun je hieronder kiezen; automatisch bijwerken alleen tijdens het opladen).\n− Neemt ruimte in op je telefoon (staat hieronder na het downloaden).\n− Prijzen komen nog steeds uit de dagelijkse prijsupdate.</string>
     <string name="offline_size">Bestandsgrootte volgens Scryfall: %1$d MB (wordt ingepakt verstuurd, de download is kleiner).</string>
     <string name="offline_off">Uit</string>
     <string name="offline_newset">Bij nieuwe set (aanbevolen)</string>
@@ -505,4 +504,39 @@
     <string name="offline_offer_yes">Aanzetten</string>
     <string name="offline_offer_yes_import">Eerst downloaden, dan importeren</string>
     <string name="offline_offer_no_import">Nu importeren zonder</string>
+    <string name="scan_set_auto">Set: automatisch</string>
+    <string name="scan_foil_slots_hint">of tik op losse vakken</string>
+    <string name="scan_foil_tip">Tip: tik op een vak om die kaart als foil te markeren ✦. Lang drukken om te bekijken.</string>
+    <string name="date_time">Datum en tijd</string>
+    <string name="time_format">Tijd</string>
+    <string name="date_format">Datum</string>
+    <string name="week_start">Week begint op</string>
+    <string name="monday">maandag</string>
+    <string name="sunday">zondag</string>
+    <string name="show_weekday">Weekdag tonen</string>
+    <string name="date_example">Voorbeeld: %1$s</string>
+    <string name="bracket_short">Bracket %1$s+</string>
+    <string name="legal">Legaal</string>
+    <string name="bracket_note_short">Inschatting. Combo\'s tellen mee na Combo\'s zoeken. Overleg met je tafel.</string>
+    <string name="colors_behind_note">⚠ = minder lands maken deze kleur dan zijn aandeel in je kosten.</string>
+    <string name="odds_one_line">2–4 lands: %1$d%% (2: %2$d%% · 3: %3$d%% · 4: %4$d%%)</string>
+    <plurals name="n_issues">
+        <item quantity="one">%d probleem</item>
+        <item quantity="other">%d problemen</item>
+    </plurals>
+    <string name="filter">Filter</string>
+    <string name="sort">Sorteren</string>
+    <string name="rarity">Rarity</string>
+    <string name="color">Kleur</string>
+    <string name="card_type">Kaarttype</string>
+    <string name="filter_more">Meer</string>
+    <string name="clear_filters">Wis filters</string>
+    <string name="sort_set">Set</string>
+    <string name="sets_search_card">Zoek kaart of nummer</string>
+    <string name="offline_via">Downloaden via</string>
+    <string name="offline_via_wifi">Alleen wifi</string>
+    <string name="offline_via_mobile">Ook mobiele data</string>
+    <string name="offline_mobile_auto">Ook automatisch bijwerken via mobiele data</string>
+    <string name="offline_mobile_confirm">Je zit op mobiele data. De kaartdatabase nu downloaden? Bestandsgrootte volgens Scryfall: ongeveer %1$d MB (wordt ingepakt verstuurd, dus minder).</string>
+    <string name="offline_mobile_yes">Nu downloaden</string>
 </resources>

@@ -101,9 +101,12 @@ class OfflineDbWorker(context: Context, params: WorkerParameters) : CoroutineWor
             }.getOrNull()
         }
 
-        /** Starten. Automatisch: alleen op wifi en tijdens het opladen. Handmatig: op wifi. */
-        fun start(context: Context, manual: Boolean) {
-            val cons = Constraints.Builder().setRequiredNetworkType(NetworkType.UNMETERED)
+        /**
+         * Starten. Automatisch: tijdens het opladen. Handmatig: meteen. [anyNetwork] = ook via mobiele data
+         * (alleen als je dat zelf hebt gekozen); anders wacht hij op wifi.
+         */
+        fun start(context: Context, manual: Boolean, anyNetwork: Boolean = false) {
+            val cons = Constraints.Builder().setRequiredNetworkType(if (anyNetwork) NetworkType.CONNECTED else NetworkType.UNMETERED)
                 .apply { if (!manual) setRequiresCharging(true) }
                 .setRequiresStorageNotLow(true)
                 .build()

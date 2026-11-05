@@ -143,8 +143,14 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     var newDeckFormat by mutableStateOf(DeckFormat.CASUAL)
     var targetDeckId by mutableStateOf<Long?>(null)
     var unreadableLines by mutableStateOf<List<String>>(emptyList())
-    var scanSet by mutableStateOf("")
+    private var scanSetState by mutableStateOf("")
+    /** De set die je in de scanner opgeeft; wordt onthouden voor de volgende keer. */
+    var scanSet: String
+        get() = scanSetState
+        set(v) { scanSetState = v; viewModelScope.launch { settingsStore.setLastScanSet(v) } }
     private var nextKey = 0
+
+    init { viewModelScope.launch { scanSetState = settingsStore.current().lastScanSet } }
 
     fun startPaste(text: String, intoDeck: Long?, asNewDeck: Boolean) {
         val r = DeckListParser.parse(text)
@@ -188,6 +194,25 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     /** Dit hele blad is foil. */
     var scanFoil by mutableStateOf(false)
 
+    /** Foil voor het hele blad: ook voor wat er al gescand klaarstaat. */
+    fun setPageFoil(v: Boolean) {
+        scanFoil = v
+        if (importSource == ImportSource.SCAN) pending.indices.forEach { i -> if (pending[i].slot != null) pending[i] = pending[i].copy(finish = if (v) Finish.FOIL else Finish.NONFOIL) }
+    }
+
+    /** Eén vak van het blad foil of niet (tikken op het vak in de camera). */
+    fun toggleSlotFoil(slot: Int) {
+        val i = pending.indexOfFirst { it.slot == slot }
+        if (i < 0) return
+        val p = pending[i]
+        pending[i] = p.copy(finish = if (p.finish == Finish.NONFOIL) Finish.FOIL else Finish.NONFOIL)
+    }
+
+    /** Eén keer uitleggen dat je per vak foil kunt zetten. */
+    private fun foilTipOnce() = viewModelScope.launch {
+        if (!settingsStore.current().foilTipShown) { message = str(R.string.scan_foil_tip); settingsStore.setFoilTipShown() }
+    }
+
     /**
      * Zet een scan klaar. Bij een blad (9 vakken) vervangt hij wat er klaarstond; bij losse kaarten (append)
      * komt elke foto erbij, tot je op Klaar tikt.
@@ -206,7 +231,10 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         list.forEach { r ->
             // De set die je zelf opgeeft wint: de setcode is het kleinste tekstje en wordt het vaakst verkeerd gelezen.
             val set = forcedSet ?: r.setCode ?: pageSet
-            val canLook = (set != null && r.collectorNumber != null) || r.name != null || (set != null && r.altNames.isNotEmpty())
+            // Niet-Engelse kaart: de gelezen naam is de gedrukte (bijv. Franse) naam. Die mag niet tegen de Engelse
+            // namen worden "verbeterd" of gecontroleerd; set en nummer zijn leidend, de naam wordt apart nagekeken.
+            val lang = nl.spoonpaco.ninegrid.domain.ScanParser.scryfallLang(r.language)
+            val canLook = (set != null && r.collectorNumber != null) || (lang == null && (r.name != null || (set != null && r.altNames.isNotEmpty())))
             val readParts = listOfNotNull(
                 listOfNotNull(r.setCode, r.collectorNumber).joinToString(" ").ifBlank { null },
                 (r.name ?: r.altNames.firstOrNull())?.let { "‘" + it.take(22) + "’" },
@@ -218,7 +246,8 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                 slot = if (single) null else r.slot,
                 label = if (readParts.isEmpty() && r.lines.isEmpty()) str(R.string.scan_nothing_read)
                     else str(R.string.scan_read_as, (readParts.ifEmpty { r.lines.take(2).map { it.take(22) } }).joinToString(" · ")),
-                query = CardQuery(setCode = set, collectorNumber = r.collectorNumber, name = r.name, altNames = r.altNames),
+                query = if (lang == null) CardQuery(setCode = set, collectorNumber = r.collectorNumber, name = r.name, altNames = r.altNames)
+                    else CardQuery(setCode = set, collectorNumber = r.collectorNumber, lang = lang, printedName = r.name),
                 status = if (canLook) ItemStatus.RESOLVING else ItemStatus.NOT_FOUND,
                 language = r.language ?: "",
                 finish = if (scanFoil) Finish.FOIL else Finish.NONFOIL,
@@ -227,6 +256,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             if (binder.isNotBlank() && page.isBlank()) page = repo.nextPage(binder).toString()
         }
+        if (!single) foilTipOnce()
         resolveAll()
     }
 
@@ -349,6 +379,15 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                 }
             }
             lastImagesMs = System.currentTimeMillis() - tImages
+            // Niet-Engelse kaarten: de gelezen naam controleren tegen de gedrukte naam in die taal (één vraag per kaart).
+            val printedOk = mutableMapOf<Int, Boolean>()
+            todo.forEachIndexed { i, item ->
+                val q = item.query; val card = found[i] ?: return@forEachIndexed
+                if (q.lang == null || q.printedName == null) return@forEachIndexed
+                val printed = runCatching { repo.scryfall.printedName(card.set, card.collectorNumber, q.lang) }
+                printed.onSuccess { n -> printedOk[item.key] = n != null && repo.namesLookAlike(q.printedName, n) }
+                // Geen internet: set en nummer kloppen, dat is genoeg.
+            }
             if (scan) repo.scryfall.releaseForeground()
             lastResolveMs = System.currentTimeMillis() - started
             todo.forEachIndexed { i, item ->
@@ -356,7 +395,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                 if (idx >= 0) {
                     val card = found[i]
                     val q = item.query
-                    val confident = card != null && (q.name != null || q.collectorNumber != null) &&
+                    val confident = card != null && printedOk[item.key] != false && (q.name != null || q.collectorNumber != null) &&
                         (q.name == null || repo.namesLookAlike(q.name, card.name)) &&
                         (q.collectorNumber == null || card.collectorNumber.equals(q.collectorNumber, true))
                     pending[idx] = pending[idx].copy(
@@ -665,7 +704,8 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     fun computeWinner() = viewModelScope.launch {
         val cur = settings.value.currency
-        val monday = java.time.LocalDate.now().with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY))
+        // De week begint op de dag uit de instellingen (standaard volgens de telefoon).
+        val monday = java.time.LocalDate.now().with(java.time.temporal.TemporalAdjusters.previousOrSame(nl.spoonpaco.ninegrid.domain.Dates.weekStart(settings.value.dateStyle)))
         val key = monday.toString() + cur + entries.value.size
         if (key == winnerKey) return@launch
         winnerKey = key
@@ -685,6 +725,12 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         winnerWeek = monday
     }
     fun setBreakoutAlerts(v: Boolean) = viewModelScope.launch { settingsStore.setBreakoutAlerts(v) }
+    fun setFilter(screen: String, f: nl.spoonpaco.ninegrid.ui.components.CardFilter) = viewModelScope.launch { settingsStore.setFilter(screen, f.toJson()) }
+    fun setCollectionSort(v: String) = viewModelScope.launch { settingsStore.setCollectionSort(v) }
+    fun setTimeFormat(v: String) = viewModelScope.launch { settingsStore.setTimeFormat(v) }
+    fun setDateFormat(v: String) = viewModelScope.launch { settingsStore.setDateFormat(v) }
+    fun setWeekStart(v: String) = viewModelScope.launch { settingsStore.setWeekStart(v); winnerKey = ""; computeWinner() }
+    fun setShowWeekday(v: Boolean) = viewModelScope.launch { settingsStore.setShowWeekday(v) }
 
     fun setCurrency(v: String) = viewModelScope.launch { settingsStore.setCurrency(v) }
     fun setWifiOnly(v: Boolean) = viewModelScope.launch { settingsStore.setWifiOnly(v) }
@@ -844,11 +890,27 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
             settingsStore.setOfflineDbDone(0, 0)
             offlineDbBytes = 0
         } else if (before == nl.spoonpaco.ninegrid.data.OfflineDb.OFF) {
-            nl.spoonpaco.ninegrid.data.offline.OfflineDbWorker.start(getApplication(), manual = true)
+            updateOfflineDbNow()
         }
     }
 
-    fun updateOfflineDbNow() = nl.spoonpaco.ninegrid.data.offline.OfflineDbWorker.start(getApplication(), manual = true)
+    /** Vraag om bevestiging voor een download via mobiele data (met de grootte). */
+    var confirmMobileDownload by mutableStateOf(false)
+
+    /** Nu bijwerken. Op mobiel netwerk met "ook mobiele data" aan: eerst bevestigen; anders wachten op wifi. */
+    fun updateOfflineDbNow(confirmed: Boolean = false) {
+        val s = settings.value
+        val metered = c.images.onMeteredNetwork()
+        if (s.offlineDbMobile && metered && !confirmed) {
+            confirmMobileDownload = true
+            loadOfflineDbInfo()
+            return
+        }
+        confirmMobileDownload = false
+        nl.spoonpaco.ninegrid.data.offline.OfflineDbWorker.start(getApplication(), manual = true, anyNetwork = s.offlineDbMobile && metered)
+    }
+    fun setOfflineDbMobile(v: Boolean) = viewModelScope.launch { settingsStore.setOfflineDbMobile(v) }
+    fun setOfflineDbMobileAuto(v: Boolean) = viewModelScope.launch { settingsStore.setOfflineDbMobileAuto(v) }
 
     /** Antwoord op het aanbod: aanzetten (bij een import: daarna pas importeren) of niet. */
     fun answerOfflineOffer(enable: Boolean) = viewModelScope.launch {

@@ -98,7 +98,7 @@ fun Modifier.clickableRow(onClick: () -> Unit) = this.clickable(onClick = onClic
 @Composable
 fun ChangeLogScreen(vm: AppViewModel, onBack: () -> Unit) {
     val changes by vm.changes.collectAsState()
-    val fmt = remember { DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT) }
+    val st by vm.settings.collectAsState()
     val latest = changes.firstOrNull { !it.reverted }
     Scaffold(topBar = {
         TopAppBar(
@@ -118,7 +118,7 @@ fun ChangeLogScreen(vm: AppViewModel, onBack: () -> Unit) {
                     ListItem(
                         headlineContent = { Text(ch.summary, textDecoration = if (ch.reverted) TextDecoration.LineThrough else null) },
                         supportingContent = {
-                            Text(fmt.format(Date(ch.timestamp)) + if (ch.reverted) " · " + stringResource(R.string.undone) else "")
+                            Text(nl.spoonpaco.ninegrid.domain.Dates.dateTime(ch.timestamp, st.dateStyle) + if (ch.reverted) " · " + stringResource(R.string.undone) else "")
                         },
                     )
                     HorizontalDivider()
@@ -172,6 +172,23 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit) {
             }
             Text(stringResource(R.string.images_used, vm.images.diskUsageBytes() / (1024 * 1024)), fontSize = 12.sp, color = LocalNgExtra.current.subtle)
 
+            // Datum en tijd: alleen hoe het op het scherm staat; opslaan en delen gebeurt altijd in één vast formaat.
+            Spacer(Modifier.height(16.dp))
+            Text(stringResource(R.string.date_time), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+            val sys = stringResource(R.string.follow_phone)
+            val mon = stringResource(R.string.monday); val sun = stringResource(R.string.sunday)
+            ChoiceRow(stringResource(R.string.time_format), listOf("system", "24", "12"), settings.timeFormat,
+                { mapOf("system" to sys, "24" to "24h (14:30)", "12" to "12h (2:30 PM)")[it] ?: it }) { vm.setTimeFormat(it) }
+            ChoiceRow(stringResource(R.string.date_format), listOf("system", "dmy", "mdy", "ymd"), settings.dateFormat,
+                { mapOf("system" to sys, "dmy" to "05-11-2026", "mdy" to "11/05/2026", "ymd" to "2026-11-05")[it] ?: it }) { vm.setDateFormat(it) }
+            ChoiceRow(stringResource(R.string.week_start), listOf("system", "mon", "sun"), settings.weekStart,
+                { mapOf("system" to sys, "mon" to mon, "sun" to sun)[it] ?: it }) { vm.setWeekStart(it) }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.show_weekday), modifier = Modifier.weight(1f))
+                Switch(checked = settings.showWeekday, onCheckedChange = { vm.setShowWeekday(it) })
+            }
+            Text(stringResource(R.string.date_example, nl.spoonpaco.ninegrid.domain.Dates.dateTime(System.currentTimeMillis(), settings.dateStyle)), fontSize = 12.sp, color = LocalNgExtra.current.subtle)
+
             Spacer(Modifier.height(16.dp))
             Text(stringResource(R.string.breakout_alerts), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -204,14 +221,28 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit) {
                     settings.offlineDbUpdated > 0 -> Text(
                         stringResource(
                             R.string.offline_status, settings.offlineDbCount,
-                            java.text.DateFormat.getDateInstance(java.text.DateFormat.SHORT).format(java.util.Date(settings.offlineDbUpdated)),
+                            nl.spoonpaco.ninegrid.domain.Dates.date(settings.offlineDbUpdated, settings.dateStyle),
                             vm.offlineDbBytes / (1024 * 1024),
                         ), fontSize = 12.sp,
                     )
                     else -> Text(stringResource(R.string.offline_waiting), fontSize = 12.sp)
                 }
+                val wifiL = stringResource(R.string.offline_via_wifi); val mobL = stringResource(R.string.offline_via_mobile)
+                ChoiceRow(stringResource(R.string.offline_via), listOf("wifi", "mobile"), if (settings.offlineDbMobile) "mobile" else "wifi",
+                    { if (it == "mobile") mobL else wifiL }) { vm.setOfflineDbMobile(it == "mobile") }
+                if (settings.offlineDbMobile) Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(stringResource(R.string.offline_mobile_auto), fontSize = 13.sp, modifier = Modifier.weight(1f))
+                    Switch(checked = settings.offlineDbMobileAuto, onCheckedChange = { vm.setOfflineDbMobileAuto(it) })
+                }
                 OutlinedButton(onClick = { vm.updateOfflineDbNow() }, enabled = !vm.offlineDbRunning) { Text(stringResource(R.string.offline_now)) }
             }
+            if (vm.confirmMobileDownload) AlertDialog(
+                onDismissRequest = { vm.confirmMobileDownload = false },
+                title = { Text(stringResource(R.string.offline_db)) },
+                text = { Text(stringResource(R.string.offline_mobile_confirm, (vm.offlineDbInfo?.size ?: 0L) / (1024 * 1024))) },
+                confirmButton = { TextButton(onClick = { vm.updateOfflineDbNow(confirmed = true) }) { Text(stringResource(R.string.offline_mobile_yes)) } },
+                dismissButton = { TextButton(onClick = { vm.confirmMobileDownload = false }) { Text(stringResource(R.string.cancel)) } },
+            )
 
             Spacer(Modifier.height(16.dp))
             Text(stringResource(R.string.backup_export), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
@@ -226,7 +257,7 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit) {
                 Column(Modifier.weight(1f)) {
                     Text(stringResource(R.string.auto_backup))
                     Text(
-                        if (settings.backupFolder != null) stringResource(R.string.auto_backup_on, if (settings.lastBackup > 0) DateFormat.getDateInstance().format(Date(settings.lastBackup)) else "–")
+                        if (settings.backupFolder != null) stringResource(R.string.auto_backup_on, if (settings.lastBackup > 0) nl.spoonpaco.ninegrid.domain.Dates.date(settings.lastBackup, settings.dateStyle) else "–")
                         else stringResource(R.string.auto_backup_off),
                         fontSize = 12.sp, color = LocalNgExtra.current.subtle,
                     )

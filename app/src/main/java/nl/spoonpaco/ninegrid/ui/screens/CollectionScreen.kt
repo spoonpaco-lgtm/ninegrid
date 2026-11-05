@@ -64,30 +64,27 @@ fun CollectionScreen(
     val all by vm.entries.collectAsState()
     val decks by vm.decks.collectAsState()
     var query by rememberSaveable { mutableStateOf("") }
-    var rarity by rememberSaveable { mutableStateOf<String?>(null) }
-    var foilOnly by rememberSaveable { mutableStateOf(false) }
-    var color by rememberSaveable { mutableStateOf<Char?>(null) }
-    var includeDecks by rememberSaveable { mutableStateOf(false) }
-    var type by rememberSaveable { mutableStateOf<String?>(null) }
-    var inText by rememberSaveable { mutableStateOf(false) }
-    var sort by rememberSaveable { mutableStateOf("set") }
+    // Filters en sortering worden onthouden, ook na het afsluiten.
+    val filter = remember(settings.filters["collection"]) { nl.spoonpaco.ninegrid.ui.components.CardFilter.fromJson(settings.filters["collection"]) }
+    val sort = settings.collectionSort
     var menu by remember { mutableStateOf(false) }
+    val listState = androidx.compose.foundation.lazy.rememberLazyListState()
+    var fabVisible by remember { mutableStateOf(true) }
+    var lastIndex by remember { mutableStateOf(0) }
+    var lastOffset by remember { mutableStateOf(0) }
+    androidx.compose.runtime.LaunchedEffect(listState) {
+        androidx.compose.runtime.snapshotFlow { listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset }.collect { (i, o) ->
+            val down = i > lastIndex || (i == lastIndex && o > lastOffset + 8)
+            val up = i < lastIndex || (i == lastIndex && o < lastOffset - 8)
+            if (down) fabVisible = false else if (up || i == 0) fabVisible = true
+            lastIndex = i; lastOffset = o
+        }
+    }
     var search by remember { mutableStateOf(false) }
     val deckNames = remember(decks) { decks.associate { it.id to it.name } }
 
     // Alleen opnieuw uitrekenen als de kaarten of de filters echt veranderen (scheelt veel bij duizenden kaarten).
-    val filtered = remember(all, query, rarity, foilOnly, color, includeDecks, type, inText) {
-        all.filter { e ->
-            (includeDecks || e.entry.deckId == null) &&
-                (query.isBlank() || (e.print?.name ?: "").contains(query.trim(), ignoreCase = true) ||
-                    (e.print?.setCode ?: "").equals(query.trim(), ignoreCase = true) ||
-                    (inText && ((e.print?.oracleText ?: "").contains(query.trim(), ignoreCase = true) || (e.print?.typeLine ?: "").contains(query.trim(), ignoreCase = true)))) &&
-                (type == null || (e.print?.typeLine ?: "").substringBefore('—').contains(type!!)) &&
-                (rarity == null || e.print?.rarity == rarity) &&
-                (!foilOnly || e.entry.finish != Finish.NONFOIL) &&
-                (color == null || (if (color == 'C') (e.print?.colors ?: "").isEmpty() else (e.print?.colors ?: "").contains(color!!)))
-        }
-    }
+    val filtered = remember(all, query, filter) { all.filter { filter.matches(it, query) } }
     val count = remember(filtered) { filtered.sumOf { it.entry.quantity } }
     val value = remember(filtered, settings.currency) { filtered.sumOf { Money.total(it.entry, it.print, settings.currency) } }
     data class Group(val set: String, val name: String, val count: Int, val value: Double, val cards: List<nl.spoonpaco.ninegrid.data.db.EntryWithPrint>)
@@ -113,13 +110,15 @@ fun CollectionScreen(
                 Column {
                     Text(stringResource(R.string.collection), fontWeight = FontWeight.Bold)
                     Text(
-                        stringResource(R.string.count_value, count, Money.format(value, settings.currency)),
+                        androidx.compose.ui.res.pluralStringResource(R.plurals.n_cards, count, count) + " · " + Money.format(value, settings.currency),
                         style = MaterialTheme.typography.bodySmall, color = LocalNgExtra.current.subtle,
                     )
                 }
             }, actions = { nl.spoonpaco.ninegrid.ui.guide.HelpButton("collection") })
         },
         floatingActionButton = {
+            // Verdwijnt bij naar beneden scrollen, komt terug bij een stukje omhoog.
+            androidx.compose.animation.AnimatedVisibility(fabVisible, enter = androidx.compose.animation.scaleIn(), exit = androidx.compose.animation.scaleOut()) {
             FloatingActionButton(onClick = { menu = true }, containerColor = MaterialTheme.colorScheme.primary) {
                 Icon(Icons.Filled.Add, stringResource(R.string.add_cards))
                 DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
@@ -129,40 +128,17 @@ fun CollectionScreen(
                     DropdownMenuItem(text = { Text(stringResource(R.string.import_title)) }, leadingIcon = { Icon(Icons.Filled.FileOpen, null) }, onClick = { menu = false; onImport() })
                 }
             }
+            }
         },
     ) { pad ->
         Column(Modifier.padding(pad).fillMaxSize()) {
-            OutlinedTextField(
-                value = query, onValueChange = { query = it }, singleLine = true,
-                placeholder = { Text(stringResource(R.string.search_hint)) },
-                leadingIcon = { Icon(Icons.Filled.Search, null) },
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+            nl.spoonpaco.ninegrid.ui.components.FilterSearchBar(
+                query = query, onQuery = { query = it }, placeholder = stringResource(R.string.search_hint),
+                filter = filter, onFilter = { vm.setFilter("collection", it) },
+                groups = nl.spoonpaco.ninegrid.ui.components.FilterGroup.entries.toSet(),
+                sortOptions = listOf("set" to stringResource(R.string.sort_set), "price" to stringResource(R.string.sort_price), "name" to stringResource(R.string.sort_name)),
+                sort = sort, onSort = { vm.setCollectionSort(it) },
             )
-            Row(
-                Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp, vertical = 6.dp),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                listOf("mythic", "rare", "uncommon", "common").forEach { r ->
-                    FilterChip(selected = rarity == r, onClick = { rarity = if (rarity == r) null else r }, label = { Text(r.replaceFirstChar { it.uppercase() }) })
-                }
-                FilterChip(selected = foilOnly, onClick = { foilOnly = !foilOnly }, label = { Text(stringResource(R.string.foil)) })
-                "WUBRGC".forEach { ch ->
-                    FilterChip(selected = color == ch, onClick = { color = if (color == ch) null else ch }, label = { Text(ch.toString()) })
-                }
-                FilterChip(selected = includeDecks, onClick = { includeDecks = !includeDecks }, label = { Text(stringResource(R.string.include_decks)) })
-                FilterChip(selected = sort == "price", onClick = { sort = if (sort == "price") "set" else "price" }, label = { Text(stringResource(R.string.sort_price)) })
-                FilterChip(selected = sort == "name", onClick = { sort = if (sort == "name") "set" else "name" }, label = { Text(stringResource(R.string.sort_name)) })
-            }
-            // Kaarttype en zoeken in de regeltekst.
-            Row(
-                Modifier.horizontalScroll(rememberScrollState()).padding(start = 12.dp, end = 12.dp, bottom = 6.dp),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                FilterChip(selected = inText, onClick = { inText = !inText }, label = { Text(stringResource(R.string.search_in_text)) })
-                listOf("Creature", "Instant", "Sorcery", "Artifact", "Enchantment", "Planeswalker", "Land", "Battle").forEach { t ->
-                    FilterChip(selected = type == t, onClick = { type = if (type == t) null else t }, label = { Text(t) })
-                }
-            }
             if (all.isEmpty()) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
                     EmptyState(stringResource(R.string.empty_collection_title), stringResource(R.string.empty_collection_body))
@@ -172,11 +148,11 @@ fun CollectionScreen(
                     }
                 }
             } else {
-                LazyColumn(contentPadding = PaddingValues(bottom = 96.dp)) {
+                LazyColumn(state = listState, contentPadding = PaddingValues(bottom = 96.dp)) {
                     if (sort == "set") {
                         groups.forEach { g ->
                             item(key = "h_${g.set}") {
-                                SectionHeader("${g.set} · ${g.name}", stringResource(R.string.count_value, g.count, Money.format(g.value, settings.currency)))
+                                SectionHeader("${g.set} · ${g.name}", androidx.compose.ui.res.pluralStringResource(R.plurals.n_cards, g.count, g.count) + " · " + Money.format(g.value, settings.currency))
                             }
                             items(g.cards, key = { it.entry.id }) { e ->
                                 CardRow(e.entry, e.print, settings, vm.images, location = locationText(e.entry, deckNames)) { e.print?.let { onCard(it.id) } }

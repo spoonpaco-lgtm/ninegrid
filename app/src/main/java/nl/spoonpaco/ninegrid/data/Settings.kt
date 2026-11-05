@@ -56,7 +56,23 @@ data class AppSettings(
     val offlineDbCount: Int = 0,
     /** Al een keer aangeboden (bij een grote import of een wachttijd van Scryfall). */
     val offlineDbOffered: Boolean = false,
-)
+    /** Offline kaartdatabase ook via mobiele data (Nu bijwerken, met bevestiging), en eventueel ook automatisch. */
+    val offlineDbMobile: Boolean = false,
+    val offlineDbMobileAuto: Boolean = false,
+    /** De laatst opgegeven set in de scanner. */
+    val lastScanSet: String = "",
+    val foilTipShown: Boolean = false,
+    /** Datum en tijd op het scherm (alleen weergave). */
+    val timeFormat: String = "system",
+    val dateFormat: String = "system",
+    val weekStart: String = "system",
+    val showWeekday: Boolean = false,
+    /** Onthouden filters (JSON) en sortering per scherm. */
+    val filters: Map<String, String> = emptyMap(),
+    val collectionSort: String = "set",
+) {
+    val dateStyle get() = nl.spoonpaco.ninegrid.domain.DateStyle(timeFormat, dateFormat, weekStart, showWeekday)
+}
 
 object OfflineDb {
     const val OFF = "off"
@@ -91,6 +107,17 @@ class SettingsStore(private val context: Context) {
         val offlineDbUpdated = longPreferencesKey("offline_db_updated")
         val offlineDbCount = androidx.datastore.preferences.core.intPreferencesKey("offline_db_count")
         val offlineDbOffered = booleanPreferencesKey("offline_db_offered")
+        val lastScanSet = stringPreferencesKey("last_scan_set")
+        val offlineDbMobile = booleanPreferencesKey("offline_db_mobile")
+        val offlineDbMobileAuto = booleanPreferencesKey("offline_db_mobile_auto")
+        val foilTipShown = booleanPreferencesKey("foil_tip_shown")
+        val timeFormat = stringPreferencesKey("time_format")
+        val dateFormat = stringPreferencesKey("date_format")
+        val weekStart = stringPreferencesKey("week_start")
+        val showWeekday = booleanPreferencesKey("show_weekday")
+        val collectionSort = stringPreferencesKey("collection_sort")
+        val filterScreens = listOf("collection", "pick", "set")
+        val filters = filterScreens.associateWith { stringPreferencesKey("filter_$it") }
     }
 
     val flow: Flow<AppSettings> = context.dataStore.data.map { p -> p.toSettings() }
@@ -123,6 +150,16 @@ class SettingsStore(private val context: Context) {
         offlineDbUpdated = this[K.offlineDbUpdated] ?: 0,
         offlineDbCount = this[K.offlineDbCount] ?: 0,
         offlineDbOffered = this[K.offlineDbOffered] ?: false,
+        lastScanSet = this[K.lastScanSet] ?: "",
+        offlineDbMobile = this[K.offlineDbMobile] ?: false,
+        offlineDbMobileAuto = this[K.offlineDbMobileAuto] ?: false,
+        foilTipShown = this[K.foilTipShown] ?: false,
+        timeFormat = this[K.timeFormat] ?: "system",
+        dateFormat = this[K.dateFormat] ?: "system",
+        weekStart = this[K.weekStart] ?: "system",
+        showWeekday = this[K.showWeekday] ?: false,
+        filters = K.filters.mapNotNull { (k, key) -> this[key]?.let { k to it } }.toMap(),
+        collectionSort = this[K.collectionSort] ?: "set",
     )
 
     suspend fun setTheme(v: String) = context.dataStore.edit { it[K.theme] = v }
@@ -150,5 +187,15 @@ class SettingsStore(private val context: Context) {
     suspend fun setLastBreakoutDay(v: String) = context.dataStore.edit { it[K.lastBreakoutDay] = v }
     suspend fun setOfflineDb(v: String) = context.dataStore.edit { it[K.offlineDb] = v }
     suspend fun setOfflineDbDone(at: Long, count: Int) = context.dataStore.edit { it[K.offlineDbUpdated] = at; it[K.offlineDbCount] = count }
+    suspend fun setOfflineDbMobile(v: Boolean) = context.dataStore.edit { it[K.offlineDbMobile] = v; if (!v) it[K.offlineDbMobileAuto] = false }
+    suspend fun setOfflineDbMobileAuto(v: Boolean) = context.dataStore.edit { it[K.offlineDbMobileAuto] = v }
+    suspend fun setLastScanSet(v: String) = context.dataStore.edit { it[K.lastScanSet] = v }
+    suspend fun setTimeFormat(v: String) = context.dataStore.edit { it[K.timeFormat] = v }
+    suspend fun setDateFormat(v: String) = context.dataStore.edit { it[K.dateFormat] = v }
+    suspend fun setWeekStart(v: String) = context.dataStore.edit { it[K.weekStart] = v }
+    suspend fun setShowWeekday(v: Boolean) = context.dataStore.edit { it[K.showWeekday] = v }
+    suspend fun setFilter(screen: String, json: String) = context.dataStore.edit { p -> K.filters[screen]?.let { p[it] = json } }
+    suspend fun setCollectionSort(v: String) = context.dataStore.edit { it[K.collectionSort] = v }
+    suspend fun setFoilTipShown() = context.dataStore.edit { it[K.foilTipShown] = true }
     suspend fun setOfflineDbOffered(v: Boolean) = context.dataStore.edit { it[K.offlineDbOffered] = v }
 }

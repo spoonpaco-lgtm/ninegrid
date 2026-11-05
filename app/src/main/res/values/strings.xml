@@ -18,7 +18,6 @@
     <string name="binder_page">%1$s, page %2$d</string>
     <string name="binder_page_slot">%1$s, page %2$d, slot %3$d</string>
     <string name="bracket_line">Bracket estimate: %1$s · %2$d Game Changers</string>
-    <string name="bracket_short">Bracket %1$s</string>
     <string name="camera_needed">NineGrid needs the camera to read your cards. Photos are not stored or sent.</string>
     <string name="cancel">Cancel</string>
     <string name="card_name">Card name</string>
@@ -490,7 +489,7 @@
     <string name="offline_db_notif">Downloading card database</string>
     <string name="offline_db_progress">%1$d cards read</string>
     <string name="offline_pros">+ Scan without internet: set, number and name are checked on your phone.\n+ Import a big collection much faster, without waiting for Scryfall.\n+ Every card can be looked up, also cards you do not own yet.</string>
-    <string name="offline_cons">− One large download, on wifi only (automatic updates also only while charging).\n− Takes space on your phone (shown below once downloaded).\n− Prices still come from the daily price update.</string>
+    <string name="offline_cons">− One large download, on Wi-Fi by default (mobile data can be chosen below; automatic updates only while charging).\n− Takes space on your phone (shown below once downloaded).\n− Prices still come from the daily price update.</string>
     <string name="offline_size">File size according to Scryfall: %1$d MB (sent compressed, so the download is smaller).</string>
     <string name="offline_off">Off</string>
     <string name="offline_newset">On new set (recommended)</string>
@@ -506,4 +505,39 @@
     <string name="offline_offer_yes">Turn on</string>
     <string name="offline_offer_yes_import">Download first, then import</string>
     <string name="offline_offer_no_import">Import now without it</string>
+    <string name="scan_set_auto">Set: auto</string>
+    <string name="scan_foil_slots_hint">or tap single slots</string>
+    <string name="scan_foil_tip">Tip: tap a slot to mark that card as foil ✦. Long press to review.</string>
+    <string name="date_time">Date and time</string>
+    <string name="time_format">Time</string>
+    <string name="date_format">Date</string>
+    <string name="week_start">Week starts on</string>
+    <string name="monday">Monday</string>
+    <string name="sunday">Sunday</string>
+    <string name="show_weekday">Show weekday</string>
+    <string name="date_example">Example: %1$s</string>
+    <string name="bracket_short">Bracket %1$s+</string>
+    <string name="legal">Legal</string>
+    <string name="bracket_note_short">An estimate. Combos count once you tap Find combos. Discuss with your table.</string>
+    <string name="colors_behind_note">⚠ = fewer lands make this colour than its share of your costs.</string>
+    <string name="odds_one_line">2–4 lands: %1$d%% (2: %2$d%% · 3: %3$d%% · 4: %4$d%%)</string>
+    <plurals name="n_issues">
+        <item quantity="one">%d problem</item>
+        <item quantity="other">%d problems</item>
+    </plurals>
+    <string name="filter">Filter</string>
+    <string name="sort">Sort</string>
+    <string name="rarity">Rarity</string>
+    <string name="color">Colour</string>
+    <string name="card_type">Card type</string>
+    <string name="filter_more">More</string>
+    <string name="clear_filters">Clear filters</string>
+    <string name="sort_set">Set</string>
+    <string name="sets_search_card">Search card or number</string>
+    <string name="offline_via">Download via</string>
+    <string name="offline_via_wifi">Wi-Fi only</string>
+    <string name="offline_via_mobile">Also mobile data</string>
+    <string name="offline_mobile_auto">Also update automatically over mobile data</string>
+    <string name="offline_mobile_confirm">You are on mobile data. Download the card database now? File size according to Scryfall: about %1$d MB (sent compressed, so less).</string>
+    <string name="offline_mobile_yes">Download now</string>
 </resources>

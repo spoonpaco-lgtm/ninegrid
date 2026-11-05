@@ -67,7 +67,7 @@ class PriceWorker(context: Context, params: WorkerParameters) : CoroutineWorker(
         val today = java.time.LocalDate.now().toString()
         val newest = c.cache.setInfo().values.filter { !it.digital }.mapNotNull { it.releasedAt }.filter { it <= today }.maxOrNull()
         if (nl.spoonpaco.ninegrid.data.offline.OfflineDbWorker.due(s.offlineDbUpdated, newest)) {
-            nl.spoonpaco.ninegrid.data.offline.OfflineDbWorker.start(applicationContext, manual = false)
+            nl.spoonpaco.ninegrid.data.offline.OfflineDbWorker.start(applicationContext, manual = false, anyNetwork = s.offlineDbMobileAuto)
         }
     }
 

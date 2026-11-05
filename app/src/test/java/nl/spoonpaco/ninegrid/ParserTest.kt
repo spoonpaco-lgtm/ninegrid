@@ -413,4 +413,14 @@ class ParserTest {
         assertEquals("n.jpg", back.imageNormal)
         assertEquals("{U}", cards[1].manaCost)
     }
+
+    @Test
+    fun dateStylesOnlyChangeDisplay() {
+        val D = nl.spoonpaco.ninegrid.domain.Dates
+        val d = java.time.LocalDate.of(2026, 11, 5)
+        assertEquals("05-11-2026", D.date(d, nl.spoonpaco.ninegrid.domain.DateStyle(date = "dmy")))
+        assertEquals("11/05/2026", D.date(d, nl.spoonpaco.ninegrid.domain.DateStyle(date = "mdy")))
+        assertEquals("2026-11-05", D.date(d, nl.spoonpaco.ninegrid.domain.DateStyle(date = "ymd")))
+        assertEquals(java.time.DayOfWeek.SUNDAY, D.weekStart(nl.spoonpaco.ninegrid.domain.DateStyle(weekStart = "sun")))
+    }
 }

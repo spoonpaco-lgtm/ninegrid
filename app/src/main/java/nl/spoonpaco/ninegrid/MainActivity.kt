@@ -43,6 +43,12 @@ class MainActivity : AppCompatActivity() {
         return super.onKeyUp(keyCode, event)
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Staat de telefoon op 24 uur? Voor de instelling "Volg telefoon".
+        nl.spoonpaco.ninegrid.domain.Dates.system24 = android.text.format.DateFormat.is24HourFormat(this)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (intent?.getBooleanExtra(nl.spoonpaco.ninegrid.data.ImportWorker.EXTRA_OPEN_IMPORT, false) == true) vm.openImport = true

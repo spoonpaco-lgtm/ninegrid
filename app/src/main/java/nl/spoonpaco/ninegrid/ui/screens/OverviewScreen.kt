@@ -134,7 +134,7 @@ fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}, onSets: () ->
                 Column {
                     Text(stringResource(R.string.overview), fontWeight = FontWeight.Bold)
                     Text(
-                        if (settings.lastPriceUpdate > 0) stringResource(R.string.prices_updated_at, DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(Date(settings.lastPriceUpdate)))
+                        if (settings.lastPriceUpdate > 0) stringResource(R.string.prices_updated_at, nl.spoonpaco.ninegrid.domain.Dates.dateTime(settings.lastPriceUpdate, settings.dateStyle))
                         else stringResource(R.string.prices_from_import),
                         style = MaterialTheme.typography.bodySmall, color = extra.subtle,
                     )
@@ -195,8 +195,8 @@ fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}, onSets: () ->
                     Panel {
                         Text("Winner of the Week", fontWeight = FontWeight.Bold, color = extra.price)
                         vm.winnerWeek?.let { mon ->
-                            val f = java.time.format.DateTimeFormatter.ofLocalizedDate(java.time.format.FormatStyle.SHORT)
-                            Text(stringResource(R.string.winner_week, mon.minusDays(7).format(f), mon.format(f)), fontSize = 11.sp, color = extra.subtle)
+                            val ds = settings.dateStyle
+                            Text(stringResource(R.string.winner_week, nl.spoonpaco.ninegrid.domain.Dates.date(mon.minusDays(7), ds), nl.spoonpaco.ninegrid.domain.Dates.date(mon, ds)), fontSize = 11.sp, color = extra.subtle)
                         }
                         Spacer(Modifier.height(8.dp))
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -263,6 +263,7 @@ fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}, onSets: () ->
                         series = series, fromDay = from, toDay = maxOf(now, from + 60_000), showTime = days in 1..7,
                         formatY = { v -> if (byGain) (if (v > 0.005) "+" else if (v < -0.005) "−" else "") + compactMoney(kotlin.math.abs(v), cur) else if (byValue) compactMoney(v, cur) else v.toInt().toString() },
                         gapMs = 36L * 3600 * 1000,
+                        formatX = { ms, withTime -> if (withTime) nl.spoonpaco.ninegrid.domain.Dates.dateTime(ms, settings.dateStyle) else nl.spoonpaco.ninegrid.domain.Dates.date(ms, settings.dateStyle) },
                         axisColor = MaterialTheme.colorScheme.onSurface, textColor = extra.subtle,
                     )
                     if (byGain) Text(stringResource(R.string.chart_gain_explain), fontSize = 11.sp, color = extra.subtle)

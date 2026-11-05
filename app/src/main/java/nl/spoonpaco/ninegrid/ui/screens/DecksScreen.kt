@@ -192,44 +192,65 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
         val sections = listOf(Section.COMMANDER, Section.MAIN, Section.SIDEBOARD)
         LazyColumn(Modifier.padding(pad), contentPadding = PaddingValues(bottom = 40.dp)) {
             item {
-                Column(Modifier.padding(16.dp)) {
+                // Kop: bij Commander de commander zelf, anders het format. Eén samenvattende regel; tik voor de details.
+                // Is er een probleem met het deck, dan staat hij open.
+                val commanderCard = list.firstOrNull { it.entry.section == Section.COMMANDER }
+                val real = list.filter { !it.entry.proxy }
+                val cardCount = real.sumOf { it.entry.quantity }
+                val totalValue = list.sumOf { Money.total(it.entry, it.print, settings.currency) }
+                val hasError = check.issues.any { it.level == IssueLevel.ERROR }
+                var open by androidx.compose.runtime.saveable.rememberSaveable(deckId) { mutableStateOf(false) }
+                val expanded = open || hasError
+                Column(Modifier.fillMaxWidth().clickable { open = !open }.padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(formatLabel(d.format), fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                        if (d.format == DeckFormat.COMMANDER && commanderCard?.print != null) {
+                            nl.spoonpaco.ninegrid.ui.components.CardThumb(commanderCard.print, vm.images, settings, width = 40)
+                            Spacer(Modifier.width(10.dp))
+                        }
+                        Text(
+                            if (d.format == DeckFormat.COMMANDER && commanderCard?.print != null) commanderCard.print.name else formatLabel(d.format),
+                            fontWeight = FontWeight.Bold, maxLines = 2, modifier = Modifier.weight(1f),
+                        )
                         ManaPips(check.colorIdentity)
                     }
-                    Spacer(Modifier.height(4.dp))
-                    sections.forEach { s ->
-                        val part = list.filter { (it.entry.section ?: Section.MAIN) == s }
-                        if (part.isNotEmpty()) Row {
-                            Text(sectionLabel(s), modifier = Modifier.weight(1f), color = extra.subtle)
-                            Text(stringResource(R.string.count_value, part.filter { !it.entry.proxy }.sumOf { it.entry.quantity }, Money.format(part.sumOf { Money.total(it.entry, it.print, settings.currency) }, settings.currency)), color = extra.subtle)
-                        }
+                    val bits = listOfNotNull(
+                        formatLabel(d.format),
+                        pluralStringResource(R.plurals.n_cards, cardCount, cardCount),
+                        Money.format(totalValue, settings.currency),
+                        if (d.format == DeckFormat.COMMANDER) stringResource(R.string.bracket_short, check.bracketHint ?: "?") else null,
+                        if (d.format == DeckFormat.CASUAL) null else if (check.issues.isEmpty()) "✓ " + stringResource(R.string.legal) else "⚠ " + pluralStringResource(R.plurals.n_issues, check.issues.size, check.issues.size),
+                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(bits.joinToString(" · "), fontSize = 13.sp, color = if (hasError) NgColors.Error else extra.subtle, modifier = Modifier.weight(1f))
+                        Text(if (expanded) "▴" else "▾", color = extra.subtle)
                     }
-                    Row {
-                        Text(stringResource(R.string.total), modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold)
-                        Text(Money.format(list.sumOf { Money.total(it.entry, it.print, settings.currency) }, settings.currency), color = extra.price, fontWeight = FontWeight.Bold)
-                    }
-                    Spacer(Modifier.height(8.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        androidx.compose.material3.Button(onClick = { picking = true }) {
-                            Icon(Icons.Filled.Add, null); Spacer(Modifier.width(4.dp)); Text(stringResource(R.string.pick_from_collection))
-                        }
-                        androidx.compose.material3.OutlinedButton(onClick = { onAddCards(deckId) }) { Text(stringResource(R.string.paste_list)) }
-                    }
-                    if (d.format == DeckFormat.COMMANDER) {
+                    if (expanded) {
                         Spacer(Modifier.height(6.dp))
-                        Text(stringResource(R.string.bracket_min, check.bracketHint ?: "?"), fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                        if (check.bracketReasons.isEmpty()) Text(stringResource(R.string.bracket_no_signals), fontSize = 12.sp, color = extra.subtle)
-                        check.bracketReasons.forEach { r ->
-                            Text(bracketReasonLabel(r.code) + ": " + r.cards.joinToString(", "), fontSize = 12.sp, color = extra.subtle)
+                        sections.forEach { s ->
+                            val part = list.filter { (it.entry.section ?: Section.MAIN) == s }
+                            if (part.isNotEmpty()) Row {
+                                // Bij de commander-regel de naam, niet nog een keer "Commander".
+                                val label = if (s == Section.COMMANDER && part.size == 1) part.first().print?.name ?: sectionLabel(s) else sectionLabel(s)
+                                val n = part.filter { !it.entry.proxy }.sumOf { it.entry.quantity }
+                                Text(label, modifier = Modifier.weight(1f), color = extra.subtle, maxLines = 1)
+                                Text(pluralStringResource(R.plurals.n_cards, n, n) + " · " + Money.format(part.sumOf { Money.total(it.entry, it.print, settings.currency) }, settings.currency), color = extra.subtle)
+                            }
                         }
-                        Text(stringResource(R.string.bracket_note), fontSize = 11.sp, color = extra.subtle)
+                        if (d.format == DeckFormat.COMMANDER) {
+                            Spacer(Modifier.height(6.dp))
+                            Text(stringResource(R.string.bracket_min, check.bracketHint ?: "?"), fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            if (check.bracketReasons.isEmpty()) Text(stringResource(R.string.bracket_no_signals), fontSize = 12.sp, color = extra.subtle)
+                            check.bracketReasons.forEach { r ->
+                                Text(bracketReasonLabel(r.code) + ": " + r.cards.joinToString(", "), fontSize = 12.sp, color = extra.subtle)
+                            }
+                            Text(stringResource(R.string.bracket_note_short), fontSize = 11.sp, color = extra.subtle)
+                        }
+                        if (check.issues.isEmpty() && d.format != DeckFormat.CASUAL) {
+                            Spacer(Modifier.height(6.dp))
+                            Text(stringResource(R.string.deck_ok), color = NgColors.Synced, fontSize = 13.sp)
+                        }
+                        check.issues.forEach { i -> Text("• " + issueText(i), color = if (i.level == IssueLevel.ERROR) NgColors.Error else extra.subtle, fontSize = 13.sp) }
                     }
-                    if (check.issues.isEmpty() && d.format != DeckFormat.CASUAL) {
-                        Spacer(Modifier.height(6.dp))
-                        Text(stringResource(R.string.deck_ok), color = NgColors.Synced, fontSize = 13.sp)
-                    }
-                    check.issues.forEach { i -> Text("• " + issueText(i), color = if (i.level == IssueLevel.ERROR) NgColors.Error else extra.subtle, fontSize = 13.sp) }
                 }
             }
             // Tabbladen: Kaarten | Statistieken | Combo's. De controle hierboven blijft altijd staan.
@@ -246,6 +267,15 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
             if (tab == 1) item { DeckStatsPanel(nl.spoonpaco.ninegrid.domain.DeckStatsCalc.compute(Formats.toDeckCards(list.map { it.entry to it.print }))) }
             if (tab == 2) item { CombosPanel(vm, d, report) }
             if (tab == 3) item { SuggestionsPanel(vm, d, list.size) }
+            // Kaarten toevoegen hoort bij het tabblad Kaarten.
+            if (tab == 0) item {
+                Row(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    androidx.compose.material3.Button(onClick = { picking = true }) {
+                        Icon(Icons.Filled.Add, null); Spacer(Modifier.width(4.dp)); Text(stringResource(R.string.pick_from_collection))
+                    }
+                    androidx.compose.material3.OutlinedButton(onClick = { onAddCards(deckId) }) { Text(stringResource(R.string.paste_list)) }
+                }
+            }
             if (tab == 0) sections.forEach { s ->
                 val part = list.filter { (it.entry.section ?: Section.MAIN) == s }.sortedBy { it.print?.name ?: "" }
                 if (part.isNotEmpty()) {
@@ -332,35 +362,49 @@ private fun bracketReasonLabel(code: String) = when (code) {
 private fun DeckStatsPanel(st: nl.spoonpaco.ninegrid.domain.DeckStats) {
     val extra = LocalNgExtra.current
     Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
-        // Manacurve als staafjes.
+        // Manacurve: getallen, staven met een vaste bodem en de labels los, zodat het bij elke lettergrootte klopt.
         Text(stringResource(R.string.mana_curve, String.format(java.util.Locale.getDefault(), "%.2f", st.averageCmc)), fontSize = 13.sp)
         val max = (st.curve.maxOrNull() ?: 1).coerceAtLeast(1)
-        Row(Modifier.fillMaxWidth().height(90.dp), verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            st.curve.forEachIndexed { i, n ->
-                Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("$n", fontSize = 11.sp, color = extra.subtle)
-                    Box(Modifier.fillMaxWidth().height((60f * n / max).dp.coerceAtLeast(2.dp)).background(MaterialTheme.colorScheme.primary))
-                    Text(if (i == 7) "7+" else "$i", fontSize = 11.sp)
-                }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            st.curve.forEach { n -> Text(if (n > 0) "$n" else "", fontSize = 11.sp, color = extra.subtle, textAlign = androidx.compose.ui.text.style.TextAlign.Center, modifier = Modifier.weight(1f)) }
+        }
+        Row(Modifier.fillMaxWidth().height(64.dp), verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            st.curve.forEach { n ->
+                Box(Modifier.weight(1f).height((60f * n / max).dp.coerceAtLeast(2.dp)).background(MaterialTheme.colorScheme.primary))
             }
         }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            st.curve.indices.forEach { i -> Text(if (i == 7) "7+" else "$i", fontSize = 11.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center, modifier = Modifier.weight(1f)) }
+        }
         Spacer(Modifier.height(10.dp))
+        // Kleuren: manabolletjes (zwart is anders onzichtbaar), en ⚠ als de lands achterlopen op het aandeel in de kosten.
         Text(stringResource(R.string.colors_cost_vs_lands), fontSize = 13.sp)
         val totalSym = st.costSymbols.values.sum().coerceAtLeast(1)
         "WUBRG".forEach { c ->
             val sym = st.costSymbols[c] ?: 0; val src = st.landSources[c] ?: 0
-            if (sym > 0 || src > 0) Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.size(12.dp).background(nl.spoonpaco.ninegrid.ui.theme.NgColors.mana(c)))
+            if (sym > 0 || src > 0) Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 1.dp)) {
+                ManaPips(c.toString())
                 Spacer(Modifier.width(6.dp))
-                Text(stringResource(R.string.color_line, sym, Math.round(sym * 100.0 / totalSym).toInt(), src, st.lands), fontSize = 12.sp)
+                val symPct = sym * 100.0 / totalSym
+                val landPct = if (st.lands > 0) src * 100.0 / st.lands else 0.0
+                val behind = sym > 0 && landPct + 10 < symPct
+                Text(
+                    stringResource(R.string.color_line, sym, Math.round(symPct).toInt(), src, st.lands) + if (behind) "  ⚠" else "",
+                    fontSize = 12.sp, color = if (behind) NgColors.Amber else MaterialTheme.colorScheme.onSurface,
+                )
             }
         }
-        Spacer(Modifier.height(10.dp))
-        Text(stringResource(R.string.opening_hand, st.lands, st.deckSize), fontSize = 13.sp)
-        listOf(2, 3, 4).forEach { k ->
-            Text(stringResource(R.string.odds_line, k, Math.round((st.handOdds[k] ?: 0.0) * 1000) / 10.0), fontSize = 12.sp)
+        if ("WUBRG".any { c -> val sym = st.costSymbols[c] ?: 0; sym > 0 && (if (st.lands > 0) (st.landSources[c] ?: 0) * 100.0 / st.lands else 0.0) + 10 < sym * 100.0 / totalSym }) {
+            Text(stringResource(R.string.colors_behind_note), fontSize = 11.sp, color = extra.subtle)
         }
-        Text(stringResource(R.string.odds_total, Math.round(st.oddsTwoToFour * 1000) / 10.0), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.height(10.dp))
+        // Openingshand in één regel.
+        Text(stringResource(R.string.opening_hand, st.lands, st.deckSize), fontSize = 13.sp)
+        fun pct(x: Double) = Math.round(x * 100).toInt()
+        Text(
+            stringResource(R.string.odds_one_line, pct(st.oddsTwoToFour), pct(st.handOdds[2] ?: 0.0), pct(st.handOdds[3] ?: 0.0), pct(st.handOdds[4] ?: 0.0)),
+            fontSize = 12.sp, fontWeight = FontWeight.Bold,
+        )
     }
 }
 
