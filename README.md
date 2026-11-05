@@ -1,5 +1,7 @@
 # NineGrid
 
+![NineGrid – Your MTG collection, nine cards at a time](docs/banner.png)
+
 Free Android app (8.0+) for your Magic: The Gathering collection and decks.
 Gratis Android-app (8.0+) voor je Magic: The Gathering-collectie en decks.
 
