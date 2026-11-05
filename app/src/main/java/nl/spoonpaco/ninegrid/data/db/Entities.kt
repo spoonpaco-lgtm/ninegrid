@@ -23,6 +23,8 @@ data class CardPrint(
     /** Regeltekst, voor de bracket-signalen (landvernietiging, extra beurten, tutors). */
     val oracleText: String = "",
     val colorIdentity: String = "",
+    /** Welke kleuren mana deze kaart maakt (Scryfall produced_mana, bijv. "UB"); leeg = onbekend of geen. */
+    val producedMana: String = "",
     val imageSmall: String? = null,
     val imageNormal: String? = null,
     val scryfallUri: String? = null,
@@ -132,6 +134,9 @@ data class Snapshot(
     val eur: Double,
     val usd: Double,
     val count: Int,
+    /** Koersverschil van deze dag: alleen door prijzen, niet door toevoegen of weghalen. Null = niet bekend (bijv. Sheet-historie). */
+    val gainEur: Double? = null,
+    val gainUsd: Double? = null,
 )
 
 /** Momenten binnen een dag (bij elke wijziging en prijsupdate), voor 1D, 1W en 1M. Na een maand opgeruimd. */

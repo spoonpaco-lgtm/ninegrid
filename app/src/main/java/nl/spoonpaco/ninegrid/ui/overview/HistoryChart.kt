@@ -24,7 +24,11 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
 /** Eén lijn: punten met tijd (millis) en waarde. */
-data class Series(val key: String, val label: String, val color: Color, val points: List<Pair<Long, Double>>)
+data class Series(
+    val key: String, val label: String, val color: Color, val points: List<Pair<Long, Double>>,
+    /** Punten tot en met dit tijdstip komen uit de Sheet-historie en krijgen een lichtere tint. */
+    val sheetUntil: Long? = null,
+)
 
 /**
  * Eenvoudige lijngrafiek, zelf getekend. Tik of veeg over de grafiek om de waarden van die dag te zien.
@@ -39,6 +43,8 @@ fun HistoryChart(
     formatY: (Double) -> String,
     axisColor: Color,
     textColor: Color,
+    /** Meer dan dit tussen twee punten (buiten de Sheet-historie) is een gat: stippellijn. 0 = nooit. */
+    gapMs: Long = 0,
     modifier: Modifier = Modifier,
 ) {
     var selected by remember(series, fromDay) { mutableStateOf<Long?>(null) }
@@ -48,7 +54,11 @@ fun HistoryChart(
     }
     fun label(ms: Long) = java.time.Instant.ofEpochMilli(ms).atZone(zone).format(dateFmt)
     val allPoints = series.flatMap { it.points }
-    val maxY = (allPoints.maxOfOrNull { it.second } ?: 1.0).let { if (it <= 0) 1.0 else it * 1.08 }
+    val rawMax = allPoints.maxOfOrNull { it.second } ?: 1.0
+    val rawMin = minOf(0.0, allPoints.minOfOrNull { it.second } ?: 0.0)
+    val maxY = if (rawMax <= 0 && rawMin >= 0) 1.0 else if (rawMax <= 0) 0.0 else rawMax * 1.08
+    val minY = if (rawMin < 0) rawMin * 1.08 else 0.0
+    val rangeY = (maxY - minY).let { if (it <= 0) 1.0 else it }
     val span = (toDay - fromDay).coerceAtLeast(1)
 
     Canvas(
@@ -74,12 +84,13 @@ fun HistoryChart(
         val top = 8.dp.toPx(); val bottom = size.height - 22.dp.toPx()
         val w = right - left; val h = bottom - top
         fun x(day: Long) = left + w * ((day - fromDay).toDouble() / span).toFloat()
-        fun y(v: Double) = bottom - h * (v / maxY).toFloat()
+        fun y(v: Double) = bottom - h * ((v - minY) / rangeY).toFloat()
         val paint = android.graphics.Paint().apply { color = textColor.toArgb(); textSize = 10.dp.toPx(); isAntiAlias = true }
 
         // Hulplijnen met waarden.
+        if (minY < 0) drawLine(axisColor.copy(alpha = 0.6f), Offset(left, y(0.0)), Offset(right, y(0.0)), strokeWidth = 1.5f)
         for (i in 0..3) {
-            val v = maxY * i / 3.0
+            val v = minY + rangeY * i / 3.0
             val yy = y(v)
             drawLine(axisColor.copy(alpha = 0.25f), Offset(left, yy), Offset(right, yy), strokeWidth = 1f)
             paint.textAlign = android.graphics.Paint.Align.RIGHT
@@ -96,9 +107,25 @@ fun HistoryChart(
             if (pts.size == 1) {
                 drawCircle(s.color, 4.dp.toPx(), Offset(x(pts[0].first), y(pts[0].second)))
             } else if (pts.size > 1) {
-                val path = Path()
-                pts.forEachIndexed { i, (d, v) -> if (i == 0) path.moveTo(x(d), y(v)) else path.lineTo(x(d), y(v)) }
-                drawPath(path, s.color, style = Stroke(width = 2.5f.dp.toPx()))
+                // Per stuk tekenen: Sheet-historie lichter, gaten als stippellijn, de rest doorgetrokken.
+                val dash = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(6.dp.toPx(), 5.dp.toPx()))
+                var path = Path(); var kind = -1
+                fun flush() {
+                    if (kind < 0) return
+                    drawPath(path, if (kind == 1) s.color.copy(alpha = 0.4f) else s.color,
+                        style = Stroke(width = 2.5f.dp.toPx(), pathEffect = if (kind == 2) dash else null))
+                }
+                for (i in 1 until pts.size) {
+                    val (d0, v0) = pts[i - 1]; val (d1, v1) = pts[i]
+                    val k = when {
+                        s.sheetUntil != null && d1 <= s.sheetUntil -> 1
+                        gapMs > 0 && d1 - d0 > gapMs -> 2
+                        else -> 0
+                    }
+                    if (k != kind) { flush(); path = Path(); path.moveTo(x(d0), y(v0)); kind = k }
+                    path.lineTo(x(d1), y(v1))
+                }
+                flush()
             }
         }
 

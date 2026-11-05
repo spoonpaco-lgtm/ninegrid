@@ -338,4 +338,34 @@ class ParserTest {
     fun rampRegexFindsManaSymbols() {
         assertTrue(nl.spoonpaco.ninegrid.domain.Role.RAMP in nl.spoonpaco.ninegrid.domain.Suggestions.rolesOf("{T}: Add {G}.", "Creature — Elf Druid"))
     }
+
+    @Test
+    fun suggestionsColorsSplashAndFetchlands() {
+        val S = nl.spoonpaco.ninegrid.domain.Suggestions
+        fun cand(id: Long, name: String, type: String, ci: String, text: String = "", produced: String = "") =
+            nl.spoonpaco.ninegrid.domain.Candidate(id, name, type, text, "", 2.0, ci, "modern=legal", false, null, produced)
+        // Rood-zwart modern deck met één losse blauwe kaart: blauw telt niet als deckkleur.
+        val deck = (1..12).map { card("Rakdos $it", 4, type = "Instant", id = "BR", text = "Destroy target creature.", legal = "modern=legal") } +
+            card("Stray Opt", 1, type = "Instant", id = "U", legal = "modern=legal") +
+            card("Swamp", 10, type = "Basic Land — Swamp", legal = "modern=legal") +
+            card("Island", 2, type = "Basic Land — Island", legal = "modern=legal")
+        assertEquals(setOf('B', 'R'), S.deckColors(deck))
+        val pool = listOf(
+            cand(1, "Divination", "Sorcery", "U", "Draw two cards."),
+            cand(2, "Tormenting Voice", "Sorcery", "R", "As an additional cost, discard a card. Draw two cards."),
+            cand(3, "Polluted Delta", "Land", "", "{T}, Pay 1 life, Sacrifice Polluted Delta: Search your library for an Island or Swamp card, put it onto the battlefield."),
+            cand(4, "Bloodstained Mire", "Land", "", "{T}, Pay 1 life, Sacrifice Bloodstained Mire: Search your library for a Swamp or Mountain card, put it onto the battlefield."),
+        )
+        val plain = S.suggest(DeckFormat.MODERN, deck, emptyMap(), pool, nl.spoonpaco.ninegrid.domain.DeckRules())
+        assertFalse(plain.adds.any { it.card.name == "Divination" })
+        assertTrue(plain.adds.any { it.card.name == "Tormenting Voice" })
+        assertTrue(plain.lands.any { it.card.name == "Bloodstained Mire" })
+        assertFalse(plain.lands.any { it.card.name == "Polluted Delta" })
+        assertEquals("BR", plain.colors)
+        // Met splash: de Islands maken blauw, dus Counterspell mag.
+        val splash = S.suggest(DeckFormat.MODERN, deck, emptyMap(), pool, nl.spoonpaco.ninegrid.domain.DeckRules(splash = true))
+        assertTrue(splash.adds.any { it.card.name == "Divination" })
+        assertEquals("U", splash.splashColors)
+        assertEquals(setOf('U', 'B'), S.landColors("Land", pool[2].oracleText, "", ""))
+    }
 }

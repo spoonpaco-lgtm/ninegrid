@@ -9,7 +9,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
     entities = [CardPrint::class, Entry::class, Deck::class, ChangeRecord::class, Snapshot::class, Moment::class, PricePoint::class, UndoPart::class],
-    version = 6,
+    version = 7,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -24,8 +24,17 @@ abstract class AppDatabase : RoomDatabase() {
     companion object {
         fun create(context: Context): AppDatabase =
             Room.databaseBuilder(context, AppDatabase::class.java, "ninegrid.db")
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
                 .build()
+
+        /** Versie 7: koersverschil per dagstand, en welke mana een kaart maakt (gevuld bij de volgende prijsupdate). */
+        val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `snapshots` ADD COLUMN `gainEur` REAL")
+                db.execSQL("ALTER TABLE `snapshots` ADD COLUMN `gainUsd` REAL")
+                db.execSQL("ALTER TABLE `prints` ADD COLUMN `producedMana` TEXT NOT NULL DEFAULT ''")
+            }
+        }
 
         /** Versie 6: grote ongedaan-maak-gegevens in stukken, en een index op de prijzenhistorie per dag. */
         val MIGRATION_5_6 = object : Migration(5, 6) {

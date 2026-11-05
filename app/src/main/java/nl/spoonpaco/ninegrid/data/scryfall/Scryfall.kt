@@ -66,6 +66,7 @@ data class SfCard(
     val legalities: Map<String, String> = emptyMap(),
     @SerialName("game_changer") val gameChanger: Boolean = false,
     @SerialName("released_at") val releasedAt: String = "",
+    @SerialName("produced_mana") val producedMana: List<String>? = null,
 ) {
     fun toPrint(): CardPrint {
         val img = imageUris ?: cardFaces?.firstOrNull()?.imageUris
@@ -85,6 +86,7 @@ data class SfCard(
             cmc = cmc,
             colors = sortColors(colors ?: emptyList()),
             colorIdentity = sortColors(colorIdentity),
+            producedMana = sortColors(producedMana.orEmpty().filter { it in listOf("W", "U", "B", "R", "G", "C") }),
             imageSmall = img?.small,
             imageNormal = img?.normal,
             scryfallUri = scryfallUri,

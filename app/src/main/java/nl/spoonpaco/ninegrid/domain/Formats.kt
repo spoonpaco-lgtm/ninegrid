@@ -18,6 +18,7 @@ data class DeckCard(
     val oracleText: String = "",
     val cmc: Double = 0.0,
     val manaCost: String = "",
+    val producedMana: String = "",
 )
 
 enum class IssueLevel { ERROR, WARNING, INFO }
@@ -176,6 +177,7 @@ object Formats {
             section = e.section ?: Section.MAIN,
             typeLine = p?.typeLine ?: "",
             colorIdentity = p?.colorIdentity ?: "",
+            producedMana = p?.producedMana ?: "",
             legalities = p?.legalities ?: "",
             gameChanger = p?.gameChanger ?: false,
             proxy = e.proxy,

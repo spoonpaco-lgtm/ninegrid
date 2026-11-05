@@ -63,11 +63,24 @@ class Repository(
         val entries = db.entries().all().filter { !it.proxy }
         val prints = db.prints().all().associateBy { it.id }
         val decks = db.decks().all()
+        // Koers van vandaag: huidige prijs tegenover de laatst bekende prijs vóór vandaag. Een print zonder
+        // eerdere prijs is vandaag nieuw en telt pas vanaf morgen mee. Gemiste dagen worden zo vanzelf ingehaald.
+        val yesterday = java.time.LocalDate.parse(day).minusDays(1).toString()
+        val prev = db.prices().asOf(yesterday).associateBy { it.printId }
+        fun gain(list: List<Entry>, cur: String) = list.sumOf { e ->
+            val p = prints[e.printId] ?: return@sumOf 0.0
+            val o = prev[e.printId] ?: return@sumOf 0.0
+            val old = p.copy(eur = o.eur, eurFoil = o.eurFoil, usd = o.usd, usdFoil = o.usdFoil, usdEtched = o.usdEtched)
+            nl.spoonpaco.ninegrid.domain.Money.total(e, p, cur) - nl.spoonpaco.ninegrid.domain.Money.total(e, old, cur)
+        }
+        val hasPrev = prev.isNotEmpty()
         fun snap(key: String, label: String, list: List<Entry>) = nl.spoonpaco.ninegrid.data.db.Snapshot(
             day, key, label,
             list.sumOf { nl.spoonpaco.ninegrid.domain.Money.total(it, prints[it.printId], "EUR") },
             list.sumOf { nl.spoonpaco.ninegrid.domain.Money.total(it, prints[it.printId], "USD") },
             list.sumOf { it.quantity },
+            gainEur = if (hasPrev) gain(list, "EUR") else 0.0,
+            gainUsd = if (hasPrev) gain(list, "USD") else 0.0,
         )
         val loose = entries.filter { it.deckId == null }
         val inDecks = entries.filter { it.deckId != null }
@@ -289,28 +302,49 @@ class Repository(
      */
     suspend fun moveEntry(entry: Entry, quantity: Int, toDeckId: Long?, section: String?, binder: String?, page: Int?, slot: Int?, summary: String) {
         db.withTransaction {
-            val before = db.entries().get(entry.id) ?: return@withTransaction
-            val qty = quantity.coerceIn(1, before.quantity)
-            val target = before.copy(
-                id = 0, quantity = qty, deckId = toDeckId,
-                section = if (toDeckId != null) (section ?: nl.spoonpaco.ninegrid.data.db.Section.MAIN) else null,
-                binder = if (toDeckId == null) binder else null,
-                page = if (toDeckId == null) page else null,
-                slot = if (toDeckId == null) slot else null,
-            )
-            val existing = db.entries().all().firstOrNull { sameStack(it, target) }
-            val created = mutableListOf<Long>()
-            val restore = mutableListOf(before)
-            if (existing != null) {
-                restore += existing
-                db.entries().upsert(listOf(existing.copy(quantity = existing.quantity + qty)))
-            } else {
-                created += db.entries().insert(target)
-            }
-            if (qty >= before.quantity) db.entries().deleteIds(listOf(before.id))
-            else db.entries().upsert(listOf(before.copy(quantity = before.quantity - qty)))
-            log(summary, UndoData(restoreEntries = restore, deleteEntryIds = created))
+            val restore = LinkedHashMap<Long, Entry>(); val created = mutableListOf<Long>()
+            moveInto(entry.id, quantity, toDeckId, section, binder, page, slot, restore, created)
+            if (restore.isNotEmpty()) log(summary, UndoData(restoreEntries = restore.values.toList(), deleteEntryIds = created))
         }
+    }
+
+    /** Eén verplaatsing van een reeks; meerdere zijn samen één wijziging (één keer ongedaan maken). */
+    data class Move(val entryId: Long, val quantity: Int, val toDeckId: Long?, val section: String? = null)
+
+    /** Meerdere verplaatsingen als één wijziging, bijvoorbeeld een ruil: kaart erin, kaart eruit. */
+    suspend fun moveMany(moves: List<Move>, summary: String) {
+        db.withTransaction {
+            val restore = LinkedHashMap<Long, Entry>(); val created = mutableListOf<Long>()
+            moves.forEach { m -> moveInto(m.entryId, m.quantity, m.toDeckId, m.section, null, null, null, restore, created) }
+            if (restore.isNotEmpty() || created.isNotEmpty()) log(summary, UndoData(restoreEntries = restore.values.toList(), deleteEntryIds = created))
+        }
+    }
+
+    /** Verplaatst binnen een lopende transactie en onthoudt de eerste stand van alles wat het aanraakt. */
+    private suspend fun moveInto(
+        entryId: Long, quantity: Int, toDeckId: Long?, section: String?, binder: String?, page: Int?, slot: Int?,
+        restore: LinkedHashMap<Long, Entry>, created: MutableList<Long>,
+    ) {
+        val before = db.entries().get(entryId) ?: return
+        val qty = quantity.coerceIn(1, before.quantity)
+        val target = before.copy(
+            id = 0, quantity = qty, deckId = toDeckId,
+            section = if (toDeckId != null) (section ?: nl.spoonpaco.ninegrid.data.db.Section.MAIN) else null,
+            binder = if (toDeckId == null) binder else null,
+            page = if (toDeckId == null) page else null,
+            slot = if (toDeckId == null) slot else null,
+        )
+        fun remember(e: Entry) { if (e.id !in created && e.id !in restore) restore[e.id] = e }
+        remember(before)
+        val existing = db.entries().all().firstOrNull { it.id != before.id && sameStack(it, target) }
+        if (existing != null) {
+            remember(existing)
+            db.entries().upsert(listOf(existing.copy(quantity = existing.quantity + qty)))
+        } else {
+            created += db.entries().insert(target)
+        }
+        if (qty >= before.quantity) db.entries().deleteIds(listOf(before.id))
+        else db.entries().upsert(listOf(before.copy(quantity = before.quantity - qty)))
     }
 
     /** Draait de laatste wijziging terug. Alleen de nieuwste kan, zodat er nooit iets door elkaar raakt. */

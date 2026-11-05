@@ -198,11 +198,21 @@ fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}) {
                 val firstMs = (snaps.minOfOrNull { noon(it.day) } ?: now).coerceAtMost(moments.minOfOrNull { it.ts } ?: now)
                 val days = ranges.firstOrNull { it.first == settings.chartRange }?.second ?: 91L
                 val from = if (days == 0L) firstMs else maxOf(firstMs, now - days * dayMs)
-                val intraday = days in 1..31
+                val byGain = settings.chartMetric == "gain"
+                val intraday = days in 1..31 && !byGain
                 val lines = settings.chartLines.filter { it in available }.ifEmpty { listOf("total") }
                 val byValue = settings.chartMetric != "count"
+                fun isSheet(sn: Snapshot) = sn.label == nl.spoonpaco.ninegrid.data.ImportWorker.SHEET_LABEL || (sn.key == "total" && sn.usd == 0.0 && sn.eur > 0 && sn.gainEur == null)
                 fun pick(eur: Double, usd: Double, count: Int) = if (byValue) (if (cur == "USD") usd else eur) else count.toDouble()
                 val series = lines.mapIndexed { i, key ->
+                    if (byGain) {
+                        // Koers: optellen vanaf €0 op de eerste dag in beeld; alleen dagen waarvan de koers bekend is.
+                        var sum = 0.0
+                        val g = snaps.filter { it.key == key && it.gainEur != null && noon(it.day) >= from }.sortedBy { it.day }
+                        val pts = g.mapIndexed { j, sn -> if (j > 0) sum += (if (cur == "USD") sn.gainUsd else sn.gainEur) ?: 0.0; noon(sn.day) to sum }
+                        return@mapIndexed Series(key, labelOf(key, latestLabel[key]), LINE_COLORS[i % LINE_COLORS.size], pts)
+                    }
+                    val sheetUntil = snaps.filter { it.key == key && isSheet(it) }.maxOfOrNull { noon(it.day) }
                     val daily = snaps.filter { it.key == key }.map { noon(it.day) to pick(it.eur, it.usd, it.count) }
                     val pts = if (intraday) {
                         // Alle momenten van binnen de dag, aangevuld met dagstanden voor dagen zonder momenten (bijv. geïmporteerde historie).
@@ -210,27 +220,34 @@ fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}) {
                         val momentDays = ms.map { java.time.Instant.ofEpochMilli(it.first).atZone(zone).toLocalDate().toString() }.toSet()
                         ms + snaps.filter { it.key == key && it.day !in momentDays }.map { noon(it.day) to pick(it.eur, it.usd, it.count) }
                     } else daily
-                    Series(key, labelOf(key, latestLabel[key]), LINE_COLORS[i % LINE_COLORS.size], pts.filter { it.first >= from }.sortedBy { it.first })
+                    Series(key, labelOf(key, latestLabel[key]), LINE_COLORS[i % LINE_COLORS.size], pts.filter { it.first >= from }.sortedBy { it.first }, sheetUntil)
                 }
                 Panel {
                     Text(stringResource(R.string.chart_title), fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(6.dp))
-                    if (series.all { it.points.size < 2 }) {
+                    if (byGain && series.all { it.points.size < 2 }) {
+                        Text(stringResource(R.string.chart_gain_empty), fontSize = 13.sp, color = extra.subtle, modifier = Modifier.padding(vertical = 8.dp))
+                    } else if (series.all { it.points.size < 2 }) {
                         Text(stringResource(R.string.chart_empty), fontSize = 13.sp, color = extra.subtle, modifier = Modifier.padding(vertical = 8.dp))
                     }
                     HistoryChart(
                         series = series, fromDay = from, toDay = maxOf(now, from + 60_000), showTime = days in 1..7,
-                        formatY = { v -> if (byValue) compactMoney(v, cur) else v.toInt().toString() },
+                        formatY = { v -> if (byGain) (if (v > 0.005) "+" else if (v < -0.005) "−" else "") + compactMoney(kotlin.math.abs(v), cur) else if (byValue) compactMoney(v, cur) else v.toInt().toString() },
+                        gapMs = 36L * 3600 * 1000,
                         axisColor = MaterialTheme.colorScheme.onSurface, textColor = extra.subtle,
                     )
+                    if (byGain) Text(stringResource(R.string.chart_gain_explain), fontSize = 11.sp, color = extra.subtle)
+                    else if (series.any { s -> s.sheetUntil != null && s.points.any { it.first <= s.sheetUntil } })
+                        Text(stringResource(R.string.chart_sheet_note), fontSize = 11.sp, color = extra.subtle)
                     Spacer(Modifier.height(6.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.horizontalScroll(rememberScrollState())) {
                         ranges.forEach { (k, _) ->
                             FilterChip(selected = settings.chartRange == k, onClick = { vm.setChartRange(k) }, label = { Text(rangeLabel(k)) })
                         }
                         Spacer(Modifier.width(6.dp))
-                        FilterChip(selected = byValue, onClick = { vm.setChartMetric("value") }, label = { Text(stringResource(R.string.chart_value)) })
+                        FilterChip(selected = byValue && !byGain, onClick = { vm.setChartMetric("value") }, label = { Text(stringResource(R.string.chart_value)) })
                         FilterChip(selected = !byValue, onClick = { vm.setChartMetric("count") }, label = { Text(stringResource(R.string.chart_cards)) })
+                        FilterChip(selected = byGain, onClick = { vm.setChartMetric("gain") }, label = { Text(stringResource(R.string.chart_gain)) })
                     }
                     // Legenda: tik om een lijn uit te zetten.
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.horizontalScroll(rememberScrollState()), verticalAlignment = Alignment.CenterVertically) {

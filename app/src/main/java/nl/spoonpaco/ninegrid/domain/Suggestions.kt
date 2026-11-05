@@ -13,6 +13,8 @@ data class DeckRules(
     val maxBracket: Int = 0,
     /** Ook kaarten voorstellen die al in een ander deck zitten (niet alleen losse kaarten). */
     val includeOtherDecks: Boolean = false,
+    /** Eén kleur buiten het deck toestaan, als de lands in het deck die kleur al maken (niet bij Commander). */
+    val splash: Boolean = false,
 )
 
 /** Een kaart die je zou kunnen gebruiken, met de reden. */
@@ -28,6 +30,8 @@ data class Candidate(
     val gameChanger: Boolean,
     /** Waar hij nu ligt (collectie of ander deck), voor op het scherm. */
     val where: String? = null,
+    /** Welke mana hij maakt (Scryfall), leeg = onbekend. */
+    val producedMana: String = "",
 )
 
 enum class Role { RAMP, DRAW, REMOVAL, WIPE, COUNTER, PROTECTION, TOKENS, RECURSION }
@@ -43,6 +47,9 @@ data class SuggestionReport(
     /** Hoeveel kaarten het deck per rol heeft tegenover het streefgetal. */
     val roles: Map<Role, Pair<Int, Int>>,
     val tribe: String,
+    /** Met welke kleuren gerekend is (WUBRG-volgorde), en welke er als splash mogen. */
+    val colors: String = "",
+    val splashColors: String = "",
 )
 
 /**
@@ -52,6 +59,46 @@ data class SuggestionReport(
  */
 object Suggestions {
     private val basics = setOf("Plains", "Island", "Swamp", "Mountain", "Forest", "Wastes")
+    private val basicType = mapOf("Plains" to 'W', "Island" to 'U', "Swamp" to 'B', "Mountain" to 'R', "Forest" to 'G')
+    private const val WUBRG = "WUBRG"
+    private val reSymbol = Regex("""\{([wubrg])\}""")
+    private val reFetch = Regex("""search your library for an? (basic )?((plains|island|swamp|mountain|forest)( or |, | and/or |, or )?)+""")
+
+    /**
+     * Welke kleuren een land kan opleveren. Eerst wat Scryfall zegt (produced_mana), anders typeregel en tekst.
+     * Fetchlands zoeken een landtype ("Island or Swamp") en tellen als die kleuren. "Any color" en lands die
+     * "a basic land card" zoeken (Evolving Wilds) passen bij elke kleur: dan alle vijf.
+     */
+    fun landColors(typeLine: String, oracleText: String, producedMana: String, colorIdentity: String): Set<Char> {
+        val t = oracleText.lowercase().replace('\n', ' ')
+        if (t.contains("mana of any color") || t.contains("basic land card") || t.contains("mana of any one color")) return WUBRG.toSet()
+        val out = mutableSetOf<Char>()
+        producedMana.filter { it in WUBRG }.forEach { out += it }
+        basicType.forEach { (k, c) -> if (typeLine.contains(k)) out += c }
+        reFetch.findAll(t).forEach { m -> basicType.forEach { (k, c) -> if (m.value.contains(k.lowercase())) out += c } }
+        if (producedMana.isEmpty()) {
+            t.split('.').filter { it.contains("add ") }.forEach { z -> reSymbol.findAll(z.substringAfter("add ")).forEach { out += it.groupValues[1].uppercase()[0] } }
+            if (out.isEmpty() && typeLine.contains("Land")) colorIdentity.filter { it in WUBRG }.forEach { out += it }
+        }
+        return out
+    }
+
+    /**
+     * Kleuren van het deck. Met een commander: diens kleurenidentiteit. Anders telt een kleur mee als minstens
+     * 10% van de niet-landkaarten (op aantal) die kleur heeft, zodat één losse kaart het deck niet breder maakt.
+     * Bij minder dan 10 niet-landkaarten zegt een percentage weinig: dan alle kleuren die erin zitten.
+     */
+    fun deckColors(deck: List<DeckCard>): Set<Char> {
+        val cmd = deck.filter { it.section == Section.COMMANDER }
+        if (cmd.isNotEmpty()) return cmd.flatMap { it.colorIdentity.toList() }.filter { it in WUBRG }.toSet()
+        val spells = deck.filter { it.section != Section.SIDEBOARD && !it.typeLine.contains("Land") }
+        val n = spells.sumOf { it.quantity }
+        val all = spells.flatMap { it.colorIdentity.toList() }.filter { it in WUBRG }.toSet()
+        if (n < 10) return all
+        return all.filter { c -> spells.filter { c in it.colorIdentity }.sumOf { it.quantity } * 10 >= n }.toSet()
+    }
+
+    private fun order(c: Set<Char>) = WUBRG.filter { it in c }
 
     /** Streefgetallen per rol (Commander tegenover 60 kaarten). */
     private fun targets(commander: Boolean) = if (commander) mapOf(
@@ -128,8 +175,14 @@ object Suggestions {
         val commander = format == DeckFormat.COMMANDER
         val inDeck = deck.filter { it.section != Section.SIDEBOARD }
         val names = inDeck.map { it.name }.toSet()
-        val identity = deck.filter { it.section == Section.COMMANDER }.flatMap { it.colorIdentity.toList() }.toSet()
-            .ifEmpty { inDeck.flatMap { it.colorIdentity.toList() }.toSet() }
+        val identity = deckColors(deck)
+        // Splash: kleuren die de lands in het deck al maken, maar die (nog) geen deckkleur zijn. Niet bij Commander.
+        val splash = if (!rules.splash || commander) emptySet() else
+            inDeck.filter { it.typeLine.contains("Land") }.flatMap { landColors(it.typeLine, it.oracleText, it.producedMana, it.colorIdentity) }.toSet() - identity
+        fun colorsOk(ci: String): Boolean {
+            val extra = ci.filter { it in WUBRG }.toSet() - identity
+            return extra.isEmpty() || (extra.size == 1 && extra.first() in splash)
+        }
         val tribe = rules.tribe.trim()
         val gcInDeck = inDeck.count { it.gameChanger }
 
@@ -146,7 +199,7 @@ object Suggestions {
             if (c.name in basics) return false
             val legal = Formats.legalityOf(c.legalities, format)
             if (format != DeckFormat.CASUAL && legal != null && legal != "legal") return false
-            if (commander && c.colorIdentity.any { it !in identity }) return false
+            if (identity.isNotEmpty() && !colorsOk(c.colorIdentity)) return false
             // Tribal: alleen creatures van het gekozen type (andere kaartsoorten mogen wel).
             if (tribe.isNotEmpty() && isCreature(c.typeLine) && tribe !in subtypes(c.typeLine) && !c.oracleText.contains("all creature types", true)) return false
             if (rules.maxBracket in 1..2 && bracketOf(c) > rules.maxBracket) return false
@@ -205,14 +258,15 @@ object Suggestions {
         val lands = if (basicsInDeck == 0) emptyList() else pool.filter { it.typeLine.contains("Land") && !Formats.isBasicLand(it.typeLine) && allowed(it) }
             .distinctBy { it.name }
             .mapNotNull { c ->
-                val makes = c.colorIdentity.toSet()
-                val any = c.oracleText.contains("mana of any color", true)
-                val fits = any || (makes.size >= 2 && makes.all { it in identity } && makes.count { it in identity } >= 2)
-                if (!fits) null else Suggestion(c, if (any) 2.0 else 1.5 + makes.size * 0.3, listOf("land_fix"))
+                val makes = landColors(c.typeLine, c.oracleText, c.producedMana, c.colorIdentity)
+                val any = makes.size == 5
+                val mine = makes.count { it in identity }
+                val fits = if (any) identity.size >= 2 else mine >= 2 && makes.all { it in identity || it in splash }
+                if (!fits) null else Suggestion(c, if (any) 1.8 else 1.5 + mine * 0.3, listOf("land_fix"))
             }
             .sortedByDescending { it.score }
             .take(8)
 
-        return SuggestionReport(adds, cuts, lands, Role.entries.associateWith { (have[it] ?: 0) to (target[it] ?: 0) }, tribe)
+        return SuggestionReport(adds, cuts, lands, Role.entries.associateWith { (have[it] ?: 0) to (target[it] ?: 0) }, tribe, order(identity), order(splash))
     }
 }

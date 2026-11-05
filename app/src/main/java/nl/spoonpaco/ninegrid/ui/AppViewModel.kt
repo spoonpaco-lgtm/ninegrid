@@ -870,7 +870,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
             }.map { e ->
                 val p = e.print!!
                 nl.spoonpaco.ninegrid.domain.Candidate(e.entry.id, p.name, p.typeLine, p.oracleText, p.manaCost, p.cmc, p.colorIdentity, p.legalities, p.gameChanger,
-                    e.entry.deckId?.let { deckNames[it] })
+                    e.entry.deckId?.let { deckNames[it] }, p.producedMana)
             }
             nl.spoonpaco.ninegrid.domain.Suggestions.suggest(
                 deck.format, Formats.toDeckCards(mine.map { it.entry to it.print }),
@@ -882,30 +882,23 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         suggestionsDeckId = deckId
     }
 
-    /** Een voorgestelde kaart uit je collectie in het deck zetten (verhuist, telt niet dubbel). */
-    fun addSuggestion(entryId: Long, deckId: Long) {
-        val e = entries.value.firstOrNull { it.entry.id == entryId }?.entry ?: return
-        moveEntry(e, 1, deckId, Section.MAIN, null, null, null)
-        viewModelScope.launch { kotlinx.coroutines.delay(400); computeSuggestions(deckId) }
+    /**
+     * Ruil in een deck als één wijziging: [ins] gaan het deck in (main), [outs] gaan terug naar de collectie.
+     * Paren zijn (exemplaar-id, aantal). Eén keer ongedaan maken zet alles terug.
+     */
+    fun swapCards(deckId: Long, ins: List<Pair<Long, Int>>, outs: List<Pair<Long, Int>>) = viewModelScope.launch {
+        if (ins.isEmpty() && outs.isEmpty()) return@launch
+        val all = entries.value.associateBy { it.entry.id }
+        fun names(l: List<Pair<Long, Int>>) = l.groupBy { all[it.first]?.print?.name ?: "?" }.map { (n, v) -> "${v.sumOf { it.second }}× $n" }.joinToString(", ")
+        val deckName = decks.value.firstOrNull { it.id == deckId }?.name ?: ""
+        val text = listOfNotNull(names(ins).takeIf { ins.isNotEmpty() }?.let { "+ $it" }, names(outs).takeIf { outs.isNotEmpty() }?.let { "− $it" }).joinToString("  ")
+        val moves = ins.map { nl.spoonpaco.ninegrid.data.Repository.Move(it.first, it.second, deckId, Section.MAIN) } +
+            outs.map { nl.spoonpaco.ninegrid.data.Repository.Move(it.first, it.second, null) }
+        runCatching { repo.moveMany(moves, str(R.string.log_swap, deckName, text)) }
+            .onSuccess { message = str(R.string.msg_swapped) }
+            .onFailure { message = str(R.string.msg_swap_failed) }
+        snapshot()
+        kotlinx.coroutines.delay(300); computeSuggestions(deckId)
     }
 
-    /** Een land erin, en één basic land van een passende kleur terug naar de collectie. */
-    fun swapLand(entryId: Long, deckId: Long) {
-        val land = entries.value.firstOrNull { it.entry.id == entryId } ?: return
-        val colors = land.print?.colorIdentity.orEmpty().toSet()
-        val basicType = mapOf('W' to "Plains", 'U' to "Island", 'B' to "Swamp", 'R' to "Mountain", 'G' to "Forest")
-        val basic = entries.value.filter { it.entry.deckId == deckId && Formats.isBasicLand(it.print?.typeLine.orEmpty()) }
-            .sortedByDescending { b -> colors.any { c -> b.print?.typeLine.orEmpty().contains(basicType[c] ?: "-") } }
-            .firstOrNull()
-        moveEntry(land.entry, 1, deckId, Section.MAIN, null, null, null)
-        basic?.let { moveEntry(it.entry, 1, null, null, null, null, null) }
-        viewModelScope.launch { kotlinx.coroutines.delay(400); computeSuggestions(deckId) }
-    }
-
-    /** Een kaart uit het deck terug naar de collectie. */
-    fun cutSuggestion(entryId: Long, deckId: Long) {
-        val e = entries.value.firstOrNull { it.entry.id == entryId }?.entry ?: return
-        moveEntry(e, 1, null, null, null, null, null)
-        viewModelScope.launch { kotlinx.coroutines.delay(400); computeSuggestions(deckId) }
-    }
 }

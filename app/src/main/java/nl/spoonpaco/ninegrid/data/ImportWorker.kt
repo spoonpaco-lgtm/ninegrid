@@ -126,7 +126,7 @@ class ImportWorker(context: Context, params: WorkerParameters) : CoroutineWorker
             }
             Deck(name = d.name, format = Formats.suggest(parsed, cards.associate { it.print.name to it.print.typeLine })) to cards
         }
-        val history = data.history.map { h -> nl.spoonpaco.ninegrid.data.db.Snapshot(h.day, "total", "", h.value, 0.0, h.count) }
+        val history = data.history.map { h -> nl.spoonpaco.ninegrid.data.db.Snapshot(h.day, "total", SHEET_LABEL, h.value, 0.0, h.count) }
         val count = collection.sumOf { it.entry.quantity } + decks.sumOf { d -> d.second.sumOf { it.entry.quantity } }
         c.repository.importAll(collection, decks, history, job.replace, applicationContext.getString(R.string.log_imported, count, decks.size))
         runCatching { c.repository.takeSnapshot(); c.repository.recordPrices() }
@@ -178,6 +178,8 @@ class ImportWorker(context: Context, params: WorkerParameters) : CoroutineWorker
         const val CHANNEL = "import"
         const val NOTIF_ID = 4201
         const val EXTRA_OPEN_IMPORT = "open_import"
+        /** Label van dagstanden die uit de Sheet-historie komen. */
+        const val SHEET_LABEL = "sheet"
 
         fun keyOf(c: ImportCard) = c.scryfallId?.let { "id:$it" } ?: "${c.setCode.lowercase()}|${c.number.lowercase()}|${c.name.lowercase()}"
 

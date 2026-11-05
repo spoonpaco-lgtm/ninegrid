@@ -43,6 +43,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -422,56 +425,55 @@ private fun spellbookTagLabel(t: String) = when (t) {
 private fun SuggestionsPanel(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.db.Deck, deckSize: Int) {
     val extra = LocalNgExtra.current
     var rules by remember(deck.id) { mutableStateOf(vm.deckRules(deck.id)) }
+    var editRules by remember { mutableStateOf(false) }
+    var swap by remember { mutableStateOf<SwapRequest?>(null) }
     androidx.compose.runtime.LaunchedEffect(deck.id, deckSize) { vm.computeSuggestions(deck.id) }
     val r = vm.suggestions?.takeIf { vm.suggestionsDeckId == deck.id }
+    val commander = deck.format == DeckFormat.COMMANDER
     Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
-        Text(stringResource(R.string.sugg_rules), fontWeight = FontWeight.Bold)
-        androidx.compose.material3.OutlinedTextField(
-            rules.tribe, { rules = rules.copy(tribe = it.trim().replaceFirstChar { c -> c.uppercase() }) }, singleLine = true,
-            label = { Text(stringResource(R.string.sugg_tribe)) }, placeholder = { Text("Vampire") }, modifier = Modifier.fillMaxWidth(),
-        )
-        if (deck.format == DeckFormat.COMMANDER) {
-            Text(stringResource(R.string.sugg_max_bracket), fontSize = 13.sp, modifier = Modifier.padding(top = 6.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                (0..4).forEach { b ->
-                    androidx.compose.material3.FilterChip(selected = rules.maxBracket == b, onClick = { rules = rules.copy(maxBracket = b) },
-                        label = { Text(if (b == 0) stringResource(R.string.sugg_no_limit) else "$b") })
-                }
-            }
-        }
+        // Regels als één samenvattende regel; aanpassen in een eigen venster.
         Row(verticalAlignment = Alignment.CenterVertically) {
-            androidx.compose.material3.Checkbox(checked = rules.includeOtherDecks, onCheckedChange = { rules = rules.copy(includeOtherDecks = it) })
-            Text(stringResource(R.string.sugg_other_decks), fontSize = 13.sp)
+            Column(Modifier.weight(1f)) {
+                Text(stringResource(R.string.sugg_rules), fontWeight = FontWeight.Bold)
+                Text(rulesSummary(rules, commander), fontSize = 12.sp, color = extra.subtle)
+            }
+            androidx.compose.material3.OutlinedButton(onClick = { editRules = true }) { Text(stringResource(R.string.sugg_rules_button)) }
         }
-        androidx.compose.material3.OutlinedButton(onClick = { vm.setDeckRules(deck.id, rules) }) { Text(stringResource(R.string.sugg_apply)) }
         if (vm.suggestionsFailed && vm.suggestionsDeckId == deck.id) {
-            Text(stringResource(R.string.sugg_failed), fontSize = 13.sp, color = nl.spoonpaco.ninegrid.ui.theme.NgColors.Error, modifier = Modifier.padding(top = 8.dp))
-            androidx.compose.material3.TextButton(onClick = { vm.computeSuggestions(deck.id) }) { Text(stringResource(R.string.sugg_retry)) }
+            Text(stringResource(R.string.sugg_failed), fontSize = 13.sp, color = NgColors.Error, modifier = Modifier.padding(top = 8.dp))
+            TextButton(onClick = { vm.computeSuggestions(deck.id) }) { Text(stringResource(R.string.sugg_retry)) }
             return@Column
         }
         if (r == null) { androidx.compose.material3.LinearProgressIndicator(Modifier.fillMaxWidth().padding(top = 8.dp)); return@Column }
+
+        // Met welke kleuren de app rekent, zodat je ziet waarom iets wel of niet wordt voorgesteld.
+        Text(
+            stringResource(R.string.sugg_colors, colorDots(r.colors).ifEmpty { stringResource(R.string.sugg_colorless) }) +
+                (if (r.splashColors.isNotEmpty()) "  " + stringResource(R.string.sugg_splash_on, colorDots(r.splashColors)) else ""),
+            fontSize = 13.sp, modifier = Modifier.padding(top = 6.dp),
+        )
 
         // Wat het deck per rol heeft tegenover een streefgetal.
         Spacer(Modifier.height(10.dp))
         Text(stringResource(R.string.sugg_roles), fontWeight = FontWeight.Bold)
         r.roles.filter { it.value.second > 0 }.forEach { (role, v) ->
-            Text(roleName(role) + ": ${v.first} / ${v.second}", fontSize = 12.sp, color = if (v.first < v.second) nl.spoonpaco.ninegrid.ui.theme.NgColors.Error else extra.subtle)
+            Text(roleName(role) + ": ${v.first} / ${v.second}", fontSize = 12.sp, color = if (v.first < v.second) NgColors.Error else extra.subtle)
         }
 
         Spacer(Modifier.height(10.dp))
         Text(stringResource(R.string.sugg_adds), fontWeight = FontWeight.Bold)
         if (r.adds.isEmpty()) Text(stringResource(R.string.sugg_none), fontSize = 12.sp, color = extra.subtle)
         r.adds.forEach { s ->
-            SuggestionRow(s.card.name + (s.card.where?.let { " · $it" } ?: ""), s.reasons.map { reasonText(it) }.joinToString(" · "), stringResource(R.string.pick_put_in_deck)) {
-                vm.addSuggestion(s.card.key, deck.id)
+            SuggestionRow(s.card.name + (s.card.where?.let { " · $it" } ?: ""), s.reasons.map { reasonText(it) }.joinToString(" · "), stringResource(R.string.swap_action)) {
+                swap = SwapRequest(inName = s.card.name, outEntryId = r.cuts.firstOrNull()?.entryKey, land = false)
             }
         }
         if (r.lands.isNotEmpty()) {
             Spacer(Modifier.height(10.dp))
             Text(stringResource(R.string.sugg_lands), fontWeight = FontWeight.Bold)
             r.lands.forEach { s ->
-                SuggestionRow(s.card.name + (s.card.where?.let { " · $it" } ?: ""), stringResource(R.string.sugg_land_swap), stringResource(R.string.sugg_swap)) {
-                    vm.swapLand(s.card.key, deck.id)
+                SuggestionRow(s.card.name + (s.card.where?.let { " · $it" } ?: ""), stringResource(R.string.sugg_land_swap), stringResource(R.string.swap_action)) {
+                    swap = SwapRequest(inName = s.card.name, outEntryId = null, land = true)
                 }
             }
         }
@@ -479,11 +481,196 @@ private fun SuggestionsPanel(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.
         Text(stringResource(R.string.sugg_cuts), fontWeight = FontWeight.Bold)
         if (r.cuts.isEmpty()) Text(stringResource(R.string.sugg_none), fontSize = 12.sp, color = extra.subtle)
         r.cuts.forEach { c ->
-            SuggestionRow(c.name, c.reasons.map { reasonText(it) }.joinToString(" · "), stringResource(R.string.sugg_to_collection)) {
-                vm.cutSuggestion(c.entryKey, deck.id)
+            SuggestionRow(c.name, c.reasons.map { reasonText(it) }.joinToString(" · "), stringResource(R.string.swap_action)) {
+                swap = SwapRequest(inName = r.adds.firstOrNull()?.card?.name, outEntryId = c.entryKey, land = false, fromCut = true)
             }
         }
         Text(stringResource(R.string.sugg_note), fontSize = 11.sp, color = extra.subtle, modifier = Modifier.padding(top = 8.dp))
+    }
+
+    if (editRules) RulesDialog(rules, commander, onDismiss = { editRules = false }) { nr ->
+        rules = nr; editRules = false; vm.setDeckRules(deck.id, nr)
+    }
+    swap?.let { req -> SwapDialog(vm, deck, req, r, rules) { swap = null } }
+}
+
+private data class SwapRequest(val inName: String?, val outEntryId: Long?, val land: Boolean, val fromCut: Boolean = false)
+
+private fun colorDots(c: String) = c.map { when (it) { 'W' -> "⚪"; 'U' -> "🔵"; 'B' -> "⚫"; 'R' -> "🔴"; 'G' -> "🟢"; else -> "" } }.joinToString("")
+
+@Composable
+private fun rulesSummary(r: nl.spoonpaco.ninegrid.domain.DeckRules, commander: Boolean): String {
+    val parts = listOfNotNull(
+        r.tribe.takeIf { it.isNotBlank() },
+        if (commander && r.maxBracket > 0) stringResource(R.string.sugg_bracket_short, r.maxBracket) else null,
+        if (!commander && r.splash) stringResource(R.string.sugg_splash_short) else null,
+        if (r.includeOtherDecks) stringResource(R.string.sugg_other_decks_short) else null,
+    )
+    return if (parts.isEmpty()) stringResource(R.string.sugg_rules_none) else parts.joinToString(" · ")
+}
+
+@Composable
+private fun RulesDialog(start: nl.spoonpaco.ninegrid.domain.DeckRules, commander: Boolean, onDismiss: () -> Unit, onApply: (nl.spoonpaco.ninegrid.domain.DeckRules) -> Unit) {
+    var rules by remember { mutableStateOf(start) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.sugg_rules)) },
+        text = {
+            Column {
+                OutlinedTextField(
+                    rules.tribe, { rules = rules.copy(tribe = it.trim().replaceFirstChar { c -> c.uppercase() }) }, singleLine = true,
+                    label = { Text(stringResource(R.string.sugg_tribe)) }, placeholder = { Text("Vampire") }, modifier = Modifier.fillMaxWidth(),
+                )
+                if (commander) {
+                    Text(stringResource(R.string.sugg_max_bracket), fontSize = 13.sp, modifier = Modifier.padding(top = 6.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        (0..4).forEach { b ->
+                            androidx.compose.material3.FilterChip(selected = rules.maxBracket == b, onClick = { rules = rules.copy(maxBracket = b) },
+                                label = { Text(if (b == 0) stringResource(R.string.sugg_no_limit) else "$b") })
+                        }
+                    }
+                } else {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        androidx.compose.material3.Checkbox(checked = rules.splash, onCheckedChange = { rules = rules.copy(splash = it) })
+                        Text(stringResource(R.string.sugg_splash), fontSize = 13.sp)
+                    }
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    androidx.compose.material3.Checkbox(checked = rules.includeOtherDecks, onCheckedChange = { rules = rules.copy(includeOtherDecks = it) })
+                    Text(stringResource(R.string.sugg_other_decks), fontSize = 13.sp)
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = { onApply(rules) }) { Text(stringResource(R.string.sugg_apply)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
+    )
+}
+
+/**
+ * Ruilvenster: links wat erin gaat, rechts wat eruit gaat, met een aantal. Bij een land kies je welk basic land
+ * (en welke print) eruit gaat. De ruil is één wijziging, dus in één keer ongedaan te maken.
+ */
+@Composable
+private fun SwapDialog(
+    vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.db.Deck, req: SwapRequest,
+    report: nl.spoonpaco.ninegrid.domain.SuggestionReport?, rules: nl.spoonpaco.ninegrid.domain.DeckRules, onDismiss: () -> Unit,
+) {
+    val extra = LocalNgExtra.current
+    val all by vm.entries.collectAsState()
+    val settings by vm.settings.collectAsState()
+    val commander = deck.format == DeckFormat.COMMANDER
+    var inName by remember { mutableStateOf(req.inName) }
+    var outId by remember { mutableStateOf(if (req.land) null else req.outEntryId) }
+    var pickedOut by remember { mutableStateOf(!req.land) }
+    var qty by remember { mutableStateOf(1) }
+
+    // Waar de kaart die erin gaat vandaan komt: eerst losse kaarten, dan (als dat mag) andere decks.
+    val sources = all.filter { e ->
+        e.print?.name == inName && !e.entry.proxy && e.entry.deckId != deck.id && (e.entry.deckId == null || rules.includeOtherDecks)
+    }.sortedBy { if (it.entry.deckId == null) 0 else 1 }
+    val available = sources.sumOf { it.entry.quantity }
+    val inPrint = sources.firstOrNull()?.print
+    val inDeck = all.filter { it.entry.deckId == deck.id && it.entry.section != Section.COMMANDER }
+
+    // Wat eruit kan: bij een land de basics (kleuren van het nieuwe land bovenaan), anders de schrappen-lijst en de rest.
+    val outOptions = if (req.land) {
+        val colors = inPrint?.let { nl.spoonpaco.ninegrid.domain.Suggestions.landColors(it.typeLine, it.oracleText, it.producedMana, it.colorIdentity) }.orEmpty()
+        val type = mapOf('W' to "Plains", 'U' to "Island", 'B' to "Swamp", 'R' to "Mountain", 'G' to "Forest")
+        inDeck.filter { Formats.isBasicLand(it.print?.typeLine.orEmpty()) }
+            .sortedWith(compareBy({ b -> if (colors.any { c -> b.print?.typeLine.orEmpty().contains(type[c] ?: "-") }) 0 else 1 }, { it.print?.name }, { -it.entry.quantity }))
+    } else {
+        val cutOrder = report?.cuts?.map { it.name }.orEmpty()
+        inDeck.filter { !it.print?.typeLine.orEmpty().contains("Land") }
+            .sortedWith(compareBy({ e -> cutOrder.indexOf(e.print?.name).let { if (it < 0) Int.MAX_VALUE else it } }, { it.print?.name }))
+    }
+    if (req.land && !pickedOut && outOptions.isNotEmpty()) { outId = outOptions.first().entry.id; pickedOut = true }
+    val out = outOptions.firstOrNull { it.entry.id == outId } ?: inDeck.firstOrNull { it.entry.id == outId }
+
+    // Hoeveel: niet meer dan je hebt, niet meer dan 4 (Commander: 1), en niet meer dan er van de uitgaande kaart in het deck zit.
+    val limit = if (commander) 1 else 4
+    val maxQty = listOfNotNull(
+        if (inName != null) available else null,
+        out?.entry?.quantity,
+        if (inName != null || !req.land) limit else null,
+    ).minOrNull()?.coerceAtLeast(1) ?: 1
+    if (qty > maxQty) qty = maxQty
+    var showAllOut by remember { mutableStateOf(false) }
+    var chooseIn by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.swap_title)) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState())) {
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    SwapSide(stringResource(R.string.swap_in), inName?.let { inPrint } , inName ?: stringResource(R.string.swap_nothing_in), vm, settings, Modifier.weight(1f))
+                    SwapSide(stringResource(R.string.swap_out), out?.print, out?.print?.let { p -> p.name + if (req.land) " · ${p.setCode}" else "" } ?: stringResource(R.string.swap_nothing_out), vm, settings, Modifier.weight(1f))
+                }
+                if (inName != null && available == 0) Text(stringResource(R.string.swap_none_available), fontSize = 12.sp, color = NgColors.Error)
+
+                // Erin kiezen, als je vanuit "Eruit" begon.
+                if (req.fromCut) {
+                    TextButton(onClick = { chooseIn = !chooseIn }) { Text(stringResource(R.string.swap_choose_in)) }
+                    if (chooseIn) {
+                        SwapOption(stringResource(R.string.swap_nothing_in), inName == null) { inName = null; chooseIn = false }
+                        report?.adds.orEmpty().forEach { s -> SwapOption(s.card.name, inName == s.card.name) { inName = s.card.name; chooseIn = false } }
+                    }
+                }
+
+                // Eruit kiezen.
+                Spacer(Modifier.height(6.dp))
+                Text(stringResource(if (req.land) R.string.swap_choose_basic else R.string.swap_choose_out), fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                SwapOption(stringResource(R.string.swap_nothing_out), outId == null) { outId = null }
+                val shown = if (showAllOut || req.land) outOptions else outOptions.take(6)
+                shown.forEach { e ->
+                    val p = e.print
+                    val label = if (req.land) "${p?.name} · ${p?.setCode} ${p?.collectorNumber} · ${e.entry.quantity}×" else "${p?.name} · ${e.entry.quantity}×"
+                    SwapOption(label, outId == e.entry.id) { outId = e.entry.id }
+                }
+                if (!req.land && !showAllOut && outOptions.size > 6) TextButton(onClick = { showAllOut = true }) { Text(stringResource(R.string.swap_more)) }
+
+                // Aantal.
+                if (maxQty > 1) Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 6.dp)) {
+                    Text(stringResource(R.string.swap_qty), modifier = Modifier.weight(1f))
+                    TextButton(onClick = { if (qty > 1) qty-- }) { Text("−") }
+                    Text("$qty", fontWeight = FontWeight.Bold)
+                    TextButton(onClick = { if (qty < maxQty) qty++ }) { Text("+") }
+                }
+                Text(stringResource(R.string.swap_note), fontSize = 11.sp, color = extra.subtle, modifier = Modifier.padding(top = 4.dp))
+            }
+        },
+        confirmButton = {
+            TextButton(
+                enabled = (inName != null && available > 0) || out != null,
+                onClick = {
+                    // Erin: uit één of meer stapels tot het aantal bereikt is.
+                    var left = if (inName != null) qty else 0
+                    val ins = sources.mapNotNull { e -> if (left <= 0) null else minOf(left, e.entry.quantity).also { left -= it }.let { e.entry.id to it } }
+                    val outs = out?.let { listOf(it.entry.id to qty.coerceAtMost(it.entry.quantity)) }.orEmpty()
+                    vm.swapCards(deck.id, ins, outs)
+                    onDismiss()
+                },
+            ) { Text(stringResource(R.string.swap_confirm)) }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
+    )
+}
+
+@Composable
+private fun SwapSide(title: String, print: nl.spoonpaco.ninegrid.data.db.CardPrint?, name: String, vm: AppViewModel, settings: nl.spoonpaco.ninegrid.data.AppSettings, modifier: Modifier) {
+    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(title, fontSize = 12.sp, color = LocalNgExtra.current.subtle)
+        if (print != null) nl.spoonpaco.ninegrid.ui.components.CardThumb(print, vm.images, settings, width = 110)
+        else Box(Modifier.width(110.dp).height(154.dp).background(MaterialTheme.colorScheme.surfaceContainerHigh, RoundedCornerShape(4.dp)))
+        Text(name, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, maxLines = 2)
+    }
+}
+
+@Composable
+private fun SwapOption(label: String, selected: Boolean, onClick: () -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)) {
+        androidx.compose.material3.RadioButton(selected = selected, onClick = onClick)
+        Text(label, fontSize = 13.sp)
     }
 }
 
@@ -494,7 +681,7 @@ private fun SuggestionRow(title: String, why: String, action: String, onClick: (
             Text(title, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
             if (why.isNotBlank()) Text(why, fontSize = 11.sp, color = LocalNgExtra.current.subtle)
         }
-        androidx.compose.material3.TextButton(onClick = onClick) { Text(action) }
+        TextButton(onClick = onClick) { Text(action) }
     }
 }
 
