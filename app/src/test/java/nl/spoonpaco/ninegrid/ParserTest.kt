@@ -423,4 +423,22 @@ class ParserTest {
         assertEquals("2026-11-05", D.date(d, nl.spoonpaco.ninegrid.domain.DateStyle(date = "ymd")))
         assertEquals(java.time.DayOfWeek.SUNDAY, D.weekStart(nl.spoonpaco.ninegrid.domain.DateStyle(weekStart = "sun")))
     }
+
+    /** Alleen in de diagnose-bouw: het echte bulk-bestand van Scryfall inlezen zoals de app dat doet. */
+    @OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
+    @Test
+    fun realBulkParses() {
+        val path = System.getenv("BULK_FILE") ?: return
+        val json = kotlinx.serialization.json.Json { ignoreUnknownKeys = true; coerceInputValues = true }
+        val t0 = System.currentTimeMillis()
+        var n = 0; var digital = 0
+        java.io.File(path).inputStream().buffered(1 shl 16).use { input ->
+            for (c in json.decodeToSequence(input, nl.spoonpaco.ninegrid.data.scryfall.SfCard.serializer(), kotlinx.serialization.json.DecodeSequenceMode.ARRAY_WRAPPED)) {
+                if (c.digital) { digital++; continue }
+                nl.spoonpaco.ninegrid.data.offline.OfflineCard.from(c, 1L); n++
+            }
+        }
+        println("BULK parsed=$n digital=$digital ms=${System.currentTimeMillis() - t0} mem=${(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1048576}MB")
+        assertTrue(n > 50000)
+    }
 }

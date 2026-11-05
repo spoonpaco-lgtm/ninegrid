@@ -1,0 +1,24 @@
+name: Diagnose offline database
+on:
+  push:
+    branches: [diag-bulk]
+jobs:
+  parse:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '17' }
+      - name: Bulk-bestand van Scryfall ophalen
+        run: |
+          UA="NineGrid-diag/1.0 (+https://github.com/spoonpaco-lgtm/ninegrid)"
+          curl -sSf -A "$UA" -H "Accept: application/json" https://api.scryfall.com/bulk-data/default-cards -o meta.json
+          cat meta.json | head -c 800; echo
+          URI=$(python3 -c "import json;print(json.load(open('meta.json'))['download_uri'])")
+          curl -sS -A "$UA" -D headers.txt --compressed "$URI" -o bulk.json
+          cat headers.txt
+          ls -la bulk.json
+      - name: Inlezen zoals de app
+        run: |
+          chmod +x gradlew
+          BULK_FILE=$PWD/bulk.json ./gradlew --no-daemon testReleaseUnitTest --tests '*realBulkParses*' -i 2>&1 | grep -E "BULK|FAIL|Exception|tests completed|BUILD" | head -40
