@@ -75,6 +75,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.geometry.Offset
@@ -771,7 +772,7 @@ private fun SlotFoilOverlay(vm: AppViewModel, topPx: Float, bottomPx: Float, onL
                 val r = ((o.y - g.top) / (g.height / 3f)).toInt().coerceIn(0, 2)
                 return r * 3 + c + 1
             }
-            androidx.compose.foundation.gestures.detectTapGestures(
+            detectTapGestures(
                 onTap = { o -> slotAt(o)?.let { vm.toggleSlotFoil(it) } },
                 onLongPress = { o -> if (slotAt(o) != null) onLong() },
             )
