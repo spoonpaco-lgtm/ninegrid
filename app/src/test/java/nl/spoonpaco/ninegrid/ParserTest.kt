@@ -444,8 +444,12 @@ class ParserTest {
 
     @Test
     fun testWorkbookImports() {
-        val f = javaClass.classLoader!!.getResourceAsStream("NineGrid-testcollectie.xlsx") ?: return
-        val d = nl.spoonpaco.ninegrid.domain.SheetImport.read("NineGrid-testcollectie.xlsx", f)
+        // De tabbladen van het testbestand als CSV (de xlsx-lezer gebruikt Android en draait hier niet).
+        val dir = java.io.File(javaClass.classLoader!!.getResource("testsheets")?.toURI() ?: return)
+        val sheets = dir.listFiles()!!.sortedBy { it.name }.map { f ->
+            f.name.substringAfter('-').removeSuffix(".csv") to nl.spoonpaco.ninegrid.domain.SheetImport.parseCsv(f.readText())
+        }
+        val d = nl.spoonpaco.ninegrid.domain.SheetImport.interpret(sheets)
         println("TESTFILE format=${d.format} collection=${d.collection.size} decks=${d.decks.map { it.name + ":" + it.cards.size }} history=${d.history.size} " +
             "fr=${d.collection.count { it.language == "FR" }} proxy=${d.collection.count { it.proxy }} foil=${d.collection.count { it.foil }}")
         assertEquals(18, d.collection.size)
