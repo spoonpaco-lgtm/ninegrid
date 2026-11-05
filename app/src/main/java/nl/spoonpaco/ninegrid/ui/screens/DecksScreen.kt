@@ -104,37 +104,77 @@ fun DecksScreen(vm: AppViewModel, onDeck: (Long) -> Unit, onNewDeck: () -> Unit)
             EmptyState(stringResource(R.string.empty_decks_title), stringResource(R.string.empty_decks_body), Modifier.padding(pad))
             return@Scaffold
         }
-        LazyColumn(Modifier.padding(pad), contentPadding = PaddingValues(bottom = 96.dp)) {
-            items(decks, key = { it.id }) { d ->
+        var query by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf("") }
+        val sort = settings.decksSort
+        // Per deck één keer uitrekenen: kaarten, controle en waarde.
+        data class DeckLine(val d: nl.spoonpaco.ninegrid.data.db.Deck, val count: Int, val value: Double, val check: nl.spoonpaco.ninegrid.domain.DeckCheck)
+        val rows = remember(decks, all, settings.currency) {
+            decks.map { d ->
                 val list = all.filter { it.entry.deckId == d.id }
-                val check = Formats.check(d.format, Formats.toDeckCards(list.map { it.entry to it.print }))
-                val value = list.sumOf { Money.total(it.entry, it.print, settings.currency) }
-                Card(
-                    onClick = { onDeck(d.id) },
-                    colors = CardDefaults.cardColors(containerColor = extra.cardSurface),
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
-                ) {
-                    Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f)) {
-                            Text(d.name, fontWeight = FontWeight.Bold)
-                            Text(
-                                listOfNotNull(
-                                    formatLabel(d.format),
-                                    list.sumOf { it.entry.quantity }.let { n -> pluralStringResource(R.plurals.n_cards, n, n) },
-                                    check.bracketHint?.let { stringResource(R.string.bracket_short, it) },
-                                ).joinToString(" · "),
-                                fontSize = 12.sp, color = extra.subtle,
-                            )
+                DeckLine(d, list.filter { !it.entry.proxy }.sumOf { it.entry.quantity }, list.sumOf { Money.total(it.entry, it.print, settings.currency) },
+                    Formats.check(d.format, Formats.toDeckCards(list.map { it.entry to it.print })))
+            }
+        }
+        val shown = rows.filter { query.isBlank() || it.d.name.contains(query.trim(), true) }.let { l ->
+            when (sort) {
+                "name" -> l.sortedBy { it.d.name.lowercase() }
+                "count" -> l.sortedByDescending { it.count }
+                "updated" -> l.sortedByDescending { it.d.updatedAt }
+                else -> l.sortedByDescending { it.value }
+            }
+        }
+        // Standaard (sortering "Per format", geen zoekterm): per format met een kopje.
+        val grouped = sort == "format" && query.isBlank()
+        Column(Modifier.padding(pad)) {
+            Spacer(Modifier.height(6.dp))
+            nl.spoonpaco.ninegrid.ui.components.FilterSearchBar(
+                query = query, onQuery = { query = it }, placeholder = stringResource(R.string.decks_search),
+                filter = nl.spoonpaco.ninegrid.ui.components.CardFilter(), onFilter = {}, groups = emptySet(),
+                sortOptions = listOf("format" to stringResource(R.string.sort_per_format), "value" to stringResource(R.string.sort_value),
+                    "name" to stringResource(R.string.sort_name), "count" to stringResource(R.string.sort_count), "updated" to stringResource(R.string.sort_updated)),
+                sort = sort, onSort = { vm.setDecksSort(it) },
+            )
+            LazyColumn(contentPadding = PaddingValues(bottom = 96.dp)) {
+                if (grouped) {
+                    shown.groupBy { it.d.format }.toList().sortedByDescending { (_, l) -> l.sumOf { it.value } }.forEach { (f, l) ->
+                        item(key = "h_$f") {
+                            Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 4.dp)) {
+                                Text(formatLabel(f), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, modifier = Modifier.weight(1f))
+                                Text(pluralStringResource(R.plurals.n_decks, l.size, l.size) + " · " + Money.format(l.sumOf { it.value }, settings.currency), fontSize = 12.sp, color = extra.subtle)
+                            }
                         }
-                        if (check.issues.any { it.level == IssueLevel.ERROR }) Icon(Icons.Filled.Warning, null, tint = NgColors.Error)
-                        Spacer(Modifier.width(8.dp))
-                        ManaPips(check.colorIdentity, size = 16)
-                        Spacer(Modifier.width(10.dp))
-                        Text(Money.format(value, settings.currency), color = extra.price, fontWeight = FontWeight.Bold)
+                        items(l, key = { it.d.id }) { r -> DeckRowCard(r.d, r.count, r.value, r.check, settings.currency) { onDeck(r.d.id) } }
                     }
+                } else {
+                    items(shown, key = { it.d.id }) { r -> DeckRowCard(r.d, r.count, r.value, r.check, settings.currency) { onDeck(r.d.id) } }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun DeckRowCard(d: nl.spoonpaco.ninegrid.data.db.Deck, count: Int, value: Double, check: nl.spoonpaco.ninegrid.domain.DeckCheck, currency: String, onClick: () -> Unit) {
+    val extra = LocalNgExtra.current
+    Card(
+        onClick = onClick,
+        colors = CardDefaults.cardColors(containerColor = extra.cardSurface),
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
+    ) {
+        Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(d.name, fontWeight = FontWeight.Bold)
+                Text(
+                    listOfNotNull(formatLabel(d.format), pluralStringResource(R.plurals.n_cards, count, count), check.bracketHint?.let { stringResource(R.string.bracket_short, it) }).joinToString(" · "),
+                    fontSize = 12.sp, color = extra.subtle,
+                )
+            }
+            if (check.issues.any { it.level == IssueLevel.ERROR }) Icon(Icons.Filled.Warning, null, tint = NgColors.Error)
+            Spacer(Modifier.width(8.dp))
+            ManaPips(check.colorIdentity, size = 16)
+            Spacer(Modifier.width(10.dp))
+            Text(Money.format(value, currency), color = extra.price, fontWeight = FontWeight.Bold)
         }
     }
 }

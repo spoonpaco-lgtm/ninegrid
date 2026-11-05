@@ -507,7 +507,6 @@
     <string name="offline_offer_no_import">Import now without it</string>
     <string name="scan_set_auto">Set: auto</string>
     <string name="scan_foil_slots_hint">or tap single slots</string>
-    <string name="scan_foil_tip">Tip: tap a slot to mark that card as foil ✦. Long press to review.</string>
     <string name="date_time">Date and time</string>
     <string name="time_format">Time</string>
     <string name="date_format">Date</string>
@@ -540,4 +539,29 @@
     <string name="offline_mobile_auto">Also update automatically over mobile data</string>
     <string name="offline_mobile_confirm">You are on mobile data. Download the card database now? File size according to Scryfall: about %1$d MB (sent compressed, so less).</string>
     <string name="offline_mobile_yes">Download now</string>
+    <string name="offline_running_pct">Downloading and reading: %1$d%% · %2$d cards</string>
+    <string name="offline_waiting_net">Waiting for a connection to download.</string>
+    <string name="import_wrong_number_title">Number did not match, found by name</string>
+    <string name="import_wrong_number_hint">Set and number in your file belong to another card. NineGrid used the name instead; correct the number in your file if you like.</string>
+    <string name="scan_foil_slots_hint2">or tap the slots at the bottom</string>
+    <string name="scan_foil_big_title">Foils on this page</string>
+    <string name="scan_foil_big_hint">Tap a slot for foil ✦. Long press to review.</string>
+    <string name="scan_foil_tip">Tip: tap the small grid at the bottom to mark foils per slot ✦.</string>
+    <string name="img_wifi_only">Wi-Fi only</string>
+    <string name="img_offline">Offline</string>
+    <string name="img_missing">No image at Scryfall</string>
+    <string name="img_failed">Could not load</string>
+    <string name="img_load_anyway">Load anyway</string>
+    <string name="img_retry">Try again</string>
+    <string name="decks_search">Search deck</string>
+    <string name="sort_per_format">Per format</string>
+    <string name="sort_updated">Last changed</string>
+    <string name="decks_title_short">Decks</string>
+    <string name="completionist">Completionist</string>
+    <string name="completionist_explain">Completeness only counts cards in your binders, not in decks.</string>
+    <string name="in_deck_label">in deck %1$s</string>
+    <plurals name="n_decks">
+        <item quantity="one">%d deck</item>
+        <item quantity="other">%d decks</item>
+    </plurals>
 </resources>

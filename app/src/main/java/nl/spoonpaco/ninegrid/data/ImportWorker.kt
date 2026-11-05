@@ -41,11 +41,20 @@ data class ImportJob(val data: ImportData, val replace: Boolean, val asDeck: Str
 
 /** Voortgang, na elke ronde bewaard, zodat een import na een herstart verder kan. */
 @Serializable
-data class ImportProgress(val found: Map<String, CardPrint> = emptyMap(), val attempted: Map<String, Int> = emptyMap())
+data class ImportProgress(
+    val found: Map<String, CardPrint> = emptyMap(),
+    val attempted: Map<String, Int> = emptyMap(),
+    /** Set en nummer gaven een andere kaart dan de naam in het bestand. */
+    val wrongNumber: Set<String> = emptySet(),
+)
 
 /** Uitkomst, voor het scherm Importeren. */
 @Serializable
-data class ImportOutcome(val cards: Int, val decks: Int, val notFound: List<ImportCard>, val failed: String? = null)
+data class ImportOutcome(
+    val cards: Int, val decks: Int, val notFound: List<ImportCard>, val failed: String? = null,
+    /** Nummer klopte niet bij de naam; op naam gevonden. */
+    val wrongNumber: List<ImportCard> = emptyList(),
+)
 
 /**
  * Importeert op de achtergrond, met een melding in de meldingenbalk. Zoekt in rondes van 75 kaarten:
@@ -88,8 +97,18 @@ class ImportWorker(context: Context, params: WorkerParameters) : CoroutineWorker
                     val queries = chunk.map { queryFor(byKey.getValue(it), pass)!! }
                     val res = c.scryfall.collection(queries)
                     val found = progress.found.toMutableMap(); val att = progress.attempted.toMutableMap()
-                    chunk.forEachIndexed { i, k -> res[i]?.let { found[k] = it.toPrint() }; att[k] = pass }
-                    progress = ImportProgress(found, att)
+                    val wrong = progress.wrongNumber.toMutableSet()
+                    chunk.forEachIndexed { i, k ->
+                        res[i]?.let { card ->
+                            val src = byKey.getValue(k)
+                            // Ronde 1 op set en nummer: past de naam uit het bestand bij die kaart? Anders niet overnemen
+                            // en verder zoeken op naam (ronde 2 en 3).
+                            if (pass == 1 && src.scryfallId == null && !nameFits(src, card.name)) wrong += k
+                            else found[k] = card.toPrint()
+                        }
+                        att[k] = pass
+                    }
+                    progress = ImportProgress(found, att, wrong)
                     runCatching { progressFile.writeText(json.encodeToString(ImportProgress.serializer(), progress)) }
                     setProgress(workDataOf("done" to progress.found.size, "total" to keys.size, "pass" to pass))
                     runCatching { setForeground(info(progress.found.size, keys.size, pass)) }
@@ -131,7 +150,8 @@ class ImportWorker(context: Context, params: WorkerParameters) : CoroutineWorker
         c.repository.importAll(collection, decks, history, job.replace, applicationContext.getString(R.string.log_imported, count, decks.size))
         runCatching { c.repository.takeSnapshot(); c.repository.recordPrices() }
         c.images.prefetch(c.repository.allPrintsOwned(), c.settings.current())
-        writeOutcome(ImportOutcome(count, decks.size, notFound))
+        val wrongNumber = all.filter { keyOf(it) in progress.wrongNumber && keyOf(it) in progress.found }.distinctBy { keyOf(it) }
+        writeOutcome(ImportOutcome(count, decks.size, notFound, wrongNumber = wrongNumber))
         jobFile.delete(); progressFile.delete()
         notifyDone(applicationContext.getString(R.string.import_done, count, decks.size, notFound.sumOf { it.quantity }))
         return Result.success()
@@ -180,6 +200,20 @@ class ImportWorker(context: Context, params: WorkerParameters) : CoroutineWorker
         const val EXTRA_OPEN_IMPORT = "open_import"
         /** Label van dagstanden die uit de Sheet-historie komen. */
         const val SHEET_LABEL = "sheet"
+
+        /**
+         * Past de naam uit het bestand bij de gevonden kaart? Een taalcode erachter ("Lightning Bolt (FR)") telt niet mee,
+         * de voorkant van een dubbelzijdige kaart is genoeg. Geen naam of een niet-Engelse kaart: niets te vergelijken.
+         */
+        fun nameFits(c: ImportCard, real: String): Boolean {
+            val lang = c.language.trim().uppercase()
+            if (c.name.isBlank() || (lang.isNotEmpty() && lang !in setOf("EN", "ENGLISH", "E"))) return true
+            fun norm(x: String) = x.lowercase().replace(Regex("""\s*\([a-z]{2}\)\s*$"""), "").filter { it.isLetterOrDigit() }
+            val a = norm(c.name)
+            val full = norm(real); val front = norm(real.substringBefore(" // "))
+            val fileFront = norm(c.name.substringBefore(" // ").substringBefore(" / "))
+            return a == full || a == front || fileFront == front
+        }
 
         fun keyOf(c: ImportCard) = c.scryfallId?.let { "id:$it" } ?: "${c.setCode.lowercase()}|${c.number.lowercase()}|${c.name.lowercase()}"
 

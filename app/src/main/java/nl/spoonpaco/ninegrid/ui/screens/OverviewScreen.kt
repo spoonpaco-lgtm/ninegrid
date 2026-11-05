@@ -90,7 +90,7 @@ private const val MAX_LINES = 6
 /** Zoals het tabblad Overzicht in de Sheet, plus het totaal bovenaan, de grafiek en waarde per rarity. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}, onSets: () -> Unit = {}) {
+fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}, onSets: () -> Unit = {}, onDecks: () -> Unit = {}) {
     val all by vm.entries.collectAsState()
     val decks by vm.decks.collectAsState()
     val settings by vm.settings.collectAsState()
@@ -341,8 +341,21 @@ fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}, onSets: () ->
                 }
             }
             item { SectionTitle(stringResource(R.string.decks)) }
-            items(deckRows, key = { "d_" + it.first + it.second.total }) { (k, c) -> TwoLineRow(k, c, cur) }
-            item { TwoLineRow(labelDecks, deckTotal, cur, bold = true) }
+            // Decks: één regel, net als de sets; tik opent het tabblad Decks.
+            item {
+                Row(Modifier.fillMaxWidth().clickable(onClick = onDecks).padding(horizontal = 16.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text(stringResource(R.string.decks), fontWeight = FontWeight.Bold)
+                        Text(
+                            androidx.compose.ui.res.pluralStringResource(R.plurals.n_decks, deckRows.size, deckRows.size) + " · " +
+                                androidx.compose.ui.res.pluralStringResource(R.plurals.n_cards, deckTotal.total, deckTotal.total),
+                            fontSize = 12.sp, color = extra.subtle,
+                        )
+                    }
+                    Text(Money.format(deckTotal.value, cur), fontWeight = FontWeight.Bold, color = extra.price)
+                    Text("  ›", fontWeight = FontWeight.Bold)
+                }
+            }
             item {
                 HorizontalDivider(Modifier.padding(top = 8.dp))
                 TwoLineRow(stringResource(R.string.total_collection), grand, cur, bold = true, highlight = true)

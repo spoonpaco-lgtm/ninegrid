@@ -36,6 +36,7 @@ object Guide {
                 "Tik op Importeren. Dit loopt op de achtergrond, met een melding in je meldingenbalk: je kunt de app intussen gebruiken of sluiten. Vraagt Scryfall om pauze, dan wacht de app en gaat daarna vanzelf verder. Herstart de telefoon, dan gaat de import verder waar hij was.",
                 "Als hij klaar is, krijg je een melding. Tik erop voor het resultaat.",
                 "Kaarten die niet gevonden zijn, kopieer je als lijst en voeg je later toe via Lijst plakken.",
+                "Hoort een nummer in je bestand bij een andere kaart dan de naam, dan neemt NineGrid de naam. Die regels zie je na afloop onder Nummer klopte niet, zodat je ze in je bestand kunt verbeteren.",
             )),
             P("Settabbladen en Losse kaarten gaan naar je collectie, het tabblad Decks wordt per deck overgezet met Commander, Deck en Sideboard. Foil, etched, taal, aantal en proxy gaan mee. Uit Historie komt de lijn van de grafiek. Het tabblad Overzicht wordt overgeslagen."),
             Tip("De hele import is één wijziging: via Meer → Wijzigingslog maak je hem in één keer ongedaan."),
@@ -46,7 +47,7 @@ object Guide {
             Steps(listOf(
                 "Tik onderaan op Scannen. Het camerabeeld vult het hele scherm; met de pijl linksboven ga je terug. De eerste keer vraagt de app toestemming voor de camera.",
                 "Tik bovenaan op Set om de setcode in te vullen, bijvoorbeeld MH1. Komen alle kaarten uit één set, doe dat dan: de setcode is het kleinste tekstje op de kaart en dit maakt het herkennen veel betrouwbaarder. De app onthoudt de set voor de volgende keer; staat hij oranje, dan is hij ingevuld. Gemengd blad? Laat het leeg. Map en Blad zijn voor als je wilt bijhouden waar de kaarten liggen; het bladnummer telt na elke scan door.",
-                "Kies onderaan Blad (9 kaarten) of 1 kaart. Zet Foil (blad) aan als het hele blad foil is; na de foto kun je ook op een los vak tikken om alleen die kaart foil te maken (gouden rand en ✦). Lang drukken op een vak opent het controlescherm. Leg het blad plat en houd de telefoon er recht boven, zodat het blad tussen de oranje hoekjes valt en elk kruisje ongeveer midden op een kaart staat. Alleen wat binnen het kader staat telt mee. Tik op het beeld om scherp te stellen; de zaklampknop rechtsonder helpt bij weinig licht.",
+                "Kies onderaan Blad (9 kaarten) of 1 kaart. Zet Foil (blad) aan als het hele blad foil is; na de foto staat onderaan een klein raster van het blad: tik erop, en tik in het grote raster op een vak om alleen die kaart foil te maken (gouden rand en ✦). Lang drukken op een vak opent het controlescherm. Het camerabeeld blijft vrij om scherp te stellen. Leg het blad plat en houd de telefoon er recht boven, zodat het blad tussen de oranje hoekjes valt en elk kruisje ongeveer midden op een kaart staat. Alleen wat binnen het kader staat telt mee. Tik op het beeld om scherp te stellen; de zaklampknop rechtsonder helpt bij weinig licht.",
                 "Tik op de grote oranje knop. De camera stelt eerst scherp en de app leest dan per kaart de naam bovenaan en de set en het nummer onderaan. Is de foto onscherp of het blad te klein in beeld, dan krijg je een melding met Opnieuw of Toch bekijken.",
                 "Een korte flits en tril laten zien dat de foto genomen is; linksonder verschijnt hij als klein plaatje (tik om hem groot te zien). Zolang de app leest en opzoekt, draait er een ring om de knop.",
                 "Je blijft in de camera. Het kader wordt groen als alles gevonden is: tik op Opslaan en scan meteen het volgende blad. Oranje betekent twijfel: tik op Bekijken. Daaronder zie je hoe lang de herkenning duurde (uit te zetten in Instellingen).",
@@ -103,7 +104,8 @@ object Guide {
         Chapter("collection", "Je collectie", "Zoeken, filteren, het kaartscherm en plekken.", listOf(
             Steps(listOf(
                 "Zoek bovenaan op naam. Met de knop Filter (het cijfer = hoeveel er aan staan) kies je rarity, kleur, kaarttype, foil, Ook in decks en Ook regeltekst; per groep mag je meer kiezen, bijvoorbeeld Rare en Mythic.",
-                "Wat aan staat zie je onder de zoekbalk; tik op het kruisje om het uit te zetten, of op Wis filters. Filters en sortering blijven bewaard. Met de sorteerknop kies je set, prijs of naam.",
+                "Wat aan staat zie je onder de zoekbalk; tik op het kruisje om het uit te zetten, of op Wis filters. Filters en sortering blijven bewaard. De trechter is filteren, de pijltjes zijn sorteren (set, prijs of naam).",
+                "Geen plaatje? Een klein teken zegt waarom: alleen via wifi, offline, of geen plaatje bij Scryfall. Op de kaartpagina staat de reden voluit, met Nu toch laden als het alleen aan wifi ligt.",
                 "Sorteer op prijs of naam. De kaarten staan gegroepeerd per set.",
             )),
             H("Het kaartscherm"),
@@ -145,6 +147,7 @@ object Guide {
             P("De app noemt het minstens bracket X en laat zien waarom: Game Changers, massale landvernietiging, extra beurten en tutors uit de regeltekst."),
             Note("De bracket is een inschatting. Combo's telt de app pas mee als je ze hebt laten zoeken: overleg ook met je tafel."),
             H("Statistieken"),
+            P("Op het tabblad Decks staan je decks standaard per format, met een kopje. Met de pijltjes kies je een andere volgorde: waarde, naam, aantal kaarten of laatst gewijzigd; dan wordt het één lijst. Ook zoeken op naam kan."),
             P("Bovenaan staat bij Commander de commander met zijn kleuren, en één regel met format, aantal kaarten, waarde, bracket en of het deck legaal is. Tik erop voor de details; bij een probleem staat hij vanzelf open. Een deck heeft vier tabbladen: Kaarten, Statistieken, Combo's en Suggesties. Tik op Statistieken voor de manacurve, de kleuren in de kosten tegenover de lands die ze maken, en de kans op 2, 3 of 4 lands in je openingshand."),
             H("Suggesties"),
             Steps(listOf(
@@ -173,7 +176,7 @@ object Guide {
             H("Winner of the Week"),
             P("Elke maandag kiest de app één kaart: die met de grootste stijging in de afgelopen week, in geld over de exemplaren die je hebt. Vier stuks die €2 stijgen (€8) winnen dus van één die €6 stijgt. Is er niets gestegen, dan staat het blok er niet."),
             H("Sets"),
-            P("Tik op Sets voor alle sets onder elkaar. Sorteer op waarde, naam, verschijningsdatum of aantal, of zoek op naam of code. Per set zie je de waarde, een balkje met de rarity (tik erop voor de getallen) en hoe compleet je bent: hoeveel van de gewone kaartnummers je hebt, ook in decks."),
+            P("Tik op Sets voor alle sets onder elkaar. Sorteer op waarde, naam, verschijningsdatum of aantal, of zoek op naam of code. Per set zie je de waarde, een balkje met de rarity (tik erop voor de getallen) en hoe compleet je bent: hoeveel van de gewone kaartnummers je hebt, ook in decks. Zet Completionist aan om alleen je binders te tellen; een kaart die alleen in een deck zit staat dan bij Ontbreekt, met de naam van het deck."),
             H("De grafiek"),
             Steps(listOf(
                 "Elke dag dat je de app opent, en bij elke prijsupdate, bewaart de app de stand van die dag. De grafiek vult zich dus vanaf de eerste dag dat je deze versie gebruikt.",
@@ -273,6 +276,7 @@ object Guide {
                 "Tap Import. This runs in the background with a notification: you can use or close the app meanwhile. If Scryfall asks for a pause, the app waits and continues by itself. If the phone restarts, the import continues where it was.",
                 "When it is done you get a notification. Tap it for the result.",
                 "Cards that were not found can be copied as a list and added later via Paste list.",
+                "If a number in your file belongs to another card than the name, NineGrid uses the name. Those lines are listed afterwards under Number did not match, so you can correct them in your file.",
             )),
             P("Set tabs and Loose cards go to your collection, the Decks tab is imported per deck with Commander, Deck and Sideboard. Foil, etched, language, quantity and proxy come along. History becomes the chart line. The Overview tab is skipped."),
             Tip("The whole import is one change: undo it in one go via More → Change log."),
@@ -283,7 +287,7 @@ object Guide {
             Steps(listOf(
                 "Tap Scan at the bottom. The camera fills the whole screen; the arrow at the top left takes you back. The first time, the app asks for camera permission.",
                 "Tap Set at the top to enter the set code, for example MH1. If all cards are from one set, do this: the set code is the smallest text on the card and this makes recognition much more reliable. The app remembers the set for next time; when it is orange, it is filled in. Mixed page? Leave it empty. Binder and Page are for tracking where cards are; the page number counts up after each scan.",
-                "Choose Page (9 cards) or 1 card at the bottom. Turn on Foil (page) when the whole page is foil; after the photo you can also tap a single slot to make only that card foil (gold border and ✦). Long press a slot to open the review screen. Lay the page flat and hold the phone straight above it so the page fits between the orange corners and each cross sits roughly in the middle of a card. Only what is inside the frame counts. Tap the image to focus; the torch button at the bottom right helps in low light.",
+                "Choose Page (9 cards) or 1 card at the bottom. Turn on Foil (page) when the whole page is foil; after the photo a small grid of the page appears at the bottom: tap it, then tap a slot in the big grid to make only that card foil (gold border and ✦). Long press a slot to open the review screen. The camera view stays free for focusing. Lay the page flat and hold the phone straight above it so the page fits between the orange corners and each cross sits roughly in the middle of a card. Only what is inside the frame counts. Tap the image to focus; the torch button at the bottom right helps in low light.",
                 "Tap the big orange button. The camera focuses first, then the app reads each card's name at the top and its set and number at the bottom. If the photo is blurry or the page too small, you get a message with Try again or View anyway.",
                 "A short flash and vibration show that the photo was taken; it appears as a small picture at the bottom left (tap to see it large). While the app reads and looks up, a ring spins around the button.",
                 "You stay in the camera. The frame turns green when everything is found: tap Save and scan the next page right away. Orange means doubt: tap Review. Below that you see how long recognition took (can be turned off in Settings).",
@@ -340,7 +344,8 @@ object Guide {
         Chapter("collection", "Your collection", "Searching, filtering, the card screen and locations.", listOf(
             Steps(listOf(
                 "Search by name at the top. The Filter button (the number = how many are on) lets you choose rarity, colour, card type, foil, Include decks and Also rules text; you can pick several per group, for example Rare and Mythic.",
-                "What is on is shown under the search bar; tap the cross to turn it off, or Clear filters. Filters and sorting are remembered. The sort button chooses set, price or name.",
+                "What is on is shown under the search bar; tap the cross to turn it off, or Clear filters. Filters and sorting are remembered. The funnel is filter, the arrows are sort (set, price or name).",
+                "No image? A small mark says why: Wi-Fi only, offline, or no image at Scryfall. The card page spells out the reason, with Load anyway when it is only the Wi-Fi setting.",
                 "Sort by price or name. Cards are grouped by set.",
             )),
             H("The card screen"),
@@ -382,6 +387,7 @@ object Guide {
             P("The app calls it at least bracket X and shows why: Game Changers, mass land denial, extra turns and tutors from the rules text."),
             Note("The bracket is an estimate. Combos only count once you have searched for them: also talk to your table."),
             H("Statistics"),
+            P("The Decks tab groups your decks by format, with a heading. With the arrows you choose another order: value, name, number of cards or last changed; then it becomes one list. You can also search by name."),
             P("At the top, a Commander deck shows its commander with its colours, and one line with format, number of cards, value, bracket and whether the deck is legal. Tap it for the details; with a problem it opens by itself. A deck has four tabs: Cards, Statistics, Combos and Suggestions. Tap Statistics for the mana curve, colours in costs versus the lands that make them, and the chance of 2, 3 or 4 lands in your opening hand."),
             H("Suggestions"),
             Steps(listOf(
@@ -410,7 +416,7 @@ object Guide {
             H("Winner of the Week"),
             P("Every Monday the app picks one card: the biggest rise of the past week, in money over the copies you own. Four copies rising €2 (€8) beat one rising €6. If nothing rose, the block is not shown."),
             H("Sets"),
-            P("Tap Sets for all sets in a list. Sort by value, name, release date or count, or search by name or code. Per set you see the value, a rarity bar (tap it for the numbers) and how complete you are: how many of the regular card numbers you own, decks included."),
+            P("Tap Sets for all sets in a list. Sort by value, name, release date or count, or search by name or code. Per set you see the value, a rarity bar (tap it for the numbers) and how complete you are: how many of the regular card numbers you own, decks included. Turn on Completionist to count only your binders; a card that is only in a deck is then listed as missing, with the deck name."),
             H("The chart"),
             Steps(listOf(
                 "Every day you open the app, and on every price update, the app keeps that day's numbers. So the chart fills up from the first day you use this version.",

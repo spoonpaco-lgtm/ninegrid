@@ -70,6 +70,10 @@ data class AppSettings(
     /** Onthouden filters (JSON) en sortering per scherm. */
     val filters: Map<String, String> = emptyMap(),
     val collectionSort: String = "set",
+    /** Tabblad Decks: format (per format gegroepeerd), value, name, count of updated. */
+    val decksSort: String = "format",
+    /** Completionist: compleetheid van een set telt alleen de losse collectie, niet wat in decks zit. */
+    val completionist: Boolean = false,
 ) {
     val dateStyle get() = nl.spoonpaco.ninegrid.domain.DateStyle(timeFormat, dateFormat, weekStart, showWeekday)
 }
@@ -116,6 +120,8 @@ class SettingsStore(private val context: Context) {
         val weekStart = stringPreferencesKey("week_start")
         val showWeekday = booleanPreferencesKey("show_weekday")
         val collectionSort = stringPreferencesKey("collection_sort")
+        val decksSort = stringPreferencesKey("decks_sort")
+        val completionist = booleanPreferencesKey("completionist")
         val filterScreens = listOf("collection", "pick", "set")
         val filters = filterScreens.associateWith { stringPreferencesKey("filter_$it") }
     }
@@ -160,6 +166,8 @@ class SettingsStore(private val context: Context) {
         showWeekday = this[K.showWeekday] ?: false,
         filters = K.filters.mapNotNull { (k, key) -> this[key]?.let { k to it } }.toMap(),
         collectionSort = this[K.collectionSort] ?: "set",
+        decksSort = this[K.decksSort] ?: "format",
+        completionist = this[K.completionist] ?: false,
     )
 
     suspend fun setTheme(v: String) = context.dataStore.edit { it[K.theme] = v }
@@ -195,6 +203,8 @@ class SettingsStore(private val context: Context) {
     suspend fun setWeekStart(v: String) = context.dataStore.edit { it[K.weekStart] = v }
     suspend fun setShowWeekday(v: Boolean) = context.dataStore.edit { it[K.showWeekday] = v }
     suspend fun setFilter(screen: String, json: String) = context.dataStore.edit { p -> K.filters[screen]?.let { p[it] = json } }
+    suspend fun setDecksSort(v: String) = context.dataStore.edit { it[K.decksSort] = v }
+    suspend fun setCompletionist(v: Boolean) = context.dataStore.edit { it[K.completionist] = v }
     suspend fun setCollectionSort(v: String) = context.dataStore.edit { it[K.collectionSort] = v }
     suspend fun setFoilTipShown() = context.dataStore.edit { it[K.foilTipShown] = true }
     suspend fun setOfflineDbOffered(v: Boolean) = context.dataStore.edit { it[K.offlineDbOffered] = v }

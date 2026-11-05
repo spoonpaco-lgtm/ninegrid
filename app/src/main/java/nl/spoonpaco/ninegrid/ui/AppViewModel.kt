@@ -726,6 +726,8 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     }
     fun setBreakoutAlerts(v: Boolean) = viewModelScope.launch { settingsStore.setBreakoutAlerts(v) }
     fun setFilter(screen: String, f: nl.spoonpaco.ninegrid.ui.components.CardFilter) = viewModelScope.launch { settingsStore.setFilter(screen, f.toJson()) }
+    fun setDecksSort(v: String) = viewModelScope.launch { settingsStore.setDecksSort(v) }
+    fun setCompletionist(v: Boolean) = viewModelScope.launch { settingsStore.setCompletionist(v) }
     fun setCollectionSort(v: String) = viewModelScope.launch { settingsStore.setCollectionSort(v) }
     fun setTimeFormat(v: String) = viewModelScope.launch { settingsStore.setTimeFormat(v) }
     fun setDateFormat(v: String) = viewModelScope.launch { settingsStore.setDateFormat(v) }
@@ -768,6 +770,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     var importData by mutableStateOf<nl.spoonpaco.ninegrid.domain.ImportData?>(null)
     var importProgress by mutableStateOf(0f)
     var importNotFound by mutableStateOf<List<nl.spoonpaco.ninegrid.domain.ImportCard>>(emptyList())
+    var importWrongNumber by mutableStateOf<List<nl.spoonpaco.ninegrid.domain.ImportCard>>(emptyList())
     var importResult by mutableStateOf("")
 
     private var importUri: Uri? = null
@@ -865,6 +868,12 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         private set
     var offlineDbProgress by mutableStateOf(0)
         private set
+    /** Voortgang in procenten (-1 = onbekend). */
+    var offlineDbPct by mutableStateOf(-1)
+        private set
+    /** Klaargezet, maar nog niet begonnen: wacht op wifi (of op het opladen). */
+    var offlineDbWaiting by mutableStateOf(false)
+        private set
     var offlineDbFailed by mutableStateOf(false)
         private set
     var offlineDbInfo by mutableStateOf<nl.spoonpaco.ninegrid.data.offline.BulkInfo?>(null)
@@ -929,8 +938,10 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         val wm = androidx.work.WorkManager.getInstance(getApplication())
         wm.getWorkInfosForUniqueWorkFlow(nl.spoonpaco.ninegrid.data.offline.OfflineDbWorker.NAME).collect { infos ->
             val w = infos.firstOrNull() ?: return@collect
-            offlineDbRunning = w.state == androidx.work.WorkInfo.State.RUNNING || w.state == androidx.work.WorkInfo.State.ENQUEUED
-            offlineDbProgress = w.progress.getInt("count", offlineDbProgress)
+            offlineDbRunning = w.state == androidx.work.WorkInfo.State.RUNNING
+            offlineDbWaiting = w.state == androidx.work.WorkInfo.State.ENQUEUED || w.state == androidx.work.WorkInfo.State.BLOCKED
+            offlineDbProgress = w.progress.getInt("count", if (offlineDbRunning) offlineDbProgress else 0)
+            offlineDbPct = w.progress.getInt("pct", -1)
             offlineDbFailed = w.state == androidx.work.WorkInfo.State.FAILED
             if (w.state.isFinished) {
                 offlineDbBytes = c.offline.sizeBytes()
@@ -955,6 +966,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                     val o = nl.spoonpaco.ninegrid.data.ImportWorker.outcome(getApplication())
                     if (o != null) {
                         importNotFound = o.notFound
+                        importWrongNumber = o.wrongNumber
                         importResult = if (o.failed != null) str(R.string.msg_import_failed) else str(R.string.import_done, o.cards, o.decks, o.notFound.sumOf { it.quantity })
                         importStep = ImportStep.DONE
                     }

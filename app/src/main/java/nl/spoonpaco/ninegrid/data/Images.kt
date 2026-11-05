@@ -46,6 +46,23 @@ class Images(val context: Context) {
         return cm?.isActiveNetworkMetered ?: false
     }
 
+    /** Waarom een plaatje er niet is, in gewone woorden in plaats van een technische fout. */
+    enum class Issue { WIFI_ONLY, OFFLINE, MISSING, FAILED }
+
+    fun issueFor(error: Throwable?, settings: AppSettings): Issue {
+        if (!networkAllowed(settings)) return Issue.WIFI_ONLY
+        val cm = context.getSystemService(ConnectivityManager::class.java)
+        if (cm?.activeNetwork == null) return Issue.OFFLINE
+        return when {
+            error is coil.network.HttpException && error.response.code == 404 -> Issue.MISSING
+            error is java.net.UnknownHostException || error is java.net.SocketTimeoutException -> Issue.OFFLINE
+            else -> Issue.FAILED
+        }
+    }
+
+    /** Eén plaatje toch laden, ook als de instelling "alleen via wifi" het nu tegenhoudt. */
+    fun requestAnyway(url: String?): ImageRequest = ImageRequest.Builder(context).data(url).networkCachePolicy(CachePolicy.ENABLED).build()
+
     /** Mag de app nu afbeeldingen downloaden? */
     fun networkAllowed(settings: AppSettings): Boolean = !(settings.wifiOnly && onMeteredNetwork())
 

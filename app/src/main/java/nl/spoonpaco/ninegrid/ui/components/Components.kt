@@ -20,6 +20,8 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -88,14 +90,46 @@ fun SmallTag(text: String, color: Color = MaterialTheme.colorScheme.onSurfaceVar
 @Composable
 fun CardThumb(print: CardPrint?, images: Images, settings: AppSettings, width: Int = 40) {
     if (settings.imageMode == ImageMode.OFF) return
-    AsyncImage(
-        model = images.request(images.urlFor(print, large = false), settings),
-        imageLoader = images.loader,
-        contentDescription = print?.name,
-        contentScale = ContentScale.Crop,
-        modifier = Modifier.width(width.dp).height((width * 1.4).dp).clip(RoundedCornerShape(4.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainerHigh),
-    )
+    var issue by androidx.compose.runtime.remember(print?.id) { androidx.compose.runtime.mutableStateOf<Images.Issue?>(null) }
+    Box(
+        Modifier.width(width.dp).height((width * 1.4).dp).clip(RoundedCornerShape(4.dp)).background(MaterialTheme.colorScheme.surfaceContainerHigh),
+        contentAlignment = Alignment.Center,
+    ) {
+        AsyncImage(
+            model = images.request(images.urlFor(print, large = false), settings),
+            imageLoader = images.loader,
+            contentDescription = print?.name,
+            contentScale = ContentScale.Crop,
+            onError = { issue = images.issueFor(it.result.throwable, settings) },
+            onSuccess = { issue = null },
+            modifier = Modifier.matchParentSize(),
+        )
+        // Leeg vak? Een klein teken waarom.
+        issue?.let { ImageIssueMark(it, small = width < 80) }
+    }
+}
+
+/** Waarom er geen plaatje is: klein een icoon, groter een korte tekst. */
+@Composable
+fun ImageIssueMark(issue: Images.Issue, small: Boolean) {
+    val icon = when (issue) {
+        Images.Issue.WIFI_ONLY -> androidx.compose.material.icons.Icons.Filled.WifiOff
+        Images.Issue.OFFLINE -> androidx.compose.material.icons.Icons.Filled.CloudOff
+        Images.Issue.MISSING -> androidx.compose.material.icons.Icons.Filled.HideImage
+        Images.Issue.FAILED -> androidx.compose.material.icons.Icons.Filled.BrokenImage
+    }
+    val text = stringResource(when (issue) {
+        Images.Issue.WIFI_ONLY -> R.string.img_wifi_only
+        Images.Issue.OFFLINE -> R.string.img_offline
+        Images.Issue.MISSING -> R.string.img_missing
+        Images.Issue.FAILED -> R.string.img_failed
+    })
+    val tint = MaterialTheme.colorScheme.onSurfaceVariant
+    if (small) androidx.compose.material3.Icon(icon, text, tint = tint, modifier = Modifier.size(16.dp))
+    else Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(6.dp)) {
+        androidx.compose.material3.Icon(icon, null, tint = tint, modifier = Modifier.size(28.dp))
+        Text(text, fontSize = 11.sp, color = tint, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+    }
 }
 
 /** Eén regel in een lijst: rarity-streep, naam, set, manabolletjes en prijs. */

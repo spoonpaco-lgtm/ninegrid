@@ -1,27 +1,21 @@
-NineGrid 0.8.7 – Teferi
+NineGrid 0.8.8 – Karn
 
-Teferi beheerst de tijd. Deze versie gaat over datum en tijd, en over overzicht op je schermen.
+Karn bouwt en repareert. Deze versie zet de offline kaartdatabase weer aan het werk en ruimt verder op.
+
+Offline kaartdatabase
+- Werkt weer: Scryfall levert de kaarten nu als ingepakt bestand van ±81 MB. Getest met het echte bestand (110.861 kaarten).
+- Voortgang in procenten, en "Wacht op wifi" zolang de download nog niet begonnen is.
 
 Scannen
-- Anderstalige kaarten (bijv. MH1 • FR): set en nummer zijn leidend, de taal komt bij de kaart, en met internet wordt de gedrukte naam gecontroleerd. Geen afgekeurde of verkeerde kaarten meer door de Engelse naam.
-- De set is een eigen knop bovenaan en wordt onthouden.
-- Foil per vak: tik na de foto op een vak om alleen die kaart foil te maken; lang drukken = bekijken.
+- Foil per vak via een klein raster van het laatste blad onderaan; tik erop voor een groot raster. Het camerabeeld blijft vrij om scherp te stellen.
 
-Datum en tijd (Meer → Instellingen)
-- 24 of 12 uur, volgorde van de datum, begin van de week en weekdag tonen. Alleen de weergave: opslaan, exports en back-ups blijven 2026-11-05.
+Importeren
+- Past de naam in je bestand niet bij set en nummer, dan zoekt de app op naam. Na afloop zie je welke regels een verkeerd nummer hadden.
 
-Decks
-- Kop met de commander, één samenvattende regel, tik voor de details.
-- Knoppen om kaarten toe te voegen alleen bij Kaarten; kortere uitleg bij de bracket.
-- Statistieken: manacurve klopt ook bij grote letters, kleuren als bolletjes met ⚠ als je lands achterlopen, openingshand in één regel.
-- "1 card" in plaats van "1 cards".
+Collectie, sets en decks
+- Trechter voor filteren, pijltjes voor sorteren; het setscherm gebruikt dezelfde zoekbalk.
+- Decks: één regel in het Overzicht, standaard per format gegroepeerd, sorteren op waarde, naam, aantal of laatst gewijzigd.
+- Completionist: compleetheid telt alleen je binders; kaarten die alleen in een deck zitten staan bij Ontbreekt, met de decknaam.
+- Geen plaatje? Een gewone reden (alleen via wifi, offline, geen plaatje bij Scryfall) in plaats van een technische foutmelding, met Nu toch laden.
 
-Collectie
-- Eén knop Filter met een paneel (meerdere keuzes per groep), actieve filters met een kruisje, aparte sorteerknop. Filters en sortering worden onthouden.
-- Hetzelfde paneel bij Uit collectie kiezen en in de setlijst.
-- De +-knop verdwijnt bij naar beneden scrollen.
-
-Verder
-- Offline kaartdatabase ook via mobiele data (met een vraag vooraf).
-- Scanner en grafiek groeien mee met grote letters.
-- Handleiding bijgewerkt.
+Handleiding bijgewerkt.

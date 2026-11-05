@@ -94,6 +94,8 @@ data class Deck(
     val name: String,
     val format: String = DeckFormat.CASUAL,
     val createdAt: Long = System.currentTimeMillis(),
+    /** Laatste wijziging aan de kaarten van dit deck (vanaf versie 0.8.8; daarvoor = aanmaakdatum). */
+    val updatedAt: Long = createdAt,
 )
 
 /** Eén wijziging, met alles wat nodig is om hem ongedaan te maken. */

@@ -13,9 +13,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Sort
+import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.FilterAlt
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
@@ -122,13 +122,14 @@ fun FilterSearchBar(
                 trailingIcon = { if (query.isNotEmpty()) IconButton(onClick = { onQuery("") }) { Icon(Icons.Filled.Close, null) } },
                 modifier = Modifier.weight(1f),
             )
-            IconButton(onClick = { panel = true }) {
+            // Trechter = filteren, pijltjes = sorteren: zo zijn ze niet te verwarren.
+            if (groups.isNotEmpty()) IconButton(onClick = { panel = true }) {
                 BadgedBox(badge = { if (filter.count > 0) Badge { Text("${filter.count}") } }) {
-                    Icon(Icons.Filled.FilterList, stringResource(R.string.filter))
+                    Icon(Icons.Filled.FilterAlt, stringResource(R.string.filter))
                 }
             }
             if (sortOptions.isNotEmpty()) Column {
-                IconButton(onClick = { sortMenu = true }) { Icon(Icons.AutoMirrored.Filled.Sort, stringResource(R.string.sort)) }
+                IconButton(onClick = { sortMenu = true }) { Icon(Icons.Filled.SwapVert, stringResource(R.string.sort)) }
                 DropdownMenu(expanded = sortMenu, onDismissRequest = { sortMenu = false }) {
                     sortOptions.forEach { (k, l) ->
                         DropdownMenuItem(text = { Text(l, fontWeight = if (k == sort) FontWeight.Bold else FontWeight.Normal) }, onClick = { sortMenu = false; onSort(k) })

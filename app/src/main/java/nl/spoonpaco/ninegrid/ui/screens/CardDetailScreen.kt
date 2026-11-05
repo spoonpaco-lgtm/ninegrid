@@ -99,17 +99,25 @@ fun CardDetailScreen(vm: AppViewModel, printId: String, onBack: () -> Unit) {
         Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
             if (p == null) return@Column
             Row {
-                var imageError by remember(p.id) { mutableStateOf<String?>(null) }
+                var imageIssue by remember(p.id) { mutableStateOf<nl.spoonpaco.ninegrid.data.Images.Issue?>(null) }
+                var anyway by remember(p.id) { mutableStateOf(false) }
                 Box(Modifier.width(150.dp).aspectRatio(0.716f).clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.surfaceContainerHigh), contentAlignment = Alignment.Center) {
                     AsyncImage(
-                        model = vm.images.request(vm.images.urlFor(p, large = true), settings),
+                        model = if (anyway) vm.images.requestAnyway(vm.images.urlFor(p, large = true)) else vm.images.request(vm.images.urlFor(p, large = true), settings),
                         imageLoader = vm.images.loader,
                         contentDescription = p.name,
-                        onError = { imageError = it.result.throwable.let { t -> t::class.simpleName + ": " + (t.message ?: "") }.take(160) },
-                        onSuccess = { imageError = null },
+                        onError = { imageIssue = if (anyway) nl.spoonpaco.ninegrid.data.Images.Issue.FAILED else vm.images.issueFor(it.result.throwable, settings) },
+                        onSuccess = { imageIssue = null },
                         modifier = Modifier.fillMaxSize(),
                     )
-                    imageError?.let { Text(it, fontSize = 10.sp, color = extra.subtle, textAlign = androidx.compose.ui.text.style.TextAlign.Center, modifier = Modifier.padding(6.dp)) }
+                    // Een gewone reden in plaats van een technische fout; bij "alleen via wifi" toch één keer laden.
+                    imageIssue?.let { iss ->
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            nl.spoonpaco.ninegrid.ui.components.ImageIssueMark(iss, small = false)
+                            if (iss == nl.spoonpaco.ninegrid.data.Images.Issue.WIFI_ONLY) TextButton(onClick = { anyway = true; imageIssue = null }) { Text(stringResource(R.string.img_load_anyway), fontSize = 12.sp) }
+                            if (iss == nl.spoonpaco.ninegrid.data.Images.Issue.FAILED) TextButton(onClick = { anyway = !anyway; imageIssue = null }) { Text(stringResource(R.string.img_retry), fontSize = 12.sp) }
+                        }
+                    }
                 }
                 Spacer(Modifier.width(14.dp))
                 Column(Modifier.weight(1f)) {

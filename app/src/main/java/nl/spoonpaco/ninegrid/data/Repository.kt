@@ -112,6 +112,13 @@ class Repository(
     suspend fun entriesAtSlot(binder: String, page: Int, slot: Int) = db.entries().atSlot(binder, page, slot)
 
     private suspend fun log(summary: String, undo: UndoData) {
+        // Elk deck dat deze wijziging raakte: "laatst gewijzigd" bijwerken.
+        runCatching {
+            val touched = (undo.restoreEntries.mapNotNull { it.deckId } +
+                undo.deleteEntryIds.chunked(500).flatMap { db.entries().deckIdsOf(it) } +
+                undo.restoreEntries.map { it.id }.chunked(500).flatMap { db.entries().deckIdsOf(it) }).distinct()
+            if (touched.isNotEmpty()) db.decks().touch(touched, System.currentTimeMillis())
+        }
         val text = json.encodeToString(UndoData.serializer(), undo)
         if (text.length <= PART) {
             db.changes().insert(ChangeRecord(summary = summary, undoJson = text))

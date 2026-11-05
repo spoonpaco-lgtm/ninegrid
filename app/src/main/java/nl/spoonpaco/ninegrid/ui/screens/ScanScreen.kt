@@ -75,6 +75,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
@@ -514,10 +516,6 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
             }
             frozen?.let { androidx.compose.foundation.Image(it, null, Modifier.fillMaxSize(), contentScale = androidx.compose.ui.layout.ContentScale.Crop) }
             GuideOverlay(topBarPx, bottomBarPx, single, frameColor)
-            // Na een blad: tik op een vak = foil aan/uit, lang drukken = bekijken.
-            if (!single && vm.pending.any { it.slot != null } && vm.importSource == nl.spoonpaco.ninegrid.ui.ImportSource.SCAN) {
-                SlotFoilOverlay(vm, topBarPx, bottomBarPx, onLong = onResult)
-            }
         } else {
             Column(Modifier.align(Alignment.Center).padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(stringResource(R.string.camera_needed), textAlign = TextAlign.Center, color = Color.White)
@@ -571,7 +569,7 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
                     label = { Text(stringResource(if (autoPaused) R.string.scan_auto_paused else R.string.scan_auto)) }, colors = colors,
                 )
                 FilterChip(selected = vm.scanFoil, onClick = { vm.setPageFoil(!vm.scanFoil) }, label = { Text(stringResource(if (single) R.string.scan_foil_card else R.string.scan_foil_page)) }, colors = colors)
-                if (!single) Text(stringResource(R.string.scan_foil_slots_hint), color = Color.White.copy(alpha = 0.75f), fontSize = 11.sp)
+                if (!single) Text(stringResource(R.string.scan_foil_slots_hint2), color = Color.White.copy(alpha = 0.75f), fontSize = 11.sp)
             }
             Box(Modifier.fillMaxWidth().heightIn(min = 52.dp).padding(horizontal = 12.dp), contentAlignment = Alignment.Center) {
                 val err = error
@@ -709,6 +707,21 @@ private fun ScanSummaryBar(vm: AppViewModel, sum: AppViewModel.ScanSummary, sing
                 )
             }
         }
+        // Foil per vak: een kleine 3×3 van de laatste foto. Tik = groot, daar per vak foil aan/uit.
+        if (!single && vm.pending.any { it.slot != null }) {
+            var big by remember { mutableStateOf(false) }
+            Box(Modifier.padding(horizontal = 6.dp).clickable { big = true }) { FoilGrid(vm, cellWidth = 14, interactive = false, onLong = {}) }
+            if (big) androidx.compose.ui.window.Dialog(onDismissRequest = { big = false }) {
+                Column(Modifier.background(Color(0xEE111111), RoundedCornerShape(12.dp)).padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(stringResource(R.string.scan_foil_big_title), color = Color.White, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.scan_foil_big_hint), color = Color.White.copy(alpha = 0.75f), fontSize = 12.sp)
+                    Spacer(Modifier.height(8.dp))
+                    FoilGrid(vm, cellWidth = 88, interactive = true, onLong = { big = false; onReview() })
+                    Spacer(Modifier.height(8.dp))
+                    Button(onClick = { big = false }) { Text(stringResource(R.string.done)) }
+                }
+            }
+        }
         if (!sum.busy || single) {
             if (single) {
                 Button(onClick = onReview) { Text(stringResource(R.string.done)) }
@@ -757,37 +770,28 @@ private fun GuideOverlay(topPx: Float, bottomPx: Float, single: Boolean, corner:
 }
 
 /**
- * Over het kader na een blad: per vak een klein, doorzichtig ✦ in de hoek; bij foil een gouden rand en een
- * gouden ✦. Tikken zet foil aan of uit voor dat ene vak, lang drukken opent het controlescherm.
+ * De 9 uitsneden van het laatste blad in een raster. Foil = gouden rand en ✦. Met [interactive]: tik = foil aan/uit,
+ * lang drukken = controlescherm.
  */
 @Composable
-private fun SlotFoilOverlay(vm: AppViewModel, topPx: Float, bottomPx: Float, onLong: () -> Unit) {
-    val foils = vm.pending.filter { it.slot != null }.associate { it.slot!! to (it.finish != nl.spoonpaco.ninegrid.data.db.Finish.NONFOIL) }
-    Canvas(
-        Modifier.fillMaxSize().pointerInput(Unit) {
-            fun slotAt(o: Offset): Int? {
-                val g = guideRect(size.width.toFloat(), size.height.toFloat(), topPx, bottomPx, false)
-                if (o.x < g.left || o.x > g.right || o.y < g.top || o.y > g.bottom) return null
-                val c = ((o.x - g.left) / (g.width / 3f)).toInt().coerceIn(0, 2)
-                val r = ((o.y - g.top) / (g.height / 3f)).toInt().coerceIn(0, 2)
-                return r * 3 + c + 1
+private fun FoilGrid(vm: AppViewModel, cellWidth: Int, interactive: Boolean, onLong: () -> Unit) {
+    val bySlot = vm.pending.filter { it.slot != null }.associateBy { it.slot!! }
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        for (r in 0..2) Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+            for (c in 0..2) {
+                val slot = r * 3 + c + 1
+                val item = bySlot[slot]
+                val foil = item != null && item.finish != nl.spoonpaco.ninegrid.data.db.Finish.NONFOIL
+                val crop = item?.let { vm.crops[it.key] }
+                val mod = Modifier.width(cellWidth.dp).height((cellWidth * 1.4f).dp)
+                    .clip(RoundedCornerShape(2.dp)).background(Color(0x33FFFFFF))
+                    .border(if (foil) (if (interactive) 3.dp else 1.5.dp) else 0.dp, if (foil) NgColors.Amber else Color.Transparent, RoundedCornerShape(2.dp))
+                    .let { m -> if (interactive && item != null) m.pointerInput(slot) { detectTapGestures(onTap = { vm.toggleSlotFoil(slot) }, onLongPress = { onLong() }) } else m }
+                Box(mod, contentAlignment = Alignment.TopEnd) {
+                    if (crop != null) androidx.compose.foundation.Image(crop, null, contentScale = androidx.compose.ui.layout.ContentScale.Crop, modifier = Modifier.matchParentSize())
+                    if (interactive || foil) Text("✦", color = if (foil) NgColors.Amber else Color.White.copy(alpha = 0.4f), fontSize = if (interactive) 16.sp else 7.sp, modifier = Modifier.padding(end = 2.dp))
+                }
             }
-            detectTapGestures(
-                onTap = { o -> slotAt(o)?.let { vm.toggleSlotFoil(it) } },
-                onLongPress = { o -> if (slotAt(o) != null) onLong() },
-            )
-        },
-    ) {
-        val g = guideRect(size.width, size.height, topPx, bottomPx, false)
-        val cw = g.width / 3f; val ch = g.height / 3f
-        val star = android.graphics.Paint().apply { textSize = 18.dp.toPx(); isAntiAlias = true; textAlign = android.graphics.Paint.Align.RIGHT }
-        for (r in 0..2) for (c in 0..2) {
-            val slot = r * 3 + c + 1
-            val x = g.left + cw * c; val y = g.top + ch * r
-            val on = foils[slot] == true
-            if (on) drawRect(NgColors.Amber, Offset(x + 3f, y + 3f), Size(cw - 6f, ch - 6f), style = androidx.compose.ui.graphics.drawscope.Stroke(width = 3.dp.toPx()))
-            star.color = if (on) NgColors.Amber.toArgb() else android.graphics.Color.argb(90, 255, 255, 255)
-            drawContext.canvas.nativeCanvas.drawText("✦", x + cw - 6.dp.toPx(), y + 20.dp.toPx(), star)
         }
     }
 }

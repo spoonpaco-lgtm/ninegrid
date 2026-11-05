@@ -84,10 +84,11 @@ fun SetsScreen(vm: AppViewModel, onBack: () -> Unit, onSet: (String) -> Unit) {
     var query by rememberSaveable { mutableStateOf("") }
     var sort by rememberSaveable { mutableStateOf("value") }
 
-    val rows = remember(all, info, cur) {
+    val rows = remember(all, info, cur, settings.completionist) {
         val loose = all.filter { it.entry.deckId == null && !it.entry.proxy }.groupBy { it.print?.setCode ?: "?" }
         // Compleetheid telt alles wat je hebt, ook in decks; alleen de gewone nummers van de set.
-        val ownedNumbers = all.filter { !it.entry.proxy }.groupBy { it.print?.setCode ?: "?" }
+        // Completionist: alleen wat los in je binders ligt.
+        val ownedNumbers = all.filter { !it.entry.proxy && (!settings.completionist || it.entry.deckId == null) }.groupBy { it.print?.setCode ?: "?" }
         loose.map { (code, list) ->
             val i = info[code]
             val size = i?.printedSize ?: i?.cardCount ?: 0
@@ -127,15 +128,20 @@ fun SetsScreen(vm: AppViewModel, onBack: () -> Unit, onSet: (String) -> Unit) {
         )
     }) { pad ->
         Column(Modifier.padding(pad).fillMaxSize()) {
-            OutlinedTextField(
-                query, { query = it }, singleLine = true, leadingIcon = { Icon(Icons.Filled.Search, null) },
-                placeholder = { Text(stringResource(R.string.sets_search)) }, modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+            // Zelfde zoekbalk als elders, alleen met sorteren (pijltjes); geen filter.
+            nl.spoonpaco.ninegrid.ui.components.FilterSearchBar(
+                query = query, onQuery = { query = it }, placeholder = stringResource(R.string.sets_search),
+                filter = nl.spoonpaco.ninegrid.ui.components.CardFilter(), onFilter = {}, groups = emptySet(),
+                sortOptions = listOf("value" to stringResource(R.string.sort_value), "name" to stringResource(R.string.sort_name),
+                    "date" to stringResource(R.string.sort_date), "count" to stringResource(R.string.sort_count)),
+                sort = sort, onSort = { sort = it },
             )
-            Row(Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp, vertical = 6.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                listOf("value" to R.string.sort_value, "name" to R.string.sort_name, "date" to R.string.sort_date, "count" to R.string.sort_count).forEach { (k, l) ->
-                    FilterChip(selected = sort == k, onClick = { sort = k }, label = { Text(stringResource(l)) })
-                }
+            Row(Modifier.padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                FilterChip(selected = settings.completionist, onClick = { vm.setCompletionist(!settings.completionist) }, label = { Text(stringResource(R.string.completionist)) })
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.completionist_explain), fontSize = 11.sp, color = extra.subtle)
             }
+            Spacer(Modifier.height(6.dp))
             LazyColumn {
                 items(shown, key = { it.code }) { r ->
                     SetRowView(r, cur, settings.imageMode != ImageMode.OFF, vm) { onSet(r.code) }

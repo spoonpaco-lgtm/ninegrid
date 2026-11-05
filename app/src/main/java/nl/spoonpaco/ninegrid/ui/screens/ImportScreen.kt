@@ -206,6 +206,13 @@ fun ImportScreen(vm: AppViewModel, onBack: () -> Unit, onDone: () -> Unit) {
                         }
                         Text(stringResource(R.string.import_not_found_hint), fontSize = 12.sp, color = extra.subtle)
                     }
+                    if (vm.importWrongNumber.isNotEmpty()) {
+                        Spacer(Modifier.height(12.dp))
+                        Text(stringResource(R.string.import_wrong_number_title), fontWeight = FontWeight.Bold, color = NgColors.Amber)
+                        Text(stringResource(R.string.import_wrong_number_hint), fontSize = 12.sp, color = extra.subtle)
+                        vm.importWrongNumber.take(60).forEach { Text("${it.name} (${it.setCode}) ${it.number}", fontSize = 13.sp) }
+                        if (vm.importWrongNumber.size > 60) Text("…", fontSize = 13.sp)
+                    }
                     Spacer(Modifier.height(16.dp))
                     Button(onClick = { vm.cancelImport(); onDone() }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.import_to_collection)) }
                 }

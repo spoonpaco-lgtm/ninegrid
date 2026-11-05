@@ -55,7 +55,13 @@ fun SetScreen(vm: AppViewModel, code: String, onBack: () -> Unit, onReview: () -
     LaunchedEffect(code) { vm.loadSet(code) }
     val list = vm.setList?.takeIf { it.code.equals(code, true) }
     // Wat je hebt: elk nummer in deze set, in je collectie of in een deck (geen proxies).
-    val owned = all.filter { !it.entry.proxy && it.print?.setCode.equals(code, true) }.mapNotNull { it.print?.collectorNumber?.lowercase() }.toSet()
+    // Completionist: alleen wat los in je binders ligt telt; wat alleen in een deck zit staat bij Ontbreekt, met de decknaam.
+    val inSet = all.filter { !it.entry.proxy && it.print?.setCode.equals(code, true) }
+    val owned = inSet.filter { !settings.completionist || it.entry.deckId == null }.mapNotNull { it.print?.collectorNumber?.lowercase() }.toSet()
+    val decksById by vm.decks.collectAsState()
+    val deckOf = if (!settings.completionist) emptyMap() else inSet.filter { it.entry.deckId != null }
+        .groupBy { it.print!!.collectorNumber.lowercase() }
+        .mapValues { (_, l) -> l.mapNotNull { e -> decksById.firstOrNull { it.id == e.entry.deckId }?.name }.distinct().joinToString(", ") }
     var query by remember { mutableStateOf("") }
     val filter = remember(settings.filters["set"]) { nl.spoonpaco.ninegrid.ui.components.CardFilter.fromJson(settings.filters["set"]) }
     val cards = list?.cards.orEmpty().filter { variants || it.regular }
@@ -98,6 +104,7 @@ fun SetScreen(vm: AppViewModel, code: String, onBack: () -> Unit, onReview: () -
                             FilterChip(selected = showMissing, onClick = { showMissing = true }, label = { Text(stringResource(R.string.set_show_missing)) })
                             FilterChip(selected = !showMissing, onClick = { showMissing = false }, label = { Text(stringResource(R.string.set_show_have)) })
                             FilterChip(selected = variants, onClick = { variants = !variants }, label = { Text(stringResource(R.string.set_variants)) })
+                            FilterChip(selected = settings.completionist, onClick = { vm.setCompletionist(!settings.completionist) }, label = { Text(stringResource(R.string.completionist)) })
                         }
                     }
                 }
@@ -105,7 +112,12 @@ fun SetScreen(vm: AppViewModel, code: String, onBack: () -> Unit, onReview: () -
             items(shownOf(if (showMissing) missing else have), key = { it.id }) { c ->
                 ListItem(
                     headlineContent = { Text(c.name) },
-                    supportingContent = { Text("#${c.number} · ${c.rarity.replaceFirstChar { it.uppercase() }}" + if (!c.regular) " · " + stringResource(R.string.set_variant) else "", color = NgColors.rarity(c.rarity)) },
+                    supportingContent = {
+                        Column {
+                            Text("#${c.number} · ${c.rarity.replaceFirstChar { it.uppercase() }}" + if (!c.regular) " · " + stringResource(R.string.set_variant) else "", color = NgColors.rarity(c.rarity))
+                            if (showMissing) deckOf[c.number.lowercase()]?.takeIf { it.isNotBlank() }?.let { Text(stringResource(R.string.in_deck_label, it), fontSize = 12.sp, color = extra.subtle) }
+                        }
+                    },
                     trailingContent = {
                         Row {
                             Text(((if (settings.currency == "USD") c.usd else c.eur))?.let { Money.format(it, settings.currency) } ?: "–", color = extra.price)

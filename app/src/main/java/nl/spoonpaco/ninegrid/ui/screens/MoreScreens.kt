@@ -190,6 +190,13 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit) {
             Text(stringResource(R.string.date_example, nl.spoonpaco.ninegrid.domain.Dates.dateTime(System.currentTimeMillis(), settings.dateStyle)), fontSize = 12.sp, color = LocalNgExtra.current.subtle)
 
             Spacer(Modifier.height(16.dp))
+            Text(stringResource(R.string.completionist), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.completionist_explain), fontSize = 13.sp, modifier = Modifier.weight(1f))
+                Switch(checked = settings.completionist, onCheckedChange = { vm.setCompletionist(it) })
+            }
+
+            Spacer(Modifier.height(16.dp))
             Text(stringResource(R.string.breakout_alerts), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(stringResource(R.string.breakout_alerts_explain), fontSize = 13.sp, modifier = Modifier.weight(1f))
@@ -214,9 +221,14 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit) {
             if (settings.offlineDb != nl.spoonpaco.ninegrid.data.OfflineDb.OFF) {
                 when {
                     vm.offlineDbRunning -> {
-                        androidx.compose.material3.LinearProgressIndicator(Modifier.fillMaxWidth().padding(vertical = 4.dp))
-                        Text(stringResource(R.string.offline_running, vm.offlineDbProgress), fontSize = 12.sp)
+                        if (vm.offlineDbPct >= 0) androidx.compose.material3.LinearProgressIndicator(progress = { vm.offlineDbPct / 100f }, modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp))
+                        else androidx.compose.material3.LinearProgressIndicator(Modifier.fillMaxWidth().padding(vertical = 4.dp))
+                        Text(
+                            if (vm.offlineDbPct >= 0) stringResource(R.string.offline_running_pct, vm.offlineDbPct, vm.offlineDbProgress)
+                            else stringResource(R.string.offline_running, vm.offlineDbProgress), fontSize = 12.sp,
+                        )
                     }
+                    vm.offlineDbWaiting -> Text(stringResource(if (settings.offlineDbMobile) R.string.offline_waiting_net else R.string.offline_waiting), fontSize = 12.sp, color = nl.spoonpaco.ninegrid.ui.theme.NgColors.Amber)
                     vm.offlineDbFailed -> Text(stringResource(R.string.offline_failed), fontSize = 12.sp, color = NgColorsError)
                     settings.offlineDbUpdated > 0 -> Text(
                         stringResource(

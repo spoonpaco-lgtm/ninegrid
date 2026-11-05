@@ -1,7 +1,6 @@
 name: Diagnose offline database
 on:
-  push:
-    branches: [diag-bulk]
+  workflow_dispatch:
 jobs:
   parse:
     runs-on: ubuntu-latest

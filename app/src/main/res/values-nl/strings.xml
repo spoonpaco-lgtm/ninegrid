@@ -506,7 +506,6 @@
     <string name="offline_offer_no_import">Nu importeren zonder</string>
     <string name="scan_set_auto">Set: automatisch</string>
     <string name="scan_foil_slots_hint">of tik op losse vakken</string>
-    <string name="scan_foil_tip">Tip: tik op een vak om die kaart als foil te markeren ✦. Lang drukken om te bekijken.</string>
     <string name="date_time">Datum en tijd</string>
     <string name="time_format">Tijd</string>
     <string name="date_format">Datum</string>
@@ -539,4 +538,29 @@
     <string name="offline_mobile_auto">Ook automatisch bijwerken via mobiele data</string>
     <string name="offline_mobile_confirm">Je zit op mobiele data. De kaartdatabase nu downloaden? Bestandsgrootte volgens Scryfall: ongeveer %1$d MB (wordt ingepakt verstuurd, dus minder).</string>
     <string name="offline_mobile_yes">Nu downloaden</string>
+    <string name="offline_running_pct">Bezig: %1$d%% · %2$d kaarten</string>
+    <string name="offline_waiting_net">Wacht op een verbinding om te downloaden.</string>
+    <string name="import_wrong_number_title">Nummer klopte niet, op naam gevonden</string>
+    <string name="import_wrong_number_hint">Set en nummer in je bestand horen bij een andere kaart. NineGrid heeft de naam gebruikt; verbeter het nummer in je bestand als je wilt.</string>
+    <string name="scan_foil_slots_hint2">of tik op de vakjes onderaan</string>
+    <string name="scan_foil_big_title">Foils op dit blad</string>
+    <string name="scan_foil_big_hint">Tik op een vak voor foil ✦. Lang drukken om te bekijken.</string>
+    <string name="scan_foil_tip">Tip: tik op het kleine raster onderaan om per vak foil te markeren ✦.</string>
+    <string name="img_wifi_only">Alleen via wifi</string>
+    <string name="img_offline">Offline</string>
+    <string name="img_missing">Geen plaatje bij Scryfall</string>
+    <string name="img_failed">Laden niet gelukt</string>
+    <string name="img_load_anyway">Nu toch laden</string>
+    <string name="img_retry">Opnieuw proberen</string>
+    <string name="decks_search">Zoek deck</string>
+    <string name="sort_per_format">Per format</string>
+    <string name="sort_updated">Laatst gewijzigd</string>
+    <string name="decks_title_short">Decks</string>
+    <string name="completionist">Completionist</string>
+    <string name="completionist_explain">Compleetheid telt alleen kaarten in je binders, niet in decks.</string>
+    <string name="in_deck_label">in deck %1$s</string>
+    <plurals name="n_decks">
+        <item quantity="one">%d deck</item>
+        <item quantity="other">%d decks</item>
+    </plurals>
 </resources>

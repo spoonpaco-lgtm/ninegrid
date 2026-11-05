@@ -60,6 +60,9 @@ interface EntryDao {
     suspend fun forDeck(deckId: Long): List<Entry>
 
     /** Alleen de exemplaren van deze prints: voor het samenvoegen van stapels, zonder alles in te lezen. */
+    @Query("SELECT DISTINCT deckId FROM entries WHERE id IN (:ids) AND deckId IS NOT NULL")
+    suspend fun deckIdsOf(ids: List<Long>): List<Long>
+
     @Query("SELECT * FROM entries WHERE printId IN (:ids)")
     suspend fun forPrints(ids: List<String>): List<Entry>
 
@@ -118,6 +121,9 @@ interface DeckDao {
 
     @Query("DELETE FROM decks")
     suspend fun deleteAll()
+
+    @Query("UPDATE decks SET updatedAt = :at WHERE id IN (:ids)")
+    suspend fun touch(ids: List<Long>, at: Long)
 }
 
 @Dao

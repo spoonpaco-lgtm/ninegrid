@@ -58,10 +58,14 @@ class OfflineDbWorker(context: Context, params: WorkerParameters) : CoroutineWor
                 val resp = http.newCall(Request.Builder().url(uri).header("User-Agent", UA).build()).execute()
                 resp.use { r ->
                     if (!r.isSuccessful) error("HTTP ${r.code}")
-                    r.body!!.byteStream().buffered(1 shl 16).use { input ->
+                    // Telt de ingepakte bytes, zodat de voortgang een percentage kan zijn.
+                    val total = meta.downloadBytes.takeIf { it > 0 } ?: r.body!!.contentLength()
+                    val counting = Counting(r.body!!.byteStream())
+                    counting.use { input ->
                         c.offline.importFrom(input) { n ->
-                            setProgress(workDataOf("count" to n))
-                            if (n % 5000 == 0) runCatching { setForeground(info(n)) }
+                            val pct = if (total > 0) (counting.read * 100 / total).toInt().coerceIn(0, 99) else -1
+                            setProgress(workDataOf("count" to n, "pct" to pct))
+                            if (n % 5000 == 0) runCatching { setForeground(info(n, pct)) }
                         }
                     }
                 }
@@ -82,12 +86,18 @@ class OfflineDbWorker(context: Context, params: WorkerParameters) : CoroutineWor
         }
     }
 
-    private fun info(count: Int): ForegroundInfo {
+    private class Counting(private val inner: java.io.InputStream) : java.io.FilterInputStream(inner) {
+        @Volatile var read = 0L
+        override fun read(): Int = super.read().also { if (it >= 0) read++ }
+        override fun read(b: ByteArray, off: Int, len: Int): Int = super.read(b, off, len).also { if (it > 0) read += it }
+    }
+
+    private fun info(count: Int, pct: Int = -1): ForegroundInfo {
         val n = NotificationCompat.Builder(applicationContext, CHANNEL)
             .setSmallIcon(android.R.drawable.stat_sys_download)
             .setContentTitle(applicationContext.getString(R.string.offline_db_notif))
             .setContentText(applicationContext.getString(R.string.offline_db_progress, count))
-            .setProgress(0, 0, true)
+            .setProgress(100, pct.coerceAtLeast(0), pct < 0)
             .setOngoing(true).setOnlyAlertOnce(true)
             .build()
         return if (Build.VERSION.SDK_INT >= 29) ForegroundInfo(NOTIF_ID, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC) else ForegroundInfo(NOTIF_ID, n)

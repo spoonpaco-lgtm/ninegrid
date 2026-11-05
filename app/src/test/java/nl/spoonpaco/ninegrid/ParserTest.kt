@@ -456,4 +456,16 @@ class ParserTest {
         assertEquals(2, d.decks.size)
         assertTrue(d.history.size > 100)
     }
+
+    @Test
+    fun importNameCheck() {
+        val W = nl.spoonpaco.ninegrid.data.ImportWorker
+        fun card(name: String, lang: String = "") = nl.spoonpaco.ninegrid.domain.ImportCard(setCode = "MH2", number = "183", name = name, foil = false, etched = false, language = lang, quantity = 1, proxy = false)
+        assertTrue(W.nameFits(card("Ragavan, Nimble Pilferer"), "Ragavan, Nimble Pilferer"))
+        assertFalse(W.nameFits(card("Ragavan, Nimble Pilferer"), "Some Common"))
+        assertTrue(W.nameFits(card("Lightning Bolt (FR)"), "Lightning Bolt"))
+        assertTrue(W.nameFits(card("Delver of Secrets"), "Delver of Secrets // Insectile Aberration"))
+        assertTrue(W.nameFits(card("Foudre", "FR"), "Lightning Bolt"))
+        assertTrue(W.nameFits(card(""), "Anything"))
+    }
 }
