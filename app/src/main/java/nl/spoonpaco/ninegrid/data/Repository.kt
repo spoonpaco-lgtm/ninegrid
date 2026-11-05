@@ -53,6 +53,9 @@ class Repository(
     val binders: Flow<List<String>> = db.entries().binders()
     val snapshots = db.snapshots().observeAll()
     val moments = db.moments().observeAll()
+    fun snapshotsFor(keys: List<String>) = db.snapshots().observeKeys(keys)
+    val latestSnapshotPerKey = db.snapshots().observeLatestPerKey()
+    fun momentsFor(keys: List<String>, from: Long) = db.moments().observeKeys(keys, from)
 
     /**
      * Bewaart de stand van vandaag: totaal, sets, decks en elk deck en elke set apart.
@@ -94,7 +97,9 @@ class Repository(
             // Momenten: hoogstens één per minuut, en na een maand weg.
             db.moments().deleteAfter(now - 60_000)
             db.moments().deleteBefore(now - 31L * 24 * 3600 * 1000)
-            db.moments().upsert(rows.map { nl.spoonpaco.ninegrid.data.db.Moment(now, it.key, it.eur, it.usd, it.count) })
+            // Losse sets alleen als dagstand: hun tussenstanden vulden de tabel en maakten het Overzicht traag.
+            db.moments().deleteSetMoments()
+            db.moments().upsert(rows.filter { !it.key.startsWith("set:") }.map { nl.spoonpaco.ninegrid.data.db.Moment(now, it.key, it.eur, it.usd, it.count) })
         }
     }
 
@@ -128,7 +133,7 @@ class Repository(
         val created = mutableListOf<Long>()
         db.withTransaction {
             db.prints().upsert(items.map { it.print }.distinctBy { it.id })
-            val existing = db.entries().all().toMutableList()
+            val existing = items.map { it.print.id }.distinct().chunked(500).flatMap { db.entries().forPrints(it) }.toMutableList()
             for (item in items) {
                 val e = item.entry.copy(printId = item.print.id)
                 val match = existing.firstOrNull { sameStack(it, e) }
@@ -336,7 +341,7 @@ class Repository(
         )
         fun remember(e: Entry) { if (e.id !in created && e.id !in restore) restore[e.id] = e }
         remember(before)
-        val existing = db.entries().all().firstOrNull { it.id != before.id && sameStack(it, target) }
+        val existing = db.entries().forPrints(listOf(before.printId)).firstOrNull { it.id != before.id && sameStack(it, target) }
         if (existing != null) {
             remember(existing)
             db.entries().upsert(listOf(existing.copy(quantity = existing.quantity + qty)))
@@ -553,21 +558,36 @@ class Repository(
     private fun today() = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date())
 
     /** Prijzen van vandaag bewaren voor het koersverschil; ouder dan een maand alleen één per maand. */
+    /**
+     * Zet de prijzen van vandaag in de historie. Zonder lijst: alleen prints die er nog niet in staan (nieuw
+     * toegevoegd), zodat het openen van de app niet elke keer alle kaarten opnieuw schrijft.
+     */
     suspend fun recordPrices(prints: List<CardPrint>? = null) {
-        val list = prints ?: db.prints().owned()
+        val list = prints ?: db.prints().owned().let { owned ->
+            val known = db.prices().knownPrintIds().toHashSet()
+            owned.filter { it.id !in known }
+        }
         if (list.isEmpty()) return
         val day = today()
         list.chunked(500).forEach { part ->
             db.prices().upsert(part.map { nl.spoonpaco.ninegrid.data.db.PricePoint(it.id, day, it.eur, it.eurFoil, it.usd, it.usdFoil, it.usdEtched) })
         }
-        val cutoff = java.time.LocalDate.now().minusDays(31).toString()
-        db.prices().thin(cutoff)
+        // Opschonen alleen na een echte prijsupdate (met lijst), niet bij elke nieuwe kaart.
+        if (prints != null) db.prices().thin(java.time.LocalDate.now().minusDays(31).toString())
     }
 
     /** Prijzen zoals ze op [day] waren (laatst bekende op of voor die dag), per print. */
     suspend fun pricesAsOf(day: String) = db.prices().asOf(day).associateBy { it.printId }
 
     suspend fun firstPriceDay() = db.prices().firstDay()
+
+    /** De grootste uitschieter van vandaag tegenover de laatst bekende prijs vóór vandaag (of null). */
+    suspend fun breakout(currency: String): nl.spoonpaco.ninegrid.domain.Mover? {
+        val prints = db.prints().all().associateBy { it.id }
+        val entries = db.entries().all().map { it to prints[it.printId] }
+        val old = db.prices().asOf(java.time.LocalDate.now().minusDays(1).toString()).associateBy { it.printId }
+        return nl.spoonpaco.ninegrid.domain.PriceMovers.breakout(nl.spoonpaco.ninegrid.domain.PriceMovers.movers(entries, old, currency))
+    }
 
     /** Wat je kunt wissen. */
     data class WipeOptions(val collection: Boolean, val decks: Boolean, val history: Boolean, val changeLog: Boolean, val images: Boolean)

@@ -35,6 +35,8 @@ class Images(val context: Context) {
                 }
                 .build()
         }
+        // Setsymbolen zijn SVG.
+        .components { add(coil.decode.SvgDecoder.Factory()) }
         .respectCacheHeaders(false)
         .crossfade(true)
         .build()

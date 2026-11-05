@@ -1,6 +1,12 @@
 package nl.spoonpaco.ninegrid.ui
 
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import nl.spoonpaco.ninegrid.ui.AppViewModel
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
@@ -153,7 +159,8 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
                 DecksScreen(vm, onDeck = { nav.navigate("deck/$it") }, onNewDeck = { nav.navigate("paste?asNewDeck=true") })
             }
             composable("scan") { ScanScreen(vm, onBack = { if (!nav.popBackStack()) tab("collection") }, onResult = { nav.navigate("review") }) }
-            composable("overview") { OverviewScreen(vm, onSet = { nav.navigate("set/$it") }) }
+            composable("overview") { OverviewScreen(vm, onSet = { nav.navigate("set/$it") }, onSets = { nav.navigate("sets") }) }
+            composable("sets") { nl.spoonpaco.ninegrid.ui.screens.SetsScreen(vm, onBack = { nav.popBackStack() }, onSet = { nav.navigate("set/$it") }) }
             composable("set/{code}", arguments = listOf(navArgument("code") { type = NavType.StringType })) {
                 nl.spoonpaco.ninegrid.ui.screens.SetScreen(vm, it.arguments?.getString("code") ?: "", onBack = { nav.popBackStack() }, onReview = { nav.navigate("review") })
             }
@@ -225,6 +232,29 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
             text = { Text(stringResource(R.string.backup_ask_body)) },
             confirmButton = { TextButton(onClick = { askBackup = false; vm.setBackupAsked(); folderPicker.launch(null) }) { Text(stringResource(R.string.backup_ask_choose)) } },
             dismissButton = { TextButton(onClick = { askBackup = false; vm.setBackupAsked() }) { Text(stringResource(R.string.later)) } },
+        )
+    }
+
+    // Eén keer de offline kaartdatabase aanbieden: bij een grote import of als Scryfall de app laat wachten.
+    vm.offerOfflineDb?.let { offer ->
+        AlertDialog(
+            onDismissRequest = { vm.answerOfflineOffer(false) },
+            title = { Text(stringResource(R.string.offline_db)) },
+            text = {
+                Column {
+                    Text(stringResource(if (offer == AppViewModel.OfflineOffer.IMPORT) R.string.offline_offer_import else R.string.offline_offer_throttled))
+                    Spacer(Modifier.height(8.dp))
+                    Text(stringResource(R.string.offline_pros), fontSize = 13.sp)
+                    Spacer(Modifier.height(6.dp))
+                    Text(stringResource(R.string.offline_cons), fontSize = 13.sp)
+                }
+            },
+            confirmButton = { TextButton(onClick = { vm.answerOfflineOffer(true) }) {
+                Text(stringResource(if (offer == AppViewModel.OfflineOffer.IMPORT) R.string.offline_offer_yes_import else R.string.offline_offer_yes))
+            } },
+            dismissButton = { TextButton(onClick = { vm.answerOfflineOffer(false) }) {
+                Text(stringResource(if (offer == AppViewModel.OfflineOffer.IMPORT) R.string.offline_offer_no_import else R.string.later))
+            } },
         )
     }
 

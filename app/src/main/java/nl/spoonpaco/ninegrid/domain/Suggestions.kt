@@ -62,7 +62,6 @@ object Suggestions {
     private val basicType = mapOf("Plains" to 'W', "Island" to 'U', "Swamp" to 'B', "Mountain" to 'R', "Forest" to 'G')
     private const val WUBRG = "WUBRG"
     private val reSymbol = Regex("""\{([wubrg])\}""")
-    private val reFetch = Regex("""search your library for an? (basic )?((plains|island|swamp|mountain|forest)( or |, | and/or |, or )?)+""")
 
     /**
      * Welke kleuren een land kan opleveren. Eerst wat Scryfall zegt (produced_mana), anders typeregel en tekst.
@@ -75,7 +74,8 @@ object Suggestions {
         val out = mutableSetOf<Char>()
         producedMana.filter { it in WUBRG }.forEach { out += it }
         basicType.forEach { (k, c) -> if (typeLine.contains(k)) out += c }
-        reFetch.findAll(t).forEach { m -> basicType.forEach { (k, c) -> if (m.value.contains(k.lowercase())) out += c } }
+        // Elke zin waarin gezocht wordt: alle landtypen die erin staan, ook met "en" (Krosan Verge: "a Forest card and a Plains card").
+        t.split('.').filter { it.contains("search your library for") }.forEach { z -> basicType.forEach { (k, c) -> if (z.contains(k.lowercase())) out += c } }
         if (producedMana.isEmpty()) {
             t.split('.').filter { it.contains("add ") }.forEach { z -> reSymbol.findAll(z.substringAfter("add ")).forEach { out += it.groupValues[1].uppercase()[0] } }
             if (out.isEmpty() && typeLine.contains("Land")) colorIdentity.filter { it in WUBRG }.forEach { out += it }

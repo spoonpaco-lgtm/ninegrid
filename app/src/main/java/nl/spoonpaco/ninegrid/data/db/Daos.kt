@@ -59,6 +59,10 @@ interface EntryDao {
     @Query("SELECT * FROM entries WHERE deckId = :deckId")
     suspend fun forDeck(deckId: Long): List<Entry>
 
+    /** Alleen de exemplaren van deze prints: voor het samenvoegen van stapels, zonder alles in te lezen. */
+    @Query("SELECT * FROM entries WHERE printId IN (:ids)")
+    suspend fun forPrints(ids: List<String>): List<Entry>
+
     @Query("SELECT COUNT(*) FROM entries WHERE printId = :printId")
     suspend fun countForPrint(printId: String): Int
 
@@ -152,6 +156,14 @@ interface SnapshotDao {
     @Query("SELECT * FROM snapshots ORDER BY day")
     fun observeAll(): Flow<List<Snapshot>>
 
+    /** Alleen de lijnen die in de grafiek staan, plus het totaal (voor het verschil bovenaan). */
+    @Query("SELECT * FROM snapshots WHERE `key` IN (:keys) OR `key` = 'total' ORDER BY day")
+    fun observeKeys(keys: List<String>): Flow<List<Snapshot>>
+
+    /** Welke lijnen er ooit zijn geweest, met hun laatste naam (voor de keuzelijst). */
+    @Query("SELECT s.* FROM snapshots s JOIN (SELECT `key` AS k, MAX(day) AS d FROM snapshots GROUP BY `key`) m ON s.`key` = m.k AND s.day = m.d")
+    fun observeLatestPerKey(): Flow<List<Snapshot>>
+
     @Query("SELECT * FROM snapshots")
     suspend fun all(): List<Snapshot>
 
@@ -172,6 +184,12 @@ interface MomentDao {
 
     @Query("SELECT * FROM moments ORDER BY ts")
     fun observeAll(): Flow<List<Moment>>
+
+    @Query("SELECT * FROM moments WHERE `key` IN (:keys) AND ts >= :from ORDER BY ts")
+    fun observeKeys(keys: List<String>, from: Long): Flow<List<Moment>>
+
+    @Query("DELETE FROM moments WHERE `key` LIKE 'set:%'")
+    suspend fun deleteSetMoments()
 
     @Query("SELECT * FROM moments")
     suspend fun all(): List<Moment>
@@ -194,6 +212,9 @@ interface PriceDao {
 
     @Query("SELECT * FROM price_history")
     suspend fun all(): List<PricePoint>
+
+    @Query("SELECT DISTINCT printId FROM price_history")
+    suspend fun knownPrintIds(): List<String>
 
     @Query("SELECT MIN(day) FROM price_history")
     suspend fun firstDay(): String?

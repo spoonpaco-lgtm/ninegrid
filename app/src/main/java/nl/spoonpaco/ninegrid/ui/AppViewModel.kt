@@ -11,6 +11,9 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -75,16 +78,45 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     val decks: StateFlow<List<Deck>> = repo.decks.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
     val changes = repo.changes.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
     val binders = repo.binders.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-    val snapshots = repo.snapshots.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-    val moments = repo.moments.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+    // De grafiek haalt alleen de gekozen lijnen op (plus het totaal), en tussenstanden van de laatste maand.
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    val snapshots = settings.map { it.chartLines.ifEmpty { listOf("total") } }.distinctUntilChanged()
+        .flatMapLatest { repo.snapshotsFor(it) }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    val moments = settings.map { it.chartLines.ifEmpty { listOf("total") } }.distinctUntilChanged()
+        .flatMapLatest { repo.momentsFor(it, System.currentTimeMillis() - 32L * 24 * 3600 * 1000) }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+    /** Laatste dagstand per lijn: welke lijnen er zijn en hoe ze heten. */
+    val latestPerKey = repo.latestSnapshotPerKey.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    /** Gegevens per set (naam, datum, grootte, symbool), voor het setscherm. */
+    var setInfo by mutableStateOf<Map<String, nl.spoonpaco.ninegrid.data.scryfall.SfSet>>(emptyMap())
+        private set
 
     init {
+        viewModelScope.launch { runCatching { setInfo = c.cache.setInfo() } }
         // Eén momentopname per dag: bij het openen van de app (en na elke prijsupdate of wijziging).
-        viewModelScope.launch { kotlinx.coroutines.delay(1500); snapshot(); runCatching { repo.recordPrices() } }
-        repo.scryfall.onThrottled = { viewModelScope.launch { message = str(R.string.msg_scryfall_pause) } }
+        viewModelScope.launch { kotlinx.coroutines.delay(1500); snapshot(now = true) }
+        repo.scryfall.onThrottled = { viewModelScope.launch {
+            message = str(R.string.msg_scryfall_pause)
+            // Moet de app wachten op Scryfall? Dan één keer de offline kaartdatabase aanbieden.
+            val s = settingsStore.current()
+            if (s.offlineDb == nl.spoonpaco.ninegrid.data.OfflineDb.OFF && !s.offlineDbOffered) offerOfflineDb = OfflineOffer.THROTTLED
+        } }
     }
 
-    fun snapshot() = viewModelScope.launch { runCatching { repo.takeSnapshot() } }
+    private var snapshotJob: kotlinx.coroutines.Job? = null
+
+    /**
+     * Dagstand bijwerken. Wacht tot er 3 seconden niets verandert, zodat een reeks scans of wijzigingen
+     * maar één keer de hele collectie doorrekent. Nieuwe prints krijgen eerst hun eerste prijs in de historie.
+     */
+    fun snapshot(now: Boolean = false) {
+        snapshotJob?.cancel()
+        snapshotJob = viewModelScope.launch {
+            if (!now) kotlinx.coroutines.delay(3000)
+            runCatching { repo.recordPrices(); repo.takeSnapshot() }
+        }
+    }
 
     var message by mutableStateOf<String?>(null)
     /** De huidige melding krijgt een knop Ongedaan maken. */
@@ -626,6 +658,34 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         }
         priceChanges = result
     }
+    /** Winner of the Week: de grootste stijging van afgelopen week (maandag tot maandag), elke maandag nieuw. */
+    var winner by mutableStateOf<nl.spoonpaco.ninegrid.domain.Mover?>(null)
+    var winnerWeek by mutableStateOf<java.time.LocalDate?>(null)
+    private var winnerKey = ""
+
+    fun computeWinner() = viewModelScope.launch {
+        val cur = settings.value.currency
+        val monday = java.time.LocalDate.now().with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY))
+        val key = monday.toString() + cur + entries.value.size
+        if (key == winnerKey) return@launch
+        winnerKey = key
+        val first = repo.firstPriceDay()
+        if (first == null || first > monday.minusDays(7).toString()) { winner = null; return@launch }
+        val then = repo.pricesAsOf(monday.minusDays(7).toString())
+        val now = repo.pricesAsOf(monday.toString())
+        // Prijzen van maandag als "nu", zodat de winnaar de hele week dezelfde blijft.
+        val list = entries.value.mapNotNull { e ->
+            val p = e.print ?: return@mapNotNull null
+            val n = now[p.id] ?: return@mapNotNull null
+            e.entry to p.copy(eur = n.eur, eurFoil = n.eurFoil, usd = n.usd, usdFoil = n.usdFoil, usdEtched = n.usdEtched)
+        }
+        winner = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+            nl.spoonpaco.ninegrid.domain.PriceMovers.winner(nl.spoonpaco.ninegrid.domain.PriceMovers.movers(list, then, cur))
+        }
+        winnerWeek = monday
+    }
+    fun setBreakoutAlerts(v: Boolean) = viewModelScope.launch { settingsStore.setBreakoutAlerts(v) }
+
     fun setCurrency(v: String) = viewModelScope.launch { settingsStore.setCurrency(v) }
     fun setWifiOnly(v: Boolean) = viewModelScope.launch { settingsStore.setWifiOnly(v) }
     fun setOnboardingDone() = viewModelScope.launch { settingsStore.setOnboardingDone(true) }
@@ -736,11 +796,85 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     var openImport by mutableStateOf(false)
 
     /** Start de import als achtergrondtaak; je kunt de app intussen gebruiken of sluiten. */
-    fun runImport(replace: Boolean, asDeck: String? = null) {
+    fun runImport(replace: Boolean, asDeck: String? = null, skipOffer: Boolean = false) {
         val data = importData ?: return
+        // Grote import: eerst aanbieden om de offline kaartdatabase te gebruiken (één keer).
+        val n = data.collection.size + data.decks.sumOf { it.cards.size }
+        val s = settings.value
+        if (!skipOffer && n > 500 && s.offlineDb == nl.spoonpaco.ninegrid.data.OfflineDb.OFF && !s.offlineDbOffered) {
+            pendingImport = replace to asDeck
+            offerOfflineDb = OfflineOffer.IMPORT
+            return
+        }
         nl.spoonpaco.ninegrid.data.ImportWorker.start(getApplication(), nl.spoonpaco.ninegrid.data.ImportJob(data, replace, asDeck))
         importStep = ImportStep.RESOLVING
         importProgress = 0f
+    }
+
+    // ---------- Offline kaartdatabase ----------
+    enum class OfflineOffer { IMPORT, THROTTLED }
+    var offerOfflineDb by mutableStateOf<OfflineOffer?>(null)
+    private var pendingImport: Pair<Boolean, String?>? = null
+    var offlineDbRunning by mutableStateOf(false)
+        private set
+    var offlineDbProgress by mutableStateOf(0)
+        private set
+    var offlineDbFailed by mutableStateOf(false)
+        private set
+    var offlineDbInfo by mutableStateOf<nl.spoonpaco.ninegrid.data.offline.BulkInfo?>(null)
+        private set
+    var offlineDbBytes by mutableStateOf(0L)
+        private set
+
+    init { watchOfflineDb() }
+
+    fun loadOfflineDbInfo() = viewModelScope.launch {
+        if (offlineDbInfo == null) offlineDbInfo = nl.spoonpaco.ninegrid.data.offline.OfflineDbWorker.fetchInfo()
+        offlineDbBytes = c.offline.sizeBytes()
+    }
+
+    /** Uit / bij nieuwe set / handmatig. Aanzetten downloadt meteen (op wifi); uitzetten haalt alles weg. */
+    fun setOfflineDb(mode: String) = viewModelScope.launch {
+        val before = settings.value.offlineDb
+        settingsStore.setOfflineDb(mode)
+        settingsStore.setOfflineDbOffered(true)
+        if (mode == nl.spoonpaco.ninegrid.data.OfflineDb.OFF) {
+            nl.spoonpaco.ninegrid.data.offline.OfflineDbWorker.cancel(getApplication())
+            c.offline.delete()
+            settingsStore.setOfflineDbDone(0, 0)
+            offlineDbBytes = 0
+        } else if (before == nl.spoonpaco.ninegrid.data.OfflineDb.OFF) {
+            nl.spoonpaco.ninegrid.data.offline.OfflineDbWorker.start(getApplication(), manual = true)
+        }
+    }
+
+    fun updateOfflineDbNow() = nl.spoonpaco.ninegrid.data.offline.OfflineDbWorker.start(getApplication(), manual = true)
+
+    /** Antwoord op het aanbod: aanzetten (bij een import: daarna pas importeren) of niet. */
+    fun answerOfflineOffer(enable: Boolean) = viewModelScope.launch {
+        val offer = offerOfflineDb
+        offerOfflineDb = null
+        settingsStore.setOfflineDbOffered(true)
+        if (enable) setOfflineDb(nl.spoonpaco.ninegrid.data.OfflineDb.NEW_SET)
+        if (offer == OfflineOffer.IMPORT) {
+            val p = pendingImport
+            if (!enable && p != null) { pendingImport = null; runImport(p.first, p.second, skipOffer = true) }
+            // Met aanzetten: de import start zodra de download klaar is (watchOfflineDb).
+        }
+    }
+
+    private fun watchOfflineDb() = viewModelScope.launch {
+        val wm = androidx.work.WorkManager.getInstance(getApplication())
+        wm.getWorkInfosForUniqueWorkFlow(nl.spoonpaco.ninegrid.data.offline.OfflineDbWorker.NAME).collect { infos ->
+            val w = infos.firstOrNull() ?: return@collect
+            offlineDbRunning = w.state == androidx.work.WorkInfo.State.RUNNING || w.state == androidx.work.WorkInfo.State.ENQUEUED
+            offlineDbProgress = w.progress.getInt("count", offlineDbProgress)
+            offlineDbFailed = w.state == androidx.work.WorkInfo.State.FAILED
+            if (w.state.isFinished) {
+                offlineDbBytes = c.offline.sizeBytes()
+                pendingImport?.let { p -> pendingImport = null; runImport(p.first, p.second, skipOffer = true) }
+            }
+        }
     }
 
     private fun watchImport() = viewModelScope.launch {

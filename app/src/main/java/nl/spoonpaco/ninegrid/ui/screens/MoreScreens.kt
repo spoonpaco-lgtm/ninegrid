@@ -173,6 +173,47 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit) {
             Text(stringResource(R.string.images_used, vm.images.diskUsageBytes() / (1024 * 1024)), fontSize = 12.sp, color = LocalNgExtra.current.subtle)
 
             Spacer(Modifier.height(16.dp))
+            Text(stringResource(R.string.breakout_alerts), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.breakout_alerts_explain), fontSize = 13.sp, modifier = Modifier.weight(1f))
+                Switch(checked = settings.breakoutAlerts, onCheckedChange = { vm.setBreakoutAlerts(it) })
+            }
+
+            // Offline kaartdatabase: optie, standaard uit.
+            Spacer(Modifier.height(16.dp))
+            Text(stringResource(R.string.offline_db), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+            androidx.compose.runtime.LaunchedEffect(Unit) { vm.loadOfflineDbInfo() }
+            Text(stringResource(R.string.offline_pros), fontSize = 12.sp)
+            Text(stringResource(R.string.offline_cons), fontSize = 12.sp, color = LocalNgExtra.current.subtle)
+            vm.offlineDbInfo?.let { info ->
+                Text(stringResource(R.string.offline_size, info.size / (1024 * 1024)), fontSize = 12.sp, color = LocalNgExtra.current.subtle)
+            }
+            val dbLabels = mapOf(
+                nl.spoonpaco.ninegrid.data.OfflineDb.OFF to stringResource(R.string.offline_off),
+                nl.spoonpaco.ninegrid.data.OfflineDb.NEW_SET to stringResource(R.string.offline_newset),
+                nl.spoonpaco.ninegrid.data.OfflineDb.MANUAL to stringResource(R.string.offline_manual),
+            )
+            ChoiceRow(stringResource(R.string.offline_update), dbLabels.keys.toList(), settings.offlineDb, { dbLabels[it] ?: it }) { vm.setOfflineDb(it) }
+            if (settings.offlineDb != nl.spoonpaco.ninegrid.data.OfflineDb.OFF) {
+                when {
+                    vm.offlineDbRunning -> {
+                        androidx.compose.material3.LinearProgressIndicator(Modifier.fillMaxWidth().padding(vertical = 4.dp))
+                        Text(stringResource(R.string.offline_running, vm.offlineDbProgress), fontSize = 12.sp)
+                    }
+                    vm.offlineDbFailed -> Text(stringResource(R.string.offline_failed), fontSize = 12.sp, color = NgColorsError)
+                    settings.offlineDbUpdated > 0 -> Text(
+                        stringResource(
+                            R.string.offline_status, settings.offlineDbCount,
+                            java.text.DateFormat.getDateInstance(java.text.DateFormat.SHORT).format(java.util.Date(settings.offlineDbUpdated)),
+                            vm.offlineDbBytes / (1024 * 1024),
+                        ), fontSize = 12.sp,
+                    )
+                    else -> Text(stringResource(R.string.offline_waiting), fontSize = 12.sp)
+                }
+                OutlinedButton(onClick = { vm.updateOfflineDbNow() }, enabled = !vm.offlineDbRunning) { Text(stringResource(R.string.offline_now)) }
+            }
+
+            Spacer(Modifier.height(16.dp))
             Text(stringResource(R.string.backup_export), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
             Text(stringResource(R.string.backup_explain), fontSize = 12.sp, color = LocalNgExtra.current.subtle)
             Spacer(Modifier.height(6.dp))
@@ -224,7 +265,7 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit) {
 
             Spacer(Modifier.height(16.dp))
             Text(stringResource(R.string.updates), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-            Text(stringResource(R.string.version_x, BuildConfig.VERSION_NAME), fontSize = 13.sp)
+            Text(stringResource(R.string.version_x, BuildConfig.VERSION_NAME + " – " + BuildConfig.CODENAME), fontSize = 13.sp)
             OutlinedButton(onClick = { vm.checkUpdate(manual = true) }) { Text(stringResource(R.string.check_updates)) }
             Spacer(Modifier.height(24.dp))
         }
@@ -269,7 +310,7 @@ fun AboutScreen(onBack: () -> Unit, onTour: () -> Unit) {
         Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Image(painterResource(R.drawable.logo_ninegrid), null, Modifier.size(160.dp))
             Spacer(Modifier.height(12.dp))
-            Text("NineGrid ${BuildConfig.VERSION_NAME}", fontWeight = FontWeight.Bold)
+            Text("NineGrid ${BuildConfig.VERSION_NAME} – ${BuildConfig.CODENAME}", fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(12.dp))
             Text(stringResource(R.string.about_text), textAlign = TextAlign.Center)
             Spacer(Modifier.height(12.dp))

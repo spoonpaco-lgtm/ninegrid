@@ -676,7 +676,8 @@ private fun SwapOption(label: String, selected: Boolean, onClick: () -> Unit) {
 
 @Composable
 private fun SuggestionRow(title: String, why: String, action: String, onClick: () -> Unit) {
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 3.dp)) {
+    // De hele regel is tikbaar, niet alleen de knop.
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 3.dp)) {
         Column(Modifier.weight(1f)) {
             Text(title, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
             if (why.isNotBlank()) Text(why, fontSize = 11.sp, color = LocalNgExtra.current.subtle)

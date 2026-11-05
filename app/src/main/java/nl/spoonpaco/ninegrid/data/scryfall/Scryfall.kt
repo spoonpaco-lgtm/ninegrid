@@ -67,6 +67,8 @@ data class SfCard(
     @SerialName("game_changer") val gameChanger: Boolean = false,
     @SerialName("released_at") val releasedAt: String = "",
     @SerialName("produced_mana") val producedMana: List<String>? = null,
+    /** Alleen digitaal (MTG Arena/Online): niet in de offline kaartdatabase. */
+    val digital: Boolean = false,
 ) {
     fun toPrint(): CardPrint {
         val img = imageUris ?: cardFaces?.firstOrNull()?.imageUris
@@ -124,6 +126,9 @@ data class SfSet(
     @SerialName("card_count") val cardCount: Int = 0,
     @SerialName("printed_size") val printedSize: Int? = null,
     @SerialName("released_at") val releasedAt: String? = null,
+    @SerialName("set_type") val setType: String = "",
+    @SerialName("icon_svg_uri") val iconSvgUri: String? = null,
+    val digital: Boolean = false,
 )
 
 /** Eén vraag aan Scryfall: op set en nummer, of alleen op naam. */
@@ -153,6 +158,8 @@ class ScryfallClient {
         .build()
     private val gate = Mutex()
     private var lastCall = 0L
+    /** Offline kaartdatabase: eerst daar kijken (als hij aan staat). Nooit voor prijsupdates. */
+    var offline: nl.spoonpaco.ninegrid.data.offline.OfflineCards? = null
     private var lastSlowCall = 0L
 
     /** Scans hebben voorrang: zolang er een camerascherm open is of een scan wordt opgezocht, wacht de achtergrond. */
@@ -218,16 +225,19 @@ class ScryfallClient {
     private fun enc(s: String) = URLEncoder.encode(s, "UTF-8")
 
     suspend fun cardById(id: String): SfCard? {
+        offline?.find(CardQuery(id = id))?.let { return it }
         val body = call(Request.Builder().url("https://api.scryfall.com/cards/${enc(id)}").build())
         return body?.let { json.decodeFromString(SfCard.serializer(), it) }
     }
 
     suspend fun cardBySetNumber(set: String, number: String): SfCard? {
+        offline?.find(CardQuery(setCode = set, collectorNumber = number))?.let { return it }
         val body = call(Request.Builder().url("https://api.scryfall.com/cards/${enc(set.lowercase())}/${enc(number)}").build())
         return body?.let { json.decodeFromString(SfCard.serializer(), it) }
     }
 
     suspend fun cardByName(name: String, set: String? = null): SfCard? {
+        offline?.find(CardQuery(name = name, setCode = set))?.let { return it }
         val setPart = if (set != null) "&set=${enc(set.lowercase())}" else ""
         val body = call(Request.Builder().url("https://api.scryfall.com/cards/named?exact=${enc(name)}$setPart").build())
             ?: call(Request.Builder().url("https://api.scryfall.com/cards/named?fuzzy=${enc(name)}").build())
@@ -298,7 +308,10 @@ class ScryfallClient {
 
     suspend fun collection(queries: List<CardQuery>, background: Boolean = false): List<SfCard?> {
         val results = arrayOfNulls<SfCard>(queries.size)
-        val idx = queries.indices.filter { usable(queries[it]) }
+        // Offline kaartdatabase eerst (niet bij de prijsupdate op de achtergrond: die wil verse prijzen).
+        val off = if (background) null else offline
+        if (off != null) queries.forEachIndexed { i, q -> if (usable(q)) results[i] = off.find(q)?.takeIf { matches(q, it) } }
+        val idx = queries.indices.filter { usable(queries[it]) && results[it] == null }
         idx.chunked(75).forEach { chunkIdx ->
             if (background) yieldToForeground()
             val chunk = chunkIdx.map { queries[it] }

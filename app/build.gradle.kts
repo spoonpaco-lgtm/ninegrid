@@ -8,7 +8,9 @@ plugins {
     id("com.google.devtools.ksp")
 }
 
-val versionNameValue = "0.8.5"
+val versionNameValue = "0.8.6"
+/** Elke versie krijgt de naam van een planeswalker die bij de aanpassingen past. */
+val versionCodenameValue = "Tamiyo"
 val versionCodeValue = (System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 1)
 
 android {
@@ -21,6 +23,7 @@ android {
         targetSdk = 35
         versionCode = versionCodeValue
         versionName = versionNameValue
+        buildConfigField("String", "CODENAME", "\"$versionCodenameValue\"")
         vectorDrawables { useSupportLibrary = true }
     }
 
@@ -96,6 +99,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
     implementation("io.coil-kt:coil-compose:2.7.0")
+    implementation("io.coil-kt:coil-svg:2.7.0")
 
     implementation("androidx.camera:camera-core:1.4.1")
     implementation("androidx.camera:camera-camera2:1.4.1")

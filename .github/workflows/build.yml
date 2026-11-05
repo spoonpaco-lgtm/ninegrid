@@ -76,7 +76,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           VER="v$(sed -n 's/^val versionNameValue = "\(.*\)"/\1/p' app/build.gradle.kts)"
-          echo "Versie: $VER" | tee -a build.log
+          CODENAME="$(sed -n 's/^val versionCodenameValue = "\(.*\)"/\1/p' app/build.gradle.kts)"
+          TITLE="NineGrid $VER${CODENAME:+ – $CODENAME}"
+          echo "Versie: $TITLE" | tee -a build.log
           set -o pipefail
           cp app/build/outputs/apk/release/app-release.apk "NineGrid-$VER.apk"
           if gh release view "$VER" >/dev/null 2>&1; then
@@ -85,14 +87,14 @@ jobs:
             if [ "$IS_DRAFT" = "true" ] || [ "$HAS_APK" != "true" ]; then
               # Half gelukte release (bijv. door een storing bij GitHub): APK opnieuw erbij en publiceren.
               gh release upload "$VER" "NineGrid-$VER.apk" --clobber 2>&1 | tee -a build.log
-              gh release edit "$VER" --draft=false --title "NineGrid $VER" --notes-file RELEASE_NOTES.md 2>&1 | tee -a build.log
+              gh release edit "$VER" --draft=false --title "$TITLE" --notes-file RELEASE_NOTES.md 2>&1 | tee -a build.log
               echo "Release $VER hersteld." | tee -a build.log
             else
               echo "Release $VER bestaat al." | tee -a build.log
             fi
           else
             gh release create "$VER" "NineGrid-$VER.apk" --target "$GITHUB_SHA" \
-              --title "NineGrid $VER" --notes-file RELEASE_NOTES.md 2>&1 | tee -a build.log
+              --title "$TITLE" --notes-file RELEASE_NOTES.md 2>&1 | tee -a build.log
             echo "Release $VER gemaakt." | tee -a build.log
           fi
 

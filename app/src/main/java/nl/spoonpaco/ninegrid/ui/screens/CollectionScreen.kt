@@ -68,17 +68,21 @@ fun CollectionScreen(
     var foilOnly by rememberSaveable { mutableStateOf(false) }
     var color by rememberSaveable { mutableStateOf<Char?>(null) }
     var includeDecks by rememberSaveable { mutableStateOf(false) }
+    var type by rememberSaveable { mutableStateOf<String?>(null) }
+    var inText by rememberSaveable { mutableStateOf(false) }
     var sort by rememberSaveable { mutableStateOf("set") }
     var menu by remember { mutableStateOf(false) }
     var search by remember { mutableStateOf(false) }
     val deckNames = remember(decks) { decks.associate { it.id to it.name } }
 
     // Alleen opnieuw uitrekenen als de kaarten of de filters echt veranderen (scheelt veel bij duizenden kaarten).
-    val filtered = remember(all, query, rarity, foilOnly, color, includeDecks) {
+    val filtered = remember(all, query, rarity, foilOnly, color, includeDecks, type, inText) {
         all.filter { e ->
             (includeDecks || e.entry.deckId == null) &&
                 (query.isBlank() || (e.print?.name ?: "").contains(query.trim(), ignoreCase = true) ||
-                    (e.print?.setCode ?: "").equals(query.trim(), ignoreCase = true)) &&
+                    (e.print?.setCode ?: "").equals(query.trim(), ignoreCase = true) ||
+                    (inText && ((e.print?.oracleText ?: "").contains(query.trim(), ignoreCase = true) || (e.print?.typeLine ?: "").contains(query.trim(), ignoreCase = true)))) &&
+                (type == null || (e.print?.typeLine ?: "").substringBefore('—').contains(type!!)) &&
                 (rarity == null || e.print?.rarity == rarity) &&
                 (!foilOnly || e.entry.finish != Finish.NONFOIL) &&
                 (color == null || (if (color == 'C') (e.print?.colors ?: "").isEmpty() else (e.print?.colors ?: "").contains(color!!)))
@@ -148,6 +152,16 @@ fun CollectionScreen(
                 FilterChip(selected = includeDecks, onClick = { includeDecks = !includeDecks }, label = { Text(stringResource(R.string.include_decks)) })
                 FilterChip(selected = sort == "price", onClick = { sort = if (sort == "price") "set" else "price" }, label = { Text(stringResource(R.string.sort_price)) })
                 FilterChip(selected = sort == "name", onClick = { sort = if (sort == "name") "set" else "name" }, label = { Text(stringResource(R.string.sort_name)) })
+            }
+            // Kaarttype en zoeken in de regeltekst.
+            Row(
+                Modifier.horizontalScroll(rememberScrollState()).padding(start = 12.dp, end = 12.dp, bottom = 6.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                FilterChip(selected = inText, onClick = { inText = !inText }, label = { Text(stringResource(R.string.search_in_text)) })
+                listOf("Creature", "Instant", "Sorcery", "Artifact", "Enchantment", "Planeswalker", "Land", "Battle").forEach { t ->
+                    FilterChip(selected = type == t, onClick = { type = if (type == t) null else t }, label = { Text(t) })
+                }
             }
             if (all.isEmpty()) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {

@@ -90,7 +90,12 @@ class CardCache(private val context: Context, private val scryfall: ScryfallClie
         val checkedFile = File(dir, "names-checked")
         if (System.currentTimeMillis() - checkedFile.lastModified() < week) return
         runCatching { checkedFile.writeText("") }
-        val newest = runCatching { scryfall.allSets() }.getOrNull()?.mapNotNull { it.releasedAt }?.filter { it <= java.time.LocalDate.now().toString() }?.maxOrNull()
+        val liveSets = runCatching { scryfall.allSets() }.getOrNull()
+        if (!liveSets.isNullOrEmpty()) withContext(Dispatchers.IO) {
+            runCatching { liveSetsFile.writeText(json.encodeToString(ListSerializer(nl.spoonpaco.ninegrid.data.scryfall.SfSet.serializer()), liveSets)) }
+            setInfoCache = null
+        }
+        val newest = liveSets?.mapNotNull { it.releasedAt }?.filter { it <= java.time.LocalDate.now().toString() }?.maxOrNull()
         val listDate = if (f.exists()) java.time.Instant.ofEpochMilli(f.lastModified()).atZone(java.time.ZoneId.systemDefault()).toLocalDate().toString() else bundledDate()
         if (newest != null && newest <= listDate) return
         val list = runCatching { scryfall.cardNames() }.getOrNull()
@@ -113,6 +118,21 @@ class CardCache(private val context: Context, private val scryfall: ScryfallClie
             context.assets.open("card-names.json").use { s -> json.decodeFromString(nl.spoonpaco.ninegrid.data.scryfall.SfCatalog.serializer(), s.readBytes().decodeToString()).data }
         }.getOrNull()
         if (!list.isNullOrEmpty()) setNames(list)
+    }
+
+    private val liveSetsFile get() = File(dir, "sets-live.json")
+    @Volatile private var setInfoCache: Map<String, nl.spoonpaco.ninegrid.data.scryfall.SfSet>? = null
+
+    /**
+     * Gegevens per set (naam, datum, soort, aantal kaarten, symbool), op code in hoofdletters. Uit de
+     * wekelijks opgehaalde lijst als die er is, anders uit de app zelf. Werkt zonder internet.
+     */
+    suspend fun setInfo(): Map<String, nl.spoonpaco.ninegrid.data.scryfall.SfSet> = setInfoCache ?: withContext(Dispatchers.IO) {
+        val live = runCatching { json.decodeFromString(ListSerializer(nl.spoonpaco.ninegrid.data.scryfall.SfSet.serializer()), liveSetsFile.readText()) }.getOrNull()
+        val list = live ?: runCatching {
+            context.assets.open("sets.json").use { s -> json.decodeFromString(nl.spoonpaco.ninegrid.data.scryfall.SfSetList.serializer(), s.readBytes().decodeToString()).data }
+        }.getOrDefault(emptyList())
+        list.associateBy { it.code.uppercase() }.also { setInfoCache = it }
     }
 
     /** Alle sets (naam → code), uit de app zelf of van Scryfall. Voor het omzetten van setnamen bij importeren. */

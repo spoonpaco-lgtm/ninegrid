@@ -90,12 +90,13 @@ private const val MAX_LINES = 6
 /** Zoals het tabblad Overzicht in de Sheet, plus het totaal bovenaan, de grafiek en waarde per rarity. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}) {
+fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}, onSets: () -> Unit = {}) {
     val all by vm.entries.collectAsState()
     val decks by vm.decks.collectAsState()
     val settings by vm.settings.collectAsState()
     val snaps by vm.snapshots.collectAsState()
     val moments by vm.moments.collectAsState()
+    val latest by vm.latestPerKey.collectAsState()
     val cur = settings.currency
     val extra = LocalNgExtra.current
     var choosing by remember { mutableStateOf(false) }
@@ -124,7 +125,7 @@ fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}) {
         key.startsWith("deck:") -> deckNames[key] ?: snapLabel ?: key
         else -> key.removePrefix("set:")
     }
-    val latestLabel = snaps.groupBy { it.key }.mapValues { (_, v) -> v.maxBy { it.day }.label }
+    val latestLabel = remember(latest) { latest.associate { it.key to it.label } }
     val available = (listOf("total", "sets", "decks") + decks.map { "deck:${it.id}" } + sets.map { "set:${it.first}" } + latestLabel.keys).distinct()
 
     Scaffold(topBar = {
@@ -155,7 +156,7 @@ fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}) {
                 val base = totalSnaps.lastOrNull { it.day <= monthAgo } ?: totalSnaps.firstOrNull()?.takeIf { it.day < LocalDate.now().toString() }
                 val diff = base?.let { grand.value - (if (cur == "USD") it.usd else it.eur) }
                 // Alleen bij het openen van Overzicht, en hoogstens één keer per dag (of na een prijsupdate).
-                androidx.compose.runtime.LaunchedEffect(cur, settings.lastPriceUpdate) { vm.computePriceChanges() }
+                androidx.compose.runtime.LaunchedEffect(cur, settings.lastPriceUpdate) { vm.computePriceChanges(); vm.computeWinner() }
                 Panel {
                     Text(stringResource(R.string.total_collection), color = extra.subtle, fontSize = 13.sp)
                     Text(Money.format(grand.value, cur), fontSize = 30.sp, fontWeight = FontWeight.Bold, color = extra.price)
@@ -188,6 +189,33 @@ fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}) {
                 }
             }
 
+            // Winner of the Week: één kaart, de grootste stijging in geld over je eigen exemplaren.
+            vm.winner?.let { w ->
+                item {
+                    Panel {
+                        Text("Winner of the Week", fontWeight = FontWeight.Bold, color = extra.price)
+                        vm.winnerWeek?.let { mon ->
+                            val f = java.time.format.DateTimeFormatter.ofLocalizedDate(java.time.format.FormatStyle.SHORT)
+                            Text(stringResource(R.string.winner_week, mon.minusDays(7).format(f), mon.format(f)), fontSize = 11.sp, color = extra.subtle)
+                        }
+                        Spacer(Modifier.height(8.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            nl.spoonpaco.ninegrid.ui.components.CardThumb(w.print, vm.images, settings, width = 64)
+                            Spacer(Modifier.width(12.dp))
+                            Column(Modifier.weight(1f)) {
+                                Text(w.print.name + if (w.finish != nl.spoonpaco.ninegrid.data.db.Finish.NONFOIL) " (${w.finish})" else "", fontWeight = FontWeight.Bold)
+                                Text("${w.print.setCode} ${w.print.collectorNumber}", fontSize = 12.sp, color = extra.subtle)
+                                Text(Money.format(w.oldUnit, cur) + " → " + Money.format(w.newUnit, cur) + String.format(java.util.Locale.getDefault(), "  (%+.0f%%)", w.pct), fontSize = 13.sp)
+                                Text(
+                                    "▲ " + Money.format(w.totalGain, cur) + if (w.quantity > 1) "  ·  " + stringResource(R.string.winner_copies, w.quantity) else "",
+                                    fontSize = 13.sp, fontWeight = FontWeight.Bold, color = NgColors.Synced,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
             // Grafiek.
             item {
                 val ranges = listOf("1D" to 1L, "1W" to 7L, "1M" to 30L, "3M" to 91L, "1Y" to 365L, "ALL" to 0L)
@@ -204,7 +232,8 @@ fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}) {
                 val byValue = settings.chartMetric != "count"
                 fun isSheet(sn: Snapshot) = sn.label == nl.spoonpaco.ninegrid.data.ImportWorker.SHEET_LABEL || (sn.key == "total" && sn.usd == 0.0 && sn.eur > 0 && sn.gainEur == null)
                 fun pick(eur: Double, usd: Double, count: Int) = if (byValue) (if (cur == "USD") usd else eur) else count.toDouble()
-                val series = lines.mapIndexed { i, key ->
+                // Alleen opnieuw uitrekenen als de gegevens of de keuzes veranderen.
+                val series = remember(snaps, moments, lines, cur, settings.chartMetric, settings.chartRange, latestLabel) { lines.mapIndexed { i, key ->
                     if (byGain) {
                         // Koers: optellen vanaf €0 op de eerste dag in beeld; alleen dagen waarvan de koers bekend is.
                         var sum = 0.0
@@ -221,7 +250,7 @@ fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}) {
                         ms + snaps.filter { it.key == key && it.day !in momentDays }.map { noon(it.day) to pick(it.eur, it.usd, it.count) }
                     } else daily
                     Series(key, labelOf(key, latestLabel[key]), LINE_COLORS[i % LINE_COLORS.size], pts.filter { it.first >= from }.sortedBy { it.first }, sheetUntil)
-                }
+                } }
                 Panel {
                     Text(stringResource(R.string.chart_title), fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(6.dp))
@@ -294,9 +323,22 @@ fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}) {
             }
 
             // Sets en decks, twee regels per rij.
+            // Sets: één regel; de lijst zelf staat in een eigen scherm.
             item { SectionTitle(stringResource(R.string.set)) }
-            items(sets, key = { "s_" + it.first }) { (k, c) -> TwoLineRow(k, c, cur, onClick = { onSet(k) }) }
-            item { TwoLineRow(labelSets, setTotal, cur, bold = true) }
+            item {
+                Row(Modifier.fillMaxWidth().clickable(onClick = onSets).padding(horizontal = 16.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text(stringResource(R.string.sets_title), fontWeight = FontWeight.Bold)
+                        Text(
+                            androidx.compose.ui.res.pluralStringResource(R.plurals.n_sets, sets.size, sets.size) + " · " +
+                                androidx.compose.ui.res.pluralStringResource(R.plurals.n_cards, setTotal.total, setTotal.total),
+                            fontSize = 12.sp, color = extra.subtle,
+                        )
+                    }
+                    Text(Money.format(setTotal.value, cur), fontWeight = FontWeight.Bold, color = extra.price)
+                    Text("  ›", fontWeight = FontWeight.Bold)
+                }
+            }
             item { SectionTitle(stringResource(R.string.decks)) }
             items(deckRows, key = { "d_" + it.first + it.second.total }) { (k, c) -> TwoLineRow(k, c, cur) }
             item { TwoLineRow(labelDecks, deckTotal, cur, bold = true) }

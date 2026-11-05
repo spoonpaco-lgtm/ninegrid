@@ -368,4 +368,48 @@ class ParserTest {
         assertEquals("U", splash.splashColors)
         assertEquals(setOf('U', 'B'), S.landColors("Land", pool[2].oracleText, "", ""))
     }
+
+    @Test
+    fun winnerAndBreakout() {
+        val M = nl.spoonpaco.ninegrid.domain.PriceMovers
+        fun pr(id: String, name: String, type: String, eur: Double) = nl.spoonpaco.ninegrid.data.db.CardPrint(id = id, name = name, setCode = "X", collectorNumber = "1", typeLine = type, eur = eur)
+        fun old(id: String, eur: Double) = nl.spoonpaco.ninegrid.data.db.PricePoint(id, "2026-11-01", eur, null, null, null, null)
+        val bulk = pr("a", "Bulk Rare", "Creature — Elf", 0.30)
+        val shock = pr("b", "Godless Shrine", "Land — Plains Swamp", 14.0)
+        val ghast = pr("c", "Bloodghast", "Creature — Vampire Spirit", 21.0)
+        val e = listOf(
+            nl.spoonpaco.ninegrid.data.db.Entry(printId = "a", quantity = 1) to bulk,
+            nl.spoonpaco.ninegrid.data.db.Entry(printId = "b", quantity = 4) to shock,
+            nl.spoonpaco.ninegrid.data.db.Entry(printId = "c", quantity = 1) to ghast,
+        )
+        val mv = M.movers(e, mapOf("a" to old("a", 0.10), "b" to old("b", 12.0), "c" to old("c", 15.0)), "EUR")
+        // Winner in euro over je eigen exemplaren: 4 × €2 = €8 wint van 1 × €6 en van +200% op een bulkkaart.
+        assertEquals("Godless Shrine", M.winner(mv)?.print?.name)
+        // Breakout per stuk: +€6 en +40% haalt de drempel, +€2 (16,7%) niet.
+        assertEquals("Bloodghast", M.breakout(mv)?.print?.name)
+        assertEquals("Creature", M.mainType("Artifact Creature — Golem"))
+        assertEquals("Land", M.mainType("Land — Plains Swamp"))
+    }
+
+    @OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
+    @Test
+    fun offlineBulkParsesStreamed() {
+        val bulk = """[
+          {"id":"a1","oracle_id":"o1","name":"Bloodghast","set":"mh3","set_name":"Modern Horizons 3","collector_number":"12","rarity":"rare",
+           "type_line":"Creature — Vampire Spirit","mana_cost":"{1}{B}","cmc":2,"colors":["B"],"color_identity":["B"],
+           "image_uris":{"small":"s.jpg","normal":"n.jpg"},"prices":{"eur":"20.5","eur_foil":null},"released_at":"2024-06-14","legalities":{"modern":"legal"}},
+          {"id":"d1","name":"Arena Only","set":"ymid","collector_number":"1","digital":true},
+          {"id":"f1","name":"Delver of Secrets // Insectile Aberration","set":"isd","collector_number":"51","card_faces":[{"image_uris":{"small":"x.jpg"},"mana_cost":"{U}"}]}
+        ]"""
+        val json = kotlinx.serialization.json.Json { ignoreUnknownKeys = true; coerceInputValues = true }
+        val cards = json.decodeToSequence(bulk.byteInputStream(), nl.spoonpaco.ninegrid.data.scryfall.SfCard.serializer(), kotlinx.serialization.json.DecodeSequenceMode.ARRAY_WRAPPED)
+            .filter { !it.digital }.map { nl.spoonpaco.ninegrid.data.offline.OfflineCard.from(it, 1L) }.toList()
+        assertEquals(2, cards.size)
+        assertEquals("delver of secrets", cards[1].front)
+        val back = cards[0].toSfCard().toPrint()
+        assertEquals("MH3", back.setCode)
+        assertEquals(20.5, back.eur!!, 0.001)
+        assertEquals("n.jpg", back.imageNormal)
+        assertEquals("{U}", cards[1].manaCost)
+    }
 }
