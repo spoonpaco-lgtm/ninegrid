@@ -855,13 +855,15 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     var suggestions by mutableStateOf<nl.spoonpaco.ninegrid.domain.SuggestionReport?>(null)
     var suggestionsDeckId by mutableStateOf<Long?>(null)
+    var suggestionsFailed by mutableStateOf(false)
 
     fun computeSuggestions(deckId: Long) = viewModelScope.launch {
         val deck = decks.value.firstOrNull { it.id == deckId } ?: return@launch
         val rules = deckRules(deckId)
         val all = entries.value
         val deckNames = decks.value.associate { it.id to it.name }
-        val report = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+        suggestionsFailed = false
+        val report = runCatching { kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
             val mine = all.filter { it.entry.deckId == deckId }
             val pool = all.filter { e ->
                 e.print != null && !e.entry.proxy && e.entry.deckId != deckId && (e.entry.deckId == null || rules.includeOtherDecks)
@@ -874,7 +876,8 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                 deck.format, Formats.toDeckCards(mine.map { it.entry to it.print }),
                 mine.filter { it.print != null }.associate { it.print!!.name to it.entry.id }, pool, rules,
             )
-        }
+        } }.onFailure { if (it is kotlinx.coroutines.CancellationException) throw it; android.util.Log.e("NineGrid", "suggesties", it) }.getOrNull()
+        suggestionsFailed = report == null
         suggestions = report
         suggestionsDeckId = deckId
     }

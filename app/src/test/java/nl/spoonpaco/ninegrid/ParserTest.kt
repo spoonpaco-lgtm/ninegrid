@@ -289,4 +289,53 @@ class ParserTest {
         assertTrue(r.lands.any { it.card.name == "Godless Shrine" })
         assertTrue(r.cuts.any { it.name == "Bear" && it.reasons.any { w -> w.startsWith("not_tribe") } })
     }
+
+    /**
+     * Android gebruikt ICU voor regexes, en die is strenger dan de JVM: een losse '{' of '}'
+     * (geen quantifier, geen \p{..}) laat de app crashen. Deze test leest alle Regex-literals
+     * in de broncode en keurt ze zoals ICU dat doet.
+     */
+    @Test
+    fun regexesAreAndroidSafe() {
+        val root = java.io.File("src/main/java")
+        assertTrue("bronmap niet gevonden", root.isDirectory)
+        val lit = Regex("Regex\\(\"\"\"(.*?)\"\"\"")
+        val bad = mutableListOf<String>()
+        root.walkTopDown().filter { it.extension == "kt" }.forEach { f ->
+            f.readLines().forEachIndexed { n, line ->
+                lit.findAll(line).forEach { m -> strictBraceProblem(m.groupValues[1])?.let { bad += "${f.name}:${n + 1} $it: ${m.groupValues[1]}" } }
+            }
+        }
+        assertTrue(bad.joinToString("\n"), bad.isEmpty())
+    }
+
+    private fun strictBraceProblem(re: String): String? {
+        var i = 0; var inClass = false
+        while (i < re.length) {
+            val c = re[i]
+            when {
+                c == '\\' -> {
+                    // \p{L} / \P{..} slaan we als geheel over; andere escapes één teken.
+                    if (i + 2 < re.length && (re[i + 1] == 'p' || re[i + 1] == 'P') && re[i + 2] == '{') {
+                        val end = re.indexOf('}', i); if (end < 0) return "open \\p{"; i = end
+                    } else i++
+                }
+                inClass -> if (c == ']') inClass = false
+                c == '[' -> { inClass = true; if (re.getOrNull(i + 1) == '^') i++; if (re.getOrNull(i + 1) == ']') i++ }
+                c == '{' -> {
+                    val end = re.indexOf('}', i)
+                    if (end < 0 || !Regex("""\d+(,\d*)?""").matches(re.substring(i + 1, end))) return "losse '{' op $i"
+                    i = end
+                }
+                c == '}' -> return "losse '}' op $i"
+            }
+            i++
+        }
+        return null
+    }
+
+    @Test
+    fun rampRegexFindsManaSymbols() {
+        assertTrue(nl.spoonpaco.ninegrid.domain.Role.RAMP in nl.spoonpaco.ninegrid.domain.Suggestions.rolesOf("{T}: Add {G}.", "Creature — Elf Druid"))
+    }
 }

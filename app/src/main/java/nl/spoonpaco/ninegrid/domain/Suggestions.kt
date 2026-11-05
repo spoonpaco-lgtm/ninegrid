@@ -60,19 +60,28 @@ object Suggestions {
         Role.RAMP to 0, Role.DRAW to 4, Role.REMOVAL to 6, Role.WIPE to 0, Role.COUNTER to 0, Role.PROTECTION to 0, Role.TOKENS to 0, Role.RECURSION to 0,
     )
 
+    // Vooraf gecompileerd. Accolades altijd escapen: Android (ICU) weigert een losse '}'.
+    private val reRamp = Regex("""add \{[wubrgc]\}|add one mana|add two mana|mana of any color""")
+    private val reDraw = Regex("""draw (a|two|three|x|that many) cards?|draws? cards? equal""")
+    private val reRemoval = Regex("""(destroy|exile) target (creature|permanent|artifact|enchantment|nonland|planeswalker)|deals? \d+ damage to (target|any target)|target (creature|player) sacrifices""")
+    private val reWipe = Regex("""(destroy|exile) all (creatures|nonland|permanents|other creatures)|all creatures get -""")
+    private val reProtection = Regex("""hexproof|indestructible|protection from|phase out""")
+    private val reTokens = Regex("""create (a|an|one|two|three|x|\w+) .*tokens?""")
+    private val reRecursion = Regex("""return (target|up to|all) .* from your graveyard""")
+
     fun rolesOf(text: String, typeLine: String): Set<Role> {
         val t = text.lowercase().replace('\n', ' ')
         val out = mutableSetOf<Role>()
         val isLand = typeLine.contains("Land")
-        if (!isLand && (Regex("""add \{[wubrgc]}|add one mana|add two mana|mana of any color""").containsMatchIn(t) ||
+        if (!isLand && (reRamp.containsMatchIn(t) ||
                 (t.contains("search your library for") && t.contains("land")))) out += Role.RAMP
-        if (Regex("""draw (a|two|three|x|that many) cards?|draws? cards? equal""").containsMatchIn(t)) out += Role.DRAW
-        if (Regex("""(destroy|exile) target (creature|permanent|artifact|enchantment|nonland|planeswalker)|deals? \d+ damage to (target|any target)|target (creature|player) sacrifices""").containsMatchIn(t)) out += Role.REMOVAL
-        if (Regex("""(destroy|exile) all (creatures|nonland|permanents|other creatures)|all creatures get -""").containsMatchIn(t)) out += Role.WIPE
+        if (reDraw.containsMatchIn(t)) out += Role.DRAW
+        if (reRemoval.containsMatchIn(t)) out += Role.REMOVAL
+        if (reWipe.containsMatchIn(t)) out += Role.WIPE
         if (t.contains("counter target spell") || t.contains("counter target noncreature")) out += Role.COUNTER
-        if (Regex("""hexproof|indestructible|protection from|phase out""").containsMatchIn(t) && t.contains("you control")) out += Role.PROTECTION
-        if (Regex("""create (a|an|one|two|three|x|\w+) .*tokens?""").containsMatchIn(t)) out += Role.TOKENS
-        if (Regex("""return (target|up to|all) .* from your graveyard""").containsMatchIn(t)) out += Role.RECURSION
+        if (reProtection.containsMatchIn(t) && t.contains("you control")) out += Role.PROTECTION
+        if (reTokens.containsMatchIn(t)) out += Role.TOKENS
+        if (reRecursion.containsMatchIn(t)) out += Role.RECURSION
         return out
     }
 

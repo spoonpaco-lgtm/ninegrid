@@ -444,6 +444,11 @@ private fun SuggestionsPanel(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.
             Text(stringResource(R.string.sugg_other_decks), fontSize = 13.sp)
         }
         androidx.compose.material3.OutlinedButton(onClick = { vm.setDeckRules(deck.id, rules) }) { Text(stringResource(R.string.sugg_apply)) }
+        if (vm.suggestionsFailed && vm.suggestionsDeckId == deck.id) {
+            Text(stringResource(R.string.sugg_failed), fontSize = 13.sp, color = nl.spoonpaco.ninegrid.ui.theme.NgColors.Error, modifier = Modifier.padding(top = 8.dp))
+            androidx.compose.material3.TextButton(onClick = { vm.computeSuggestions(deck.id) }) { Text(stringResource(R.string.sugg_retry)) }
+            return@Column
+        }
         if (r == null) { androidx.compose.material3.LinearProgressIndicator(Modifier.fillMaxWidth().padding(top = 8.dp)); return@Column }
 
         // Wat het deck per rol heeft tegenover een streefgetal.

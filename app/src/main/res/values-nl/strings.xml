@@ -436,4 +436,6 @@
     <string name="import_from_drive">Sheet kiezen in Google Drive</string>
     <string name="import_from_drive_hint">Kies je MTG Collection Sheet rechtstreeks in Drive; Android levert hem aan als Excel. Je hoeft niets te downloaden.</string>
     <string name="import_choose">Bestand kiezen (.xlsx of .csv)</string>
+    <string name="sugg_failed">Suggesties konden niet worden berekend.</string>
+    <string name="sugg_retry">Opnieuw proberen</string>
 </resources>
