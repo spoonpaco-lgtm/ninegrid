@@ -787,7 +787,9 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                 break
             }
             val bmp = crops[item.key]?.asAndroidBitmap() ?: continue
-            val read = runCatching { client.readCard(bmp) }.getOrElse { e -> message = str(R.string.ai_failed, e.message ?: ""); break }
+            val attempt = runCatching { client.readCard(bmp) }
+            if (attempt.isFailure) { message = str(R.string.ai_failed, attempt.exceptionOrNull()?.message ?: ""); break }
+            val read = attempt.getOrThrow()
             val lang = nl.spoonpaco.ninegrid.domain.ScanParser.scryfallLang(read.lang)
             val q = when {
                 read.set != null && read.number != null -> if (lang == null) CardQuery(setCode = read.set, collectorNumber = read.number, name = read.name) else CardQuery(setCode = read.set, collectorNumber = read.number, lang = lang, printedName = read.name)
