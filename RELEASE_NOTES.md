@@ -1,21 +1,17 @@
-NineGrid 0.8.8 – Karn
+NineGrid 0.8.9 – Ugin
 
-Karn bouwt en repareert. Deze versie zet de offline kaartdatabase weer aan het werk en ruimt verder op.
+Ugin, de geest van de kennis. Deze versie brengt AI-hulp, helemaal naar keuze.
 
-Offline kaartdatabase
-- Werkt weer: Scryfall levert de kaarten nu als ingepakt bestand van ±81 MB. Getest met het echte bestand (110.861 kaarten).
-- Voortgang in procenten, en "Wacht op wifi" zolang de download nog niet begonnen is.
+AI-hulp (Meer → Instellingen, standaard uit)
+- Kies een dienst: Google Gemini (gratis variant), Claude, OpenAI, DeepSeek, Mistral, OpenRouter, Groq of een eigen adres. Plak je eigen sleutel en tik op Test.
+- Bij het scannen leest de AI alleen de oranje of niet gevonden vakjes. Wat hij leest, controleert de app bij Scryfall.
+- Bij decks: Vraag AI, uit je eigen collectie of ook daarbuiten ("Overweeg te kopen", met prijs en link). Elk voorstel wordt gecontroleerd op kleuren, format en bracket.
+- Maximum aantal verzoeken per dag (standaard 50). De sleutel staat versleuteld op je telefoon en gaat niet mee in de back-up.
 
 Scannen
-- Foil per vak via een klein raster van het laatste blad onderaan; tik erop voor een groot raster. Het camerabeeld blijft vrij om scherp te stellen.
+- De knop Foil (blad) zit nu in het voorbeeld: tik op het kleine raster, dan per vak of Alles foil. Bij één kaart blijft de knop Foil (kaart).
 
-Importeren
-- Past de naam in je bestand niet bij set en nummer, dan zoekt de app op naam. Na afloop zie je welke regels een verkeerd nummer hadden.
-
-Collectie, sets en decks
-- Trechter voor filteren, pijltjes voor sorteren; het setscherm gebruikt dezelfde zoekbalk.
-- Decks: één regel in het Overzicht, standaard per format gegroepeerd, sorteren op waarde, naam, aantal of laatst gewijzigd.
-- Completionist: compleetheid telt alleen je binders; kaarten die alleen in een deck zitten staan bij Ontbreekt, met de decknaam.
-- Geen plaatje? Een gewone reden (alleen via wifi, offline, geen plaatje bij Scryfall) in plaats van een technische foutmelding, met Nu toch laden.
+Decks
+- Format wijzigen: tik in de kop op het format (potloodje).
 
 Handleiding bijgewerkt.

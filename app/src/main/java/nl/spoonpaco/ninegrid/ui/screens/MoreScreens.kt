@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -188,6 +190,55 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit) {
                 Switch(checked = settings.showWeekday, onCheckedChange = { vm.setShowWeekday(it) })
             }
             Text(stringResource(R.string.date_example, nl.spoonpaco.ninegrid.domain.Dates.dateTime(System.currentTimeMillis(), settings.dateStyle)), fontSize = 12.sp, color = LocalNgExtra.current.subtle)
+
+            // AI-hulp: standaard uit; eigen sleutel, alleen op deze telefoon.
+            Spacer(Modifier.height(16.dp))
+            Text(stringResource(R.string.ai_title), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.ai_explain), fontSize = 13.sp, modifier = Modifier.weight(1f))
+                Switch(checked = settings.aiEnabled, onCheckedChange = { vm.setAiEnabled(it) })
+            }
+            if (settings.aiEnabled) {
+                val provider = nl.spoonpaco.ninegrid.data.ai.AiProviders.byId(settings.aiProvider)
+                ChoiceRow(stringResource(R.string.ai_provider), nl.spoonpaco.ninegrid.data.ai.AiProviders.all.map { it.id }, provider.id,
+                    { id -> nl.spoonpaco.ninegrid.data.ai.AiProviders.byId(id).let { it.label + if (it.free) " ★" else "" } }) { vm.setAiProvider(it) }
+                Text(stringResource(R.string.ai_free_star), fontSize = 11.sp, color = LocalNgExtra.current.subtle)
+                Text(stringResource(when (provider.id) {
+                    "gemini" -> R.string.ai_note_gemini
+                    "claude" -> R.string.ai_note_claude
+                    "openai" -> R.string.ai_note_openai
+                    "deepseek" -> R.string.ai_note_deepseek
+                    "custom" -> R.string.ai_note_custom
+                    else -> R.string.ai_note_other
+                }), fontSize = 12.sp)
+                var keyText by remember(provider.id, vm.aiKeyVersion) { mutableStateOf("") }
+                OutlinedTextField(
+                    keyText, { keyText = it }, singleLine = true, modifier = Modifier.fillMaxWidth(),
+                    label = { Text(stringResource(if (vm.hasAiKey(provider.id)) R.string.ai_key_saved else R.string.ai_key)) },
+                    visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                    trailingIcon = { TextButton(onClick = { vm.saveAiKey(keyText); keyText = "" }, enabled = keyText.isNotBlank()) { Text(stringResource(R.string.save)) } },
+                )
+                if (provider.id == "custom") {
+                    var url by remember(settings.aiBaseUrl) { mutableStateOf(settings.aiBaseUrl) }
+                    OutlinedTextField(url, { url = it; vm.setAiBaseUrl(it) }, singleLine = true, modifier = Modifier.fillMaxWidth(),
+                        label = { Text(stringResource(R.string.ai_base_url)) }, placeholder = { Text("https://…/v1") })
+                }
+                var model by remember(provider.id, settings.aiModel) { mutableStateOf(settings.aiModel) }
+                OutlinedTextField(model, { model = it; vm.setAiModel(it) }, singleLine = true, modifier = Modifier.fillMaxWidth(),
+                    label = { Text(stringResource(R.string.ai_model)) }, placeholder = { Text(provider.model.ifBlank { "model" }) })
+                var limit by remember(settings.aiDailyLimit) { mutableStateOf(settings.aiDailyLimit.toString()) }
+                OutlinedTextField(limit, { v -> limit = v.filter { it.isDigit() }.take(4); limit.toIntOrNull()?.let { vm.setAiLimit(it) } }, singleLine = true,
+                    modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.ai_limit)) },
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number))
+                val usedToday = if (settings.aiCountDay == java.time.LocalDate.now().toString()) settings.aiCount else 0
+                Text(stringResource(R.string.ai_used_today, usedToday, settings.aiDailyLimit), fontSize = 12.sp, color = LocalNgExtra.current.subtle)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    OutlinedButton(onClick = { vm.testAi() }, enabled = !vm.aiTesting) { Text(stringResource(R.string.ai_test)) }
+                    if (vm.aiTesting) { Spacer(Modifier.width(8.dp)); androidx.compose.material3.CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp) }
+                }
+                vm.aiTestResult?.let { Text(it, fontSize = 12.sp) }
+                Text(stringResource(R.string.ai_privacy), fontSize = 11.sp, color = LocalNgExtra.current.subtle)
+            }
 
             Spacer(Modifier.height(16.dp))
             Text(stringResource(R.string.completionist), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)

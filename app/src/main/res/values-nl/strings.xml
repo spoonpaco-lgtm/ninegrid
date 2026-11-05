@@ -563,4 +563,41 @@
         <item quantity="one">%d deck</item>
         <item quantity="other">%d decks</item>
     </plurals>
+    <string name="ai_title">AI-hulp</string>
+    <string name="ai_explain">Standaard uit. Met je eigen sleutel leest een AI de oranje (twijfel)kaarten en kan hij deckwijzigingen voorstellen. NineGrid controleert alles bij Scryfall.</string>
+    <string name="ai_provider">Dienst</string>
+    <string name="ai_free_star">★ = heeft een gratis variant (met limieten).</string>
+    <string name="ai_note_gemini">Gratis sleutel via Google AI Studio. Bij de gratis variant gebruikt Google wat je stuurt om zijn producten te verbeteren.</string>
+    <string name="ai_note_claude">Betaald: een API-sleutel uit de Claude Console met tegoed, los van een claude.ai-abonnement. Haiku is goedkoop en leest tekst op foto\'s goed.</string>
+    <string name="ai_note_openai">Betaald: een API-sleutel van platform.openai.com met tegoed. ChatGPT Plus geeft geen toegang tot de API.</string>
+    <string name="ai_note_deepseek">Zeer goedkoop. Het fotomodel is nog experimenteel.</string>
+    <string name="ai_note_custom">Elke dienst die werkt zoals OpenAI (chat/completions). Vul het adres in en een model dat foto\'s leest.</string>
+    <string name="ai_note_other">Controleer of het gekozen model foto\'s kan lezen; de modelnaam kun je hieronder aanpassen.</string>
+    <string name="ai_key">API-sleutel</string>
+    <string name="ai_key_saved">API-sleutel (bewaard – typ om te vervangen)</string>
+    <string name="ai_base_url">Adres (base URL)</string>
+    <string name="ai_model">Model (leeg = standaard)</string>
+    <string name="ai_limit">Maximum aantal verzoeken per dag</string>
+    <string name="ai_used_today">Vandaag gebruikt: %1$d van %2$d</string>
+    <string name="ai_test">Test</string>
+    <string name="ai_test_ok">Werkt: gelezen %1$s · %2$s %3$s · %4$s</string>
+    <string name="ai_test_partial">Antwoord ontvangen, maar niet helemaal goed: %1$s · %2$s %3$s · %4$s (verwacht Lightning Bolt · M11 146). Probeer een ander model.</string>
+    <string name="ai_test_failed">Werkt niet: %1$s</string>
+    <string name="ai_no_key">Vul eerst een sleutel in en bewaar hem.</string>
+    <string name="ai_privacy">Alleen de foto van één twijfelvak, of kaartnamen en deckregels, verlaten je telefoon. De sleutel staat alleen op deze telefoon en niet in de back-up.</string>
+    <string name="ai_limit_reached">AI-maximum van vandaag bereikt.</string>
+    <string name="ai_failed">AI gaf geen antwoord: %1$s</string>
+    <string name="ai_helped">AI las %1$d twijfelkaart(en); kijk ze na in het controlescherm.</string>
+    <string name="ai_deck_title">AI-suggesties</string>
+    <string name="ai_deck_off">Zet AI-hulp aan in Instellingen om een AI om ruilvoorstellen te vragen.</string>
+    <string name="ai_scope_mine">Alleen mijn collectie</string>
+    <string name="ai_scope_all">Ook kaarten die ik niet heb</string>
+    <string name="ai_ask">Vraag AI</string>
+    <string name="ai_deck_privacy">Alleen kaartnamen en je deckregels gaan weg, geen foto\'s of prijzen. Elk voorstel wordt gecontroleerd op kleuren, format en bracket.</string>
+    <string name="ai_buy_title">Overweeg te kopen</string>
+    <string name="ai_dropped">%1$d voorstel(len) weggelaten: ze pasten niet bij het deck of bestonden niet.</string>
+    <string name="ai_no_key_or_off">AI-hulp staat uit of heeft geen sleutel (Instellingen).</string>
+    <string name="scan_foil_preview_hint">Foil: tik</string>
+    <string name="scan_foil_all">Alles foil</string>
+    <string name="scan_foil_none">Geen foil</string>
 </resources>

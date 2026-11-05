@@ -196,7 +196,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Foil voor het hele blad: ook voor wat er al gescand klaarstaat. */
     fun setPageFoil(v: Boolean) {
-        scanFoil = v
+        if (pending.none { it.slot != null }) scanFoil = v
         if (importSource == ImportSource.SCAN) pending.indices.forEach { i -> if (pending[i].slot != null) pending[i] = pending[i].copy(finish = if (v) Finish.FOIL else Finish.NONFOIL) }
     }
 
@@ -250,7 +250,8 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                     else CardQuery(setCode = set, collectorNumber = r.collectorNumber, lang = lang, printedName = r.name),
                 status = if (canLook) ItemStatus.RESOLVING else ItemStatus.NOT_FOUND,
                 language = r.language ?: "",
-                finish = if (scanFoil) Finish.FOIL else Finish.NONFOIL,
+                // Bij een blad begint elk vak gewoon; foil zet je in het voorbeeld. Bij één kaart telt de knop.
+                finish = if (scanFoil && single) Finish.FOIL else Finish.NONFOIL,
             )
         }
         viewModelScope.launch {
@@ -406,6 +407,8 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                 }
             }
             if (pending.none { it.status == ItemStatus.WAITING }) clearSavedPending()
+            // AI-hulp bij twijfel (als aan): de oranje en niet gevonden vakjes van deze scan.
+            if (scan) aiAssist(todo.mapNotNull { t -> pending.firstOrNull { it.key == t.key } })
             // Losse kaarten: dezelfde kaart nog eens = één erbij in plaats van een nieuwe regel.
             if (scan && pending.isNotEmpty() && pending.all { it.slot == null }) {
                 val seen = mutableMapOf<Pair<String, String>, Int>()
@@ -726,6 +729,86 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     }
     fun setBreakoutAlerts(v: Boolean) = viewModelScope.launch { settingsStore.setBreakoutAlerts(v) }
     fun setFilter(screen: String, f: nl.spoonpaco.ninegrid.ui.components.CardFilter) = viewModelScope.launch { settingsStore.setFilter(screen, f.toJson()) }
+    // ---------- AI-hulp ----------
+    fun setAiEnabled(v: Boolean) = viewModelScope.launch { settingsStore.setAi(enabled = v) }
+    fun setAiProvider(id: String) = viewModelScope.launch { settingsStore.setAi(provider = id, model = "", baseUrl = ""); aiTestResult = null }
+    fun setAiModel(v: String) = viewModelScope.launch { settingsStore.setAi(model = v) }
+    fun setAiBaseUrl(v: String) = viewModelScope.launch { settingsStore.setAi(baseUrl = v) }
+    fun setAiLimit(v: Int) = viewModelScope.launch { settingsStore.setAi(limit = v.coerceIn(1, 1000)) }
+    fun saveAiKey(v: String) { c.keyVault.save(settings.value.aiProvider, v); aiKeyVersion++ }
+    var aiKeyVersion by mutableStateOf(0)
+        private set
+    fun hasAiKey(provider: String = settings.value.aiProvider) = c.keyVault.has(provider)
+    var aiTestResult by mutableStateOf<String?>(null)
+    var aiTesting by mutableStateOf(false)
+        private set
+
+    /** De ingestelde dienst, of null als AI uit staat of er geen sleutel is. */
+    private fun aiClient(): nl.spoonpaco.ninegrid.data.ai.AiClient? {
+        val s = settings.value
+        if (!s.aiEnabled) return null
+        val p = nl.spoonpaco.ninegrid.data.ai.AiProviders.byId(s.aiProvider)
+        val key = c.keyVault.load(p.id) ?: return null
+        return nl.spoonpaco.ninegrid.data.ai.AiClient(p, key, s.aiModel, s.aiBaseUrl)
+    }
+
+    /** Knop Test: één getekende voorbeeldkaart sturen en laten zien wat de AI leest. */
+    fun testAi() = viewModelScope.launch {
+        val s = settings.value
+        val p = nl.spoonpaco.ninegrid.data.ai.AiProviders.byId(s.aiProvider)
+        val key = c.keyVault.load(p.id)
+        if (key == null) { aiTestResult = str(R.string.ai_no_key); return@launch }
+        aiTesting = true
+        aiTestResult = runCatching {
+            val r = nl.spoonpaco.ninegrid.data.ai.AiClient(p, key, s.aiModel, s.aiBaseUrl).readCard(nl.spoonpaco.ninegrid.data.ai.AiClient.testCard())
+            val ok = r.name?.contains("Lightning Bolt", true) == true && r.set == "M11" && r.number == "146"
+            str(if (ok) R.string.ai_test_ok else R.string.ai_test_partial, r.name ?: "?", r.set ?: "?", r.number ?: "?", r.lang ?: "?")
+        }.getOrElse { str(R.string.ai_test_failed, it.message ?: it.javaClass.simpleName) }
+        aiTesting = false
+    }
+
+    /** AI-verzoeken van deze sessie die zijn tegengehouden door het maximum per dag. */
+    private var aiLimitWarned = false
+    private val aiTried = mutableSetOf<Int>()
+
+    /**
+     * AI bij twijfel: alleen voor oranje of niet gevonden vakjes, één uitsnede per kaart. Wat de AI leest
+     * wordt bij Scryfall opgezocht; alleen als naam, set en nummer daar kloppen wordt het vak groen.
+     */
+    private fun aiAssist(items: List<PendingItem>) = viewModelScope.launch {
+        val client = aiClient() ?: return@launch
+        val todo = items.filter { (it.status == ItemStatus.NOT_FOUND || !it.confident) && it.key !in aiTried && crops[it.key] != null }
+        if (todo.isEmpty()) return@launch
+        var helped = 0
+        for (item in todo) {
+            aiTried += item.key
+            if (!settingsStore.countAiUse()) {
+                if (!aiLimitWarned) { message = str(R.string.ai_limit_reached); aiLimitWarned = true }
+                break
+            }
+            val bmp = crops[item.key]?.asAndroidBitmap() ?: continue
+            val read = runCatching { client.readCard(bmp) }.getOrElse { e -> message = str(R.string.ai_failed, e.message ?: ""); break }
+            val lang = nl.spoonpaco.ninegrid.domain.ScanParser.scryfallLang(read.lang)
+            val q = when {
+                read.set != null && read.number != null -> if (lang == null) CardQuery(setCode = read.set, collectorNumber = read.number, name = read.name) else CardQuery(setCode = read.set, collectorNumber = read.number, lang = lang, printedName = read.name)
+                read.name != null && lang == null -> CardQuery(setCode = read.set, name = read.name)
+                else -> null
+            } ?: continue
+            val card = runCatching { repo.resolve(listOf(q)).firstOrNull() }.getOrNull() ?: continue
+            val nameOk = lang != null || read.name == null || repo.namesLookAlike(read.name, card.name)
+            val numberOk = read.number == null || card.collectorNumber.equals(read.number, true)
+            val idx = pending.indexOfFirst { it.key == item.key }
+            if (idx < 0) continue
+            pending[idx] = pending[idx].copy(
+                print = card.toPrint(), status = ItemStatus.FOUND,
+                query = q, confident = nameOk && numberOk && read.set != null,
+                language = read.lang?.takeIf { it != "EN" } ?: pending[idx].language,
+            )
+            helped++
+        }
+        if (helped > 0) message = str(R.string.ai_helped, helped)
+    }
+
     fun setDecksSort(v: String) = viewModelScope.launch { settingsStore.setDecksSort(v) }
     fun setCompletionist(v: Boolean) = viewModelScope.launch { settingsStore.setCompletionist(v) }
     fun setCollectionSort(v: String) = viewModelScope.launch { settingsStore.setCollectionSort(v) }
@@ -1089,6 +1172,86 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         suggestions = report
         suggestionsDeckId = deckId
     }
+
+    // ---------- AI bij decksuggesties ----------
+    data class AiSwap(val inName: String, val outName: String?, val reason: String)
+    data class AiBuy(val print: CardPrint, val outName: String?, val reason: String)
+    data class AiDeckResult(val deckId: Long, val owned: List<AiSwap>, val buy: List<AiBuy>, val dropped: Int)
+    var aiDeck by mutableStateOf<AiDeckResult?>(null)
+        private set
+    var aiDeckBusy by mutableStateOf(false)
+        private set
+    var aiDeckError by mutableStateOf<String?>(null)
+        private set
+
+    /**
+     * Vraag de AI om ruilvoorstellen. Alleen tekst gaat weg: decklijst, format, regels en (uit je collectie) de
+     * kandidaten die al door de controle kwamen. Elk voorstel wordt daarna gecontroleerd; wat niet past valt weg.
+     */
+    fun askAiDeck(deckId: Long, outside: Boolean) = viewModelScope.launch {
+        val client = aiClient() ?: run { aiDeckError = str(R.string.ai_no_key_or_off); return@launch }
+        val deck = decks.value.firstOrNull { it.id == deckId } ?: return@launch
+        if (!settingsStore.countAiUse()) { aiDeckError = str(R.string.ai_limit_reached); return@launch }
+        aiDeckBusy = true; aiDeckError = null
+        val rules = deckRules(deckId)
+        val all = entries.value
+        val mine = all.filter { it.entry.deckId == deckId }
+        val deckCards = Formats.toDeckCards(mine.map { it.entry to it.print })
+        val allowed = nl.spoonpaco.ninegrid.domain.Suggestions.allowedFilter(deck.format, deckCards, rules)
+        fun cand(id: Long, p: CardPrint) = nl.spoonpaco.ninegrid.domain.Candidate(id, p.name, p.typeLine, p.oracleText, p.manaCost, p.cmc, p.colorIdentity, p.legalities, p.gameChanger, null, p.producedMana)
+        val deckNames = mine.mapNotNull { it.print?.name }.toSet()
+        val pool = all.filter { e -> e.print != null && !e.entry.proxy && e.entry.deckId != deckId && (e.entry.deckId == null || rules.includeOtherDecks) }
+            .distinctBy { it.print!!.name }.filter { it.print!!.name !in deckNames && allowed(cand(it.entry.id, it.print!!)) }
+            .sortedByDescending { it.print!!.eur ?: 0.0 }.take(300)
+        val poolByName = pool.associateBy { it.print!!.name.lowercase() }
+        val dutch = java.util.Locale.getDefault().language == "nl"
+        val prompt = buildString {
+            appendLine("You help improve a Magic: The Gathering deck. Format: ${deck.format}.")
+            mine.firstOrNull { it.entry.section == Section.COMMANDER }?.print?.let { appendLine("Commander: ${it.name}.") }
+            if (rules.tribe.isNotBlank()) appendLine("Creature type to focus on: ${rules.tribe}.")
+            if (rules.maxBracket > 0) appendLine("Stay within Commander bracket ${rules.maxBracket} or lower.")
+            appendLine("Deck list (quantity name, section):")
+            mine.forEach { e -> e.print?.let { appendLine("${e.entry.quantity} ${it.name} (${e.entry.section ?: "MAIN"})") } }
+            if (outside) {
+                appendLine("Suggest up to 8 swaps that make the deck clearly better. You may use cards from this list the player owns, or any other real card:")
+            } else {
+                appendLine("Suggest up to 8 swaps that make the deck clearly better, using ONLY cards from this list the player owns:")
+            }
+            pool.forEach { appendLine("- " + it.print!!.name) }
+            appendLine("For each swap name the card to cut from the deck (exact name from the deck list, never the commander), or null to just add.")
+            appendLine("Answer ONLY with JSON: {\"swaps\":[{\"in\":\"card name\",\"out\":\"card name or null\",\"reason\":\"one short sentence\"}]}.")
+            appendLine(if (dutch) "Write the reason in Dutch." else "Write the reason in English.")
+        }
+        val answer = runCatching { client.ask(prompt, null, maxTokens = 1200) }
+        val text = answer.getOrElse { e -> aiDeckError = str(R.string.ai_failed, e.message ?: ""); aiDeckBusy = false; return@launch }
+        val swaps = runCatching {
+            nl.spoonpaco.ninegrid.data.ai.AiClient.extractJson(text)!!.jsonObjectOrNull()?.get("swaps")?.let { it as kotlinx.serialization.json.JsonArray }.orEmpty()
+                .mapNotNull { el ->
+                    val o = el as? kotlinx.serialization.json.JsonObject ?: return@mapNotNull null
+                    fun f(k: String) = (o[k] as? kotlinx.serialization.json.JsonPrimitive)?.takeIf { it.isString }?.content?.trim()?.takeIf { it.isNotEmpty() && it.lowercase() != "null" }
+                    val inName = f("in") ?: return@mapNotNull null
+                    Triple(inName, f("out"), f("reason") ?: "")
+                }
+        }.getOrElse { emptyList() }
+        val commanderName = mine.firstOrNull { it.entry.section == Section.COMMANDER }?.print?.name
+        val owned = mutableListOf<AiSwap>(); val buy = mutableListOf<AiBuy>(); var dropped = 0
+        for ((inName, outRaw, reason) in swaps) {
+            val outName = outRaw?.let { o -> deckNames.firstOrNull { it.equals(o, true) || it.substringBefore(" // ").equals(o, true) } }?.takeIf { it != commanderName }
+            if (outRaw != null && outName == null) { dropped++; continue }
+            val ownedHit = poolByName[inName.lowercase()]
+            if (ownedHit != null) { owned += AiSwap(ownedHit.print!!.name, outName, reason); continue }
+            if (!outside || inName in deckNames) { dropped++; continue }
+            // Daarbuiten: bestaat de kaart, en past hij in kleur, format en bracket?
+            val card = runCatching { repo.scryfall.cardByName(inName, null) }.getOrNull()
+            val p = card?.toPrint()
+            if (p == null || p.name in deckNames || !allowed(cand(-1, p))) { dropped++; continue }
+            buy += AiBuy(p, outName, reason)
+        }
+        aiDeck = AiDeckResult(deckId, owned, buy, dropped)
+        aiDeckBusy = false
+    }
+
+    private fun kotlinx.serialization.json.JsonElement.jsonObjectOrNull() = this as? kotlinx.serialization.json.JsonObject
 
     /**
      * Ruil in een deck als één wijziging: [ins] gaan het deck in (main), [outs] gaan terug naar de collectie.

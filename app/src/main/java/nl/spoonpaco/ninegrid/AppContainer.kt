@@ -14,6 +14,7 @@ class AppContainer(val context: Context) {
     val offline = nl.spoonpaco.ninegrid.data.offline.OfflineCards(context)
     val scryfall = ScryfallClient().also { it.offline = offline }
     val settings = SettingsStore(context)
+    val keyVault = nl.spoonpaco.ninegrid.data.ai.KeyVault(context)
     val images = Images(context)
     val cache = nl.spoonpaco.ninegrid.data.CardCache(context, scryfall)
     val combos = nl.spoonpaco.ninegrid.data.ComboService(context)

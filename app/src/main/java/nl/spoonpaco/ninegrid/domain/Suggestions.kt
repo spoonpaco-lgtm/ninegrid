@@ -164,6 +164,37 @@ object Suggestions {
         else -> 1
     }
 
+    /**
+     * Mag deze kaart in dit deck volgens format, kleuren (met splash), tribe en bracket? Dezelfde regels als de
+     * suggesties; ook gebruikt om AI-voorstellen te controleren.
+     */
+    fun allowedFilter(format: String, deck: List<DeckCard>, rules: DeckRules): (Candidate) -> Boolean {
+        val commander = format == DeckFormat.COMMANDER
+        val inDeck = deck.filter { it.section != Section.SIDEBOARD }
+        val names = inDeck.map { it.name }.toSet()
+        val identity = deckColors(deck)
+        val splash = if (!rules.splash || commander) emptySet() else
+            inDeck.filter { it.typeLine.contains("Land") }.flatMap { landColors(it.typeLine, it.oracleText, it.producedMana, it.colorIdentity) }.toSet() - identity
+        fun colorsOk(ci: String): Boolean {
+            val extra = ci.filter { it in WUBRG }.toSet() - identity
+            return extra.isEmpty() || (extra.size == 1 && extra.first() in splash)
+        }
+        val tribe = rules.tribe.trim()
+        val gcInDeck = inDeck.count { it.gameChanger }
+        return fun(c: Candidate): Boolean {
+            if (c.name in names && commander) return false
+            if (c.name in basics) return false
+            val legal = Formats.legalityOf(c.legalities, format)
+            if (format != DeckFormat.CASUAL && legal != null && legal != "legal") return false
+            if (identity.isNotEmpty() && !colorsOk(c.colorIdentity)) return false
+            // Tribal: alleen creatures van het gekozen type (andere kaartsoorten mogen wel).
+            if (tribe.isNotEmpty() && isCreature(c.typeLine) && tribe !in subtypes(c.typeLine) && !c.oracleText.contains("all creature types", true)) return false
+            if (rules.maxBracket in 1..2 && bracketOf(c) > rules.maxBracket) return false
+            if (rules.maxBracket == 3 && (Formats.massLandDenial(c.oracleText) || (c.gameChanger && gcInDeck >= 3))) return false
+            return true
+        }
+    }
+
     fun suggest(
         format: String,
         deck: List<DeckCard>,
@@ -194,18 +225,8 @@ object Suggestions {
         val deckThemes = inDeck.flatMap { themeHits(it.oracleText) }.groupingBy { it }.eachCount()
         val avgCmc = inDeck.filter { !it.typeLine.contains("Land") }.let { l -> if (l.isEmpty()) 0.0 else l.sumOf { it.cmc * it.quantity } / l.sumOf { it.quantity } }
 
-        fun allowed(c: Candidate): Boolean {
-            if (c.name in names && commander) return false
-            if (c.name in basics) return false
-            val legal = Formats.legalityOf(c.legalities, format)
-            if (format != DeckFormat.CASUAL && legal != null && legal != "legal") return false
-            if (identity.isNotEmpty() && !colorsOk(c.colorIdentity)) return false
-            // Tribal: alleen creatures van het gekozen type (andere kaartsoorten mogen wel).
-            if (tribe.isNotEmpty() && isCreature(c.typeLine) && tribe !in subtypes(c.typeLine) && !c.oracleText.contains("all creature types", true)) return false
-            if (rules.maxBracket in 1..2 && bracketOf(c) > rules.maxBracket) return false
-            if (rules.maxBracket == 3 && (Formats.massLandDenial(c.oracleText) || (c.gameChanger && gcInDeck >= 3))) return false
-            return true
-        }
+        val allowedF = allowedFilter(format, deck, rules)
+        fun allowed(c: Candidate): Boolean = allowedF(c)
 
         fun score(name: String, typeLine: String, text: String, cmc: Double, isCandidate: Boolean): Pair<Double, List<String>> {
             var s = 0.0

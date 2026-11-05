@@ -564,4 +564,41 @@
         <item quantity="one">%d deck</item>
         <item quantity="other">%d decks</item>
     </plurals>
+    <string name="ai_title">AI help</string>
+    <string name="ai_explain">Off by default. With your own key, an AI reads orange (doubtful) cards and can suggest deck changes. NineGrid checks everything at Scryfall.</string>
+    <string name="ai_provider">Service</string>
+    <string name="ai_free_star">★ = has a free tier (with limits).</string>
+    <string name="ai_note_gemini">Free key via Google AI Studio. On the free tier Google uses what you send to improve its products.</string>
+    <string name="ai_note_claude">Paid: an API key from the Claude Console with prepaid credit, separate from a claude.ai subscription. Haiku is cheap and reads text on photos well.</string>
+    <string name="ai_note_openai">Paid: an API key from platform.openai.com with prepaid credit. ChatGPT Plus does not include API access.</string>
+    <string name="ai_note_deepseek">Very cheap. Its photo model is still experimental.</string>
+    <string name="ai_note_custom">Any service that works like OpenAI (chat/completions). Fill in the address and a model that reads images.</string>
+    <string name="ai_note_other">Check that the chosen model can read images; you can change the model name below.</string>
+    <string name="ai_key">API key</string>
+    <string name="ai_key_saved">API key (saved – type to replace)</string>
+    <string name="ai_base_url">Address (base URL)</string>
+    <string name="ai_model">Model (empty = default)</string>
+    <string name="ai_limit">Maximum requests per day</string>
+    <string name="ai_used_today">Used today: %1$d of %2$d</string>
+    <string name="ai_test">Test</string>
+    <string name="ai_test_ok">Works: read %1$s · %2$s %3$s · %4$s</string>
+    <string name="ai_test_partial">Answer received, but not fully right: %1$s · %2$s %3$s · %4$s (expected Lightning Bolt · M11 146). Try another model.</string>
+    <string name="ai_test_failed">Did not work: %1$s</string>
+    <string name="ai_no_key">Fill in and save a key first.</string>
+    <string name="ai_privacy">Only the photo of a single doubtful slot, or card names and deck rules, leave your phone. The key stays on this phone only and is not in the backup.</string>
+    <string name="ai_limit_reached">AI maximum for today reached.</string>
+    <string name="ai_failed">AI did not answer: %1$s</string>
+    <string name="ai_helped">AI read %1$d doubtful card(s); check them in the review.</string>
+    <string name="ai_deck_title">AI suggestions</string>
+    <string name="ai_deck_off">Turn on AI help in Settings to ask an AI for swaps.</string>
+    <string name="ai_scope_mine">Only my collection</string>
+    <string name="ai_scope_all">Also cards I do not have</string>
+    <string name="ai_ask">Ask AI</string>
+    <string name="ai_deck_privacy">Only card names and your deck rules are sent, no photos or prices. Every suggestion is checked for colours, format and bracket.</string>
+    <string name="ai_buy_title">Consider buying</string>
+    <string name="ai_dropped">%1$d suggestion(s) left out: they did not fit the deck or did not exist.</string>
+    <string name="ai_no_key_or_off">AI help is off or has no key (Settings).</string>
+    <string name="scan_foil_preview_hint">Foil: tap</string>
+    <string name="scan_foil_all">All foil</string>
+    <string name="scan_foil_none">None foil</string>
 </resources>

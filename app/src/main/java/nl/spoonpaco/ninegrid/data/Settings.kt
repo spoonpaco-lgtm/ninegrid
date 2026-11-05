@@ -74,6 +74,14 @@ data class AppSettings(
     val decksSort: String = "format",
     /** Completionist: compleetheid van een set telt alleen de losse collectie, niet wat in decks zit. */
     val completionist: Boolean = false,
+    /** AI-hulp (standaard uit): dienst, model, eigen adres, maximum per dag en het gebruik van vandaag. */
+    val aiEnabled: Boolean = false,
+    val aiProvider: String = "gemini",
+    val aiModel: String = "",
+    val aiBaseUrl: String = "",
+    val aiDailyLimit: Int = 50,
+    val aiCountDay: String = "",
+    val aiCount: Int = 0,
 ) {
     val dateStyle get() = nl.spoonpaco.ninegrid.domain.DateStyle(timeFormat, dateFormat, weekStart, showWeekday)
 }
@@ -122,6 +130,13 @@ class SettingsStore(private val context: Context) {
         val collectionSort = stringPreferencesKey("collection_sort")
         val decksSort = stringPreferencesKey("decks_sort")
         val completionist = booleanPreferencesKey("completionist")
+        val aiEnabled = booleanPreferencesKey("ai_enabled")
+        val aiProvider = stringPreferencesKey("ai_provider")
+        val aiModel = stringPreferencesKey("ai_model")
+        val aiBaseUrl = stringPreferencesKey("ai_base_url")
+        val aiDailyLimit = androidx.datastore.preferences.core.intPreferencesKey("ai_daily_limit")
+        val aiCountDay = stringPreferencesKey("ai_count_day")
+        val aiCount = androidx.datastore.preferences.core.intPreferencesKey("ai_count")
         val filterScreens = listOf("collection", "pick", "set")
         val filters = filterScreens.associateWith { stringPreferencesKey("filter_$it") }
     }
@@ -168,6 +183,13 @@ class SettingsStore(private val context: Context) {
         collectionSort = this[K.collectionSort] ?: "set",
         decksSort = this[K.decksSort] ?: "format",
         completionist = this[K.completionist] ?: false,
+        aiEnabled = this[K.aiEnabled] ?: false,
+        aiProvider = this[K.aiProvider] ?: "gemini",
+        aiModel = this[K.aiModel] ?: "",
+        aiBaseUrl = this[K.aiBaseUrl] ?: "",
+        aiDailyLimit = this[K.aiDailyLimit] ?: 50,
+        aiCountDay = this[K.aiCountDay] ?: "",
+        aiCount = this[K.aiCount] ?: 0,
     )
 
     suspend fun setTheme(v: String) = context.dataStore.edit { it[K.theme] = v }
@@ -203,6 +225,24 @@ class SettingsStore(private val context: Context) {
     suspend fun setWeekStart(v: String) = context.dataStore.edit { it[K.weekStart] = v }
     suspend fun setShowWeekday(v: Boolean) = context.dataStore.edit { it[K.showWeekday] = v }
     suspend fun setFilter(screen: String, json: String) = context.dataStore.edit { p -> K.filters[screen]?.let { p[it] = json } }
+    suspend fun setAi(enabled: Boolean? = null, provider: String? = null, model: String? = null, baseUrl: String? = null, limit: Int? = null) = context.dataStore.edit { p ->
+        enabled?.let { p[K.aiEnabled] = it }; provider?.let { p[K.aiProvider] = it }; model?.let { p[K.aiModel] = it }
+        baseUrl?.let { p[K.aiBaseUrl] = it }; limit?.let { p[K.aiDailyLimit] = it }
+    }
+
+    /** Eén AI-verzoek tellen. Geeft false als het maximum van vandaag al bereikt is. */
+    suspend fun countAiUse(): Boolean {
+        var ok = false
+        context.dataStore.edit { p ->
+            val today = java.time.LocalDate.now().toString()
+            val n = if (p[K.aiCountDay] == today) p[K.aiCount] ?: 0 else 0
+            val limit = p[K.aiDailyLimit] ?: 50
+            ok = n < limit
+            if (ok) { p[K.aiCountDay] = today; p[K.aiCount] = n + 1 }
+        }
+        return ok
+    }
+
     suspend fun setDecksSort(v: String) = context.dataStore.edit { it[K.decksSort] = v }
     suspend fun setCompletionist(v: Boolean) = context.dataStore.edit { it[K.completionist] = v }
     suspend fun setCollectionSort(v: String) = context.dataStore.edit { it[K.collectionSort] = v }

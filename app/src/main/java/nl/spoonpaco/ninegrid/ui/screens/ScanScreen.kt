@@ -568,8 +568,8 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
                     onClick = { if (autoPaused) { autoPaused = false; watcher.reset() } else vm.setAutoCapture(!settings.autoCapture) },
                     label = { Text(stringResource(if (autoPaused) R.string.scan_auto_paused else R.string.scan_auto)) }, colors = colors,
                 )
-                FilterChip(selected = vm.scanFoil, onClick = { vm.setPageFoil(!vm.scanFoil) }, label = { Text(stringResource(if (single) R.string.scan_foil_card else R.string.scan_foil_page)) }, colors = colors)
-                if (!single) Text(stringResource(R.string.scan_foil_slots_hint2), color = Color.White.copy(alpha = 0.75f), fontSize = 11.sp)
+                // Bij een blad zit foil in het voorbeeld (het raster onderaan); bij één kaart blijft de knop hier.
+                if (single) FilterChip(selected = vm.scanFoil, onClick = { vm.setPageFoil(!vm.scanFoil) }, label = { Text(stringResource(R.string.scan_foil_card)) }, colors = colors)
             }
             Box(Modifier.fillMaxWidth().heightIn(min = 52.dp).padding(horizontal = 12.dp), contentAlignment = Alignment.Center) {
                 val err = error
@@ -710,7 +710,10 @@ private fun ScanSummaryBar(vm: AppViewModel, sum: AppViewModel.ScanSummary, sing
         // Foil per vak: een kleine 3×3 van de laatste foto. Tik = groot, daar per vak foil aan/uit.
         if (!single && vm.pending.any { it.slot != null }) {
             var big by remember { mutableStateOf(false) }
-            Box(Modifier.padding(horizontal = 6.dp).clickable { big = true }) { FoilGrid(vm, cellWidth = 14, interactive = false, onLong = {}) }
+            Column(Modifier.padding(horizontal = 6.dp).clickable { big = true }, horizontalAlignment = Alignment.CenterHorizontally) {
+                FoilGrid(vm, cellWidth = 14, interactive = false, onLong = {})
+                Text(stringResource(R.string.scan_foil_preview_hint), color = Color.White.copy(alpha = 0.75f), fontSize = 9.sp)
+            }
             if (big) androidx.compose.ui.window.Dialog(onDismissRequest = { big = false }) {
                 Column(Modifier.background(Color(0xEE111111), RoundedCornerShape(12.dp)).padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(stringResource(R.string.scan_foil_big_title), color = Color.White, fontWeight = FontWeight.Bold)
@@ -718,7 +721,12 @@ private fun ScanSummaryBar(vm: AppViewModel, sum: AppViewModel.ScanSummary, sing
                     Spacer(Modifier.height(8.dp))
                     FoilGrid(vm, cellWidth = 88, interactive = true, onLong = { big = false; onReview() })
                     Spacer(Modifier.height(8.dp))
-                    Button(onClick = { big = false }) { Text(stringResource(R.string.done)) }
+                    // Alles in één keer: nog eens tikken zet alles weer uit.
+                    val allFoil = vm.pending.filter { it.slot != null }.let { l -> l.isNotEmpty() && l.all { it.finish != nl.spoonpaco.ninegrid.data.db.Finish.NONFOIL } }
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedButton(onClick = { vm.setPageFoil(!allFoil) }) { Text(stringResource(if (allFoil) R.string.scan_foil_none else R.string.scan_foil_all), color = Color.White) }
+                        Button(onClick = { big = false }) { Text(stringResource(R.string.done)) }
+                    }
                 }
             }
         }

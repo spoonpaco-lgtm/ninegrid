@@ -47,7 +47,7 @@ object Guide {
             Steps(listOf(
                 "Tik onderaan op Scannen. Het camerabeeld vult het hele scherm; met de pijl linksboven ga je terug. De eerste keer vraagt de app toestemming voor de camera.",
                 "Tik bovenaan op Set om de setcode in te vullen, bijvoorbeeld MH1. Komen alle kaarten uit één set, doe dat dan: de setcode is het kleinste tekstje op de kaart en dit maakt het herkennen veel betrouwbaarder. De app onthoudt de set voor de volgende keer; staat hij oranje, dan is hij ingevuld. Gemengd blad? Laat het leeg. Map en Blad zijn voor als je wilt bijhouden waar de kaarten liggen; het bladnummer telt na elke scan door.",
-                "Kies onderaan Blad (9 kaarten) of 1 kaart. Zet Foil (blad) aan als het hele blad foil is; na de foto staat onderaan een klein raster van het blad: tik erop, en tik in het grote raster op een vak om alleen die kaart foil te maken (gouden rand en ✦). Lang drukken op een vak opent het controlescherm. Het camerabeeld blijft vrij om scherp te stellen. Leg het blad plat en houd de telefoon er recht boven, zodat het blad tussen de oranje hoekjes valt en elk kruisje ongeveer midden op een kaart staat. Alleen wat binnen het kader staat telt mee. Tik op het beeld om scherp te stellen; de zaklampknop rechtsonder helpt bij weinig licht.",
+                "Kies onderaan Blad (9 kaarten) of 1 kaart. Bij een blad staat na de foto onderaan een klein raster van het blad (Foil: tik): tik erop, en tik in het grote raster op een vak om die kaart foil te maken (gouden rand en ✦), of op Alles foil. Bij 1 kaart gebruik je de knop Foil (kaart). Lang drukken op een vak opent het controlescherm. Het camerabeeld blijft vrij om scherp te stellen. Leg het blad plat en houd de telefoon er recht boven, zodat het blad tussen de oranje hoekjes valt en elk kruisje ongeveer midden op een kaart staat. Alleen wat binnen het kader staat telt mee. Tik op het beeld om scherp te stellen; de zaklampknop rechtsonder helpt bij weinig licht.",
                 "Tik op de grote oranje knop. De camera stelt eerst scherp en de app leest dan per kaart de naam bovenaan en de set en het nummer onderaan. Is de foto onscherp of het blad te klein in beeld, dan krijg je een melding met Opnieuw of Toch bekijken.",
                 "Een korte flits en tril laten zien dat de foto genomen is; linksonder verschijnt hij als klein plaatje (tik om hem groot te zien). Zolang de app leest en opzoekt, draait er een ring om de knop.",
                 "Je blijft in de camera. Het kader wordt groen als alles gevonden is: tik op Opslaan en scan meteen het volgende blad. Oranje betekent twijfel: tik op Bekijken. Daaronder zie je hoe lang de herkenning duurde (uit te zetten in Instellingen).",
@@ -148,7 +148,7 @@ object Guide {
             Note("De bracket is een inschatting. Combo's telt de app pas mee als je ze hebt laten zoeken: overleg ook met je tafel."),
             H("Statistieken"),
             P("Op het tabblad Decks staan je decks standaard per format, met een kopje. Met de pijltjes kies je een andere volgorde: waarde, naam, aantal kaarten of laatst gewijzigd; dan wordt het één lijst. Ook zoeken op naam kan."),
-            P("Bovenaan staat bij Commander de commander met zijn kleuren, en één regel met format, aantal kaarten, waarde, bracket en of het deck legaal is. Tik erop voor de details; bij een probleem staat hij vanzelf open. Een deck heeft vier tabbladen: Kaarten, Statistieken, Combo's en Suggesties. Tik op Statistieken voor de manacurve, de kleuren in de kosten tegenover de lands die ze maken, en de kans op 2, 3 of 4 lands in je openingshand."),
+            P("Bovenaan staat bij Commander de commander met zijn kleuren, en één regel met format, aantal kaarten, waarde, bracket en of het deck legaal is. Tik erop voor de details; bij een probleem staat hij vanzelf open. Tik in de details op het format (met het potloodje) om het te wijzigen. Een deck heeft vier tabbladen: Kaarten, Statistieken, Combo's en Suggesties. Tik op Statistieken voor de manacurve, de kleuren in de kosten tegenover de lands die ze maken, en de kans op 2, 3 of 4 lands in je openingshand."),
             H("Suggesties"),
             Steps(listOf(
                 "Open in een deck het tabblad Suggesties. De app kijkt in je collectie welke kaarten passen: binnen het format, de kleuren van het deck en je eigen regels.",
@@ -160,6 +160,7 @@ object Guide {
                 "Tik je op een kaart onder Kan eruit, dan kies je wat ervoor in de plaats komt, of Niets erin.",
             )),
             Tip("Een ruil is één wijziging: één keer ongedaan maken zet alles terug. De kaart die eruit gaat, gaat terug naar je collectie."),
+            P("AI-suggesties (als AI-hulp aan staat): kies Alleen mijn collectie of Ook kaarten die ik niet heb en tik op Vraag AI. Alleen kaartnamen en je deckregels gaan weg. Elk voorstel wordt gecontroleerd op kleuren, format en bracket; wat niet past laat de app weg. Kaarten die je niet hebt staan onder Overweeg te kopen, met prijs en link."),
             H("Combo's"),
             Steps(listOf(
                 "Open in een deck het tabblad Combo's en tik op Combo's zoeken. De app stuurt alleen de kaartnamen naar Commander Spellbook, de grote openbare combodatabase; je hebt internet nodig.",
@@ -233,6 +234,7 @@ object Guide {
                 "Afbeeldingen opslaan: uit, klein of volledig. Alleen plaatjes van kaarten die je hebt worden bewaard; gaat een kaart weg, dan verdwijnt het plaatje ook.",
                 "Afbeeldingen alleen via wifi: bespaart mobiele data.",
                 "Datum en tijd: 24 of 12 uur, de volgorde van de datum, op welke dag de week begint (ook voor Winner of the Week) en of de weekdag erbij staat. Alleen de weergave verandert: opslaan, exports en back-ups gebruiken altijd 2026-11-05.",
+                "AI-hulp (standaard uit): kies een dienst (Gemini heeft een gratis variant, Claude, OpenAI, DeepSeek, Mistral, OpenRouter, Groq of een eigen adres), plak je sleutel en tik op Test. Bij het scannen leest de AI alleen de oranje of niet gevonden vakjes; de app controleert het bij Scryfall. Met een maximum per dag. De sleutel staat versleuteld op deze telefoon en niet in de back-up.",
                 "Breakout-meldingen: aan of uit.",
                 "Offline kaartdatabase: uit, bij nieuwe set of alleen handmatig. Aan betekent: scannen zonder internet en snel importeren, maar één grote download via wifi en ruimte op je telefoon. Prijzen blijven via de dagelijkse update komen. Staat een kaart er nog niet in, dan zoekt de app hem gewoon online. Downloaden via: alleen wifi, of ook mobiele data (met een vraag vooraf, en automatisch alleen als je dat apart aanzet).",
                 "Controleer op updates: de app kijkt ook zelf één keer per dag. Elke versie heeft de naam van een planeswalker.",
@@ -287,7 +289,7 @@ object Guide {
             Steps(listOf(
                 "Tap Scan at the bottom. The camera fills the whole screen; the arrow at the top left takes you back. The first time, the app asks for camera permission.",
                 "Tap Set at the top to enter the set code, for example MH1. If all cards are from one set, do this: the set code is the smallest text on the card and this makes recognition much more reliable. The app remembers the set for next time; when it is orange, it is filled in. Mixed page? Leave it empty. Binder and Page are for tracking where cards are; the page number counts up after each scan.",
-                "Choose Page (9 cards) or 1 card at the bottom. Turn on Foil (page) when the whole page is foil; after the photo a small grid of the page appears at the bottom: tap it, then tap a slot in the big grid to make only that card foil (gold border and ✦). Long press a slot to open the review screen. The camera view stays free for focusing. Lay the page flat and hold the phone straight above it so the page fits between the orange corners and each cross sits roughly in the middle of a card. Only what is inside the frame counts. Tap the image to focus; the torch button at the bottom right helps in low light.",
+                "Choose Page (9 cards) or 1 card at the bottom. For a page, a small grid of the page appears at the bottom after the photo (Foil: tap): tap it, then tap a slot in the big grid to make that card foil (gold border and ✦), or tap All foil. For 1 card use the Foil (card) button. Long press a slot to open the review screen. The camera view stays free for focusing. Lay the page flat and hold the phone straight above it so the page fits between the orange corners and each cross sits roughly in the middle of a card. Only what is inside the frame counts. Tap the image to focus; the torch button at the bottom right helps in low light.",
                 "Tap the big orange button. The camera focuses first, then the app reads each card's name at the top and its set and number at the bottom. If the photo is blurry or the page too small, you get a message with Try again or View anyway.",
                 "A short flash and vibration show that the photo was taken; it appears as a small picture at the bottom left (tap to see it large). While the app reads and looks up, a ring spins around the button.",
                 "You stay in the camera. The frame turns green when everything is found: tap Save and scan the next page right away. Orange means doubt: tap Review. Below that you see how long recognition took (can be turned off in Settings).",
@@ -388,7 +390,7 @@ object Guide {
             Note("The bracket is an estimate. Combos only count once you have searched for them: also talk to your table."),
             H("Statistics"),
             P("The Decks tab groups your decks by format, with a heading. With the arrows you choose another order: value, name, number of cards or last changed; then it becomes one list. You can also search by name."),
-            P("At the top, a Commander deck shows its commander with its colours, and one line with format, number of cards, value, bracket and whether the deck is legal. Tap it for the details; with a problem it opens by itself. A deck has four tabs: Cards, Statistics, Combos and Suggestions. Tap Statistics for the mana curve, colours in costs versus the lands that make them, and the chance of 2, 3 or 4 lands in your opening hand."),
+            P("At the top, a Commander deck shows its commander with its colours, and one line with format, number of cards, value, bracket and whether the deck is legal. Tap it for the details; with a problem it opens by itself. In the details, tap the format (with the pencil) to change it. A deck has four tabs: Cards, Statistics, Combos and Suggestions. Tap Statistics for the mana curve, colours in costs versus the lands that make them, and the chance of 2, 3 or 4 lands in your opening hand."),
             H("Suggestions"),
             Steps(listOf(
                 "Open the Suggestions tab in a deck. The app looks in your collection for cards that fit: within the format, the deck's colours and your own rules.",
@@ -400,6 +402,7 @@ object Guide {
                 "Tap a card under Could go out to choose what replaces it, or Nothing in.",
             )),
             Tip("A swap is one change: one undo reverts all of it. The card that goes out returns to your collection."),
+            P("AI suggestions (when AI help is on): choose Only my collection or Also cards I do not have and tap Ask AI. Only card names and your deck rules are sent. Every suggestion is checked for colours, format and bracket; what does not fit is left out. Cards you do not own are listed under Consider buying, with price and link."),
             H("Combos"),
             Steps(listOf(
                 "Open the Combos tab in a deck and tap Find combos. The app sends only the card names to Commander Spellbook, the large public combo database; you need internet.",
@@ -473,6 +476,7 @@ object Guide {
                 "Store images: off, small or full size. Only images of cards you own are kept; when a card leaves, its image goes too.",
                 "Images only on Wi-Fi: saves mobile data.",
                 "Date and time: 24 or 12 hours, the order of the date, which day the week starts (also for Winner of the Week) and whether the weekday is shown. Only the display changes: saving, exports and backups always use 2026-11-05.",
+                "AI help (off by default): choose a service (Gemini has a free tier, Claude, OpenAI, DeepSeek, Mistral, OpenRouter, Groq or your own address), paste your key and tap Test. When scanning, the AI only reads orange or not-found slots; the app checks the result at Scryfall. With a daily maximum. The key is stored encrypted on this phone and is not in the backup.",
                 "Breakout alerts: on or off.",
                 "Offline card database: off, on new set or manual only. On means: scanning without internet and fast imports, but one large download on Wi-Fi and space on your phone. Prices still come from the daily update. If a card is not in it yet, the app simply looks it up online. Download via: Wi-Fi only, or also mobile data (with a question first, and automatically only if you turn that on separately).",
                 "Check for updates: the app also checks by itself once a day. Every version is named after a planeswalker.",

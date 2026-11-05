@@ -266,6 +266,13 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
                     }
                     if (expanded) {
                         Spacer(Modifier.height(6.dp))
+                        // Format wijzigen: tik op het format (ook via ⋮ → Format wijzigen).
+                        Row(Modifier.clickable { formatPicker = true }.padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Text(stringResource(R.string.format) + ": ", color = extra.subtle)
+                            Text(formatLabel(d.format), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                            Spacer(Modifier.width(4.dp))
+                            Icon(Icons.Filled.Edit, stringResource(R.string.change_format), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
+                        }
                         sections.forEach { s ->
                             val part = list.filter { (it.entry.section ?: Section.MAIN) == s }
                             if (part.isNotEmpty()) Row {
@@ -530,6 +537,9 @@ private fun SuggestionsPanel(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.
         }
         if (r == null) { androidx.compose.material3.LinearProgressIndicator(Modifier.fillMaxWidth().padding(top = 8.dp)); return@Column }
 
+        // AI: alleen op verzoek; uit je collectie of ook kaarten die je nog niet hebt.
+        AiDeckBlock(vm, deck, onSwap = { inName, outId -> swap = SwapRequest(inName = inName, outEntryId = outId, land = false) })
+
         // Met welke kleuren de app rekent, zodat je ziet waarom iets wel of niet wordt voorgesteld.
         Text(
             stringResource(R.string.sugg_colors, colorDots(r.colors).ifEmpty { stringResource(R.string.sugg_colorless) }) +
@@ -576,6 +586,46 @@ private fun SuggestionsPanel(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.
         rules = nr; editRules = false; vm.setDeckRules(deck.id, nr)
     }
     swap?.let { req -> SwapDialog(vm, deck, req, r, rules) { swap = null } }
+}
+
+@Composable
+private fun AiDeckBlock(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.db.Deck, onSwap: (String, Long?) -> Unit) {
+    val settings by vm.settings.collectAsState()
+    val extra = LocalNgExtra.current
+    val all by vm.entries.collectAsState()
+    var outside by remember { mutableStateOf(false) }
+    val uri = androidx.compose.ui.platform.LocalUriHandler.current
+    Spacer(Modifier.height(10.dp))
+    Text(stringResource(R.string.ai_deck_title), fontWeight = FontWeight.Bold)
+    if (!settings.aiEnabled) { Text(stringResource(R.string.ai_deck_off), fontSize = 12.sp, color = extra.subtle); return }
+    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        androidx.compose.material3.FilterChip(selected = !outside, onClick = { outside = false }, label = { Text(stringResource(R.string.ai_scope_mine)) })
+        androidx.compose.material3.FilterChip(selected = outside, onClick = { outside = true }, label = { Text(stringResource(R.string.ai_scope_all)) })
+    }
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        androidx.compose.material3.OutlinedButton(onClick = { vm.askAiDeck(deck.id, outside) }, enabled = !vm.aiDeckBusy) { Text(stringResource(R.string.ai_ask)) }
+        if (vm.aiDeckBusy) { Spacer(Modifier.width(8.dp)); androidx.compose.material3.CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp) }
+    }
+    Text(stringResource(R.string.ai_deck_privacy), fontSize = 11.sp, color = extra.subtle)
+    vm.aiDeckError?.let { Text(it, fontSize = 12.sp, color = NgColors.Error) }
+    val r = vm.aiDeck?.takeIf { it.deckId == deck.id } ?: return
+    val deckEntries = all.filter { it.entry.deckId == deck.id }
+    fun outId(name: String?) = name?.let { n -> deckEntries.firstOrNull { it.print?.name == n }?.entry?.id }
+    if (r.owned.isEmpty() && r.buy.isEmpty()) Text(stringResource(R.string.sugg_none), fontSize = 12.sp, color = extra.subtle)
+    r.owned.forEach { s ->
+        SuggestionRow(s.inName + (s.outName?.let { "  ⇄  $it" } ?: ""), s.reason, stringResource(R.string.swap_action)) { onSwap(s.inName, outId(s.outName)) }
+    }
+    if (r.buy.isNotEmpty()) {
+        Text(stringResource(R.string.ai_buy_title), fontWeight = FontWeight.Bold, fontSize = 13.sp, modifier = Modifier.padding(top = 6.dp))
+        r.buy.forEach { b ->
+            val price = Money.unitPrice(nl.spoonpaco.ninegrid.data.db.Entry(printId = b.print.id), b.print, settings.currency)
+            SuggestionRow(b.print.name + (b.outName?.let { "  ⇄  $it" } ?: "") + "  ·  " + Money.format(price, settings.currency), b.reason,
+                if (settings.currency == "USD") "TCGplayer" else "Cardmarket") {
+                ((if (settings.currency == "USD") b.print.tcgplayerUri else b.print.cardmarketUri) ?: b.print.scryfallUri)?.let { runCatching { uri.openUri(it) } }
+            }
+        }
+    }
+    if (r.dropped > 0) Text(stringResource(R.string.ai_dropped, r.dropped), fontSize = 11.sp, color = extra.subtle)
 }
 
 private data class SwapRequest(val inName: String?, val outEntryId: Long?, val land: Boolean, val fromCut: Boolean = false)

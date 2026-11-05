@@ -468,4 +468,11 @@ class ParserTest {
         assertTrue(W.nameFits(card("Foudre", "FR"), "Lightning Bolt"))
         assertTrue(W.nameFits(card(""), "Anything"))
     }
+
+    @Test
+    fun aiJsonIsFoundInChattyAnswers() {
+        val j = nl.spoonpaco.ninegrid.data.ai.AiClient.extractJson("Sure! ```json\n{\"name\": \"Lightning Bolt\", \"set\": \"M11\", \"number\": \"146\", \"lang\": null}\n```")
+        assertTrue(j != null && j.toString().contains("Lightning Bolt"))
+        assertEquals(null, nl.spoonpaco.ninegrid.data.ai.AiClient.extractJson("no json here"))
+    }
 }
