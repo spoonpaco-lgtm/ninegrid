@@ -22,6 +22,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.WifiOff
+import androidx.compose.material.icons.filled.CloudOff
+import androidx.compose.material.icons.filled.HideImage
+import androidx.compose.material.icons.filled.BrokenImage
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
