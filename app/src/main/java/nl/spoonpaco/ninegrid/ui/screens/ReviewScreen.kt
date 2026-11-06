@@ -273,6 +273,15 @@ private fun PendingRow(
                         else item.label,
                         fontSize = 12.sp, color = extra.subtle, maxLines = 2,
                     )
+                    // Wat de AI met dit vak deed.
+                    vm.aiMarks[item.key]?.let { m ->
+                        val t = when (m.state) {
+                            AppViewModel.AiState.DONE -> stringResource(R.string.ai_mark_done)
+                            AppViewModel.AiState.BUSY -> stringResource(R.string.ai_mark_busy)
+                            AppViewModel.AiState.FAILED -> m.reason ?: ""
+                        }
+                        Text("AI · $t", fontSize = 11.sp, maxLines = 3, color = if (m.state == AppViewModel.AiState.DONE) NgColors.Synced else NgColors.Amber)
+                    }
                 }
                 if (item.status == ItemStatus.NOT_FOUND || expanded) {
                     IconButton(onClick = onSearch) { Icon(Icons.Filled.Search, stringResource(R.string.search_card)) }

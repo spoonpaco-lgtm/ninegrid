@@ -219,7 +219,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
      */
     fun startScan(reads: List<SlotRead>, slotCrops: Map<Int, android.graphics.Bitmap> = emptyMap(), single: Boolean = false) {
         val append = single && importSource == ImportSource.SCAN && pending.isNotEmpty() && pending.all { it.slot == null }
-        if (!append) { pending.clear(); crops.clear() }
+        if (!append) { pending.clear(); crops.clear(); aiMarks.clear() }
         importSource = ImportSource.SCAN
         unreadableLines = emptyList()
         destination = Destination.COLLECTION
@@ -282,7 +282,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
             )
         }
 
-    fun clearPending() { pending.clear(); crops.clear(); clearSavedPending() }
+    fun clearPending() { pending.clear(); crops.clear(); aiMarks.clear(); clearSavedPending() }
 
     private val pendingFile get() = java.io.File(getApplication<Application>().filesDir, "pending.json")
     private val pendingJson = kotlinx.serialization.json.Json { ignoreUnknownKeys = true }
@@ -520,7 +520,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                 page = ((page.toIntOrNull() ?: 0) + 1).toString()
             }
             pending.clear()
-            crops.clear()
+            crops.clear(); aiMarks.clear()
             clearSavedPending()
             busy = false
             snapshot()
@@ -635,7 +635,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     /** Laatste losse kaart uit de lijst halen (doorlopend scannen). */
     fun removePending(key: Int) {
         pending.removeAll { it.key == key }
-        crops.remove(key)
+        crops.remove(key); aiMarks.remove(key)
     }
 
     /**
@@ -760,12 +760,36 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         if (key == null) { aiTestResult = str(R.string.ai_no_key); return@launch }
         aiTesting = true
         aiTestResult = runCatching {
-            val r = nl.spoonpaco.ninegrid.data.ai.AiClient(p, key, s.aiModel, s.aiBaseUrl).readCard(nl.spoonpaco.ninegrid.data.ai.AiClient.testCard())
+            val r = nl.spoonpaco.ninegrid.data.ai.AiClient(p, key, s.aiModel, s.aiBaseUrl)
+                .readCard(nl.spoonpaco.ninegrid.data.ai.AiClient.testCard(), retries = nl.spoonpaco.ninegrid.data.ai.AiClient.TEST_RETRIES)
             val ok = r.name?.contains("Lightning Bolt", true) == true && r.set == "M11" && r.number == "146"
             str(if (ok) R.string.ai_test_ok else R.string.ai_test_partial, r.name ?: "?", r.set ?: "?", r.number ?: "?", r.lang ?: "?")
-        }.getOrElse { str(R.string.ai_test_failed, it.message ?: it.javaClass.simpleName) }
+        }.getOrElse { str(R.string.ai_test_failed, aiErrorText(it)) }
         aiTesting = false
     }
+
+    /** Begrijpelijke uitleg bij een AI-fout, met de ruwe melding klein erachter. */
+    fun aiErrorText(e: Throwable): String {
+        val name = nl.spoonpaco.ninegrid.data.ai.AiProviders.byId(settings.value.aiProvider).label
+        val kind = (e as? nl.spoonpaco.ninegrid.data.ai.AiException)?.kind
+            ?: if (e is java.io.IOException) nl.spoonpaco.ninegrid.data.ai.AiError.NETWORK else nl.spoonpaco.ninegrid.data.ai.AiError.OTHER
+        val raw = e.message ?: e.javaClass.simpleName
+        return when (kind) {
+            nl.spoonpaco.ninegrid.data.ai.AiError.OVERLOADED -> str(R.string.ai_err_overloaded, name)
+            nl.spoonpaco.ninegrid.data.ai.AiError.RATE_LIMIT -> str(R.string.ai_err_rate, name)
+            nl.spoonpaco.ninegrid.data.ai.AiError.BAD_KEY -> str(R.string.ai_err_key, name)
+            nl.spoonpaco.ninegrid.data.ai.AiError.MODEL -> str(R.string.ai_err_model, name)
+            nl.spoonpaco.ninegrid.data.ai.AiError.NETWORK -> str(R.string.ai_err_network)
+            nl.spoonpaco.ninegrid.data.ai.AiError.ANSWER -> str(R.string.ai_err_answer)
+            nl.spoonpaco.ninegrid.data.ai.AiError.OTHER -> raw
+        } + if (kind != nl.spoonpaco.ninegrid.data.ai.AiError.OTHER && kind != nl.spoonpaco.ninegrid.data.ai.AiError.NETWORK) " ($raw)".take(140) else ""
+    }
+
+    /** Wat de AI bij het scannen met een vak deed: bezig, gelukt of niet gelukt (met reden). */
+    enum class AiState { BUSY, DONE, FAILED }
+    data class AiMark(val state: AiState, val reason: String? = null)
+    val aiMarks = androidx.compose.runtime.mutableStateMapOf<Int, AiMark>()
+    val aiBusyCount get() = aiMarks.values.count { it.state == AiState.BUSY }
 
     /** AI-verzoeken van deze sessie die zijn tegengehouden door het maximum per dag. */
     private var aiLimitWarned = false
@@ -779,33 +803,46 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         val client = aiClient() ?: return@launch
         val todo = items.filter { (it.status == ItemStatus.NOT_FOUND || !it.confident) && it.key !in aiTried && crops[it.key] != null }
         if (todo.isEmpty()) return@launch
+        todo.forEach { aiMarks[it.key] = AiMark(AiState.BUSY) }
         var helped = 0
-        for (item in todo) {
+        for ((i, item) in todo.withIndex()) {
             aiTried += item.key
             if (!settingsStore.countAiUse()) {
-                if (!aiLimitWarned) { message = str(R.string.ai_limit_reached); aiLimitWarned = true }
+                val why = str(R.string.ai_limit_reached)
+                if (!aiLimitWarned) { message = why; aiLimitWarned = true }
+                todo.drop(i).forEach { aiMarks[it.key] = AiMark(AiState.FAILED, why) }
                 break
             }
-            val bmp = crops[item.key]?.asAndroidBitmap() ?: continue
+            val bmp = crops[item.key]?.asAndroidBitmap() ?: run { aiMarks[item.key] = AiMark(AiState.FAILED, str(R.string.ai_mark_unreadable)); null } ?: continue
             val attempt = runCatching { client.readCard(bmp) }
-            if (attempt.isFailure) { message = str(R.string.ai_failed, attempt.exceptionOrNull()?.message ?: ""); break }
+            if (attempt.isFailure) {
+                // Lukt het na het opnieuw proberen niet, dan geldt dat ook voor de rest: niet verder vragen.
+                val why = aiErrorText(attempt.exceptionOrNull()!!)
+                message = str(R.string.ai_failed, why)
+                todo.drop(i).forEach { aiMarks[it.key] = AiMark(AiState.FAILED, why) }
+                break
+            }
             val read = attempt.getOrThrow()
             val lang = nl.spoonpaco.ninegrid.domain.ScanParser.scryfallLang(read.lang)
             val q = when {
                 read.set != null && read.number != null -> if (lang == null) CardQuery(setCode = read.set, collectorNumber = read.number, name = read.name) else CardQuery(setCode = read.set, collectorNumber = read.number, lang = lang, printedName = read.name)
                 read.name != null && lang == null -> CardQuery(setCode = read.set, name = read.name)
                 else -> null
-            } ?: continue
-            val card = runCatching { repo.resolve(listOf(q)).firstOrNull() }.getOrNull() ?: continue
+            }
+            if (q == null) { aiMarks[item.key] = AiMark(AiState.FAILED, str(R.string.ai_mark_unreadable)); continue }
+            val card = runCatching { repo.resolve(listOf(q)).firstOrNull() }.getOrNull()
+            if (card == null) { aiMarks[item.key] = AiMark(AiState.FAILED, str(R.string.ai_mark_not_at_scryfall, listOfNotNull(read.name, read.set, read.number).joinToString(" "))); continue }
             val nameOk = lang != null || read.name == null || repo.namesLookAlike(read.name, card.name)
             val numberOk = read.number == null || card.collectorNumber.equals(read.number, true)
             val idx = pending.indexOfFirst { it.key == item.key }
-            if (idx < 0) continue
+            if (idx < 0) { aiMarks.remove(item.key); continue }
+            val sure = nameOk && numberOk && read.set != null
             pending[idx] = pending[idx].copy(
                 print = card.toPrint(), status = ItemStatus.FOUND,
-                query = q, confident = nameOk && numberOk && read.set != null,
+                query = q, confident = sure,
                 language = read.lang?.takeIf { it != "EN" } ?: pending[idx].language,
             )
+            aiMarks[item.key] = if (sure) AiMark(AiState.DONE) else AiMark(AiState.FAILED, str(R.string.ai_mark_unsure))
             helped++
         }
         if (helped > 0) message = str(R.string.ai_helped, helped)
@@ -1229,7 +1266,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
             appendLine(if (dutch) "Write the reason in Dutch." else "Write the reason in English.")
         }
         val answer = runCatching { client.ask(prompt, null, maxTokens = 1200) }
-        val text = answer.getOrElse { e -> aiDeckError = str(R.string.ai_failed, e.message ?: ""); aiDeckBusy = false; return@launch }
+        val text = answer.getOrElse { e -> aiDeckError = str(R.string.ai_failed, aiErrorText(e)); aiDeckBusy = false; return@launch }
         val swaps = runCatching {
             nl.spoonpaco.ninegrid.data.ai.AiClient.extractJson(text)!!.jsonObjectOrNull()?.get("swaps")?.let { it as kotlinx.serialization.json.JsonArray }.orEmpty()
                 .mapNotNull { el ->

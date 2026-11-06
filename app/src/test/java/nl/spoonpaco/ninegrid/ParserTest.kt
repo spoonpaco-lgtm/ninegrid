@@ -487,6 +487,6 @@ class ParserTest {
         val combos = nl.spoonpaco.ninegrid.data.ComboService.twoCardCombos(est)
         assertEquals(listOf(listOf("Heliod, Sun-Crowned", "Triskelion")), combos)
         val check = Formats.check(DeckFormat.COMMANDER, emptyList(), Formats.ComboSignals(late = combos))
-        assertEquals("3", check.bracket)
+        assertEquals("3", check.bracketHint)
     }
 }

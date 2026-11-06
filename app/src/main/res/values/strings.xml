@@ -598,8 +598,25 @@
     <string name="ai_buy_title">Consider buying</string>
     <string name="ai_dropped">%1$d suggestion(s) left out: they did not fit the deck or did not exist.</string>
     <string name="ai_no_key_or_off">AI help is off or has no key (Settings).</string>
-    <string name="scan_foil_preview_hint">Foil: tap</string>
     <string name="scan_foil_all">All foil</string>
     <string name="scan_foil_none">None foil</string>
     <string name="combos_stale">The deck changed since this search – tap to search again</string>
+    <string name="ai_err_overloaded">%1$s is busy right now (not your key). Try again later, or choose another model or service.</string>
+    <string name="ai_err_rate">%1$s limit reached: too many requests in a short time or for today. Wait a while, or choose another service.</string>
+    <string name="ai_err_key">%1$s does not accept this key. Check that you pasted the whole key, for the right service.</string>
+    <string name="ai_err_model">%1$s does not know this model. Check the model name, or leave it empty for the default.</string>
+    <string name="ai_err_network">No connection to the AI service. Check your internet.</string>
+    <string name="ai_err_answer">The AI answered, but not in a usable way. Try again, or choose another model.</string>
+    <string name="ai_mark_unreadable">The AI could not read this card.</string>
+    <string name="ai_mark_not_at_scryfall">The AI read \"%1$s\", but Scryfall does not know that card.</string>
+    <string name="ai_mark_unsure">The AI found a card, but name or number do not fully match. Check it.</string>
+    <string name="ai_mark_done">Read by the AI and confirmed by Scryfall.</string>
+    <string name="ai_mark_busy">The AI is reading this card…</string>
+    <string name="ai_reading_n">AI is reading %1$d slots…</string>
+    <string name="scan_btn_gallery">Gallery</string>
+    <string name="scan_btn_torch">Light</string>
+    <string name="scan_found_n">%1$d found</string>
+    <string name="scan_check_n">%1$d to check</string>
+    <string name="scan_check_button">Check (%1$d)</string>
+    <string name="scan_foil_preview_hint">Tap for foil</string>
 </resources>

@@ -88,7 +88,10 @@ class KeyVault(context: Context) {
 /** Wat de AI op een kaart las. */
 data class AiCardRead(val name: String?, val set: String?, val number: String?, val lang: String?)
 
-class AiException(message: String) : Exception(message)
+/** Soort fout, zodat de app een begrijpelijke melding kan geven. */
+enum class AiError { OVERLOADED, RATE_LIMIT, BAD_KEY, MODEL, NETWORK, ANSWER, OTHER }
+
+class AiException(message: String, val kind: AiError = AiError.OTHER) : Exception(message)
 
 /** Praat met de gekozen dienst. Eén vraag tegelijk, met tekst en eventueel één foto. */
 class AiClient(private val provider: AiProvider, private val key: String, model: String, baseUrl: String) {
@@ -97,7 +100,23 @@ class AiClient(private val provider: AiProvider, private val key: String, model:
     private val json = Json { ignoreUnknownKeys = true }
     private val jsonType = "application/json".toMediaType()
 
-    suspend fun ask(prompt: String, image: Bitmap? = null, maxTokens: Int = 400): String = withContext(Dispatchers.IO) {
+    /**
+     * Vraag stellen. Is de dienst overbelast of te druk (503, 429 en verwante codes), dan stil opnieuw proberen
+     * na de wachttijden in [retries]. Het geheel telt als één verzoek voor de daglimiet.
+     */
+    suspend fun ask(prompt: String, image: Bitmap? = null, maxTokens: Int = 400, retries: List<Long> = RETRIES): String {
+        var attempt = 0
+        while (true) {
+            try {
+                return askOnce(prompt, image, maxTokens)
+            } catch (e: AiException) {
+                if (!retryable(e.kind) || attempt >= retries.size) throw e
+                kotlinx.coroutines.delay(retries[attempt++])
+            }
+        }
+    }
+
+    private suspend fun askOnce(prompt: String, image: Bitmap?, maxTokens: Int): String = withContext(Dispatchers.IO) {
         val b64 = image?.let { jpegBase64(it) }
         val req = when (provider.kind) {
             AiKind.OPENAI -> Request.Builder().url("$base/chat/completions").header("Authorization", "Bearer $key")
@@ -142,10 +161,13 @@ class AiClient(private val provider: AiProvider, private val key: String, model:
                     }
                 }.toString().toRequestBody(jsonType)).build()
         }
-        http.newCall(req).execute().use { r ->
+        val resp = try { http.newCall(req).execute() } catch (e: java.io.IOException) {
+            throw AiException(e.message ?: e.javaClass.simpleName, AiError.NETWORK)
+        }
+        resp.use { r ->
             val body = r.body?.string().orEmpty()
-            if (!r.isSuccessful) throw AiException("HTTP ${r.code}: " + errorMessage(body))
-            val root = json.parseToJsonElement(body).jsonObject
+            if (!r.isSuccessful) throw AiException("HTTP ${r.code}: " + errorMessage(body), classify(r.code))
+            val root = runCatching { json.parseToJsonElement(body).jsonObject }.getOrElse { throw AiException(body.take(80), AiError.ANSWER) }
             val text = when (provider.kind) {
                 AiKind.OPENAI -> root["choices"]?.jsonArray?.firstOrNull()?.jsonObject?.get("message")?.jsonObject?.get("content")?.let { c ->
                     (c as? JsonPrimitive)?.contentOrNull ?: (c as? JsonArray)?.joinToString("") { it.jsonObject["text"]?.jsonPrimitive?.contentOrNull.orEmpty() }
@@ -154,19 +176,34 @@ class AiClient(private val provider: AiProvider, private val key: String, model:
                     ?.joinToString("") { it.jsonObject["text"]?.jsonPrimitive?.contentOrNull.orEmpty() }
                 AiKind.CLAUDE -> root["content"]?.jsonArray?.joinToString("") { it.jsonObject["text"]?.jsonPrimitive?.contentOrNull.orEmpty() }
             }
-            text?.takeIf { it.isNotBlank() } ?: throw AiException("Leeg antwoord / empty answer")
+            text?.takeIf { it.isNotBlank() } ?: throw AiException("Leeg antwoord / empty answer", AiError.ANSWER)
         }
     }
 
     /** Leest één kaart van een foto. Antwoord als JSON; onzekere velden leeg. */
-    suspend fun readCard(image: Bitmap): AiCardRead {
-        val answer = ask(CARD_PROMPT, image, maxTokens = 200)
-        val obj = extractJson(answer)?.jsonObject ?: throw AiException("Geen JSON / no JSON: ${answer.take(80)}")
+    suspend fun readCard(image: Bitmap, retries: List<Long> = RETRIES): AiCardRead {
+        val answer = ask(CARD_PROMPT, image, maxTokens = 200, retries = retries)
+        val obj = extractJson(answer)?.jsonObject ?: throw AiException("Geen JSON / no JSON: ${answer.take(80)}", AiError.ANSWER)
         fun f(k: String) = (obj[k] as? JsonPrimitive)?.contentOrNull?.trim()?.takeIf { it.isNotEmpty() && it.lowercase() != "null" }
         return AiCardRead(f("name"), f("set")?.uppercase(), f("number")?.trimStart('0')?.ifEmpty { "0" }, f("lang")?.uppercase())
     }
 
     companion object {
+        /** Wachttijden bij overbelasting: na 2, 5 en 10 seconden opnieuw. */
+        val RETRIES = listOf(2_000L, 5_000L, 10_000L)
+        /** Bij de knop Test maar één keer opnieuw, zodat je snel antwoord hebt. */
+        val TEST_RETRIES = listOf(2_000L)
+
+        fun classify(code: Int) = when (code) {
+            500, 502, 503, 504, 529 -> AiError.OVERLOADED
+            429 -> AiError.RATE_LIMIT
+            401, 403 -> AiError.BAD_KEY
+            404 -> AiError.MODEL
+            else -> AiError.OTHER
+        }
+
+        fun retryable(kind: AiError) = kind == AiError.OVERLOADED || kind == AiError.RATE_LIMIT
+
         private val http = OkHttpClient.Builder().connectTimeout(20, TimeUnit.SECONDS).readTimeout(60, TimeUnit.SECONDS).build()
 
         const val CARD_PROMPT = "This image shows one Magic: The Gathering card (it may be cropped, rotated slightly or partly blurry). " +

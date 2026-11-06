@@ -23,6 +23,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -558,25 +559,42 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
             Modifier.align(Alignment.BottomCenter).fillMaxWidth().background(Color.Black.copy(alpha = 0.5f)).navigationBarsPadding(),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Row(Modifier.heightIn(min = 40.dp).horizontalScroll(androidx.compose.foundation.rememberScrollState()).padding(horizontal = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                val colors = FilterChipDefaults.filterChipColors(labelColor = Color.White, selectedContainerColor = MaterialTheme.colorScheme.primary, selectedLabelColor = Color.Black)
-                FilterChip(selected = !single, onClick = { vm.setScanMode("page") }, label = { Text(stringResource(R.string.scan_mode_page)) }, colors = colors)
-                FilterChip(selected = single, onClick = { vm.setScanMode("single") }, label = { Text(stringResource(R.string.scan_mode_single)) }, colors = colors)
-                Spacer(Modifier.width(8.dp))
-                if (single) FilterChip(
+            // Stand: één schakelaar, precies in het midden. Bij één kaart de extra knoppen op een eigen regel.
+            val colors = FilterChipDefaults.filterChipColors(labelColor = Color.White, selectedContainerColor = MaterialTheme.colorScheme.primary, selectedLabelColor = Color.Black)
+            androidx.compose.material3.SingleChoiceSegmentedButtonRow(Modifier.padding(top = 6.dp)) {
+                val segColors = androidx.compose.material3.SegmentedButtonDefaults.colors(
+                    activeContainerColor = MaterialTheme.colorScheme.primary, activeContentColor = Color.Black,
+                    inactiveContainerColor = Color.Transparent, inactiveContentColor = Color.White,
+                )
+                androidx.compose.material3.SegmentedButton(
+                    selected = !single, onClick = { vm.setScanMode("page") }, colors = segColors,
+                    shape = androidx.compose.material3.SegmentedButtonDefaults.itemShape(0, 2),
+                ) { Text(stringResource(R.string.scan_mode_page)) }
+                androidx.compose.material3.SegmentedButton(
+                    selected = single, onClick = { vm.setScanMode("single") }, colors = segColors,
+                    shape = androidx.compose.material3.SegmentedButtonDefaults.itemShape(1, 2),
+                ) { Text(stringResource(R.string.scan_mode_single)) }
+            }
+            if (single) Row(Modifier.padding(top = 2.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                FilterChip(
                     selected = settings.autoCapture && !autoPaused,
                     onClick = { if (autoPaused) { autoPaused = false; watcher.reset() } else vm.setAutoCapture(!settings.autoCapture) },
                     label = { Text(stringResource(if (autoPaused) R.string.scan_auto_paused else R.string.scan_auto)) }, colors = colors,
                 )
-                // Bij een blad zit foil in het voorbeeld (het raster onderaan); bij één kaart blijft de knop hier.
-                if (single) FilterChip(selected = vm.scanFoil, onClick = { vm.setPageFoil(!vm.scanFoil) }, label = { Text(stringResource(R.string.scan_foil_card)) }, colors = colors)
+                // Bij een blad zit foil in het voorbeeld (het raster); bij één kaart blijft de knop hier.
+                FilterChip(selected = vm.scanFoil, onClick = { vm.setPageFoil(!vm.scanFoil) }, label = { Text(stringResource(R.string.scan_foil_card)) }, colors = colors)
             }
-            Box(Modifier.fillMaxWidth().heightIn(min = 52.dp).padding(horizontal = 12.dp), contentAlignment = Alignment.Center) {
+            // AI bezig? Eén regel boven de uitslag.
+            if (vm.aiBusyCount > 0) Text(
+                "AI · " + stringResource(R.string.ai_reading_n, vm.aiBusyCount),
+                color = NgColors.Amber, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 4.dp),
+            )
+            Box(Modifier.fillMaxWidth().heightIn(min = 56.dp).padding(horizontal = 12.dp, vertical = 4.dp), contentAlignment = Alignment.Center) {
                 val err = error
                 val sum = vm.scanSummary
                 when {
                     err != null -> Text(err, color = Color.White, fontSize = 13.sp, textAlign = TextAlign.Center, maxLines = 2)
-                    sum != null -> ScanSummaryBar(vm, sum, single, onReview = onResult, onSave = {
+                    sum != null -> ScanSummaryBar(vm, sum, single, lastPhoto, onPhoto = { showPhoto = true }, onReview = onResult, onSave = {
                         scope.launch {
                             // Al eens gescand? Dan eerst kijken in het controlescherm.
                             if (vm.duplicateSlots().isNotEmpty()) onResult() else vm.savePending { }
@@ -585,26 +603,17 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
                     else -> Text(stringResource(R.string.scan_fill_frame), color = Color.White.copy(alpha = 0.8f), fontSize = 12.sp)
                 }
             }
-            Row(
-                Modifier.fillMaxWidth().height(96.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically,
-            ) {
-                // De laatst genomen foto; tik om hem groot te zien.
-                Box(Modifier.size(52.dp)) {
-                    lastPhoto?.let { p ->
-                        androidx.compose.foundation.Image(
-                            p, stringResource(R.string.last_photo),
-                            Modifier.fillMaxSize().clip(androidx.compose.foundation.shape.RoundedCornerShape(8.dp)).clickable { showPhoto = true },
-                            contentScale = androidx.compose.ui.layout.ContentScale.Crop,
-                        )
-                    }
+            // Drie knoppen: Galerij, de fotoknop precies in het midden, en de lamp. Elk een even breed vak.
+            Row(Modifier.fillMaxWidth().height(104.dp), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                    FilledIconButton(
+                        onClick = { gallery.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+                        enabled = !working, modifier = Modifier.size(52.dp),
+                        colors = IconButtonDefaults.filledIconButtonColors(containerColor = Color.White.copy(alpha = 0.18f), contentColor = Color.White),
+                    ) { Icon(Icons.Filled.PhotoLibrary, stringResource(R.string.from_photos)) }
+                    Text(stringResource(R.string.scan_btn_gallery), color = Color.White.copy(alpha = 0.8f), fontSize = 11.sp)
                 }
-                FilledIconButton(
-                    onClick = { gallery.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
-                    enabled = !working, modifier = Modifier.size(52.dp),
-                    colors = IconButtonDefaults.filledIconButtonColors(containerColor = Color.White.copy(alpha = 0.18f), contentColor = Color.White),
-                ) { Icon(Icons.Filled.PhotoLibrary, stringResource(R.string.from_photos)) }
-                Box(contentAlignment = Alignment.Center) {
+                Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
                     // Ring om de knop zolang hij scherpstelt, leest of opzoekt.
                     if (working || vm.scanSummary?.busy == true) CircularProgressIndicator(Modifier.size(88.dp), color = Color.White, strokeWidth = 3.dp)
                     FilledIconButton(
@@ -614,11 +623,14 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
                         colors = IconButtonDefaults.filledIconButtonColors(containerColor = MaterialTheme.colorScheme.primary),
                     ) { Icon(Icons.Filled.CameraAlt, stringResource(R.string.take_photo), modifier = Modifier.size(36.dp)) }
                 }
-                FilledIconButton(
-                    onClick = { torch = !torch; camera?.cameraControl?.enableTorch(torch) },
-                    enabled = permitted && camera?.cameraInfo?.hasFlashUnit() == true, modifier = Modifier.size(52.dp),
-                    colors = IconButtonDefaults.filledIconButtonColors(containerColor = Color.White.copy(alpha = 0.18f), contentColor = Color.White),
-                ) { Icon(if (torch) Icons.Filled.FlashlightOn else Icons.Filled.FlashlightOff, stringResource(R.string.torch)) }
+                Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                    FilledIconButton(
+                        onClick = { torch = !torch; camera?.cameraControl?.enableTorch(torch) },
+                        enabled = permitted && camera?.cameraInfo?.hasFlashUnit() == true, modifier = Modifier.size(52.dp),
+                        colors = IconButtonDefaults.filledIconButtonColors(containerColor = Color.White.copy(alpha = 0.18f), contentColor = Color.White),
+                    ) { Icon(if (torch) Icons.Filled.FlashlightOn else Icons.Filled.FlashlightOff, stringResource(R.string.torch)) }
+                    Text(stringResource(R.string.scan_btn_torch), color = Color.White.copy(alpha = 0.8f), fontSize = 11.sp)
+                }
             }
         }
     }
@@ -671,23 +683,47 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
 
 /** De uitkomst van de laatste scan op het camerascherm, met Opslaan als alles klopt. */
 @Composable
-private fun ScanSummaryBar(vm: AppViewModel, sum: AppViewModel.ScanSummary, single: Boolean, onReview: () -> Unit, onSave: () -> Unit) {
+private fun ScanSummaryBar(
+    vm: AppViewModel, sum: AppViewModel.ScanSummary, single: Boolean,
+    photo: androidx.compose.ui.graphics.ImageBitmap?, onPhoto: () -> Unit,
+    onReview: () -> Unit, onSave: () -> Unit,
+) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        // De laatste foto als klein plaatje; tik = groot.
+        if (photo != null) {
+            androidx.compose.foundation.Image(
+                photo, stringResource(R.string.last_photo),
+                Modifier.size(44.dp).clip(RoundedCornerShape(6.dp)).clickable(onClick = onPhoto),
+                contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+            )
+            Spacer(Modifier.width(8.dp))
+        }
         if (sum.busy) {
             CircularProgressIndicator(Modifier.size(18.dp), color = Color.White, strokeWidth = 2.dp)
             Spacer(Modifier.width(8.dp))
         }
-        val text = when {
-            single -> pluralStringResource(R.plurals.scan_single_count, vm.pending.sumOf { it.quantity }, vm.pending.sumOf { it.quantity }) +
-                (vm.pending.count { it.status == nl.spoonpaco.ninegrid.ui.ItemStatus.RESOLVING }.takeIf { it > 0 }?.let { " · " + stringResource(R.string.scan_looking_up_n, it) } ?: "")
-            sum.busy -> stringResource(R.string.looking_up)
-            sum.waiting > 0 -> stringResource(R.string.scan_waiting)
-            sum.allGood -> stringResource(R.string.scan_all_found, sum.found, sum.total - sum.empty) +
-                (if (sum.empty > 0) " · " + pluralStringResource(R.plurals.scan_empty_slots, sum.empty, sum.empty) else "")
-            else -> stringResource(R.string.scan_some_found, sum.found, sum.doubtful.coerceAtLeast(0))
-        }
         Column(Modifier.weight(1f)) {
-            Text(text, color = Color.White, fontSize = 13.sp, maxLines = if (single) 1 else 2, overflow = TextOverflow.Ellipsis)
+            when {
+                single -> Text(
+                    pluralStringResource(R.plurals.scan_single_count, vm.pending.sumOf { it.quantity }, vm.pending.sumOf { it.quantity }) +
+                        (vm.pending.count { it.status == nl.spoonpaco.ninegrid.ui.ItemStatus.RESOLVING }.takeIf { it > 0 }?.let { " · " + stringResource(R.string.scan_looking_up_n, it) } ?: ""),
+                    color = Color.White, fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                )
+                sum.busy -> Text(stringResource(R.string.looking_up), color = Color.White, fontSize = 14.sp)
+                sum.waiting > 0 -> Text(stringResource(R.string.scan_waiting), color = Color.White, fontSize = 14.sp)
+                else -> {
+                    // In kleur: groen gevonden, oranje controleren.
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("● ", color = NgColors.Synced, fontSize = 14.sp)
+                        Text(stringResource(R.string.scan_found_n, sum.found), color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                    }
+                    if (sum.doubtful > 0) Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("● ", color = NgColors.Amber, fontSize = 14.sp)
+                        Text(stringResource(R.string.scan_check_n, sum.doubtful), color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                    }
+                    if (sum.empty > 0) Text(pluralStringResource(R.plurals.scan_empty_slots, sum.empty, sum.empty), color = Color.White.copy(alpha = 0.7f), fontSize = 11.sp)
+                }
+            }
             // Losse kaarten: de laatste drie, met een kruisje om een vergissing weg te halen.
             if (single) Row(Modifier.horizontalScroll(androidx.compose.foundation.rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 vm.pending.takeLast(3).reversed().forEach { p ->
@@ -703,23 +739,25 @@ private fun ScanSummaryBar(vm: AppViewModel, sum: AppViewModel.ScanSummary, sing
             if (st.showTiming && vm.lastReadMs > 0 && !sum.busy) {
                 Text(
                     stringResource(R.string.scan_timing_steps, vm.lastReadMs / 1000.0, vm.lastRereadSlots, vm.lastNamesMs / 1000.0, vm.lastLookupMs / 1000.0, vm.lastImagesMs / 1000.0),
-                    color = Color.White.copy(alpha = 0.7f), fontSize = 10.sp, maxLines = 1,
+                    color = Color.White.copy(alpha = 0.6f), fontSize = 9.sp, maxLines = 1, overflow = TextOverflow.Ellipsis,
                 )
             }
         }
-        // Foil per vak: een kleine 3×3 van de laatste foto. Tik = groot, daar per vak foil aan/uit.
+        // Het raster van de laatste foto: rand = hoe zeker, AI-label = wat de AI deed, ✦ = foil. Tik = groot.
         if (!single && vm.pending.any { it.slot != null }) {
             var big by remember { mutableStateOf(false) }
+            var why by remember { mutableStateOf<String?>(null) }
             Column(Modifier.padding(horizontal = 6.dp).clickable { big = true }, horizontalAlignment = Alignment.CenterHorizontally) {
-                FoilGrid(vm, cellWidth = 14, interactive = false, onLong = {})
-                Text(stringResource(R.string.scan_foil_preview_hint), color = Color.White.copy(alpha = 0.75f), fontSize = 9.sp)
+                FoilGrid(vm, cellWidth = 20, interactive = false, onLong = {})
+                Text(stringResource(R.string.scan_foil_preview_hint), color = Color.White.copy(alpha = 0.8f), fontSize = 10.sp)
             }
             if (big) androidx.compose.ui.window.Dialog(onDismissRequest = { big = false }) {
                 Column(Modifier.background(Color(0xEE111111), RoundedCornerShape(12.dp)).padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(stringResource(R.string.scan_foil_big_title), color = Color.White, fontWeight = FontWeight.Bold)
                     Text(stringResource(R.string.scan_foil_big_hint), color = Color.White.copy(alpha = 0.75f), fontSize = 12.sp)
                     Spacer(Modifier.height(8.dp))
-                    FoilGrid(vm, cellWidth = 88, interactive = true, onLong = { big = false; onReview() })
+                    FoilGrid(vm, cellWidth = 88, interactive = true, onLong = { big = false; onReview() }, onAi = { why = it })
+                    why?.let { Text(it, color = Color.White, fontSize = 12.sp, textAlign = TextAlign.Center, modifier = Modifier.padding(top = 6.dp)) }
                     Spacer(Modifier.height(8.dp))
                     // Alles in één keer: nog eens tikken zet alles weer uit.
                     val allFoil = vm.pending.filter { it.slot != null }.let { l -> l.isNotEmpty() && l.all { it.finish != nl.spoonpaco.ninegrid.data.db.Finish.NONFOIL } }
@@ -733,12 +771,16 @@ private fun ScanSummaryBar(vm: AppViewModel, sum: AppViewModel.ScanSummary, sing
         if (!sum.busy || single) {
             if (single) {
                 Button(onClick = onReview) { Text(stringResource(R.string.done)) }
+            } else if (sum.allGood) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Button(onClick = onSave) { Text(stringResource(R.string.save)) }
+                    TextButton(onClick = onReview) { Text(stringResource(R.string.review_short), color = Color.White, fontSize = 12.sp) }
+                }
+            } else if (sum.doubtful > 0) {
+                // Er is iets te controleren: dat is de volgende stap, dus een gevulde knop met het aantal.
+                Button(onClick = onReview) { Text(stringResource(R.string.scan_check_button, sum.doubtful)) }
             } else {
                 OutlinedButton(onClick = onReview) { Text(stringResource(R.string.review_short), color = Color.White) }
-                if (sum.allGood) {
-                    Spacer(Modifier.width(6.dp))
-                    Button(onClick = onSave) { Text(stringResource(R.string.save)) }
-                }
             }
         }
     }
@@ -778,12 +820,18 @@ private fun GuideOverlay(topPx: Float, bottomPx: Float, single: Boolean, corner:
 }
 
 /**
- * De 9 uitsneden van het laatste blad in een raster. Foil = gouden rand en ✦. Met [interactive]: tik = foil aan/uit,
- * lang drukken = controlescherm.
+ * De 9 uitsneden van het laatste blad in een raster. Gekleurde rand = hoe zeker (groen, oranje, rood),
+ * foil = gouden ✦ rechtsboven, AI-label linksonder: knipperend = bezig, gevuld = gelukt, doorgestreept = niet gelukt.
+ * Met [interactive]: tik = foil aan/uit, tik op het AI-label = waarom, lang drukken = controlescherm.
  */
 @Composable
-private fun FoilGrid(vm: AppViewModel, cellWidth: Int, interactive: Boolean, onLong: () -> Unit) {
+private fun FoilGrid(vm: AppViewModel, cellWidth: Int, interactive: Boolean, onLong: () -> Unit, onAi: (String) -> Unit = {}) {
     val bySlot = vm.pending.filter { it.slot != null }.associateBy { it.slot!! }
+    val pulse = androidx.compose.animation.core.rememberInfiniteTransition(label = "ai").animateFloat(
+        0.35f, 1f, androidx.compose.animation.core.infiniteRepeatable(androidx.compose.animation.core.tween(600), androidx.compose.animation.core.RepeatMode.Reverse), label = "aiPulse",
+    )
+    val doneText = stringResource(R.string.ai_mark_done)
+    val busyText = stringResource(R.string.ai_mark_busy)
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
         for (r in 0..2) Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
             for (c in 0..2) {
@@ -791,18 +839,43 @@ private fun FoilGrid(vm: AppViewModel, cellWidth: Int, interactive: Boolean, onL
                 val item = bySlot[slot]
                 val foil = item != null && item.finish != nl.spoonpaco.ninegrid.data.db.Finish.NONFOIL
                 val crop = item?.let { vm.crops[it.key] }
+                val ai = item?.let { vm.aiMarks[it.key] }
+                val status = when {
+                    item == null || item.status == nl.spoonpaco.ninegrid.ui.ItemStatus.RESOLVING || item.status == nl.spoonpaco.ninegrid.ui.ItemStatus.WAITING -> Color.Transparent
+                    item.status == nl.spoonpaco.ninegrid.ui.ItemStatus.NOT_FOUND -> NgColors.Error
+                    !item.confident -> NgColors.Amber
+                    else -> NgColors.Synced
+                }
                 val mod = Modifier.width(cellWidth.dp).height((cellWidth * 1.4f).dp)
                     .clip(RoundedCornerShape(2.dp)).background(Color(0x33FFFFFF))
-                    .border(if (foil) (if (interactive) 3.dp else 1.5.dp) else 0.dp, if (foil) NgColors.Amber else Color.Transparent, RoundedCornerShape(2.dp))
+                    .border(if (interactive) 3.dp else 1.5.dp, status, RoundedCornerShape(2.dp))
                     .let { m -> if (interactive && item != null) m.pointerInput(slot) { detectTapGestures(onTap = { vm.toggleSlotFoil(slot) }, onLongPress = { onLong() }) } else m }
-                Box(mod, contentAlignment = Alignment.TopEnd) {
+                Box(mod) {
                     if (crop != null) androidx.compose.foundation.Image(crop, null, contentScale = androidx.compose.ui.layout.ContentScale.Crop, modifier = Modifier.matchParentSize())
-                    if (interactive || foil) Text("✦", color = if (foil) NgColors.Amber else Color.White.copy(alpha = 0.4f), fontSize = if (interactive) 16.sp else 7.sp, modifier = Modifier.padding(end = 2.dp))
+                    if (interactive || foil) Text(
+                        "✦", color = if (foil) NgColors.Amber else Color.White.copy(alpha = 0.4f), fontSize = if (interactive) 16.sp else 8.sp,
+                        modifier = Modifier.align(Alignment.TopEnd).padding(end = 2.dp),
+                    )
+                    if (ai != null) {
+                        val bg = when (ai.state) { AppViewModel.AiState.DONE -> NgColors.Synced; AppViewModel.AiState.BUSY -> NgColors.Amber; AppViewModel.AiState.FAILED -> Color(0xFF555555) }
+                        val label = Modifier.align(Alignment.BottomStart).padding(1.dp)
+                            .graphicsLayerAlpha(if (ai.state == AppViewModel.AiState.BUSY) pulse.value else 1f)
+                            .background(bg, RoundedCornerShape(3.dp))
+                            .let { m -> if (interactive) m.clickable { onAi(ai.reason ?: if (ai.state == AppViewModel.AiState.DONE) doneText else busyText) } else m }
+                            .padding(horizontal = if (interactive) 4.dp else 1.dp)
+                        Text(
+                            "AI", modifier = label, color = Color.White, fontWeight = FontWeight.Bold,
+                            fontSize = if (interactive) 11.sp else 6.sp, lineHeight = if (interactive) 13.sp else 7.sp,
+                            textDecoration = if (ai.state == AppViewModel.AiState.FAILED) androidx.compose.ui.text.style.TextDecoration.LineThrough else null,
+                        )
+                    }
                 }
             }
         }
     }
 }
+
+private fun Modifier.graphicsLayerAlpha(a: Float) = this.then(Modifier.graphicsLayer { alpha = a })
 
 /** Vier L-vormige hoekjes om een rechthoek. */
 private fun DrawScope.corners(g: Area, color: Color, len: Float, width: Float) {

@@ -597,8 +597,25 @@
     <string name="ai_buy_title">Overweeg te kopen</string>
     <string name="ai_dropped">%1$d voorstel(len) weggelaten: ze pasten niet bij het deck of bestonden niet.</string>
     <string name="ai_no_key_or_off">AI-hulp staat uit of heeft geen sleutel (Instellingen).</string>
-    <string name="scan_foil_preview_hint">Foil: tik</string>
     <string name="scan_foil_all">Alles foil</string>
     <string name="scan_foil_none">Geen foil</string>
     <string name="combos_stale">Deck gewijzigd sinds deze zoekactie – tik om opnieuw te zoeken</string>
+    <string name="ai_err_overloaded">%1$s is nu overbelast (niet jouw sleutel). Probeer het later, of kies een ander model of een andere dienst.</string>
+    <string name="ai_err_rate">Limiet van %1$s bereikt: te veel verzoeken kort na elkaar of voor vandaag. Wacht even, of kies een andere dienst.</string>
+    <string name="ai_err_key">%1$s accepteert deze sleutel niet. Kijk of je de hele sleutel hebt geplakt, en bij de juiste dienst.</string>
+    <string name="ai_err_model">%1$s kent dit model niet. Controleer de modelnaam, of laat het veld leeg voor het standaardmodel.</string>
+    <string name="ai_err_network">Geen verbinding met de AI-dienst. Controleer je internet.</string>
+    <string name="ai_err_answer">De AI gaf antwoord, maar niet bruikbaar. Probeer het opnieuw, of kies een ander model.</string>
+    <string name="ai_mark_unreadable">De AI kon deze kaart niet lezen.</string>
+    <string name="ai_mark_not_at_scryfall">De AI las \"%1$s\", maar die kaart kent Scryfall niet.</string>
+    <string name="ai_mark_unsure">De AI vond een kaart, maar naam of nummer klopt niet helemaal. Controleer hem.</string>
+    <string name="ai_mark_done">Gelezen door de AI en bevestigd door Scryfall.</string>
+    <string name="ai_mark_busy">De AI leest deze kaart…</string>
+    <string name="ai_reading_n">AI leest %1$d vakjes…</string>
+    <string name="scan_btn_gallery">Galerij</string>
+    <string name="scan_btn_torch">Lamp</string>
+    <string name="scan_found_n">%1$d gevonden</string>
+    <string name="scan_check_n">%1$d controleren</string>
+    <string name="scan_check_button">Controleer (%1$d)</string>
+    <string name="scan_foil_preview_hint">Tik voor foil</string>
 </resources>

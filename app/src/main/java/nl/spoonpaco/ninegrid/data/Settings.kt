@@ -38,7 +38,7 @@ data class AppSettings(
     /** Al een keer gevraagd om een back-upmap. */
     val backupAsked: Boolean = false,
     /** Na elke scan tonen hoe lang de herkenning duurde. */
-    val showTiming: Boolean = true,
+    val showTiming: Boolean = false,
     /** Trillen als de foto genomen is. */
     val haptics: Boolean = true,
     /** Sluitergeluid (standaard uit). */
@@ -160,7 +160,8 @@ class SettingsStore(private val context: Context) {
         chartRange = this[K.chartRange] ?: "3M",
         scanMode = this[K.scanMode] ?: "page",
         backupAsked = this[K.backupAsked] ?: false,
-        showTiming = this[K.showTiming] ?: true,
+        // Nieuwe installaties: standaard uit. Wie al bezig was (en nooit koos), houdt ze aan zoals voorheen.
+        showTiming = this[K.showTiming] ?: (this[K.onboarding] == true),
         haptics = this[K.haptics] ?: true,
         shutterSound = this[K.shutterSound] ?: false,
         autoCapture = this[K.autoCapture] ?: true,
