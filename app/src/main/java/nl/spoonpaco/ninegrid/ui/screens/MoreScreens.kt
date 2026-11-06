@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class, androidx.compose.material3.ExperimentalMaterial3Api::class)
+
 package nl.spoonpaco.ninegrid.ui.screens
 
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -6,6 +8,8 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.SegmentedButton
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -199,7 +203,40 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit, onGuide: () -> Unit = {
                 }
                 SettingsGroup.VIEW -> {
                     Text(stringResource(R.string.appearance), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                    ChoiceRow(stringResource(R.string.theme), listOf("system", "day", "night"), settings.theme, { themeLabels[it] ?: it }) { vm.setTheme(it) }
+                    // Dag/nacht met de zon- en maanmarkering; daarnaast de gildekleur.
+                    Text(stringResource(R.string.theme), modifier = Modifier.padding(top = 4.dp))
+                    val modes = listOf("system", "day", "night")
+                    androidx.compose.material3.SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                        modes.forEachIndexed { i, m ->
+                            SegmentedButton(
+                                selected = settings.theme == m, onClick = { vm.setTheme(m) },
+                                shape = androidx.compose.material3.SegmentedButtonDefaults.itemShape(i, modes.size),
+                                icon = {
+                                    if (m != "system") nl.spoonpaco.ninegrid.ui.components.DayNightIcon(m == "night", if (m == "day") Color(0xFFE8A93A) else Color(0xFFB9C7E8))
+                                    else androidx.compose.material3.SegmentedButtonDefaults.Icon(settings.theme == m)
+                                },
+                            ) { Text(themeLabels[m] ?: m, maxLines = 1) }
+                        }
+                    }
+                    Text(stringResource(R.string.accent_color), modifier = Modifier.padding(top = 8.dp))
+                    val dark = nl.spoonpaco.ninegrid.ui.theme.LocalNgExtra.current.isDark
+                    val accents = listOf("", "W", "U", "B", "R", "G", "UR", "WU", "BG", "RW", "UB", "GW", "BR", "RG", "WB", "UG")
+                    androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(vertical = 6.dp)) {
+                        accents.forEach { a ->
+                            nl.spoonpaco.ninegrid.ui.components.ColorDot(
+                                if (a.isEmpty()) nl.spoonpaco.ninegrid.ui.theme.accentColor(' ', dark) else nl.spoonpaco.ninegrid.ui.theme.accentColor(a[0], dark),
+                                settings.accent == a, a.getOrNull(1)?.let { nl.spoonpaco.ninegrid.ui.theme.accentColor(it, dark) },
+                            ) { vm.setAccent(a) }
+                        }
+                    }
+                    Text(stringResource(R.string.accent_explain), fontSize = 12.sp, color = nl.spoonpaco.ninegrid.ui.theme.LocalNgExtra.current.subtle)
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
+                        Column(Modifier.weight(1f)) {
+                            Text(stringResource(R.string.effects))
+                            Text(stringResource(R.string.effects_explain), fontSize = 12.sp, color = nl.spoonpaco.ninegrid.ui.theme.LocalNgExtra.current.subtle)
+                        }
+                        Switch(checked = settings.effects, onCheckedChange = { vm.setEffects(it) })
+                    }
                     ChoiceRow(stringResource(R.string.app_language), listOf("system", "nl", "en"), currentLang.substringBefore('-'), { langLabels[it] ?: it }) {
                         AppCompatDelegate.setApplicationLocales(if (it == "system") LocaleListCompat.getEmptyLocaleList() else LocaleListCompat.forLanguageTags(it))
                     }

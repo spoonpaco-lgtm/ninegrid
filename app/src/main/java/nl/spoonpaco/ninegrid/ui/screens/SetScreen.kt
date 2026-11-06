@@ -33,6 +33,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.border
+import androidx.compose.foundation.background
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -90,6 +94,28 @@ fun SetScreen(vm: AppViewModel, code: String, onBack: () -> Unit, onReview: () -
                         Text(stringResource(R.string.set_complete, have.size, cards.size), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                         Spacer(Modifier.height(6.dp))
                         LinearProgressIndicator(progress = { if (cards.isEmpty()) 0f else have.size / cards.size.toFloat() }, modifier = Modifier.fillMaxWidth())
+                        if (cards.isNotEmpty() && missing.isEmpty()) Row(Modifier.padding(top = 8.dp)) {
+                            nl.spoonpaco.ninegrid.ui.components.Stamp(stringResource(R.string.stamp_complete), Color(0xFFD4AF37), "✓")
+                        }
+                        Spacer(Modifier.height(6.dp))
+                        // Per rarity een balk: zwart common, zilver uncommon, goud rare, oranje mythic.
+                        listOf("mythic" to Color(0xFFE8742A), "rare" to Color(0xFFD4AF37), "uncommon" to Color(0xFFC0C8D2), "common" to Color(0xFF2B2622)).forEach { (r, col) ->
+                            val total = cards.count { it.rarity == r }
+                            if (total > 0) {
+                                val got = have.count { it.rarity == r }
+                                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 2.dp)) {
+                                    Text(r.replaceFirstChar { it.uppercase() }, fontSize = 12.sp, modifier = Modifier.width(78.dp))
+                                    androidx.compose.foundation.layout.Box(
+                                        Modifier.weight(1f).height(8.dp).clip(androidx.compose.foundation.shape.RoundedCornerShape(4.dp))
+                                            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                                            .border(1.dp, col.copy(alpha = 0.6f), androidx.compose.foundation.shape.RoundedCornerShape(4.dp)),
+                                    ) {
+                                        androidx.compose.foundation.layout.Box(Modifier.fillMaxWidth(got / total.toFloat()).height(8.dp).background(col))
+                                    }
+                                    Text(" $got/$total" + if (got == total) " ✓" else "", fontSize = 12.sp, fontWeight = FontWeight.Bold, modifier = Modifier.width(72.dp))
+                                }
+                            }
+                        }
                         Spacer(Modifier.height(6.dp))
                         val missingValue = missing.sumOf { (if (settings.currency == "USD") it.usd else it.eur) ?: 0.0 }
                         Text(stringResource(R.string.set_missing_value, Money.format(missingValue, settings.currency)), fontSize = 13.sp, color = extra.subtle)

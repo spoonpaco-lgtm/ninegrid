@@ -871,4 +871,13 @@
     <string name="type_lands">Lands</string>
     <string name="type_planeswalkers">Planeswalkers</string>
     <string name="type_sorceries">Sorceries</string>
+    <string name="stamp_complete">Compleet</string>
+    <string name="stamp_banned">Banned</string>
+    <string name="exile">Verbannen</string>
+    <string name="undo_exile">Terughalen uit ballingschap</string>
+    <string name="msg_exiled">%1$s verbannen</string>
+    <string name="accent_color">Gildekleur</string>
+    <string name="accent_explain">Knoppen en grafieken in een manakleur of een combinatie van twee. Het logo blijft hetzelfde.</string>
+    <string name="effects">Magic-effecten</string>
+    <string name="effects_explain">Foil-glans bij kantelen, verbannen-animatie en stempels.</string>
 </resources>

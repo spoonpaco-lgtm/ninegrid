@@ -92,9 +92,19 @@ private val DayScheme = lightColorScheme(
     error = NgColors.Error,
 )
 
-/** themeMode: "system", "day" of "night". */
+/** Gildekleuren: accent uit de manakleuren; licht en donker elk een goed leesbare tint. */
+fun accentColor(c: Char, dark: Boolean): Color = when (c) {
+    'W' -> if (dark) Color(0xFFEADFB4) else Color(0xFF8C7A3C)
+    'U' -> if (dark) Color(0xFF5DA8F0) else Color(0xFF1F5FA8)
+    'B' -> if (dark) Color(0xFFB7A6C9) else Color(0xFF4E3F5E)
+    'R' -> if (dark) Color(0xFFF0684F) else Color(0xFFB3261E)
+    'G' -> if (dark) Color(0xFF5CC27A) else Color(0xFF1E7A45)
+    else -> if (dark) NgColors.Amber else NgColors.DonkerAmber
+}
+
+/** themeMode: "system", "day" of "night"; accent: leeg, of één of twee manakleuren ("U", "UR"). */
 @Composable
-fun NineGridTheme(themeMode: String = "system", content: @Composable () -> Unit) {
+fun NineGridTheme(themeMode: String = "system", accent: String = "", content: @Composable () -> Unit) {
     val dark = when (themeMode) {
         "day" -> false
         "night" -> true
@@ -103,6 +113,12 @@ fun NineGridTheme(themeMode: String = "system", content: @Composable () -> Unit)
     val extra = if (dark) NgExtra(true, NgColors.Amber, NgColors.LeerBruin, Color(0xFFC9B48E))
     else NgExtra(false, NgColors.DonkerAmber, Color.White, Color(0xFF7A5C3E))
     CompositionLocalProvider(LocalNgExtra provides extra) {
-        MaterialTheme(colorScheme = if (dark) NightScheme else DayScheme, content = content)
+        val base = if (dark) NightScheme else DayScheme
+        val scheme = if (accent.isEmpty()) base else {
+            val p = accentColor(accent[0], dark)
+            val onP = if (dark) NgColors.KaartBruin else Color.White
+            base.copy(primary = p, onPrimary = onP, secondary = if (accent.length > 1) accentColor(accent[1], dark) else base.secondary)
+        }
+        MaterialTheme(colorScheme = scheme, content = content)
     }
 }

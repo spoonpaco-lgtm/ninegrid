@@ -78,11 +78,13 @@ class MainActivity : AppCompatActivity() {
             // Wacht tot de instellingen geladen zijn, zodat de uitleg niet even opflitst.
             val loaded: AppSettings? by vm.settingsStore.flow.collectAsState(initial = null)
             val s = loaded
-            NineGridTheme(themeMode = s?.theme ?: "system") {
-                Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    if (s != null) {
-                        val onboarding = remember { !s.onboardingDone }
-                        AppNav(vm, showOnboarding = onboarding)
+            NineGridTheme(themeMode = s?.theme ?: "system", accent = s?.accent ?: "") {
+                nl.spoonpaco.ninegrid.ui.components.EffectsProvider(s?.effects ?: true) {
+                    Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                        if (s != null) {
+                            val onboarding = remember { !s.onboardingDone }
+                            AppNav(vm, showOnboarding = onboarding)
+                        }
                     }
                 }
             }

@@ -83,6 +83,17 @@ data class AppSettings(
     val decksSort: String = "format",
     /** Completionist: compleetheid van een set telt alleen de losse collectie, niet wat in decks zit. */
     val completionist: Boolean = false,
+    /** Magic-sfeer: foil-glans, verbannen-animatie en stempels (uit te zetten). */
+    val effects: Boolean = true,
+    /** Accentkleur: leeg = standaard (amber), anders één of twee manakleuren, bijv. "U" of "UR". */
+    val accent: String = "",
+    /** Privacymodus: bedragen verborgen (behalve de ruilmatch), en in welke stijl. */
+    val privacy: Boolean = false,
+    val privacyStyle: String = "compleated",
+    /** Boosters: kaarten onder dit bedrag tellen als bulk; laatst betaalde prijs en type. */
+    val bulkThreshold: Double = 0.25,
+    val lastBoosterPrice: Double = 0.0,
+    val lastBoosterType: String = "",
     /** AI-hulp (standaard uit): dienst, model, eigen adres, maximum per dag en het gebruik van vandaag. */
     val aiEnabled: Boolean = false,
     val aiProvider: String = "gemini",
@@ -144,6 +155,13 @@ class SettingsStore(private val context: Context) {
         val collectionSort = stringPreferencesKey("collection_sort")
         val decksSort = stringPreferencesKey("decks_sort")
         val completionist = booleanPreferencesKey("completionist")
+        val effects = booleanPreferencesKey("effects")
+        val accent = stringPreferencesKey("accent")
+        val privacy = booleanPreferencesKey("privacy")
+        val privacyStyle = stringPreferencesKey("privacy_style")
+        val bulkThreshold = androidx.datastore.preferences.core.doublePreferencesKey("bulk_threshold")
+        val lastBoosterPrice = androidx.datastore.preferences.core.doublePreferencesKey("last_booster_price")
+        val lastBoosterType = stringPreferencesKey("last_booster_type")
         val aiEnabled = booleanPreferencesKey("ai_enabled")
         val aiProvider = stringPreferencesKey("ai_provider")
         val aiModel = stringPreferencesKey("ai_model")
@@ -203,6 +221,13 @@ class SettingsStore(private val context: Context) {
         collectionSort = this[K.collectionSort] ?: "set",
         decksSort = this[K.decksSort] ?: "format",
         completionist = this[K.completionist] ?: false,
+        effects = this[K.effects] ?: true,
+        accent = this[K.accent] ?: "",
+        privacy = this[K.privacy] ?: false,
+        privacyStyle = this[K.privacyStyle] ?: "compleated",
+        bulkThreshold = this[K.bulkThreshold] ?: 0.25,
+        lastBoosterPrice = this[K.lastBoosterPrice] ?: 0.0,
+        lastBoosterType = this[K.lastBoosterType] ?: "",
         aiEnabled = this[K.aiEnabled] ?: false,
         aiProvider = this[K.aiProvider] ?: "gemini",
         aiModel = this[K.aiModel] ?: "",
@@ -279,6 +304,12 @@ class SettingsStore(private val context: Context) {
 
     suspend fun setDecksSort(v: String) = context.dataStore.edit { it[K.decksSort] = v }
     suspend fun setCompletionist(v: Boolean) = context.dataStore.edit { it[K.completionist] = v }
+    suspend fun setEffects(v: Boolean) = context.dataStore.edit { it[K.effects] = v }
+    suspend fun setAccent(v: String) = context.dataStore.edit { it[K.accent] = v }
+    suspend fun setPrivacy(v: Boolean) = context.dataStore.edit { it[K.privacy] = v }
+    suspend fun setPrivacyStyle(v: String) = context.dataStore.edit { it[K.privacyStyle] = v }
+    suspend fun setBulkThreshold(v: Double) = context.dataStore.edit { it[K.bulkThreshold] = v }
+    suspend fun setLastBooster(price: Double, type: String) = context.dataStore.edit { it[K.lastBoosterPrice] = price; it[K.lastBoosterType] = type }
     suspend fun setCollectionSort(v: String) = context.dataStore.edit { it[K.collectionSort] = v }
     suspend fun setFoilTipShown() = context.dataStore.edit { it[K.foilTipShown] = true }
     suspend fun setOfflineDbOffered(v: Boolean) = context.dataStore.edit { it[K.offlineDbOffered] = v }

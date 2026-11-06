@@ -92,11 +92,11 @@ fun SmallTag(text: String, color: Color = MaterialTheme.colorScheme.onSurfaceVar
 }
 
 @Composable
-fun CardThumb(print: CardPrint?, images: Images, settings: AppSettings, width: Int = 40) {
+fun CardThumb(print: CardPrint?, images: Images, settings: AppSettings, width: Int = 40, foil: Boolean = false) {
     if (settings.imageMode == ImageMode.OFF) return
     var issue by androidx.compose.runtime.remember(print?.id) { androidx.compose.runtime.mutableStateOf<Images.Issue?>(null) }
     Box(
-        Modifier.width(width.dp).height((width * 1.4).dp).clip(RoundedCornerShape(4.dp)).background(MaterialTheme.colorScheme.surfaceContainerHigh),
+        Modifier.width(width.dp).height((width * 1.4).dp).clip(RoundedCornerShape(4.dp)).background(MaterialTheme.colorScheme.surfaceContainerHigh).foilShine(foil),
         contentAlignment = Alignment.Center,
     ) {
         AsyncImage(
@@ -158,7 +158,7 @@ fun CardRow(
         Row(Modifier.padding(horizontal = 10.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(Modifier.width(5.dp).height(34.dp).clip(RoundedCornerShape(3.dp)).background(NgColors.rarity(print?.rarity)))
             Spacer(Modifier.width(8.dp))
-            CardThumb(print, images, settings, 30)
+            CardThumb(print, images, settings, 30, foil = entry.finish != Finish.NONFOIL)
             if (settings.imageMode != ImageMode.OFF) Spacer(Modifier.width(8.dp))
             Column(Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {

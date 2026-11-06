@@ -88,6 +88,7 @@ fun CardDetailScreen(vm: AppViewModel, printId: String, onBack: () -> Unit, onFr
     var editing by remember { mutableStateOf<Entry?>(null) }
     var moving by remember { mutableStateOf<Entry?>(null) }
     var deleting by remember { mutableStateOf<Entry?>(null) }
+    var exiling by remember { mutableStateOf<Entry?>(null) }
     val extra = LocalNgExtra.current
 
     Scaffold(topBar = {
@@ -215,12 +216,13 @@ fun CardDetailScreen(vm: AppViewModel, printId: String, onBack: () -> Unit, onFr
 
     editing?.let { e -> EditEntryDialog(e, onDismiss = { editing = null }) { vm.updateEntry(it); editing = null } }
     moving?.let { e -> MoveDialog(e, decks, vm.binders.collectAsState().value, onDismiss = { moving = null }) { q, d, s, b, pg, sl -> vm.moveEntry(e, q, d, s, b, pg, sl); moving = null } }
+    exiling?.let { e -> nl.spoonpaco.ninegrid.ui.components.ExileSwirl { vm.deleteEntry(e); exiling = null } }
     deleting?.let { e ->
         AlertDialog(
             onDismissRequest = { deleting = null },
             title = { Text(stringResource(R.string.delete_copies_title)) },
             text = { Text(stringResource(R.string.delete_copies_body, e.quantity)) },
-            confirmButton = { TextButton(onClick = { vm.deleteEntry(e); deleting = null }) { Text(stringResource(R.string.delete)) } },
+            confirmButton = { TextButton(onClick = { exiling = e; deleting = null }) { Text(stringResource(R.string.exile)) } },
             dismissButton = { TextButton(onClick = { deleting = null }) { Text(stringResource(R.string.cancel)) } },
         )
     }

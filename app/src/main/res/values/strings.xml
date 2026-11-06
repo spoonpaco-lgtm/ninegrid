@@ -872,4 +872,13 @@
     <string name="type_lands">Lands</string>
     <string name="type_planeswalkers">Planeswalkers</string>
     <string name="type_sorceries">Sorceries</string>
+    <string name="stamp_complete">Complete</string>
+    <string name="stamp_banned">Banned</string>
+    <string name="exile">Exile</string>
+    <string name="undo_exile">Return from exile</string>
+    <string name="msg_exiled">%1$s exiled</string>
+    <string name="accent_color">Guild colour</string>
+    <string name="accent_explain">Buttons and charts in a mana colour or a pair of two. The logo stays the same.</string>
+    <string name="effects">Magic effects</string>
+    <string name="effects_explain">Foil shine when you tilt, exile animation and stamps.</string>
 </resources>

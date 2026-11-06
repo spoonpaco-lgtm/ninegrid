@@ -52,6 +52,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import nl.spoonpaco.ninegrid.ui.components.foilShine
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
@@ -233,7 +234,7 @@ private fun SlotCard(
         if (settings.imageMode != ImageMode.OFF && p != null) {
             coil.compose.AsyncImage(
                 model = vm.images.request(vm.images.urlFor(p, large = false), settings), imageLoader = vm.images.loader,
-                contentDescription = p.name, modifier = Modifier.fillMaxSize(), contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                contentDescription = p.name, modifier = Modifier.fillMaxSize().then(Modifier.foilShine(foil)), contentScale = androidx.compose.ui.layout.ContentScale.Crop,
             )
         } else Column(Modifier.fillMaxSize().padding(6.dp)) {
             // Plaatjes uit: tegel met naam, set en nummer.

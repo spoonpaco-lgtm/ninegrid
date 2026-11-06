@@ -183,6 +183,9 @@ private fun SetRowView(r: SetRow, cur: String, icons: Boolean, vm: AppViewModel,
                     if (r.size > 0) "  ·  " + stringResource(R.string.sets_complete, r.owned, r.size, r.pct) else "",
                 fontSize = 12.sp, color = extra.subtle,
             )
+            if (r.size > 0 && r.owned >= r.size) Row(Modifier.padding(top = 4.dp)) {
+                nl.spoonpaco.ninegrid.ui.components.Stamp(stringResource(R.string.stamp_complete), NgColors.Rare, "✓", angle = -4f)
+            }
         }
     }
 }

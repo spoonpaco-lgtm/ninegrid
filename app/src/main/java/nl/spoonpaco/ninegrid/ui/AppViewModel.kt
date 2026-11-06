@@ -122,6 +122,8 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     var message by mutableStateOf<String?>(null)
     /** De huidige melding krijgt een knop Ongedaan maken. */
     var messageUndo by mutableStateOf(false)
+    /** Eigen tekst voor de knop Ongedaan maken (bijv. "Terughalen uit ballingschap"); null = standaard. */
+    var messageUndoLabel by mutableStateOf<String?>(null)
     var busy by mutableStateOf(false)
     var update by mutableStateOf<UpdateInfo?>(null)
 
@@ -547,6 +549,9 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     fun deleteEntry(entry: Entry) = viewModelScope.launch {
         repo.deleteEntry(entry, str(R.string.log_deleted, entry.quantity, nameOf(entry)))
+        messageUndo = true
+        messageUndoLabel = str(R.string.undo_exile)
+        message = str(R.string.msg_exiled, nameOf(entry))
         snapshot()
     }
 
@@ -624,6 +629,11 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     // ---------- Instellingen ----------
     fun setTheme(v: String) = viewModelScope.launch { settingsStore.setTheme(v) }
+    fun setEffects(v: Boolean) = viewModelScope.launch { settingsStore.setEffects(v) }
+    fun setAccent(v: String) = viewModelScope.launch { settingsStore.setAccent(v) }
+    fun setPrivacyStyle(v: String) = viewModelScope.launch { settingsStore.setPrivacyStyle(v) }
+    fun setPrivacy(v: Boolean) = viewModelScope.launch { settingsStore.setPrivacy(v) }
+    fun setBulkThreshold(v: Double) = viewModelScope.launch { settingsStore.setBulkThreshold(v) }
     fun setChartLines(v: List<String>) = viewModelScope.launch { settingsStore.setChartLines(v) }
     fun setChartMetric(v: String) = viewModelScope.launch { settingsStore.setChartMetric(v) }
     fun setChartRange(v: String) = viewModelScope.launch { settingsStore.setChartRange(v) }

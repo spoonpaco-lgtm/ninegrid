@@ -302,9 +302,14 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
                             }
                             Text(stringResource(R.string.bracket_note_short), fontSize = 11.sp, color = extra.subtle)
                         }
-                        if (check.issues.isEmpty() && d.format != DeckFormat.CASUAL) {
-                            Spacer(Modifier.height(6.dp))
-                            Text(stringResource(R.string.deck_ok), color = NgColors.Synced, fontSize = 13.sp)
+                        if (d.format != DeckFormat.CASUAL) Row(Modifier.padding(top = 8.dp, bottom = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                            val banned = check.issues.any { it.code == "banned" || it.code == "not_legal" }
+                            when {
+                                banned -> nl.spoonpaco.ninegrid.ui.components.Stamp(stringResource(R.string.stamp_banned), NgColors.Error, "⚒")
+                                check.issues.isEmpty() -> nl.spoonpaco.ninegrid.ui.components.Stamp(stringResource(R.string.legal), NgColors.Synced, "✓")
+                                else -> {}
+                            }
+                            if (check.issues.isEmpty()) { Spacer(Modifier.width(10.dp)); Text(stringResource(R.string.deck_ok), color = NgColors.Synced, fontSize = 13.sp) }
                         }
                         check.issues.forEach { i -> Text("• " + issueText(i), color = if (i.level == IssueLevel.ERROR) NgColors.Error else extra.subtle, fontSize = 13.sp) }
                     }

@@ -177,12 +177,11 @@ fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}, onSets: () ->
                         Text(stringResource(R.string.price_change_later), fontSize = 12.sp, color = extra.subtle)
                     } else vm.priceChanges.forEach { pc ->
                         val up = pc.diff >= 0
-                        Row {
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 1.dp)) {
                             Text(stringResource(if (pc.days <= 7) R.string.price_change_week else R.string.price_change_month), fontSize = 13.sp, modifier = Modifier.weight(1f))
-                            Text(
-                                (if (up) "▲ " else "▼ ") + Money.format(kotlin.math.abs(pc.diff), cur) + String.format(java.util.Locale.getDefault(), " (%+.1f%%)", pc.pct),
-                                fontSize = 13.sp, fontWeight = FontWeight.Bold, color = if (up) NgColors.Synced else NgColors.Error,
-                            )
+                            val amount = Money.format(kotlin.math.abs(pc.diff), cur) + String.format(java.util.Locale.getDefault(), " (%+.1f%%)", pc.pct)
+                            if (nl.spoonpaco.ninegrid.ui.components.LocalEffects.current) nl.spoonpaco.ninegrid.ui.components.LoyaltyShield((if (up) "+" else "−") + amount, up)
+                            else Text((if (up) "▲ " else "▼ ") + amount, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = if (up) NgColors.Synced else NgColors.Error)
                         }
                     }
                     Text(stringResource(R.string.price_change_explain), fontSize = 11.sp, color = extra.subtle)
@@ -206,10 +205,11 @@ fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}, onSets: () ->
                                 Text(w.print.name + if (w.finish != nl.spoonpaco.ninegrid.data.db.Finish.NONFOIL) " (${w.finish})" else "", fontWeight = FontWeight.Bold)
                                 Text("${w.print.setCode} ${w.print.collectorNumber}", fontSize = 12.sp, color = extra.subtle)
                                 Text(Money.format(w.oldUnit, cur) + " → " + Money.format(w.newUnit, cur) + String.format(java.util.Locale.getDefault(), "  (%+.0f%%)", w.pct), fontSize = 13.sp)
-                                Text(
-                                    "▲ " + Money.format(w.totalGain, cur) + if (w.quantity > 1) "  ·  " + stringResource(R.string.winner_copies, w.quantity) else "",
-                                    fontSize = 13.sp, fontWeight = FontWeight.Bold, color = NgColors.Synced,
-                                )
+                                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 2.dp)) {
+                                    if (nl.spoonpaco.ninegrid.ui.components.LocalEffects.current) nl.spoonpaco.ninegrid.ui.components.LoyaltyShield("+" + Money.format(w.totalGain, cur), up = true)
+                                    else Text("▲ " + Money.format(w.totalGain, cur), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = NgColors.Synced)
+                                    if (w.quantity > 1) Text("  ·  " + stringResource(R.string.winner_copies, w.quantity), fontSize = 12.sp, color = extra.subtle)
+                                }
                             }
                         }
                     }
