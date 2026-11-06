@@ -2,7 +2,7 @@
 
 *English: [FEATURES.md](FEATURES.md)*
 
-Huidige versie: **0.9.0 – Jace**. Elke versie heeft de naam van een planeswalker.
+Huidige versie: **0.9.1 – Kaya**. Elke versie heeft de naam van een planeswalker.
 
 ## Wat NineGrid anders maakt
 
@@ -12,7 +12,10 @@ Huidige versie: **0.9.0 – Jace**. Elke versie heeft de naam van een planeswalk
 - **Ruilmatch op basis van je decks.** Niet alleen "jij zoekt X, hij heeft X": NineGrid rekent uit welke kaarten van een vriend jouw decks echt beter maken, en andersom, met prijzen.
 - **Delen zonder account.** Een klein bestand via WhatsApp of e-mail is genoeg; ook exports uit andere apps werken, voor vrienden zonder NineGrid.
 - **Decksuggesties uit je eigen collectie.** Wat erbij en wat eruit kan, op basis van wat het deck mist, met je eigen regels (tribe, hoogste bracket, splash). Elke ruil bekijk je eerst.
-- **Alles over een deck op je telefoon.** Bracket, combo's en bijna-combo's (met waar de ontbrekende kaart in je collectie ligt), manabase tegenover de kosten en de kansen voor je openingshand.
+- **Alles over een deck op je telefoon.** Bracket, combo's en bijna-combo's (met waar de ontbrekende kaart ligt: in je collectie, bij een vriend of op je verlanglijst), landadvies op basis van je curve, en een voorbeeldhand.
+- **Je binder zoals hij echt is.** Een bladweergave van 3×3 met elke kaart op zijn vak; tik op een leeg vak om precies die kaart te scannen.
+- **Boosters bijhouden.** Wat je betaalde tegenover wat eruit kwam, ook zonder bulk, per box en per set.
+- **Privacymodus met je vingerafdruk.** Bedragen verborgen voor wie je telefoon pakt, in een eigen stijl, en alleen met je vingerafdruk weer zichtbaar.
 - **AI met je eigen sleutel.** Kies uit acht diensten; elke uitkomst van de AI wordt bij Scryfall gecontroleerd voordat hij in je collectie komt.
 - **Gratis, zonder grenzen, zonder account.** Geen maximum aan decks of exports, geen abonnement, geen tracking. Je collectie staat op je eigen telefoon.
 
@@ -28,17 +31,23 @@ Huidige versie: **0.9.0 – Jace**. Elke versie heeft de naam van een planeswalk
 - Optioneel een **offline kaartdatabase** (alle ~110.000 kaarten): scannen en opzoeken zonder internet, veel sneller importeren.
 
 ## Collectie
-- Zoeken, **filteren** (rarity, kleur, type, foil, ook in decks, regeltekst) en **sorteren** (set, naam, prijs); filters worden onthouden.
+- Schakelaar **Mijn collectie | Alle kaarten | Verlanglijst**.
+- Zoeken, **filteren** (rarity, kleur, type, foil, binder, ook in decks, regeltekst) en **sorteren** (set, naam, prijs, per binder); filters worden onthouden.
+- **Alle kaarten**: zoeken in alle Magic-kaarten (offline database of Scryfall), met een label wat je al hebt en het filter "Alleen wat ik niet heb".
+- **Verlanglijst**: willekeurige of precieze print, alleen foil, aantal; vanzelf afgestreept bij scannen; Gekocht in één tik; een lijst plakken.
+- **Prijsalarm** op de verlanglijst: doel staat klaar op −10%, één melding per dag, bij elke print de goedkoopste.
+- **Bladweergave** per binder: 3×3 met foil, stapels en lege vakken; alle bladen in één scherm; lang drukken om te verplaatsen.
 - **Kaartscherm**: plaatje, normale en foilprijs, legaliteit per format, links naar Scryfall en Cardmarket / TCGplayer.
 - **Plekken**: map, blad en vak per kaart.
-- **Sets**: compleetheid per set, ontbrekende kaarten, varianten; **Completionist** telt alleen kaarten in binders, niet in decks.
+- **Sets**: compleetheid per set en per rarity, stempel Compleet, ontbrekende kaarten, varianten; **Completionist** (vinkje met ⓘ) telt alleen kaarten in binders, niet in decks.
 
 ## Decks
 - Decks per format (Commander, Modern, Pioneer, Standard, Legacy, Pauper, Casual) met **legaliteitscontrole**.
 - **Commander-bracket**: game changers, landvernietiging, extra beurten, tutors en combo's van twee kaarten.
-- **Statistieken**: manacurve, kleuren in de kosten tegenover de lands die ze maken, kans op 2–4 lands in je openingshand.
-- **Combo's** via Commander Spellbook: combo's in het deck, bijna-combo's waar één kaart aan ontbreekt (en waar die kaart in je collectie ligt). Laat zien als het deck sinds de laatste zoekactie is veranderd.
-- **Suggesties** uit je eigen collectie: wat erbij, betere lands, wat eruit, met eigen deckregels (tribe, hoogste bracket, splash). Elke ruil bekijk je eerst.
+- **Statistieken**: manacurve met oordeel per decktype en **landadvies** (formule van Frank Karsten), kleuren in de kosten tegenover de lands, kans op 2–4 lands met **Trek 7** (voorbeeldhand met mulligan), kaarttypen.
+- **Combo's** via Commander Spellbook: combo's in het deck, invloed op de bracket, bijna-combo's met een actie per status (In deck, Ruilmatch, Op verlanglijst). Laat zien als het deck sinds de laatste zoekactie is veranderd.
+- **Suggesties** uit je eigen collectie: rollen als balkjes met doelen per decktype (automatisch, of zelf kiezen), zelf kaarten bij een rol aanvinken, wat erbij, betere lands, wat eruit, en **Bij vrienden**. Elke ruil bekijk je eerst.
+- Stempel **Legaal** of **Banned**.
 - Een deck vullen vanuit je collectie; kaarten verhuizen, niets wordt dubbel geteld.
 
 ## Overzicht en prijzen
@@ -46,11 +55,14 @@ Huidige versie: **0.9.0 – Jace**. Elke versie heeft de naam van een planeswalk
 - **Waarde over tijd** vanaf dag één, per lijn: totaal, sets, decks, één deck of set; ook de **koers** zonder toevoegen en weghalen.
 - **Winner of the Week**: de kaart die je het meeste opleverde.
 - **Breakout**-melding: een kaart van jou stijgt op één dag minstens €3 en 25%.
+- Prijsbewegingen als loyalty-schildjes (▲ +6 / ▼ −3).
+- **Boosters**: per booster betaald, eruit, winst of verlies (ook zonder bulk) en de hit; boxen; per set het gemiddelde, waarde toen en nu.
 
 ## Delen en ruilen
 - **Je collectie delen als klein bestand** (WhatsApp, e-mail …) onder je eigen naam; kies alles, de losse collectie, binders, sets of decks. Prijzen en proxies gaan niet mee.
 - **Collecties van anderen** per persoon, alleen bekijken. Opnieuw sturen vervangt de oude versie. Ook exports uit andere apps, voor vrienden zonder NineGrid.
-- **Ruilmatch**: welke kaarten van de ander jouw decks beter maken en andersom, met prijzen; vink aan en zie of een ruil ongeveer gelijk is.
+- **Ruilmatch**: welke kaarten van de ander jouw decks beter maken en andersom, met prijzen; vink aan en zie of een ruil ongeveer gelijk is. Verlanglijsten gaan mee: wat de ander van jouw verlanglijst heeft staat bovenaan.
+- Ruilen is overal te zien: blok **Ruilen** op Overzicht, **Bij vrienden** in decksuggesties, **Ook bij: Jan ×2** op het kaartscherm.
 
 ## AI-hulp (optioneel, standaard uit)
 - Je eigen sleutel voor Google Gemini (gratis variant), Claude, OpenAI, DeepSeek, Mistral, OpenRouter, Groq of een eigen adres.
@@ -61,29 +73,17 @@ Huidige versie: **0.9.0 – Jace**. Elke versie heeft de naam van een planeswalk
 ## Veilig en makkelijk
 - **Wijzigingslog met ongedaan maken**: elke wijziging, ook een hele import of een heel deck, kun je terugdraaien.
 - **Back-up** met de hand of elke week naar een map naar keuze; terugzetten op een nieuwe telefoon; export als CSV.
-- Instellingen in acht groepen; datum- en tijdformaat naar keuze; dag- en nachtthema; Nederlands en Engels.
+- **Bijwerken vanuit de app**: dagelijks kijken, op de achtergrond downloaden (standaard via wifi), één tik om te installeren.
+- **Privacymodus**: alle bedragen verborgen behalve in de ruilmatch; uitzetten, even kijken, back-up en export alleen met vingerafdruk; stijlen compleated, zegel, schaduw en stippen.
+- Instellingen in acht groepen; datum- en tijdformaat naar keuze; dag en nacht (zon en maan); **gildekleuren**; Magic-effecten (foil-glans bij kantelen, verbannen, stempels) uit te zetten; Nederlands en Engels.
+- Back-up neemt ook verlanglijst, boosters en prijsalarmen mee.
 - **Handleiding** in de app met zoeken, een ? op elk scherm, en **Wat is nieuw** na een update.
 
 ## Gepland
 Plannen, geen beloftes. Wat echt in een versie zit, staat in de release notes.
 
-**0.9.1 – Kaya**
-- Bijwerken vanuit de app zelf (downloaden en installeren met één tik)
-- Zoeken in alle Magic-kaarten, met "Alleen wat ik niet heb"
-- Verlanglijst (willekeurige of precieze print, aantal, afgestreept bij scannen, te delen met vrienden)
-- Ruilen makkelijker te vinden (Overzicht, decksuggesties "Bij vrienden", kaartscherm)
-- Overzichtelijker deelscherm
-- Eerlijke introductie over offline, met de keuze om de kaartdatabase te downloaden
-- Nieuw logo en app-icoon
-- Binders: filter, sorteren per binder en een bladweergave (bladen van 3×3, lege vakken zichtbaar)
-- Completionist als vinkje met uitleg
-- Privacymodus: prijzen verbergen (stijlen: compleated, zegel, schaduw, stippen); uitzetten met je vingerafdruk
-
-**0.9.2 – Saheeli**
-- Voorbeeldhand trekken; foil-glans; raritykleuren bij sets; kleine Magic-details
-- Boosters openen: wat je betaalde tegenover wat eruit kwam (ook zonder bulk), boxen
-- Gildekleuren als thema
-- Prijsalarm voor kaarten op je verlanglijst
+**Later**
+- Verkoopalarm, jaaroverzicht, widget
 
 **1.0**
 - Koppeling met Google Sheets

@@ -28,21 +28,25 @@ object WhatsNew {
     fun items(dutch: Boolean): List<Item> = if (dutch) NL else EN
 
     private val NL = listOf(
-        Item("Delen en ruilen: stuur (een deel van) je collectie als bestand, bekijk collecties van vrienden en zie wat je kunt ruilen.", "share"),
-        Item("Instellingen in acht groepen, elk met hoe het nu staat.", "settings"),
-        Item("De handleiding staat bovenaan in Meer en heeft een zoekbalk.", "start"),
-        Item("Scannen: knoppen gecentreerd, de uitslag in kleur en een knop Controleer met het aantal.", "add"),
-        Item("AI-hulp: begrijpelijke foutmeldingen, stil opnieuw proberen bij drukte, en een AI-label op elk vak.", "settings"),
-        Item("Combo's tellen weer mee in de bracket. Is het deck gewijzigd, dan zie je dat bij de combo's.", "decks"),
+        Item("Bijwerken vanuit de app: een melding als er een nieuwe versie is, en één tik op Bijwerken.", "settings"),
+        Item("Zoeken in alle Magic-kaarten, met een label wat je al hebt, en een verlanglijst met prijsalarm.", "allcards"),
+        Item("Binders: filteren, sorteren per binder en een bladweergave met lege vakken om te scannen.", "binders"),
+        Item("Privacymodus: verberg bedragen met het oog bovenin; uitzetten met je vingerafdruk.", "privacy"),
+        Item("Boosters bijhouden: wat je betaalde, wat eruit kwam, de hit en per set het gemiddelde.", "boosters"),
+        Item("Decks: Statistieken, Combo's en Suggesties opnieuw ingedeeld, met landadvies, Trek 7, doelen per decktype en Bij vrienden.", "decks"),
+        Item("Ruilen beter zichtbaar: op Overzicht, bij Suggesties en op het kaartscherm.", "share"),
+        Item("Nieuw logo, gildekleuren, dag/nacht met zon en maan, en Magic-effecten zoals foil-glans en verbannen.", "settings"),
     )
 
     private val EN = listOf(
-        Item("Share and trade: send (part of) your collection as a file, view friends' collections and see what you can trade.", "share"),
-        Item("Settings in eight groups, each showing how it is set now.", "settings"),
-        Item("The guide is at the top of More and has a search bar.", "start"),
-        Item("Scanning: buttons centred, the result in colour and a Check button with the count.", "add"),
-        Item("AI help: clear error messages, quiet retries when busy, and an AI label on every slot.", "settings"),
-        Item("Combos count in the bracket again. If the deck changed, the combos tab tells you.", "decks"),
+        Item("Update from the app: a notification when a new version is ready, and one tap on Update.", "settings"),
+        Item("Search all Magic cards, with a label for what you already have, and a wishlist with price alerts.", "allcards"),
+        Item("Binders: filter, sort by binder and a page view with empty slots to scan.", "binders"),
+        Item("Privacy mode: hide amounts with the eye at the top; turn it off with your fingerprint.", "privacy"),
+        Item("Track boosters: what you paid, what came out, the hit and the average per set.", "boosters"),
+        Item("Decks: Statistics, Combos and Suggestions redesigned, with land advice, Draw 7, targets per deck type and At friends.", "decks"),
+        Item("Trading easier to find: on Overview, in Suggestions and on the card screen.", "share"),
+        Item("New logo, guild colours, day/night with sun and moon, and Magic effects such as foil shine and exile.", "settings"),
     )
 }
 

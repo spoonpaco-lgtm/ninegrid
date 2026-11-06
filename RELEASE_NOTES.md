@@ -1,31 +1,41 @@
-NineGrid 0.9.0 – Jace
+NineGrid 0.9.1 – Kaya
 
-Jace, de planeswalker van kennis en van in andermans hoofd kijken. In deze versie kijk je in de collectie van een ander.
+Kaya, de geestenjager die tussen werelden door loopt. In deze versie loopt de app makkelijker tussen jouw collectie, die van vrienden en alle kaarten die er zijn.
 
-Delen en ruilen (Meer → Delen en ruilen)
-- Stuur je collectie als klein bestand via WhatsApp, e-mail of iets anders, onder je eigen naam ("NineGrid - Mick.ninegrid").
-- Kies wat je stuurt: alles, de losse collectie, binders, sets of decks. Combineren mag. Proxies en prijzen gaan niet mee.
-- Ontvangen collecties staan per persoon, alleen om te bekijken. Opnieuw sturen vervangt de oude versie. Ook exports uit Moxfield, ManaBox en andere apps van vrienden zonder NineGrid.
-- Ruilmatch: welke kaarten van de ander jouw decks beter maken, en andersom. Vink aan wat je ruilt en zie of het ongeveer gelijk is.
+Bijwerken vanuit de app
+- Eén keer per dag kijkt de app of er een nieuwe versie is en downloadt die (standaard alleen via wifi). Een melding, en één tik op Bijwerken.
+- De eerste keer vraagt Android eenmalig om "Apps installeren uit deze bron" toe te staan. Vanaf Android 12 lukt het daarna vaak zonder tikken.
 
-Instellingen en handleiding
-- Instellingen in acht groepen, elk met hoe het nu staat. Alles wissen staat apart, in het rood.
-- De handleiding staat bovenaan in Meer, heeft een zoekbalk en een ? op elk scherm.
-- Na een update: een venster Wat is nieuw, met links naar de handleiding.
+Alle kaarten, verlanglijst en prijsalarm (Collectie)
+- Schakelaar Mijn collectie | Alle kaarten | Verlanglijst.
+- Zoeken in alle Magic-kaarten (offline database of Scryfall), met een groen label wat je al hebt en het filter "Alleen wat ik niet heb".
+- Verlanglijst: elke print of een precieze, alleen foil, aantal. Vanzelf afgestreept bij scannen, Gekocht in één tik, een lijst plakken.
+- Prijsalarm: doel staat klaar op −10%, één melding per dag na de prijsupdate.
 
-Scannen
-- Knoppen gecentreerd: Galerij, de fotoknop in het midden, Lamp. Blad of 1 kaart met één schakelaar.
-- Uitslag in kleur (● gevonden, ● controleren), de laatste foto ernaast, en een knop Controleer met het aantal.
-- Het raster laat per vak zien hoe zeker de herkenning is (groen, oranje, rood).
-- De tijden van de herkenning staan bij nieuwe installaties standaard uit.
-
-AI-hulp
-- Begrijpelijke meldingen: dienst overbelast (niet jouw sleutel), limiet bereikt, sleutel klopt niet, model onbekend, geen verbinding.
-- Bij drukte stil opnieuw proberen na 2, 5 en 10 seconden; telt als één verzoek.
-- AI-label op elk vak dat de AI leest: bezig, gelukt of niet gelukt (tik voor de reden).
+Binders
+- Filter op binder, sorteren per binder, en een bladweergave van 3×3 met lege vakken. Tik op een leeg vak om precies die kaart te scannen.
 
 Decks
-- Combo's van twee kaarten tellen weer mee in de bracket (Commander Spellbook veranderde zijn antwoord).
-- Is het deck gewijzigd sinds het zoeken naar combo's, dan zie je "Deck gewijzigd – tik om opnieuw te zoeken".
+- Statistieken: oordeel over de curve, landadvies, kleuren met "bronnen erbij", Trek 7 (voorbeeldhand met mulligan) en kaarttypen.
+- Combo's: invloed op de bracket, en bij bijna-combo's In deck, Ruilmatch of Op verlanglijst.
+- Suggesties: rollen als balkjes, doelen per soort deck (automatisch of zelf kiezen), zelf kaarten bij een rol aanvinken, Bij vrienden, AI onderaan.
 
-Handleiding bijgewerkt, met een nieuw hoofdstuk Delen en ruilen.
+Ruilen en delen
+- Ruilen op Overzicht, Bij vrienden in decksuggesties, "Ook bij: Jan ×2" op het kaartscherm. Een persoon openen gaat meteen naar de ruilmatch.
+- Deelscherm overzichtelijker: Alles, Losse collectie of Zelf kiezen; verlanglijst meesturen.
+
+Privacymodus
+- Het oog bovenin Collectie, Decks en Overzicht verbergt alle bedragen, behalve in de ruilmatch. Uitzetten, even kijken (ingedrukt houden), back-up en export alleen met je vingerafdruk of schermvergrendeling.
+- Stijlen: compleated, zegel, schaduw en stippen.
+
+Boosters
+- Vink in het controlescherm "Dit was een booster" aan: uitslag met de hit, winst of verlies, ook zonder bulk. Boxen, en Overzicht → Boosters per set.
+
+Sfeer
+- Nieuw logo en app-icoon, ook in meldingen.
+- Gildekleuren, dag en nacht met zon en maan, foil-glans bij kantelen, verbannen met "Terughalen uit ballingschap", stempels Compleet, Legaal en Banned, prijsbewegingen als loyalty-schildjes. Effecten zijn uit te zetten.
+
+Verder
+- Introductie zegt eerlijk wat offline werkt, en biedt de kaartdatabase aan.
+- Completionist als vinkje met ⓘ.
+- Back-up neemt verlanglijst, boosters en prijsalarmen mee.
