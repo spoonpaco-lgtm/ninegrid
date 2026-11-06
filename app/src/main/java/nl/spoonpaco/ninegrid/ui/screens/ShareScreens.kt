@@ -415,8 +415,10 @@ fun FriendScreen(vm: AppViewModel, friendId: String, onBack: () -> Unit, onCard:
 private fun TradePanel(vm: AppViewModel, name: String, friendId: String, theyHaveDecks: Boolean, onCard: (String) -> Unit) {
     val settings by vm.settings.collectAsState()
     val packages by vm.friendPackages.collectAsState()
+    val cards by vm.friendCards.collectAsState()
     val extra = LocalNgExtra.current
-    LaunchedEffect(friendId, packages) { vm.computeTrade(friendId) }
+    // Opnieuw rekenen als er een nieuwe versie binnenkomt (of de kaarten later laden dan de pakketten).
+    LaunchedEffect(friendId, packages, cards.size) { vm.computeTrade(friendId) }
     val r = vm.tradeMatch?.takeIf { vm.tradeFriendId == friendId }
     var getSel by remember(friendId) { mutableStateOf(setOf<Long>()) }
     var giveSel by remember(friendId) { mutableStateOf(setOf<Long>()) }

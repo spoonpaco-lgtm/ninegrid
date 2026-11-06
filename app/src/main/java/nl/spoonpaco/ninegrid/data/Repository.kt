@@ -383,7 +383,7 @@ class Repository(
      * alleen hun afbeeldingen worden van de telefoon verwijderd.
      */
     private suspend fun cleanupPrints(): List<CardPrint> {
-        val owned = db.prints().owned().map { it.id }.toSet()
+        val owned = db.prints().ownedOrShared().map { it.id }.toSet()
         return db.prints().all().filter { it.id !in owned }
     }
 
@@ -549,7 +549,8 @@ class Repository(
         db.withTransaction {
             db.entries().deleteAll()
             db.decks().deleteAll()
-            db.prints().deleteAll()
+            // Prints van ontvangen collecties blijven: die staan niet in de back-up.
+            db.prints().deleteUnused()
             db.changes().deleteAll()
             db.changes().deleteAllParts()
             db.prints().upsert(b.prints)
