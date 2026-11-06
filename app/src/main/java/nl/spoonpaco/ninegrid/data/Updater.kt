@@ -36,7 +36,7 @@ import java.util.concurrent.TimeUnit
  */
 object Updater {
     const val CHANNEL = "update"
-    const val NOTIF_ID = 4301
+    const val NOTIF_ID = 4302
     const val EXTRA_INSTALL = "install_update"
     private val json = Json { ignoreUnknownKeys = true }
 

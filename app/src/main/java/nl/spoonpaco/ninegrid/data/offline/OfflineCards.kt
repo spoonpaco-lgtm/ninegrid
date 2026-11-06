@@ -89,6 +89,10 @@ interface OfflineDao {
     @Query("SELECT * FROM cards WHERE (front = :name OR LOWER(name) = :name) AND (:set IS NULL OR setCode = :set) ORDER BY releasedAt DESC LIMIT 1")
     suspend fun byName(name: String, set: String?): OfflineCard?
 
+    /** Zoeken op naam: één regel per kaart, de nieuwste print. */
+    @Query("SELECT * FROM cards WHERE front LIKE :pattern GROUP BY oracleId HAVING releasedAt = MAX(releasedAt) ORDER BY name LIMIT :limit")
+    suspend fun search(pattern: String, limit: Int): List<OfflineCard>
+
     @Query("DELETE FROM cards WHERE gen != :gen")
     suspend fun deleteOtherThan(gen: Long)
 
@@ -128,6 +132,15 @@ class OfflineCards(private val context: Context) {
                 else -> null
             }?.toSfCard()
         }.getOrNull()
+    }
+
+    /** Is de database aan en gevuld (dan zoekt Alle kaarten hier). */
+    fun usable() = ready()
+
+    suspend fun search(text: String, limit: Int = 1500): List<SfCard> {
+        if (!ready()) return emptyList()
+        val pat = "%" + text.trim().lowercase().replace("%", "").replace("_", "") + "%"
+        return runCatching { open().cards().search(pat, limit).map { it.toSfCard() } }.getOrDefault(emptyList())
     }
 
     suspend fun count(): Int = if (!file.exists()) 0 else runCatching { open().cards().count() }.getOrDefault(0)

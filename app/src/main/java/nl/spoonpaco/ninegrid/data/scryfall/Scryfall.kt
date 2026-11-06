@@ -297,6 +297,14 @@ class ScryfallClient {
         return json.decodeFromString(SfCatalog.serializer(), body).data
     }
 
+    /** Zoeken bij Scryfall (één regel per kaart, op naam). Geeft de kaarten van [page] en of er meer zijn. */
+    suspend fun search(q: String, page: Int = 1): Pair<List<SfCard>, Boolean> {
+        val body = call(Request.Builder().url("https://api.scryfall.com/cards/search?q=${enc(q)}&unique=cards&order=name&page=$page").build())
+            ?: return emptyList<SfCard>() to false
+        val list = json.decodeFromString(SfList.serializer(), body)
+        return list.data to list.hasMore
+    }
+
     /** Alle prints van een kaart, nieuwste eerst. */
     suspend fun printsOf(name: String): List<SfCard> {
         val q = enc("!\"$name\"")

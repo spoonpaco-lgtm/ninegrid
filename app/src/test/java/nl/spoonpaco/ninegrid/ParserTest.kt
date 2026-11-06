@@ -571,19 +571,19 @@ class ParserTest {
     @Test
     fun friendMigrationMatchesRoomSchema() {
         val f = listOf("schemas", "app/schemas").map { java.io.File(it, "nl.spoonpaco.ninegrid.data.db.AppDatabase/9.json") }.firstOrNull { it.exists() }
-            ?: error("schema 9.json niet gevonden in " + java.io.File(".").absolutePath)
+            ?: error("schema 10.json niet gevonden in " + java.io.File(".").absolutePath)
         val root = kotlinx.serialization.json.Json.parseToJsonElement(f.readText()) as kotlinx.serialization.json.JsonObject
         val entities = ((root["database"] as kotlinx.serialization.json.JsonObject)["entities"] as kotlinx.serialization.json.JsonArray).map { it as kotlinx.serialization.json.JsonObject }
         fun str(o: kotlinx.serialization.json.JsonObject, k: String) = (o[k] as kotlinx.serialization.json.JsonPrimitive).content
         val expected = mutableListOf<String>()
         for (e in entities) {
             val t = str(e, "tableName")
-            if (!t.startsWith("friend")) continue
+            if (!t.startsWith("friend") && t !in setOf("wishlist", "boosters", "booster_cards", "booster_boxes")) continue
             expected += str(e, "createSql").replace("`\${TABLE_NAME}`", "`$t`")
             (e["indices"] as? kotlinx.serialization.json.JsonArray)?.forEach { i ->
                 expected += str(i as kotlinx.serialization.json.JsonObject, "createSql").replace("`\${TABLE_NAME}`", "`$t`")
             }
         }
-        assertEquals(expected.sorted(), nl.spoonpaco.ninegrid.data.db.AppDatabase.FRIEND_SQL.sorted())
+        assertEquals(expected.sorted(), (nl.spoonpaco.ninegrid.data.db.AppDatabase.FRIEND_SQL + nl.spoonpaco.ninegrid.data.db.AppDatabase.V10_SQL).sorted())
     }
 }

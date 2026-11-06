@@ -95,6 +95,7 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
         vm.message = null
     }
     LaunchedEffect(Unit) { vm.checkUpdate(manual = false); vm.checkWhatsNew() }
+    LaunchedEffect(vm.openCardRequest) { vm.openCardRequest?.let { id -> vm.openCardRequest = null; nav.navigate("card/$id") } }
     LaunchedEffect(vm.openShare) { if (vm.openShare) { vm.openShare = false; nav.navigate("share") } }
     LaunchedEffect(vm.openImport) { if (vm.openImport) { vm.openImport = false; nav.navigate("import") } }
 
@@ -115,6 +116,7 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
         launchSingleTop = true
         restoreState = true
     }
+    LaunchedEffect(vm.collectionModeRequest) { if (vm.collectionModeRequest != null) tab("collection") }
 
     CompositionLocalProvider(LocalHelp provides { id: String -> nav.navigate("guide/$id") }) {
     Scaffold(
@@ -158,6 +160,22 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
                     onPaste = { nav.navigate("paste") },
                     onReview = { nav.navigate("review") },
                     onImport = { nav.navigate("import") },
+                    onShare = { nav.navigate("share") },
+                    onBinder = { b -> nav.navigate("binder/" + android.net.Uri.encode(b)) },
+                )
+            }
+            composable(
+                "binder/{name}?page={page}&slot={slot}",
+                arguments = listOf(
+                    navArgument("name") { type = NavType.StringType },
+                    navArgument("page") { type = NavType.IntType; defaultValue = -1 },
+                    navArgument("slot") { type = NavType.IntType; defaultValue = -1 },
+                ),
+            ) {
+                nl.spoonpaco.ninegrid.ui.screens.BinderScreen(
+                    vm, it.arguments?.getString("name") ?: "",
+                    it.arguments?.getInt("page")?.takeIf { p -> p > 0 }, it.arguments?.getInt("slot")?.takeIf { sl -> sl > 0 },
+                    onBack = { nav.popBackStack() }, onCard = { id -> nav.navigate("card/$id") }, onScanSlot = { tab("scan") },
                 )
             }
             composable("decks") {
@@ -181,7 +199,11 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
                 )
             }
             composable("card/{printId}", arguments = listOf(navArgument("printId") { type = NavType.StringType })) {
-                CardDetailScreen(vm, it.arguments?.getString("printId") ?: "", onBack = { nav.popBackStack() })
+                CardDetailScreen(
+                    vm, it.arguments?.getString("printId") ?: "", onBack = { nav.popBackStack() },
+                    onFriend = { id -> nav.navigate("friend/$id") },
+                    onBinder = { b, pg, sl -> nav.navigate("binder/" + android.net.Uri.encode(b) + "?page=${pg ?: -1}&slot=${sl ?: -1}") },
+                )
             }
             composable("deck/{deckId}", arguments = listOf(navArgument("deckId") { type = NavType.LongType })) {
                 DeckDetailScreen(

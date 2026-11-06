@@ -27,13 +27,13 @@ interface PrintDao {
     suspend fun owned(): List<CardPrint>
 
     /** Prints van jezelf én van ontvangen collecties: die krijgen allemaal verse prijzen. */
-    @Query("SELECT * FROM prints WHERE id IN (SELECT DISTINCT printId FROM entries UNION SELECT DISTINCT printId FROM friend_cards)")
+    @Query("SELECT * FROM prints WHERE id IN (SELECT DISTINCT printId FROM entries UNION SELECT DISTINCT printId FROM friend_cards UNION SELECT DISTINCT printId FROM wishlist UNION SELECT DISTINCT printId FROM booster_cards)")
     suspend fun ownedOrShared(): List<CardPrint>
 
     @Query("SELECT id FROM prints")
     suspend fun allIds(): List<String>
 
-    @Query("DELETE FROM prints WHERE id NOT IN (SELECT DISTINCT printId FROM entries UNION SELECT DISTINCT printId FROM friend_cards)")
+    @Query("DELETE FROM prints WHERE id NOT IN (SELECT DISTINCT printId FROM entries UNION SELECT DISTINCT printId FROM friend_cards UNION SELECT DISTINCT printId FROM wishlist UNION SELECT DISTINCT printId FROM booster_cards)")
     suspend fun deleteUnused()
 
     @Query("DELETE FROM prints")
@@ -297,4 +297,61 @@ interface FriendDao {
         packageIdsOf(id).forEach { deleteCardsOf(it); deletePackageRow(it) }
         deleteFriendRow(id)
     }
+}
+
+@Dao
+interface WishDao {
+    @Transaction
+    @Query("SELECT * FROM wishlist ORDER BY name COLLATE NOCASE")
+    fun observe(): Flow<List<WishWithPrint>>
+
+    @Query("SELECT * FROM wishlist")
+    suspend fun all(): List<WishItem>
+
+    @androidx.room.Upsert
+    suspend fun upsert(w: WishItem): Long
+
+    @Query("DELETE FROM wishlist WHERE id = :id")
+    suspend fun delete(id: Long)
+
+    @Query("DELETE FROM wishlist")
+    suspend fun deleteAll()
+
+    @Insert
+    suspend fun insertAll(items: List<WishItem>)
+}
+
+@Dao
+interface BoosterDao {
+    @Query("SELECT * FROM boosters ORDER BY openedAt DESC")
+    fun observe(): Flow<List<Booster>>
+
+    @Query("SELECT * FROM booster_cards")
+    fun observeCards(): Flow<List<BoosterCard>>
+
+    @Query("SELECT * FROM booster_boxes")
+    fun observeBoxes(): Flow<List<BoosterBox>>
+
+    @Query("SELECT * FROM boosters") suspend fun all(): List<Booster>
+    @Query("SELECT * FROM booster_cards") suspend fun allCards(): List<BoosterCard>
+    @Query("SELECT * FROM booster_boxes") suspend fun allBoxes(): List<BoosterBox>
+
+    @Insert suspend fun insert(b: Booster): Long
+    @Insert suspend fun insertCards(c: List<BoosterCard>)
+    @Insert suspend fun insertBox(b: BoosterBox): Long
+    @androidx.room.Update suspend fun update(b: Booster)
+    @androidx.room.Update suspend fun updateBox(b: BoosterBox)
+
+    @Query("DELETE FROM booster_cards WHERE boosterId = :id") suspend fun deleteCardsOf(id: Long)
+    @Query("DELETE FROM boosters WHERE id = :id") suspend fun deleteRow(id: Long)
+    @Query("SELECT id FROM boosters WHERE changeId = :changeId") suspend fun idsForChange(changeId: Long): List<Long>
+    @Query("DELETE FROM booster_boxes WHERE id NOT IN (SELECT DISTINCT boxId FROM boosters WHERE boxId IS NOT NULL)") suspend fun deleteEmptyBoxes()
+    @Query("DELETE FROM boosters") suspend fun deleteAll()
+    @Query("DELETE FROM booster_cards") suspend fun deleteAllCards()
+    @Query("DELETE FROM booster_boxes") suspend fun deleteAllBoxes()
+    @Insert suspend fun insertAllBoosters(b: List<Booster>)
+    @Insert suspend fun insertAllBoxes(b: List<BoosterBox>)
+
+    @Transaction
+    suspend fun delete(id: Long) { deleteCardsOf(id); deleteRow(id); deleteEmptyBoxes() }
 }

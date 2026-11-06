@@ -131,7 +131,8 @@ fun ShareScreen(vm: AppViewModel, onBack: () -> Unit, onFriend: (String) -> Unit
             }
             items(friends, key = { it.id }) { f ->
                 val packs = packages.filter { it.friendId == f.id }
-                val ids = packs.map { it.id }.toSet()
+                // De verlanglijst van de ander is geen bezit: telt niet mee.
+                val ids = packs.filter { it.kind != ShareKind.WISH }.map { it.id }.toSet()
                 val list = cards.filter { it.card.packageId in ids }
                 val count = list.sumOf { it.card.quantity }
                 val value = vm.friendEntries(ids).sumOf { Money.total(it.entry, it.print, settings.currency) }
@@ -334,6 +335,7 @@ fun packageLabel(p: FriendPackage) = when (p.kind) {
     ShareKind.LOOSE -> stringResource(R.string.share_loose)
     ShareKind.BINDER -> stringResource(R.string.share_pkg_binder, p.label)
     ShareKind.SET -> stringResource(R.string.share_pkg_set, p.label)
+    ShareKind.WISH -> stringResource(R.string.mode_wish)
     else -> stringResource(R.string.share_pkg_deck, p.label)
 }
 
@@ -378,7 +380,7 @@ fun FriendScreen(vm: AppViewModel, friendId: String, onBack: () -> Unit, onCard:
                 Tab(selected = tab == 1, onClick = { tab = 1 }, text = { Text(stringResource(R.string.share_tab_trade)) })
             }
             if (tab == 0) {
-                val ids = (if (only != null) setOf(only!!) else packs.map { it.id }.toSet())
+                val ids = (if (only != null) setOf(only!!) else packs.filter { it.kind != ShareKind.WISH }.map { it.id }.toSet())
                 val list = remember(ids, allCards) { vm.friendEntries(ids) }
                 val shown = list.filter { query.isBlank() || it.print?.name?.contains(query, true) == true }
                     .sortedByDescending { Money.total(it.entry, it.print, settings.currency) }
@@ -464,6 +466,21 @@ private fun TradePanel(vm: AppViewModel, name: String, friendId: String, theyHav
     Column(Modifier.fillMaxSize()) {
         if (vm.tradeBusy) LinearProgressIndicator(Modifier.fillMaxWidth())
         LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(bottom = 16.dp)) {
+            // Zekere ruilen eerst: wat op een verlanglijst staat.
+            if (r != null && (r.wishGet.isNotEmpty() || r.wishGive.isNotEmpty())) {
+                if (r.wishGet.isNotEmpty()) {
+                    item { Text(stringResource(R.string.trade_wish_get, name), fontWeight = FontWeight.Bold, color = NgColors.Synced, modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp)) }
+                    items(r.wishGet, key = { "wg" + it.entry.id }) { item ->
+                        TradeRow(item, settings, vm, item.entry.id in getSel, onCard) { on -> getSel = if (on) getSel + item.entry.id else getSel - item.entry.id }
+                    }
+                }
+                if (r.wishGive.isNotEmpty()) {
+                    item { Text(stringResource(R.string.trade_wish_give, name), fontWeight = FontWeight.Bold, color = NgColors.Synced, modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp)) }
+                    items(r.wishGive, key = { "wv" + it.entry.id }) { item ->
+                        TradeRow(item, settings, vm, item.entry.id in giveSel, onCard) { on -> giveSel = if (on) giveSel + item.entry.id else giveSel - item.entry.id }
+                    }
+                }
+            }
             item {
                 Text(stringResource(R.string.trade_explain), fontSize = 12.sp, color = extra.subtle, modifier = Modifier.padding(16.dp))
                 Text(stringResource(R.string.trade_get_title, name), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(horizontal = 16.dp))
@@ -485,8 +502,8 @@ private fun TradePanel(vm: AppViewModel, name: String, friendId: String, theyHav
             }
         }
         // De ruil die je aanvinkt, met wat hij waard is aan beide kanten.
-        val get = r?.get.orEmpty().filter { it.entry.id in getSel }.sumOf { it.unit }
-        val give = r?.give.orEmpty().filter { it.entry.id in giveSel }.sumOf { it.unit }
+        val get = (r?.get.orEmpty() + r?.wishGet.orEmpty()).filter { it.entry.id in getSel }.distinctBy { it.entry.id }.sumOf { it.unit }
+        val give = (r?.give.orEmpty() + r?.wishGive.orEmpty()).filter { it.entry.id in giveSel }.distinctBy { it.entry.id }.sumOf { it.unit }
         HorizontalDivider()
         Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp)) {
             Text(stringResource(R.string.trade_totals, Money.format(get, settings.currency), Money.format(give, settings.currency)), fontWeight = FontWeight.Bold)
@@ -517,8 +534,9 @@ private fun TradeRow(item: TradeMatch.Item, settings: nl.spoonpaco.ninegrid.data
                     Text(item.print.name, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
                     FoilBadge(item.entry.finish)
                 }
-                Text(stringResource(R.string.trade_for_decks, item.decks.joinToString(", ")), fontSize = 12.sp, color = MaterialTheme.colorScheme.primary, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                item.reasons.firstOrNull()?.let { Text(reasonText(it), fontSize = 11.sp, color = LocalNgExtra.current.subtle, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                if (item.decks.isNotEmpty()) Text(stringResource(R.string.trade_for_decks, item.decks.joinToString(", ")), fontSize = 12.sp, color = MaterialTheme.colorScheme.primary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                else Text(stringResource(R.string.trade_on_wishlist), fontSize = 12.sp, color = NgColors.Synced)
+                item.reasons.firstOrNull()?.takeIf { it != "wish" }?.let { Text(reasonText(it), fontSize = 11.sp, color = LocalNgExtra.current.subtle, maxLines = 1, overflow = TextOverflow.Ellipsis) }
             }
         }
         Text(Money.format(item.unit, settings.currency), fontSize = 13.sp, modifier = Modifier.padding(start = 6.dp))

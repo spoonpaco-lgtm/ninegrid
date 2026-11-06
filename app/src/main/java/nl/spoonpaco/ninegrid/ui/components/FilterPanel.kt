@@ -58,8 +58,12 @@ data class CardFilter(
     val foil: Boolean = false,
     val decks: Boolean = false,
     val inText: Boolean = false,
+    /** Binders (leeg = "Geen binder"); meer tegelijk mag. */
+    val binders: Set<String> = emptySet(),
+    /** Alleen bij Alle kaarten: alleen wat ik niet heb. */
+    val notOwned: Boolean = false,
 ) {
-    val count get() = rarities.size + colors.size + types.size + (if (foil) 1 else 0) + (if (decks) 1 else 0) + (if (inText) 1 else 0)
+    val count get() = rarities.size + colors.size + types.size + binders.size + (if (foil) 1 else 0) + (if (decks) 1 else 0) + (if (inText) 1 else 0) + (if (notOwned) 1 else 0)
 
     fun matches(e: EntryWithPrint, query: String): Boolean {
         val p = e.print
@@ -71,6 +75,7 @@ data class CardFilter(
             if (!inName && !inRules) return false
         }
         if (rarities.isNotEmpty() && (p?.rarity ?: "") !in rarities) return false
+        if (binders.isNotEmpty() && (e.entry.binder?.takeIf { it.isNotBlank() } ?: "") !in binders) return false
         if (foil && e.entry.finish == Finish.NONFOIL) return false
         if (colors.isNotEmpty()) {
             val c = p?.colors ?: ""
@@ -90,10 +95,22 @@ data class CardFilter(
         fun fromJson(s: String?): CardFilter = s?.takeIf { it.isNotBlank() }?.let { runCatching { json.decodeFromString(serializer(), it) }.getOrNull() } ?: CardFilter()
         val RARITIES = listOf("mythic", "rare", "uncommon", "common")
         val TYPES = listOf("Creature", "Instant", "Sorcery", "Artifact", "Enchantment", "Planeswalker", "Land", "Battle")
+
+        /** Zoekvraag voor Scryfall uit tekst en filters (alleen de filters die daar bestaan). */
+        fun scryfallQuery(text: String, f: CardFilter): String {
+            val parts = mutableListOf<String>()
+            val t = text.trim().replace("\"", "")
+            if (t.isNotEmpty()) parts += if (f.inText) "(\"$t\" or o:\"$t\")" else "\"$t\""
+            fun or(items: List<String>) = if (items.size == 1) items[0] else items.joinToString(" or ", "(", ")")
+            if (f.rarities.isNotEmpty()) parts += or(f.rarities.map { "r:$it" })
+            if (f.colors.isNotEmpty()) parts += or(f.colors.map { if (it == "C") "c:c" else "c:${it.lowercase()}" })
+            if (f.types.isNotEmpty()) parts += or(f.types.map { "t:${it.lowercase()}" })
+            return parts.joinToString(" ")
+        }
     }
 }
 
-enum class FilterGroup { RARITY, COLOR, TYPE, FOIL, DECKS, TEXT }
+enum class FilterGroup { RARITY, COLOR, TYPE, FOIL, DECKS, TEXT, BINDER, NOT_OWNED }
 
 /**
  * Zoekbalk met één knop Filter (met het aantal actieve filters) en eventueel een knop Sorteren.
@@ -111,6 +128,10 @@ fun FilterSearchBar(
     sortOptions: List<Pair<String, String>> = emptyList(),
     sort: String = "",
     onSort: (String) -> Unit = {},
+    /** Binders om op te filteren (alleen getoond als er minstens één is). */
+    binderOptions: List<String> = emptyList(),
+    /** Andere kleur zoekbalk (bij Alle kaarten). */
+    accent: Boolean = false,
 ) {
     var panel by remember { mutableStateOf(false) }
     var sortMenu by remember { mutableStateOf(false) }
@@ -121,6 +142,11 @@ fun FilterSearchBar(
                 placeholder = { Text(placeholder) }, leadingIcon = { Icon(Icons.Filled.Search, null) },
                 trailingIcon = { if (query.isNotEmpty()) IconButton(onClick = { onQuery("") }) { Icon(Icons.Filled.Close, null) } },
                 modifier = Modifier.weight(1f),
+                colors = if (accent) androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
+                    focusedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f),
+                    unfocusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
+                ) else androidx.compose.material3.OutlinedTextFieldDefaults.colors(),
             )
             // Trechter = filteren, pijltjes = sorteren: zo zijn ze niet te verwarren.
             if (groups.isNotEmpty()) IconButton(onClick = { panel = true }) {
@@ -148,6 +174,8 @@ fun FilterSearchBar(
             if (filter.foil) ActiveChip(stringResource(R.string.foil)) { onFilter(filter.copy(foil = false)) }
             if (filter.decks) ActiveChip(stringResource(R.string.include_decks)) { onFilter(filter.copy(decks = false)) }
             if (filter.inText) ActiveChip(stringResource(R.string.search_in_text)) { onFilter(filter.copy(inText = false)) }
+            filter.binders.forEach { b -> ActiveChip(b.ifBlank { stringResource(R.string.no_binder) }) { onFilter(filter.copy(binders = filter.binders - b)) } }
+            if (filter.notOwned) ActiveChip(stringResource(R.string.only_not_owned)) { onFilter(filter.copy(notOwned = false)) }
             TextButton(onClick = { onFilter(CardFilter()) }) { Text(stringResource(R.string.clear_filters)) }
         }
     }
@@ -169,7 +197,13 @@ fun FilterSearchBar(
             if (FilterGroup.TYPE in groups) Group(stringResource(R.string.card_type)) {
                 CardFilter.TYPES.forEach { t -> FilterChip(selected = t in filter.types, onClick = { onFilter(filter.copy(types = filter.types.toggle(t))) }, label = { Text(t) }) }
             }
+            if (FilterGroup.BINDER in groups && binderOptions.isNotEmpty()) Group(stringResource(R.string.binder_short)) {
+                (binderOptions + "").forEach { b ->
+                    FilterChip(selected = b in filter.binders, onClick = { onFilter(filter.copy(binders = filter.binders.toggle(b))) }, label = { Text(b.ifBlank { stringResource(R.string.no_binder) }) })
+                }
+            }
             val more = listOfNotNull(
+                (FilterGroup.NOT_OWNED in groups).takeIf { it }?.let { Triple(stringResource(R.string.only_not_owned), filter.notOwned) { onFilter(filter.copy(notOwned = !filter.notOwned)) } },
                 (FilterGroup.FOIL in groups).takeIf { it }?.let { Triple(stringResource(R.string.foil), filter.foil) { onFilter(filter.copy(foil = !filter.foil)) } },
                 (FilterGroup.DECKS in groups).takeIf { it }?.let { Triple(stringResource(R.string.include_decks), filter.decks) { onFilter(filter.copy(decks = !filter.decks)) } },
                 (FilterGroup.TEXT in groups).takeIf { it }?.let { Triple(stringResource(R.string.search_in_text), filter.inText) { onFilter(filter.copy(inText = !filter.inText)) } },

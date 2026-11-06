@@ -8,8 +8,9 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
-    entities = [CardPrint::class, Entry::class, Deck::class, ChangeRecord::class, Snapshot::class, Moment::class, PricePoint::class, UndoPart::class, Friend::class, FriendPackage::class, FriendCard::class],
-    version = 9,
+    entities = [CardPrint::class, Entry::class, Deck::class, ChangeRecord::class, Snapshot::class, Moment::class, PricePoint::class, UndoPart::class, Friend::class, FriendPackage::class, FriendCard::class,
+        WishItem::class, Booster::class, BoosterCard::class, BoosterBox::class],
+    version = 10,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -21,12 +22,28 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun moments(): MomentDao
     abstract fun prices(): PriceDao
     abstract fun friends(): FriendDao
+    abstract fun wishlist(): WishDao
+    abstract fun boosters(): BoosterDao
 
     companion object {
         fun create(context: Context): AppDatabase =
             Room.databaseBuilder(context, AppDatabase::class.java, "ninegrid.db")
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10)
                 .build()
+
+        /** Versie 10: verlanglijst (met prijsalarm) en geopende boosters. */
+        val V10_SQL = listOf(
+            "CREATE TABLE IF NOT EXISTS `wishlist` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `oracleId` TEXT NOT NULL, `printId` TEXT NOT NULL, `anyPrint` INTEGER NOT NULL, `foilOnly` INTEGER NOT NULL, `wanted` INTEGER NOT NULL, `got` INTEGER NOT NULL, `addedAt` INTEGER NOT NULL, `alarmPrice` REAL, `alarmCurrency` TEXT NOT NULL, `alarmArmed` INTEGER NOT NULL)",
+            "CREATE INDEX IF NOT EXISTS `index_wishlist_name` ON `wishlist` (`name`)",
+            "CREATE TABLE IF NOT EXISTS `boosters` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `openedAt` INTEGER NOT NULL, `setCode` TEXT NOT NULL, `type` TEXT NOT NULL, `paid` REAL NOT NULL, `currency` TEXT NOT NULL, `boxId` INTEGER, `valueAtOpen` REAL NOT NULL, `valueNoBulkAtOpen` REAL NOT NULL, `changeId` INTEGER)",
+            "CREATE TABLE IF NOT EXISTS `booster_cards` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `boosterId` INTEGER NOT NULL, `printId` TEXT NOT NULL, `finish` TEXT NOT NULL, `quantity` INTEGER NOT NULL)",
+            "CREATE INDEX IF NOT EXISTS `index_booster_cards_boosterId` ON `booster_cards` (`boosterId`)",
+            "CREATE TABLE IF NOT EXISTS `booster_boxes` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `setCode` TEXT NOT NULL, `type` TEXT NOT NULL, `size` INTEGER NOT NULL, `price` REAL NOT NULL, `currency` TEXT NOT NULL, `createdAt` INTEGER NOT NULL)",
+        )
+
+        val MIGRATION_9_10 = object : Migration(9, 10) {
+            override fun migrate(db: SupportSQLiteDatabase) { V10_SQL.forEach { db.execSQL(it) } }
+        }
 
         /** De tabellen en indexen van versie 9; ook gebruikt in de test die ze vergelijkt met het schema van Room. */
         val FRIEND_SQL = listOf(

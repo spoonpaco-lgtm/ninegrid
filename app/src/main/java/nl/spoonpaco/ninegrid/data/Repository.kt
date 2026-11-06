@@ -10,6 +10,8 @@ import nl.spoonpaco.ninegrid.data.db.ChangeRecord
 import nl.spoonpaco.ninegrid.data.db.Deck
 import nl.spoonpaco.ninegrid.data.db.Entry
 import nl.spoonpaco.ninegrid.data.db.EntryWithPrint
+import nl.spoonpaco.ninegrid.data.db.Finish
+import nl.spoonpaco.ninegrid.data.db.WishItem
 import nl.spoonpaco.ninegrid.data.db.UndoData
 import nl.spoonpaco.ninegrid.data.scryfall.CardQuery
 import nl.spoonpaco.ninegrid.data.scryfall.ScryfallClient
@@ -30,6 +32,11 @@ data class BackupFile(
     val snapshots: List<nl.spoonpaco.ninegrid.data.db.Snapshot> = emptyList(),
     val moments: List<nl.spoonpaco.ninegrid.data.db.Moment> = emptyList(),
     val prices: List<nl.spoonpaco.ninegrid.data.db.PricePoint> = emptyList(),
+    /** Vanaf 0.9.1; null = oudere back-up (dan blijft wat er staat). */
+    val wishlist: List<nl.spoonpaco.ninegrid.data.db.WishItem>? = null,
+    val boosters: List<nl.spoonpaco.ninegrid.data.db.Booster>? = null,
+    val boosterCards: List<nl.spoonpaco.ninegrid.data.db.BoosterCard>? = null,
+    val boosterBoxes: List<nl.spoonpaco.ninegrid.data.db.BoosterBox>? = null,
 )
 
 /**
@@ -532,7 +539,12 @@ class Repository(
     }
 
     suspend fun exportBackup(): BackupFile = BackupFile(
-        prints = db.prints().owned(),
+        // Ook de prints van de verlanglijst en de boosters (anders missen die na terugzetten).
+        prints = db.prints().ownedOrShared(),
+        wishlist = db.wishlist().all(),
+        boosters = db.boosters().all(),
+        boosterCards = db.boosters().allCards(),
+        boosterBoxes = db.boosters().allBoxes(),
         entries = db.entries().all(),
         decks = db.decks().all(),
         snapshots = db.snapshots().all(),
@@ -559,6 +571,14 @@ class Repository(
             if (b.snapshots.isNotEmpty()) { db.snapshots().deleteAll(); db.snapshots().upsert(b.snapshots) }
             if (b.moments.isNotEmpty()) { db.moments().deleteAll(); b.moments.chunked(500).forEach { db.moments().upsert(it) } }
             if (b.prices.isNotEmpty()) { db.prices().deleteAll(); b.prices.chunked(500).forEach { db.prices().upsert(it) } }
+            b.wishlist?.let { db.wishlist().deleteAll(); db.wishlist().insertAll(it) }
+            if (b.boosters != null) {
+                db.boosters().deleteAll(); db.boosters().deleteAllCards(); db.boosters().deleteAllBoxes()
+                db.boosters().insertAllBoxes(b.boosterBoxes.orEmpty())
+                // Een terugzet wist het wijzigingslog; de koppeling met een wijziging vervalt dus.
+                db.boosters().insertAllBoosters(b.boosters.map { it.copy(changeId = null) })
+                db.boosters().insertCards(b.boosterCards.orEmpty())
+            }
         }
     }
 
@@ -605,6 +625,105 @@ class Repository(
      * Wist (een deel van) alles. Collectie en decks komen als één wijziging in het log, zodat je het
      * ongedaan kunt maken, tenzij je het log ook wist. Historie en plaatjes zijn niet ongedaan te maken.
      */
+    // ---------- Verlanglijst ----------
+    val wishlist get() = db.wishlist().observe()
+
+    /** Op de verlanglijst; staat dezelfde kaart (zelfde print, of allebei "willekeurig") er al op, dan telt het aantal op. */
+    suspend fun addWish(print: CardPrint, anyPrint: Boolean = true, foilOnly: Boolean = false, wanted: Int = 1): WishItem {
+        db.prints().upsert(listOf(print))
+        val same = db.wishlist().all().firstOrNull { w ->
+            w.name.equals(print.name, true) && w.anyPrint == anyPrint && (anyPrint || w.printId == print.id) && w.foilOnly == foilOnly
+        }
+        val item = same?.copy(wanted = same.wanted + wanted)
+            ?: WishItem(name = print.name, oracleId = print.oracleId, printId = print.id, anyPrint = anyPrint, foilOnly = foilOnly, wanted = wanted)
+        val id = db.wishlist().upsert(item)
+        return if (item.id == 0L) item.copy(id = id) else item
+    }
+
+    suspend fun updateWish(w: WishItem, print: CardPrint? = null) {
+        print?.let { db.prints().upsert(listOf(it)) }
+        db.wishlist().upsert(w)
+    }
+
+    suspend fun deleteWish(id: Long) = db.wishlist().delete(id)
+
+    /**
+     * Afstrepen na scannen of importeren: elke verlangde kaart die nu binnenkwam telt af. Klaar = van de lijst.
+     * Geeft de namen terug die (deels) zijn afgestreept.
+     */
+    suspend fun strikeWishlist(added: List<Pair<CardPrint, Entry>>): List<String> {
+        if (added.isEmpty()) return emptyList()
+        val wishes = db.wishlist().all()
+        if (wishes.isEmpty()) return emptyList()
+        val struck = mutableListOf<String>()
+        for (w in wishes) {
+            val n = added.filter { (p, e) ->
+                !e.proxy && p.name.equals(w.name, true) && (w.anyPrint || p.id == w.printId) && (!w.foilOnly || e.finish != Finish.NONFOIL)
+            }.sumOf { it.second.quantity }
+            if (n <= 0) continue
+            struck += w.name
+            val got = w.got + n
+            if (got >= w.wanted) db.wishlist().delete(w.id) else db.wishlist().upsert(w.copy(got = got))
+        }
+        return struck.distinct()
+    }
+
+    /** "Gekocht": in je collectie, zonder scannen, met de gekozen print en wat nog ontbrak. */
+    suspend fun boughtWish(w: WishItem, print: CardPrint, summary: String) {
+        val n = (w.wanted - w.got).coerceAtLeast(1)
+        addEntries(listOf(NewEntry(print, Entry(printId = print.id, quantity = n, finish = if (w.foilOnly) Finish.FOIL else Finish.NONFOIL))), summary)
+        db.wishlist().delete(w.id)
+    }
+
+    /**
+     * Prijsalarm, na de dagelijkse prijsupdate. "Willekeurige print" = de goedkoopste print van die kaart (bij Scryfall).
+     * Elke kaart meldt één keer per daling; pas weer als hij eerst boven het doel is geweest.
+     */
+    suspend fun checkWishAlarms(): List<Pair<WishItem, Double>> {
+        val hits = mutableListOf<Pair<WishItem, Double>>()
+        for (w in db.wishlist().all().filter { it.alarmPrice != null }) {
+            val usd = w.alarmCurrency == "USD"
+            fun priceOf(p: CardPrint): Double? = when {
+                usd && w.foilOnly -> p.usdFoil ?: p.usdEtched
+                usd -> p.usd ?: p.usdFoil
+                w.foilOnly -> p.eurFoil
+                else -> p.eur ?: p.eurFoil
+            }
+            val now = if (w.anyPrint) {
+                runCatching { scryfall.printsOf(w.name) }.getOrNull()?.map { it.toPrint() }?.mapNotNull { priceOf(it) }?.minOrNull()
+            } else db.prints().get(w.printId)?.let { priceOf(it) }
+            now ?: continue
+            val target = w.alarmPrice!!
+            when {
+                now <= target && w.alarmArmed -> { hits += w to now; db.wishlist().upsert(w.copy(alarmArmed = false)) }
+                now > target && !w.alarmArmed -> db.wishlist().upsert(w.copy(alarmArmed = true))
+            }
+        }
+        return hits
+    }
+
+    // ---------- Zoeken in alle kaarten ----------
+    /**
+     * Zoeken in alle Magic-kaarten: in de offline kaartdatabase als die er is, anders bij Scryfall.
+     * Eén regel per kaart (de nieuwste print). [page] = welke pagina bij Scryfall (vanaf 1).
+     */
+    suspend fun searchAllCards(query: String, scryfallQuery: String, useOffline: Boolean, page: Int = 1): SearchPage {
+        if (useOffline) {
+            val list = offlineSearch?.invoke(query) ?: emptyList()
+            return SearchPage(list.map { it.toPrint() }, hasMore = false, offline = true)
+        }
+        val r = scryfall.search(scryfallQuery, page)
+        return SearchPage(r.first.map { it.toPrint() }, r.second, offline = false)
+    }
+
+    /** Ingesteld door de container: zoeken in de offline kaartdatabase. */
+    var offlineSearch: (suspend (String) -> List<SfCard>)? = null
+
+    data class SearchPage(val cards: List<CardPrint>, val hasMore: Boolean, val offline: Boolean)
+
+    /** Een kaart uit Alle kaarten bekijken: de print moet bekend zijn voor het kaartscherm. */
+    suspend fun rememberPrint(p: CardPrint) = db.prints().upsert(listOf(p))
+
     // ---------- Collecties van anderen ----------
     val friends get() = db.friends().observeFriends()
     val friendPackages get() = db.friends().observePackages()

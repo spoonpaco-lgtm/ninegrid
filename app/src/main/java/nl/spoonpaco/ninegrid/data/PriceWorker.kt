@@ -27,6 +27,7 @@ class PriceWorker(context: Context, params: WorkerParameters) : CoroutineWorker(
             c.settings.setLastPriceUpdate(System.currentTimeMillis())
             c.repository.takeSnapshot()
             runCatching { notifyBreakout(c) }
+            runCatching { notifyWishAlarms(c) }
             runCatching { checkOfflineDb(c) }
             Result.success()
         }.getOrElse { if (runAttemptCount < 3) Result.retry() else Result.success() }
@@ -59,6 +60,31 @@ class PriceWorker(context: Context, params: WorkerParameters) : CoroutineWorker(
         c.settings.setLastBreakoutDay(today)
     }
 
+    /** Prijsalarm: één melding voor alle kaarten van de verlanglijst die onder hun doelprijs kwamen. */
+    private suspend fun notifyWishAlarms(c: nl.spoonpaco.ninegrid.AppContainer) {
+        val hits = c.repository.checkWishAlarms()
+        if (hits.isEmpty()) return
+        val ctx = applicationContext
+        val nm = ctx.getSystemService(android.app.NotificationManager::class.java)
+        if (android.os.Build.VERSION.SDK_INT >= 26) {
+            nm.createNotificationChannel(android.app.NotificationChannel(CHANNEL, ctx.getString(nl.spoonpaco.ninegrid.R.string.breakout_channel), android.app.NotificationManager.IMPORTANCE_DEFAULT))
+        }
+        val intent = android.content.Intent(ctx, nl.spoonpaco.ninegrid.MainActivity::class.java).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+        if (hits.size == 1) intent.putExtra(EXTRA_OPEN_CARD, hits[0].first.printId) else intent.putExtra(EXTRA_OPEN_WISH, true)
+        val open = android.app.PendingIntent.getActivity(ctx, 3, intent, android.app.PendingIntent.FLAG_IMMUTABLE or android.app.PendingIntent.FLAG_UPDATE_CURRENT)
+        val w = hits[0].first
+        val title = if (hits.size == 1) ctx.getString(nl.spoonpaco.ninegrid.R.string.wish_alarm_one, w.name)
+        else ctx.getString(nl.spoonpaco.ninegrid.R.string.wish_alarm_many, hits.size)
+        val text = hits.joinToString(" · ") { (x, p) -> x.name + " " + nl.spoonpaco.ninegrid.domain.Money.format(p, x.alarmCurrency) }
+        val n = androidx.core.app.NotificationCompat.Builder(ctx, CHANNEL)
+            .setSmallIcon(nl.spoonpaco.ninegrid.R.drawable.ic_stat_ninegrid)
+            .setContentTitle(title).setContentText(text)
+            .setStyle(androidx.core.app.NotificationCompat.BigTextStyle().bigText(text))
+            .setContentIntent(open).setAutoCancel(true)
+            .build()
+        nm.notify(WISH_ID, n)
+    }
+
     /** Offline kaartdatabase "bij nieuwe set": bijwerken als er een nieuwe set uit is, of na een maand. */
     private suspend fun checkOfflineDb(c: nl.spoonpaco.ninegrid.AppContainer) {
         val s = c.settings.current()
@@ -74,6 +100,9 @@ class PriceWorker(context: Context, params: WorkerParameters) : CoroutineWorker(
     companion object {
         private const val CHANNEL = "breakout"
         private const val BREAKOUT_ID = 4301
+        private const val WISH_ID = 4303
+        const val EXTRA_OPEN_CARD = "open_card"
+        const val EXTRA_OPEN_WISH = "open_wish"
         private const val NAME = "daily_prices"
         private const val NAME_FALLBACK = "daily_prices_any_network"
         private const val KEY_FALLBACK = "fallback"

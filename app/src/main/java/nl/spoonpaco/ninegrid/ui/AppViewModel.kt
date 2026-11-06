@@ -480,10 +480,11 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                 Destination.COLLECTION -> {
                     val b = binder.trim().ifBlank { null }
                     val pg = if (b != null) page.toIntOrNull() else null
-                    val list = items.map { it.toNew(deckId = null, binder = b, page = pg, slot = if (b != null && importSource == ImportSource.SCAN) it.slot else null) }
+                    val fs = forcedSlot; forcedSlot = null; savedForcedSlot = fs != null
+                    val list = items.map { it.toNew(deckId = null, binder = b, page = pg, slot = if (b != null && importSource == ImportSource.SCAN) (fs ?: it.slot) else null) }
                     repo.addEntries(list, str(R.string.log_added_collection, count))
-                    message = if (importSource == ImportSource.SCAN && b != null && pg != null) str(R.string.msg_page_saved, b, pg, count)
-                    else getApplication<Application>().resources.getQuantityString(R.plurals.msg_added, count, count)
+                    message = (if (importSource == ImportSource.SCAN && b != null && pg != null) str(R.string.msg_page_saved, b, pg, count)
+                    else getApplication<Application>().resources.getQuantityString(R.plurals.msg_added, count, count)) + strikeAfterSave(list)
                     images.prefetch(list.map { it.print }, settings.value)
                     onDone(null)
                 }
@@ -512,12 +513,13 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                         (if (isNew) str(R.string.log_deck_created, name, count) else str(R.string.log_added_deck, count, name)) +
                             " · " + str(R.string.msg_taken_added, taken, added)
                     }
-                    message = (if (isNew) str(R.string.msg_deck_created, name) + " · " else "") + str(R.string.msg_taken_added, r.taken, r.added)
+                    message = (if (isNew) str(R.string.msg_deck_created, name) + " · " else "") + str(R.string.msg_taken_added, r.taken, r.added) +
+                        strikeAfterSave(list.filter { !it.fromCollection }.map { it.item })
                     images.prefetch(list.map { it.item.print }, settings.value)
                     onDone(r.deckId)
                 }
             }
-            if (destination == Destination.COLLECTION && importSource == ImportSource.SCAN && binder.isNotBlank()) {
+            if (destination == Destination.COLLECTION && importSource == ImportSource.SCAN && binder.isNotBlank() && !savedForcedSlot) {
                 page = ((page.toIntOrNull() ?: 0) + 1).toString()
             }
             pending.clear()
@@ -1363,10 +1365,10 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         private set
 
     /** Aantal kaarten op de verlanglijst (wordt gevuld zodra de verlanglijst er is). */
-    fun wishlistCount(): Int = 0
+    fun wishlistCount(): Int = wishlist.value.sumOf { (it.item.wanted - it.item.got).coerceAtLeast(0) }
 
     fun sharePackages(choice: nl.spoonpaco.ninegrid.domain.ShareChoice) =
-        nl.spoonpaco.ninegrid.domain.Share.packages(entries.value, decks.value, choice)
+        nl.spoonpaco.ninegrid.domain.Share.packages(entries.value, decks.value, choice, wishlist.value)
 
     /** Maakt het deelbestand in de cache en geeft het terug; de naam wordt onthouden. */
     suspend fun buildShareFile(choice: nl.spoonpaco.ninegrid.domain.ShareChoice, name: String): java.io.File {
@@ -1441,6 +1443,15 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
             quantity = fc.card.quantity, section = fc.card.section, deckId = if (fc.card.section != null) -fc.card.packageId else null), fc.print)
     }
 
+    /** Bij welke vrienden ligt deze kaart (los, niet in hun decks of verlanglijst)? */
+    fun friendsHaving(name: String): List<Pair<nl.spoonpaco.ninegrid.data.db.Friend, Int>> {
+        val packs = friendPackages.value.filter { it.kind != nl.spoonpaco.ninegrid.domain.ShareKind.DECK && it.kind != nl.spoonpaco.ninegrid.domain.ShareKind.WISH }.associateBy { it.id }
+        val byFriend = friendCards.value.filter { it.card.packageId in packs && it.print?.name.equals(name, true) }
+            .groupBy { packs.getValue(it.card.packageId).friendId }.mapValues { (_, v) -> v.sumOf { it.card.quantity } }
+        val fr = friends.value.associateBy { it.id }
+        return byFriend.mapNotNull { (id, n) -> fr[id]?.let { it to n } }.sortedByDescending { it.second }
+    }
+
     var tradeMatch by mutableStateOf<nl.spoonpaco.ninegrid.domain.TradeMatch.Result?>(null)
         private set
     var tradeFriendId by mutableStateOf<String?>(null)
@@ -1451,7 +1462,14 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun computeTrade(friendId: String) = viewModelScope.launch {
         tradeBusy = true; tradeFriendId = friendId
         val packs = friendPackages.value.filter { it.friendId == friendId }
-        val looseIds = packs.filter { it.kind != nl.spoonpaco.ninegrid.domain.ShareKind.DECK }.map { it.id }.toSet()
+        val looseIds = packs.filter { it.kind != nl.spoonpaco.ninegrid.domain.ShareKind.DECK && it.kind != nl.spoonpaco.ninegrid.domain.ShareKind.WISH }.map { it.id }.toSet()
+        val wishIds = packs.filter { it.kind == nl.spoonpaco.ninegrid.domain.ShareKind.WISH }.map { it.id }.toSet()
+        val theirWants = friendCards.value.filter { it.card.packageId in wishIds && it.print != null }.map { fc ->
+            nl.spoonpaco.ninegrid.domain.TradeMatch.Want(fc.print!!.name, fc.card.printId, fc.card.section == "ANY", fc.card.finish != nl.spoonpaco.ninegrid.data.db.Finish.NONFOIL, fc.card.quantity)
+        }
+        val myWants = wishlist.value.filter { it.item.wanted > it.item.got }.map { w ->
+            nl.spoonpaco.ninegrid.domain.TradeMatch.Want(w.item.name, w.item.printId, w.item.anyPrint, w.item.foilOnly, w.item.wanted - w.item.got)
+        }
         val theirDecks = packs.filter { it.kind == nl.spoonpaco.ninegrid.domain.ShareKind.DECK }.map { p ->
             nl.spoonpaco.ninegrid.domain.TradeMatch.DeckInput(p.label, nl.spoonpaco.ninegrid.domain.TradeMatch.formatOf(p.format), friendEntries(setOf(p.id)))
         }
@@ -1461,10 +1479,147 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         val currency = settings.value.currency
         tradeMatch = runCatching {
             kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
-                nl.spoonpaco.ninegrid.domain.TradeMatch.compute(all, myDecks, theirLoose, theirDecks, currency)
+                nl.spoonpaco.ninegrid.domain.TradeMatch.compute(all, myDecks, theirLoose, theirDecks, currency, myWants = myWants, theirWants = theirWants)
             }
         }.getOrNull()
         tradeBusy = false
+    }
+
+    /** Vanuit een melding: deze kaart openen, of Collectie in een bepaalde stand. */
+    var openCardRequest by mutableStateOf<String?>(null)
+    var collectionModeRequest by mutableStateOf<String?>(null)
+
+    /** Scannen voor één vak in de bladweergave: stand 1 kaart, met binder, blad en vak ingevuld. */
+    var forcedSlot: Int? = null
+    private var savedForcedSlot = false
+    fun scanForSlot(binderName: String, pageNr: Int, slotNr: Int) {
+        binder = binderName; page = pageNr.toString(); forcedSlot = slotNr
+        setScanMode("single")
+    }
+
+    // ---------- Verlanglijst ----------
+    val wishlist = repo.wishlist.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    /** Op de verlanglijst; [anyPrint] = elke print is goed. */
+    fun addToWishlist(print: CardPrint, anyPrint: Boolean = true, foilOnly: Boolean = false, wanted: Int = 1) = viewModelScope.launch {
+        repo.addWish(print, anyPrint, foilOnly, wanted)
+        message = str(R.string.wish_added, print.name)
+    }
+
+    /** Op de verlanglijst op naam (bijv. vanuit een bijna-combo): de nieuwste print als voorbeeld. */
+    fun addToWishlistByName(name: String) = viewModelScope.launch {
+        val card = runCatching { repo.resolve(listOf(CardQuery(name = name))).firstOrNull() }.getOrNull()
+        if (card == null) { message = str(R.string.msg_network_error); return@launch }
+        repo.addWish(card.toPrint())
+        message = str(R.string.wish_added, card.name)
+    }
+
+    fun updateWish(w: nl.spoonpaco.ninegrid.data.db.WishItem, print: CardPrint? = null) = viewModelScope.launch { repo.updateWish(w, print) }
+    fun deleteWish(id: Long) = viewModelScope.launch { repo.deleteWish(id) }
+
+    fun boughtWish(w: nl.spoonpaco.ninegrid.data.db.WishWithPrint) = viewModelScope.launch {
+        val p = w.print ?: return@launch
+        repo.boughtWish(w.item, p, str(R.string.log_wish_bought, p.name))
+        messageUndo = true
+        message = str(R.string.wish_bought, p.name)
+        snapshot()
+    }
+
+    /** Een lijst plakken naar de verlanglijst ("1 Ragavan", "4 Counterspell (MH2) 267"). */
+    fun pasteToWishlist(text: String, onDone: (Int, Int) -> Unit) = viewModelScope.launch {
+        val lines = nl.spoonpaco.ninegrid.domain.DeckListParser.parse(text).lines
+        if (lines.isEmpty()) { onDone(0, 0); return@launch }
+        val queries = lines.map { l -> CardQuery(setCode = l.setCode, collectorNumber = l.collectorNumber, name = l.name) }
+        val found = runCatching { repo.resolve(queries) }.getOrElse { message = str(R.string.msg_network_error); return@launch }
+        var ok = 0
+        lines.forEachIndexed { i, l ->
+            val c = found.getOrNull(i) ?: return@forEachIndexed
+            repo.addWish(c.toPrint(), anyPrint = l.setCode == null || l.collectorNumber == null, foilOnly = l.foil || l.etched, wanted = l.quantity.coerceAtLeast(1))
+            ok++
+        }
+        onDone(ok, lines.size - ok)
+    }
+
+    private suspend fun strikeAfterSave(list: List<NewEntry>): String {
+        val names = runCatching { repo.strikeWishlist(list.map { it.print to it.entry }) }.getOrDefault(emptyList())
+        return when (names.size) {
+            0 -> ""
+            1 -> " · " + str(R.string.wish_struck_one, names[0])
+            else -> " · " + str(R.string.wish_struck_many, names.size)
+        }
+    }
+
+    // ---------- Zoeken in alle kaarten ----------
+    var allResults by mutableStateOf<List<CardPrint>>(emptyList())
+        private set
+    var allHasMore by mutableStateOf(false)
+        private set
+    var allLoading by mutableStateOf(false)
+        private set
+    var allOffline by mutableStateOf(false)
+        private set
+    var allFailed by mutableStateOf(false)
+        private set
+    private var allPage = 1
+    private var allJob: kotlinx.coroutines.Job? = null
+    private var allKey = ""
+
+    /** Gebruikt Alle kaarten de offline database? (Regeltekst zit daar niet in: dan online.) */
+    fun allCardsOffline(f: nl.spoonpaco.ninegrid.ui.components.CardFilter) = c.offline.usable() && !f.inText
+
+    /**
+     * Zoeken: minstens 2 letters of één filter. Online pas een halve seconde na de laatste letter,
+     * zodat Scryfall niet bij elke letter een vraag krijgt.
+     */
+    fun searchAll(text: String, f: nl.spoonpaco.ninegrid.ui.components.CardFilter) {
+        val t = text.trim()
+        val hasFilter = f.rarities.isNotEmpty() || f.colors.isNotEmpty() || f.types.isNotEmpty()
+        val key = t + "|" + f.toJson()
+        if (key == allKey) return
+        allKey = key
+        allJob?.cancel()
+        if (t.length < 2 && !hasFilter) { allResults = emptyList(); allHasMore = false; allLoading = false; allFailed = false; return }
+        val offline = allCardsOffline(f)
+        allJob = viewModelScope.launch {
+            if (!offline) kotlinx.coroutines.delay(500)
+            allLoading = true; allFailed = false; allPage = 1
+            val q = nl.spoonpaco.ninegrid.ui.components.CardFilter.scryfallQuery(t, f)
+            val r = runCatching { repo.searchAllCards(t, q, offline, 1) }
+            r.onSuccess { page ->
+                // Offline: filters en "alleen wat ik niet heb" hier toepassen.
+                allResults = if (offline) page.cards.filter { p -> f.copy(decks = true, foil = false, binders = emptySet()).matches(EntryWithPrint(Entry(printId = p.id), p), t) } else page.cards
+                allHasMore = page.hasMore; allOffline = page.offline
+            }.onFailure { if (it is kotlinx.coroutines.CancellationException) throw it; allFailed = true; allResults = emptyList() }
+            allLoading = false
+        }
+    }
+
+    fun moreAll(text: String, f: nl.spoonpaco.ninegrid.ui.components.CardFilter) {
+        if (allLoading || !allHasMore) return
+        allJob = viewModelScope.launch {
+            allLoading = true
+            val q = nl.spoonpaco.ninegrid.ui.components.CardFilter.scryfallQuery(text.trim(), f)
+            runCatching { repo.searchAllCards(text, q, false, allPage + 1) }.onSuccess { p ->
+                allPage++; allResults = allResults + p.cards; allHasMore = p.hasMore
+            }
+            allLoading = false
+        }
+    }
+
+    /** Een kaart uit Alle kaarten openen: eerst bewaren, dan het kaartscherm. */
+    fun openPrint(p: CardPrint, query: String = "", then: (String) -> Unit) = viewModelScope.launch {
+        repo.rememberPrint(p)
+        if (query.trim().length >= 2) settingsStore.addRecentSearch(query.trim())
+        then(p.id)
+    }
+
+    /** Een kaart die je nog niet hebt toevoegen aan je collectie (1 stuk, gewoon, Engels). */
+    fun addOneToCollection(p: CardPrint) = viewModelScope.launch {
+        val list = listOf(NewEntry(p, Entry(printId = p.id)))
+        repo.addEntries(list, str(R.string.log_added_collection, 1))
+        messageUndo = true
+        message = str(R.string.msg_added_one, p.name) + strikeAfterSave(list)
+        snapshot()
     }
 
 }

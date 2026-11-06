@@ -57,6 +57,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import nl.spoonpaco.ninegrid.R
 import nl.spoonpaco.ninegrid.data.ImageMode
@@ -78,7 +79,7 @@ val LANGUAGES = listOf("", "DE", "FR", "IT", "ES", "PT", "JP", "KO", "RU", "CN",
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CardDetailScreen(vm: AppViewModel, printId: String, onBack: () -> Unit) {
+fun CardDetailScreen(vm: AppViewModel, printId: String, onBack: () -> Unit, onFriend: (String) -> Unit = {}, onBinder: (String, Int?, Int?) -> Unit = { _, _, _ -> }) {
     val settings by vm.settings.collectAsState()
     val print by vm.repo.print(printId).collectAsState(initial = null)
     val copies by vm.repo.entriesForPrint(printId).collectAsState(initial = emptyList())
@@ -153,6 +154,21 @@ fun CardDetailScreen(vm: AppViewModel, printId: String, onBack: () -> Unit) {
                     }
                 }
             }
+            // Toevoegen of op de verlanglijst; en bij welke vrienden hij ligt.
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 6.dp)) {
+                if (copies.isEmpty()) androidx.compose.material3.Button(onClick = { vm.addOneToCollection(p) }) { Icon(Icons.Filled.Add, null); Spacer(Modifier.width(4.dp)); Text(stringResource(R.string.add_to_collection)) }
+                OutlinedButton(onClick = { vm.addToWishlist(p) }) { Text(stringResource(R.string.wish_add_btn)) }
+            }
+            val friendsHave = vm.friendsHaving(p.name)
+            if (friendsHave.isNotEmpty()) {
+                Spacer(Modifier.height(8.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(stringResource(R.string.also_at) + " ", fontSize = 13.sp)
+                    friendsHave.forEach { (f, n) ->
+                        TextButton(onClick = { onFriend(f.id) }, contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 6.dp)) { Text("${f.name} ×$n", fontSize = 13.sp) }
+                    }
+                }
+            }
             val legal = listOf("commander", "modern", "pioneer", "standard", "legacy", "pauper").map { f -> f to Formats.legalityOf(p.legalities, f) }
             if (legal.any { it.second != null }) {
                 Spacer(Modifier.height(10.dp))
@@ -169,7 +185,12 @@ fun CardDetailScreen(vm: AppViewModel, printId: String, onBack: () -> Unit) {
                 Card(colors = CardDefaults.cardColors(containerColor = extra.cardSurface), modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
                     Column(Modifier.padding(10.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(locationText(e, decks.associate { it.id to it.name }) ?: stringResource(R.string.collection_loose), fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                            // Tik op de plek in een binder: dat blad in de bladweergave.
+                            Text(
+                                locationText(e, decks.associate { it.id to it.name }) ?: stringResource(R.string.collection_loose), fontWeight = FontWeight.Bold,
+                                color = if (e.deckId == null && !e.binder.isNullOrBlank()) MaterialTheme.colorScheme.primary else androidx.compose.ui.graphics.Color.Unspecified,
+                                modifier = Modifier.weight(1f).let { m -> if (e.deckId == null && !e.binder.isNullOrBlank()) m.clickable { onBinder(e.binder!!, e.page, e.slot) } else m },
+                            )
                             FoilBadge(e.finish)
                             if (e.language.isNotBlank()) SmallTag(e.language)
                             SmallTag(e.condition)

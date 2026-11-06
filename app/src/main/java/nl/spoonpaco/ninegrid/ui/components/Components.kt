@@ -144,6 +144,8 @@ fun CardRow(
     settings: AppSettings,
     images: Images,
     location: String? = null,
+    /** Groen label, bijv. "In collectie ×3" bij Alle kaarten. */
+    tag: String? = null,
     onClick: () -> Unit,
 ) {
     val extra = LocalNgExtra.current
@@ -178,6 +180,7 @@ fun CardRow(
                     listOfNotNull("${print?.setCode ?: ""} ${print?.collectorNumber ?: ""}", print?.rarity, location).joinToString(" · "),
                     color = extra.subtle, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis,
                 )
+                if (tag != null) Text(tag, color = NgColors.Synced, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
             Spacer(Modifier.width(6.dp))
             ManaPips(print?.colors ?: "", size = 16)
@@ -216,3 +219,7 @@ fun StatRow(label: String, value: String, bold: Boolean = false, onClick: (() ->
         Text(value, fontWeight = if (bold) FontWeight.Bold else FontWeight.Normal)
     }
 }
+
+/** Het oog van de privacymodus (wordt ingevuld in de privacymodus). */
+@Composable
+fun PrivacyButton(vm: nl.spoonpaco.ninegrid.ui.AppViewModel) {}

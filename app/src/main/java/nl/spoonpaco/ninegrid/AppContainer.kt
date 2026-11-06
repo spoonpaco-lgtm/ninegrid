@@ -18,7 +18,7 @@ class AppContainer(val context: Context) {
     val images = Images(context)
     val cache = nl.spoonpaco.ninegrid.data.CardCache(context, scryfall)
     val combos = nl.spoonpaco.ninegrid.data.ComboService(context)
-    val repository = Repository(db, scryfall) { removed -> images.remove(removed) }.also { it.cache = cache }
+    val repository = Repository(db, scryfall) { removed -> images.remove(removed) }.also { it.cache = cache; it.offlineSearch = { q -> offline.search(q) } }
 
     init {
         // De offline kaartdatabase volgt de instelling, ook voor taken op de achtergrond.

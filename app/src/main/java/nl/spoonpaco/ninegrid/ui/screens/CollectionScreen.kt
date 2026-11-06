@@ -1,13 +1,16 @@
 package nl.spoonpaco.ninegrid.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -15,41 +18,56 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.ContentPaste
+import androidx.compose.material.icons.filled.FileOpen
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.ui.Alignment
-import androidx.compose.material.icons.filled.FileOpen
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import nl.spoonpaco.ninegrid.R
-import nl.spoonpaco.ninegrid.data.db.Finish
 import nl.spoonpaco.ninegrid.domain.Money
 import nl.spoonpaco.ninegrid.ui.AppViewModel
+import nl.spoonpaco.ninegrid.ui.components.CardFilter
 import nl.spoonpaco.ninegrid.ui.components.CardRow
 import nl.spoonpaco.ninegrid.ui.components.CardSearchDialog
 import nl.spoonpaco.ninegrid.ui.components.EmptyState
+import nl.spoonpaco.ninegrid.ui.components.FilterGroup
+import nl.spoonpaco.ninegrid.ui.components.FilterSearchBar
 import nl.spoonpaco.ninegrid.ui.components.SectionHeader
 import nl.spoonpaco.ninegrid.ui.theme.LocalNgExtra
 
+/**
+ * Collectie in drie standen: je eigen kaarten, alle Magic-kaarten (zoeken), en je verlanglijst.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CollectionScreen(
@@ -59,20 +77,29 @@ fun CollectionScreen(
     onPaste: () -> Unit,
     onReview: () -> Unit,
     onImport: () -> Unit = {},
+    onShare: () -> Unit = {},
+    onBinder: (String) -> Unit = {},
 ) {
     val settings by vm.settings.collectAsState()
     val all by vm.entries.collectAsState()
     val decks by vm.decks.collectAsState()
+    val wishes by vm.wishlist.collectAsState()
+    var mode by rememberSaveable { mutableStateOf("mine") }
+    LaunchedEffect(vm.collectionModeRequest) { vm.collectionModeRequest?.let { mode = it; vm.collectionModeRequest = null } }
     var query by rememberSaveable { mutableStateOf("") }
+    var allQuery by rememberSaveable { mutableStateOf("") }
     // Filters en sortering worden onthouden, ook na het afsluiten.
-    val filter = remember(settings.filters["collection"]) { nl.spoonpaco.ninegrid.ui.components.CardFilter.fromJson(settings.filters["collection"]) }
+    val filter = remember(settings.filters["collection"]) { CardFilter.fromJson(settings.filters["collection"]) }
+    val allFilter = remember(settings.filters["allcards"]) { CardFilter.fromJson(settings.filters["allcards"]) }
     val sort = settings.collectionSort
     var menu by remember { mutableStateOf(false) }
+    var topMenu by remember { mutableStateOf(false) }
+    var pasteWish by remember { mutableStateOf(false) }
     val listState = androidx.compose.foundation.lazy.rememberLazyListState()
     var fabVisible by remember { mutableStateOf(true) }
     var lastIndex by remember { mutableStateOf(0) }
     var lastOffset by remember { mutableStateOf(0) }
-    androidx.compose.runtime.LaunchedEffect(listState) {
+    LaunchedEffect(listState) {
         androidx.compose.runtime.snapshotFlow { listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset }.collect { (i, o) ->
             val down = i > lastIndex || (i == lastIndex && o > lastOffset + 8)
             val up = i < lastIndex || (i == lastIndex && o < lastOffset - 8)
@@ -82,18 +109,32 @@ fun CollectionScreen(
     }
     var search by remember { mutableStateOf(false) }
     val deckNames = remember(decks) { decks.associate { it.id to it.name } }
+    val binderList = remember(all) { all.filter { it.entry.deckId == null }.mapNotNull { it.entry.binder?.takeIf { b -> b.isNotBlank() } }.distinct().sortedBy { it.lowercase() } }
 
     // Alleen opnieuw uitrekenen als de kaarten of de filters echt veranderen (scheelt veel bij duizenden kaarten).
     val filtered = remember(all, query, filter) { all.filter { filter.matches(it, query) } }
     val count = remember(filtered) { filtered.sumOf { it.entry.quantity } }
     val value = remember(filtered, settings.currency) { filtered.sumOf { Money.total(it.entry, it.print, settings.currency) } }
-    data class Group(val set: String, val name: String, val count: Int, val value: Double, val cards: List<nl.spoonpaco.ninegrid.data.db.EntryWithPrint>)
+    data class Group(val key: String, val title: String, val count: Int, val value: Double, val cards: List<nl.spoonpaco.ninegrid.data.db.EntryWithPrint>, val binder: String? = null)
     val groups = remember(filtered, sort, settings.currency) {
-        if (sort != "set") emptyList() else filtered.groupBy { it.print?.setCode ?: "?" }.toSortedMap().map { (set, list) ->
-            Group(
-                set, list.firstOrNull()?.print?.setName ?: "", list.sumOf { it.entry.quantity }, list.sumOf { Money.total(it.entry, it.print, settings.currency) },
-                list.sortedWith(compareBy({ it.print?.collectorNumber?.filter { c -> c.isDigit() }?.toIntOrNull() ?: 0 }, { it.print?.collectorNumber })),
-            )
+        when (sort) {
+            "set" -> filtered.groupBy { it.print?.setCode ?: "?" }.toSortedMap().map { (set, list) ->
+                Group(
+                    "s_$set", "$set · " + (list.firstOrNull()?.print?.setName ?: ""), list.sumOf { it.entry.quantity }, list.sumOf { Money.total(it.entry, it.print, settings.currency) },
+                    list.sortedWith(compareBy({ it.print?.collectorNumber?.filter { c -> c.isDigit() }?.toIntOrNull() ?: 0 }, { it.print?.collectorNumber })),
+                )
+            }
+            // Per binder, binnen de binder op blad en vak; zonder binder onderaan.
+            "binder" -> filtered.groupBy { if (it.entry.deckId != null) "\u0000deck" else it.entry.binder?.takeIf { b -> b.isNotBlank() } ?: "" }
+                .toList().sortedWith(compareBy({ it.first.isEmpty() || it.first.startsWith("\u0000") }, { it.first.lowercase() }))
+                .map { (b, list) ->
+                    Group(
+                        "b_$b", b, list.sumOf { it.entry.quantity }, list.sumOf { Money.total(it.entry, it.print, settings.currency) },
+                        list.sortedWith(compareBy({ it.entry.page ?: Int.MAX_VALUE }, { it.entry.slot ?: Int.MAX_VALUE }, { it.print?.name ?: "" })),
+                        binder = b,
+                    )
+                }
+            else -> emptyList()
         }
     }
     val sortedFlat = remember(filtered, sort, settings.currency) {
@@ -103,6 +144,9 @@ fun CollectionScreen(
             else -> emptyList()
         }
     }
+    val wishValue = remember(wishes, settings.currency) {
+        wishes.sumOf { w -> (w.item.wanted - w.item.got).coerceAtLeast(0) * Money.unitPrice(nl.spoonpaco.ninegrid.data.db.Entry(printId = w.item.printId, finish = if (w.item.foilOnly) nl.spoonpaco.ninegrid.data.db.Finish.FOIL else nl.spoonpaco.ninegrid.data.db.Finish.NONFOIL), w.print, settings.currency) }
+    }
 
     Scaffold(
         topBar = {
@@ -110,57 +154,96 @@ fun CollectionScreen(
                 Column {
                     Text(stringResource(R.string.collection), fontWeight = FontWeight.Bold)
                     Text(
-                        androidx.compose.ui.res.pluralStringResource(R.plurals.n_cards, count, count) + " · " + Money.format(value, settings.currency),
+                        when (mode) {
+                            "all" -> stringResource(R.string.all_cards_sub)
+                            "wish" -> stringResource(R.string.wish_total, vm.wishlistCount(), Money.format(wishValue, settings.currency))
+                            else -> pluralStringResource(R.plurals.n_cards, count, count) + " · " + Money.format(value, settings.currency)
+                        },
                         style = MaterialTheme.typography.bodySmall, color = LocalNgExtra.current.subtle,
                     )
                 }
-            }, actions = { nl.spoonpaco.ninegrid.ui.guide.HelpButton("collection") })
+            }, actions = {
+                nl.spoonpaco.ninegrid.ui.components.PrivacyButton(vm)
+                nl.spoonpaco.ninegrid.ui.guide.HelpButton("collection")
+                Box0 {
+                    IconButton(onClick = { topMenu = true }) { Icon(Icons.Filled.MoreVert, stringResource(R.string.more)) }
+                    DropdownMenu(expanded = topMenu, onDismissRequest = { topMenu = false }) {
+                        DropdownMenuItem(text = { Text(stringResource(R.string.share_title)) }, leadingIcon = { Icon(Icons.Filled.Share, null) }, onClick = { topMenu = false; onShare() })
+                        DropdownMenuItem(text = { Text(stringResource(R.string.wish_paste)) }, leadingIcon = { Icon(Icons.Filled.ContentPaste, null) }, onClick = { topMenu = false; pasteWish = true })
+                    }
+                }
+            })
         },
         floatingActionButton = {
             // Verdwijnt bij naar beneden scrollen, komt terug bij een stukje omhoog.
-            androidx.compose.animation.AnimatedVisibility(fabVisible, enter = androidx.compose.animation.scaleIn(), exit = androidx.compose.animation.scaleOut()) {
-            FloatingActionButton(onClick = { menu = true }, containerColor = MaterialTheme.colorScheme.primary) {
-                Icon(Icons.Filled.Add, stringResource(R.string.add_cards))
-                DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                    DropdownMenuItem(text = { Text(stringResource(R.string.scan_page)) }, leadingIcon = { Icon(Icons.Filled.CameraAlt, null) }, onClick = { menu = false; onScan() })
-                    DropdownMenuItem(text = { Text(stringResource(R.string.paste_list)) }, leadingIcon = { Icon(Icons.Filled.ContentPaste, null) }, onClick = { menu = false; onPaste() })
-                    DropdownMenuItem(text = { Text(stringResource(R.string.search_card)) }, leadingIcon = { Icon(Icons.Filled.Search, null) }, onClick = { menu = false; search = true })
-                    DropdownMenuItem(text = { Text(stringResource(R.string.import_title)) }, leadingIcon = { Icon(Icons.Filled.FileOpen, null) }, onClick = { menu = false; onImport() })
+            if (mode == "mine") androidx.compose.animation.AnimatedVisibility(fabVisible, enter = androidx.compose.animation.scaleIn(), exit = androidx.compose.animation.scaleOut()) {
+                FloatingActionButton(onClick = { menu = true }, containerColor = MaterialTheme.colorScheme.primary) {
+                    Icon(Icons.Filled.Add, stringResource(R.string.add_cards))
+                    DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                        DropdownMenuItem(text = { Text(stringResource(R.string.scan_page)) }, leadingIcon = { Icon(Icons.Filled.CameraAlt, null) }, onClick = { menu = false; onScan() })
+                        DropdownMenuItem(text = { Text(stringResource(R.string.paste_list)) }, leadingIcon = { Icon(Icons.Filled.ContentPaste, null) }, onClick = { menu = false; onPaste() })
+                        DropdownMenuItem(text = { Text(stringResource(R.string.search_card)) }, leadingIcon = { Icon(Icons.Filled.Search, null) }, onClick = { menu = false; search = true })
+                        DropdownMenuItem(text = { Text(stringResource(R.string.import_title)) }, leadingIcon = { Icon(Icons.Filled.FileOpen, null) }, onClick = { menu = false; onImport() })
+                    }
                 }
-            }
             }
         },
     ) { pad ->
         Column(Modifier.padding(pad).fillMaxSize()) {
-            nl.spoonpaco.ninegrid.ui.components.FilterSearchBar(
-                query = query, onQuery = { query = it }, placeholder = stringResource(R.string.search_hint),
-                filter = filter, onFilter = { vm.setFilter("collection", it) },
-                groups = nl.spoonpaco.ninegrid.ui.components.FilterGroup.entries.toSet(),
-                sortOptions = listOf("set" to stringResource(R.string.sort_set), "price" to stringResource(R.string.sort_price), "name" to stringResource(R.string.sort_name)),
-                sort = sort, onSort = { vm.setCollectionSort(it) },
-            )
-            if (all.isEmpty()) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-                    EmptyState(stringResource(R.string.empty_collection_title), stringResource(R.string.empty_collection_body))
-                    // Je hebt al een collectie in de Sheet? Dan in één keer importeren.
-                    androidx.compose.material3.Button(onClick = onImport) {
-                        Icon(Icons.Filled.FileOpen, null); androidx.compose.foundation.layout.Spacer(Modifier.padding(4.dp)); Text(stringResource(R.string.import_title))
+            // Drie standen, als één schakelaar.
+            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp)) {
+                listOf("mine" to R.string.mode_mine, "all" to R.string.mode_all, "wish" to R.string.mode_wish).forEachIndexed { i, (k, l) ->
+                    SegmentedButton(selected = mode == k, onClick = { mode = k }, shape = SegmentedButtonDefaults.itemShape(i, 3)) {
+                        Text(stringResource(l), maxLines = 1, fontSize = 13.sp)
                     }
                 }
-            } else {
-                LazyColumn(state = listState, contentPadding = PaddingValues(bottom = 96.dp)) {
-                    if (sort == "set") {
-                        groups.forEach { g ->
-                            item(key = "h_${g.set}") {
-                                SectionHeader("${g.set} · ${g.name}", androidx.compose.ui.res.pluralStringResource(R.plurals.n_cards, g.count, g.count) + " · " + Money.format(g.value, settings.currency))
-                            }
-                            items(g.cards, key = { it.entry.id }) { e ->
-                                CardRow(e.entry, e.print, settings, vm.images, location = locationText(e.entry, deckNames)) { e.print?.let { onCard(it.id) } }
+            }
+            when (mode) {
+                "all" -> AllCardsPanel(vm, allQuery, { allQuery = it }, allFilter, onCard)
+                "wish" -> WishlistPanel(vm, onCard, onPaste = { pasteWish = true }, onAll = { mode = "all" })
+                else -> {
+                    FilterSearchBar(
+                        query = query, onQuery = { query = it }, placeholder = stringResource(R.string.search_hint),
+                        filter = filter, onFilter = { vm.setFilter("collection", it) },
+                        groups = setOf(FilterGroup.RARITY, FilterGroup.COLOR, FilterGroup.TYPE, FilterGroup.FOIL, FilterGroup.DECKS, FilterGroup.TEXT, FilterGroup.BINDER),
+                        sortOptions = listOf("set" to stringResource(R.string.sort_set), "binder" to stringResource(R.string.sort_binder), "price" to stringResource(R.string.sort_price), "name" to stringResource(R.string.sort_name)),
+                        sort = sort, onSort = { vm.setCollectionSort(it) },
+                        binderOptions = binderList,
+                    )
+                    if (all.isEmpty()) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                            EmptyState(stringResource(R.string.empty_collection_title), stringResource(R.string.empty_collection_body))
+                            // Je hebt al een collectie in de Sheet? Dan in één keer importeren.
+                            androidx.compose.material3.Button(onClick = onImport) {
+                                Icon(Icons.Filled.FileOpen, null); Spacer(Modifier.padding(4.dp)); Text(stringResource(R.string.import_title))
                             }
                         }
                     } else {
-                        items(sortedFlat, key = { it.entry.id }) { e ->
-                            CardRow(e.entry, e.print, settings, vm.images, location = locationText(e.entry, deckNames)) { e.print?.let { onCard(it.id) } }
+                        LazyColumn(state = listState, contentPadding = PaddingValues(bottom = 96.dp)) {
+                            if (sort == "set" || sort == "binder") {
+                                groups.forEach { g ->
+                                    item(key = "h_${g.key}") {
+                                        val title = when {
+                                            g.binder == null -> g.title
+                                            g.binder.startsWith("\u0000") -> stringResource(R.string.in_decks)
+                                            g.binder.isEmpty() -> stringResource(R.string.no_binder)
+                                            else -> g.binder
+                                        }
+                                        val detail = pluralStringResource(R.plurals.n_cards, g.count, g.count) + " · " + Money.format(g.value, settings.currency)
+                                        if (g.binder != null && g.binder.isNotEmpty() && !g.binder.startsWith("\u0000")) {
+                                            // Tik op een binder: de bladweergave.
+                                            Row(Modifier.fillMaxWidth().clickable { onBinder(g.binder) }) { SectionHeader("$title  ▦ ›", detail) }
+                                        } else SectionHeader(title, detail)
+                                    }
+                                    items(g.cards, key = { it.entry.id }) { e ->
+                                        CardRow(e.entry, e.print, settings, vm.images, location = locationText(e.entry, deckNames)) { e.print?.let { onCard(it.id) } }
+                                    }
+                                }
+                            } else {
+                                items(sortedFlat, key = { it.entry.id }) { e ->
+                                    CardRow(e.entry, e.print, settings, vm.images, location = locationText(e.entry, deckNames)) { e.print?.let { onCard(it.id) } }
+                                }
+                            }
                         }
                     }
                 }
@@ -170,6 +253,187 @@ fun CollectionScreen(
     if (search) {
         CardSearchDialog(vm.repo.scryfall, vm.images, settings, onPick = { p -> search = false; vm.startSingle(p); onReview() }, onDismiss = { search = false })
     }
+    if (pasteWish) WishPasteDialog(vm, onDismiss = { pasteWish = false })
+}
+
+@Composable
+private fun Box0(content: @Composable () -> Unit) = androidx.compose.foundation.layout.Box { content() }
+
+/** Zoeken in alle Magic-kaarten: offline als het kan, anders bij Scryfall. */
+@Composable
+private fun AllCardsPanel(vm: AppViewModel, query: String, onQuery: (String) -> Unit, filter: CardFilter, onCard: (String) -> Unit) {
+    val settings by vm.settings.collectAsState()
+    val all by vm.entries.collectAsState()
+    val decks by vm.decks.collectAsState()
+    val extra = LocalNgExtra.current
+    LaunchedEffect(query, filter) { vm.searchAll(query, filter) }
+    // Wat je al hebt: per naam, los en in welke decks.
+    val owned = remember(all) { all.filter { !it.entry.proxy && it.print != null }.groupBy { it.print!!.name.lowercase() } }
+    val deckNames = remember(decks) { decks.associate { it.id to it.name } }
+    val shown = remember(vm.allResults, filter.notOwned, owned) {
+        if (filter.notOwned) vm.allResults.filter { it.name.lowercase() !in owned } else vm.allResults
+    }
+    Column(Modifier.fillMaxSize()) {
+        FilterSearchBar(
+            query = query, onQuery = onQuery, placeholder = stringResource(R.string.all_cards_hint),
+            filter = filter, onFilter = { vm.setFilter("allcards", it) },
+            groups = setOf(FilterGroup.RARITY, FilterGroup.COLOR, FilterGroup.TYPE, FilterGroup.TEXT, FilterGroup.NOT_OWNED),
+            accent = true,
+        )
+        Text(
+            stringResource(if (vm.allCardsOffline(filter)) R.string.all_cards_src_offline else R.string.all_cards_src_online),
+            fontSize = 11.sp, color = extra.subtle, modifier = Modifier.padding(horizontal = 16.dp),
+        )
+        if (vm.allLoading) LinearProgressIndicator(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp))
+        val hasFilter = filter.rarities.isNotEmpty() || filter.colors.isNotEmpty() || filter.types.isNotEmpty()
+        if (query.trim().length < 2 && !hasFilter) {
+            Text(stringResource(R.string.all_cards_min), fontSize = 13.sp, color = extra.subtle, modifier = Modifier.padding(16.dp))
+            // Recente zoekopdrachten.
+            if (settings.recentSearches.isNotEmpty()) Row(
+                Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                settings.recentSearches.forEach { r -> AssistChip(onClick = { onQuery(r) }, label = { Text(r) }) }
+            }
+            return@Column
+        }
+        if (vm.allFailed) { Text(stringResource(R.string.msg_network_error), modifier = Modifier.padding(16.dp)); return@Column }
+        if (!vm.allLoading && shown.isEmpty()) { Text(stringResource(R.string.guide_search_none), modifier = Modifier.padding(16.dp), color = extra.subtle); return@Column }
+        LazyColumn(contentPadding = PaddingValues(bottom = 96.dp)) {
+            items(shown, key = { it.id }) { p ->
+                val mine = owned[p.name.lowercase()].orEmpty()
+                val loose = mine.filter { it.entry.deckId == null }.sumOf { it.entry.quantity }
+                val inDecks = mine.mapNotNull { it.entry.deckId }.distinct().mapNotNull { deckNames[it] }
+                val tag = listOfNotNull(
+                    if (loose > 0) stringResource(R.string.tag_in_collection, loose) else null,
+                    inDecks.takeIf { it.isNotEmpty() }?.let { stringResource(R.string.in_deck, it.joinToString(", ")) },
+                ).joinToString(" · ").ifBlank { null }
+                CardRow(nl.spoonpaco.ninegrid.data.db.Entry(printId = p.id), p, settings, vm.images, tag = tag) { vm.openPrint(p, query, onCard) }
+            }
+            if (vm.allHasMore) item {
+                TextButton(onClick = { vm.moreAll(query, filter) }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.load_more)) }
+            }
+        }
+    }
+}
+
+/** De verlanglijst: wat je zoekt, met "Gekocht", aanpassen en prijsalarm. */
+@Composable
+private fun WishlistPanel(vm: AppViewModel, onCard: (String) -> Unit, onPaste: () -> Unit, onAll: () -> Unit) {
+    val settings by vm.settings.collectAsState()
+    val wishes by vm.wishlist.collectAsState()
+    val extra = LocalNgExtra.current
+    var edit by remember { mutableStateOf<nl.spoonpaco.ninegrid.data.db.WishWithPrint?>(null) }
+    if (wishes.isEmpty()) {
+        Column(Modifier.fillMaxWidth().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            EmptyState(stringResource(R.string.wish_empty_title), stringResource(R.string.wish_empty_body))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                androidx.compose.material3.OutlinedButton(onClick = onAll) { Text(stringResource(R.string.mode_all)) }
+                androidx.compose.material3.OutlinedButton(onClick = onPaste) { Text(stringResource(R.string.wish_paste)) }
+            }
+        }
+        return
+    }
+    LazyColumn(contentPadding = PaddingValues(bottom = 96.dp)) {
+        items(wishes, key = { it.item.id }) { w ->
+            val p = w.print
+            val e = nl.spoonpaco.ninegrid.data.db.Entry(printId = w.item.printId, quantity = 1, finish = if (w.item.foilOnly) nl.spoonpaco.ninegrid.data.db.Finish.FOIL else nl.spoonpaco.ninegrid.data.db.Finish.NONFOIL)
+            val where = if (w.item.anyPrint) stringResource(R.string.wish_any_print) else null
+            val tag = listOfNotNull(
+                if (w.item.wanted > 1) stringResource(R.string.wish_progress, w.item.got, w.item.wanted) else null,
+                w.item.alarmPrice?.let { "🔔 " + stringResource(R.string.wish_alarm_below, Money.format(it, w.item.alarmCurrency)) },
+            ).joinToString(" · ").ifBlank { null }
+            Column {
+                CardRow(e, p, settings, vm.images, location = where, tag = tag) { p?.let { onCard(it.id) } }
+                Row(Modifier.fillMaxWidth().padding(start = 56.dp, end = 12.dp), horizontalArrangement = Arrangement.End) {
+                    TextButton(onClick = { edit = w }) { Text(stringResource(R.string.edit)) }
+                    TextButton(onClick = { vm.boughtWish(w) }) { Text(stringResource(R.string.wish_bought_btn)) }
+                }
+            }
+        }
+        item { Text(stringResource(R.string.wish_alarm_note), fontSize = 11.sp, color = extra.subtle, modifier = Modifier.padding(16.dp)) }
+    }
+    edit?.let { w -> WishEditDialog(vm, w, onDismiss = { edit = null }) }
+}
+
+@Composable
+private fun WishEditDialog(vm: AppViewModel, w: nl.spoonpaco.ninegrid.data.db.WishWithPrint, onDismiss: () -> Unit) {
+    val settings by vm.settings.collectAsState()
+    var wanted by remember { mutableStateOf(w.item.wanted.toString()) }
+    var anyPrint by remember { mutableStateOf(w.item.anyPrint) }
+    var foilOnly by remember { mutableStateOf(w.item.foilOnly) }
+    var alarmOn by remember { mutableStateOf(w.item.alarmPrice != null) }
+    val unit = w.print?.let { p -> Money.unitPrice(nl.spoonpaco.ninegrid.data.db.Entry(printId = p.id, finish = if (foilOnly) nl.spoonpaco.ninegrid.data.db.Finish.FOIL else nl.spoonpaco.ninegrid.data.db.Finish.NONFOIL), p, settings.currency) } ?: 0.0
+    // Doelprijs staat al klaar: huidige prijs min 10%.
+    var target by remember { mutableStateOf(String.format(java.util.Locale.US, "%.2f", w.item.alarmPrice ?: (unit * 0.9))) }
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(w.item.name) },
+        text = {
+            Column {
+                androidx.compose.material3.OutlinedTextField(wanted, { v -> wanted = v.filter { it.isDigit() }.take(3) }, singleLine = true, label = { Text(stringResource(R.string.wish_wanted)) },
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number))
+                CheckRowSimple(stringResource(R.string.wish_any_print_long), anyPrint) { anyPrint = it }
+                if (!anyPrint && w.print != null) Text("${w.print.setCode} ${w.print.collectorNumber} · ${w.print.setName}", fontSize = 12.sp, modifier = Modifier.padding(start = 48.dp))
+                CheckRowSimple(stringResource(R.string.wish_foil_only), foilOnly) { foilOnly = it }
+                Spacer(Modifier.padding(4.dp))
+                CheckRowSimple(stringResource(R.string.wish_alarm), alarmOn) { alarmOn = it }
+                if (alarmOn) {
+                    androidx.compose.material3.OutlinedTextField(target, { v -> target = v.replace(',', '.').filter { it.isDigit() || it == '.' }.take(8) }, singleLine = true,
+                        label = { Text(stringResource(R.string.wish_alarm_target, settings.currency)) },
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal))
+                    Text(stringResource(R.string.wish_alarm_note), fontSize = 11.sp, color = LocalNgExtra.current.subtle)
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                val n = wanted.toIntOrNull()?.coerceAtLeast(1) ?: w.item.wanted
+                vm.updateWish(w.item.copy(
+                    wanted = n, got = w.item.got.coerceAtMost(n - 1).coerceAtLeast(0), anyPrint = anyPrint, foilOnly = foilOnly,
+                    alarmPrice = if (alarmOn) target.toDoubleOrNull() else null, alarmCurrency = settings.currency, alarmArmed = true,
+                ))
+                onDismiss()
+            }) { Text(stringResource(R.string.save)) }
+        },
+        dismissButton = {
+            Row {
+                TextButton(onClick = { vm.deleteWish(w.item.id); onDismiss() }) { Text(stringResource(R.string.delete), color = nl.spoonpaco.ninegrid.ui.theme.NgColors.Error) }
+                TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
+            }
+        },
+    )
+}
+
+@Composable
+private fun CheckRowSimple(label: String, v: Boolean, set: (Boolean) -> Unit) {
+    Row(Modifier.fillMaxWidth().clickable { set(!v) }, verticalAlignment = Alignment.CenterVertically) {
+        androidx.compose.material3.Checkbox(checked = v, onCheckedChange = set); Text(label, fontSize = 14.sp)
+    }
+}
+
+/** Een lijst plakken naar de verlanglijst. */
+@Composable
+private fun WishPasteDialog(vm: AppViewModel, onDismiss: () -> Unit) {
+    var text by remember { mutableStateOf("") }
+    var busy by remember { mutableStateOf(false) }
+    var result by remember { mutableStateOf<Pair<Int, Int>?>(null) }
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = { if (!busy) onDismiss() },
+        title = { Text(stringResource(R.string.wish_paste)) },
+        text = {
+            Column {
+                Text(stringResource(R.string.wish_paste_hint), fontSize = 12.sp)
+                androidx.compose.material3.OutlinedTextField(text, { text = it }, minLines = 4, modifier = Modifier.fillMaxWidth().padding(top = 6.dp))
+                if (busy) LinearProgressIndicator(Modifier.fillMaxWidth().padding(top = 6.dp))
+                result?.let { (ok, bad) -> Text(stringResource(R.string.wish_paste_done, ok) + if (bad > 0) " · " + stringResource(R.string.share_not_found, bad) else "", fontSize = 13.sp) }
+            }
+        },
+        confirmButton = {
+            if (result == null) TextButton(onClick = { busy = true; vm.pasteToWishlist(text) { ok, bad -> busy = false; result = ok to bad } }, enabled = !busy && text.isNotBlank()) { Text(stringResource(R.string.add)) }
+            else TextButton(onClick = onDismiss) { Text(stringResource(R.string.done)) }
+        },
+        dismissButton = { if (result == null) TextButton(onClick = onDismiss, enabled = !busy) { Text(stringResource(R.string.cancel)) } },
+    )
 }
 
 @Composable

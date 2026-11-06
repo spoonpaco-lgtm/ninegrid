@@ -209,3 +209,73 @@ data class FriendCardWithPrint(
     @androidx.room.Relation(parentColumn = "printId", entityColumn = "id")
     val print: CardPrint?,
 )
+
+/**
+ * Een kaart op de verlanglijst. [printId] is altijd gevuld (voor plaatje en prijs); bij [anyPrint] is elke print goed.
+ * [got] telt af bij scannen of importeren; is [got] gelijk aan [wanted], dan gaat hij van de lijst.
+ */
+@Serializable
+@Entity(tableName = "wishlist", indices = [Index("name")])
+data class WishItem(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val name: String,
+    val oracleId: String = "",
+    val printId: String,
+    val anyPrint: Boolean = true,
+    val foilOnly: Boolean = false,
+    val wanted: Int = 1,
+    val got: Int = 0,
+    val addedAt: Long = System.currentTimeMillis(),
+    /** Prijsalarm: melden als de prijs onder dit bedrag komt (in [alarmCurrency]); null = geen alarm. */
+    val alarmPrice: Double? = null,
+    val alarmCurrency: String = "EUR",
+    /** Mag het alarm melden? Na een melding pas weer als de prijs eerst boven het doel is geweest. */
+    val alarmArmed: Boolean = true,
+)
+
+data class WishWithPrint(
+    @androidx.room.Embedded val item: WishItem,
+    @androidx.room.Relation(parentColumn = "printId", entityColumn = "id")
+    val print: CardPrint?,
+)
+
+/** Een geopende booster: wat je betaalde en wat de kaarten toen waard waren. */
+@Serializable
+@Entity(tableName = "boosters")
+data class Booster(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val openedAt: Long = System.currentTimeMillis(),
+    val setCode: String,
+    /** "", "play", "collector", "set" */
+    val type: String = "",
+    val paid: Double,
+    val currency: String = "EUR",
+    val boxId: Long? = null,
+    val valueAtOpen: Double = 0.0,
+    val valueNoBulkAtOpen: Double = 0.0,
+    /** De wijziging in het wijzigingslog; ongedaan maken haalt de booster ook weg. */
+    val changeId: Long? = null,
+)
+
+@Serializable
+@Entity(tableName = "booster_cards", indices = [Index("boosterId")])
+data class BoosterCard(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val boosterId: Long,
+    val printId: String,
+    val finish: String = Finish.NONFOIL,
+    val quantity: Int = 1,
+)
+
+/** Een box: hoeveel boosters erin zitten en wat hij kostte. */
+@Serializable
+@Entity(tableName = "booster_boxes")
+data class BoosterBox(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val setCode: String,
+    val type: String = "",
+    val size: Int,
+    val price: Double,
+    val currency: String = "EUR",
+    val createdAt: Long = System.currentTimeMillis(),
+)

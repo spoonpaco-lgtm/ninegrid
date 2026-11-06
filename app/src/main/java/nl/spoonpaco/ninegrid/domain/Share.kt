@@ -52,6 +52,8 @@ object ShareKind {
     const val BINDER = "BINDER"
     const val SET = "SET"
     const val DECK = "DECK"
+    /** De verlanglijst van de deler (geen bezit: telt nergens mee, alleen voor de ruilmatch). */
+    const val WISH = "WISH"
 }
 
 /** Wat iemand kiest om te sturen. Alles = de losse collectie plus alle decks. Combineren mag. */
@@ -83,7 +85,10 @@ object Share {
             }
             .sortedWith(compareBy({ it.set }, { it.nr.padStart(5, '0') }))
 
-    fun packages(entries: List<EntryWithPrint>, decks: List<Deck>, choice: ShareChoice): List<SharePackage> {
+    fun packages(
+        entries: List<EntryWithPrint>, decks: List<Deck>, choice: ShareChoice,
+        wishes: List<nl.spoonpaco.ninegrid.data.db.WishWithPrint> = emptyList(),
+    ): List<SharePackage> {
         val loose = entries.filter { it.entry.deckId == null }
         val out = mutableListOf<SharePackage>()
         if (choice.all || choice.loose) out += SharePackage("loose", "", ShareKind.LOOSE, cards = cardsOf(loose, false))
@@ -100,6 +105,14 @@ object Share {
         decks.filter { it.id in deckIds }.sortedBy { it.name.lowercase() }.forEach { d ->
             out += SharePackage("deck:${d.name}", d.name, ShareKind.DECK, d.format, cardsOf(entries.filter { it.entry.deckId == d.id }, true))
         }
+        // Verlanglijst: wat nog ontbreekt. "ANY" = elke print is goed.
+        if (choice.wishlist) out += SharePackage("wish", "", ShareKind.WISH, cards = wishes.filter { it.item.wanted > it.item.got }.map { w ->
+            ShareCard(
+                id = w.item.printId, set = w.print?.setCode.orEmpty(), nr = w.print?.collectorNumber.orEmpty(), name = w.item.name,
+                finish = if (w.item.foilOnly) nl.spoonpaco.ninegrid.data.db.Finish.FOIL else nl.spoonpaco.ninegrid.data.db.Finish.NONFOIL,
+                qty = w.item.wanted - w.item.got, section = if (w.item.anyPrint) "ANY" else null,
+            )
+        })
         return out.filter { it.cards.isNotEmpty() }
     }
 

@@ -29,6 +29,13 @@ class MainActivity : AppCompatActivity() {
         if (intent.getBooleanExtra(nl.spoonpaco.ninegrid.data.ImportWorker.EXTRA_OPEN_IMPORT, false)) vm.openImport = true
         sharedUri(intent)?.let { vm.receiveShared(it) }
         if (intent.getBooleanExtra(nl.spoonpaco.ninegrid.data.Updater.EXTRA_INSTALL, false)) vm.showReadyUpdate()
+        openFromAlarm(intent)
+    }
+
+    /** Getikt op een prijsalarm: de kaart, of de verlanglijst bij meer kaarten. */
+    private fun openFromAlarm(i: android.content.Intent?) {
+        i?.getStringExtra(nl.spoonpaco.ninegrid.data.PriceWorker.EXTRA_OPEN_CARD)?.let { vm.openCardRequest = it }
+        if (i?.getBooleanExtra(nl.spoonpaco.ninegrid.data.PriceWorker.EXTRA_OPEN_WISH, false) == true) vm.collectionModeRequest = "wish"
     }
 
     /** Een gedeelde collectie die vanuit een andere app (WhatsApp, Bestanden …) is geopend of gestuurd. */
@@ -65,6 +72,7 @@ class MainActivity : AppCompatActivity() {
         // Alleen bij een verse start, niet na draaien van het scherm.
         if (savedInstanceState == null) sharedUri(intent)?.let { vm.receiveShared(it) }
         if (savedInstanceState == null && intent?.getBooleanExtra(nl.spoonpaco.ninegrid.data.Updater.EXTRA_INSTALL, false) == true) vm.showReadyUpdate()
+        if (savedInstanceState == null) openFromAlarm(intent)
         enableEdgeToEdge()
         setContent {
             // Wacht tot de instellingen geladen zijn, zodat de uitleg niet even opflitst.
