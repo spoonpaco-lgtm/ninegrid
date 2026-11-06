@@ -93,6 +93,7 @@ fun CardDetailScreen(vm: AppViewModel, printId: String, onBack: () -> Unit) {
         TopAppBar(
             title = { Text(print?.name ?: "", maxLines = 1) },
             navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) } },
+            actions = { nl.spoonpaco.ninegrid.ui.guide.HelpButton("collection") },
         )
     }) { pad ->
         val p = print

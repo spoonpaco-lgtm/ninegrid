@@ -618,4 +618,27 @@
     <string name="scan_check_n">%1$d controleren</string>
     <string name="scan_check_button">Controleer (%1$d)</string>
     <string name="scan_foil_preview_hint">Tik voor foil</string>
+    <string name="on">aan</string>
+    <string name="off">uit</string>
+    <string name="set_group_view">Weergave</string>
+    <string name="set_group_scan">Scannen</string>
+    <string name="set_group_data">Kaartgegevens</string>
+    <string name="set_group_collection">Collectie</string>
+    <string name="set_group_ai">AI-hulp</string>
+    <string name="set_group_backup">Back-up en export</string>
+    <string name="set_group_about">Over NineGrid</string>
+    <string name="setting_auto_short">Automatisch</string>
+    <string name="setting_timing_short">tijden</string>
+    <string name="offline_db_short">offline database</string>
+    <string name="wipe_summary">Collectie, decks of historie wissen – altijd eerst een back-up</string>
+    <string name="whats_new">Wat is nieuw</string>
+    <string name="about_app">Over de app en bronnen</string>
+    <string name="guide_card_title">Handleiding: hoe werkt NineGrid?</string>
+    <string name="guide_card_sub">Alles stap voor stap uitgelegd, met zoeken. Het ? op elk scherm opent het juiste hoofdstuk.</string>
+    <string name="share_title">Delen en ruilen</string>
+    <string name="share_sub">Je collectie sturen, collecties van vrienden bekijken, ruilen</string>
+    <string name="whats_new_more">Lees meer in de handleiding →</string>
+    <string name="whats_new_later">Dit lees je terug via Instellingen → Over NineGrid.</string>
+    <string name="guide_search">Zoek in de handleiding</string>
+    <string name="guide_search_none">Niets gevonden. Probeer een ander woord.</string>
 </resources>

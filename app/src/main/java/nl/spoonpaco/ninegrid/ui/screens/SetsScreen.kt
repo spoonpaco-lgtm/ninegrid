@@ -115,6 +115,7 @@ fun SetsScreen(vm: AppViewModel, onBack: () -> Unit, onSet: (String) -> Unit) {
 
     Scaffold(topBar = {
         TopAppBar(
+            actions = { nl.spoonpaco.ninegrid.ui.guide.HelpButton("overview") },
             navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, null) } },
             title = {
                 Column {

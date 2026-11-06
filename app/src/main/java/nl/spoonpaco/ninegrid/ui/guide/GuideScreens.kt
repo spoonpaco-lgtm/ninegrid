@@ -61,6 +61,8 @@ private fun isDutch(): Boolean = LocalConfiguration.current.locales[0].language 
 @Composable
 fun GuideScreen(onBack: () -> Unit, onChapter: (String) -> Unit) {
     val chapters = Guide.chapters(isDutch())
+    var query by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf("") }
+    val hits = androidx.compose.runtime.remember(query, chapters) { Guide.search(chapters, query) }
     Scaffold(topBar = {
         TopAppBar(
             title = { Text(stringResource(R.string.guide), fontWeight = FontWeight.Bold) },
@@ -68,14 +70,35 @@ fun GuideScreen(onBack: () -> Unit, onChapter: (String) -> Unit) {
         )
     }) { pad ->
         LazyColumn(Modifier.padding(pad)) {
-            itemsIndexed(chapters, key = { _, c -> c.id }) { i, c ->
-                ListItem(
-                    leadingContent = { Text("${i + 1}", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, fontSize = 18.sp, modifier = Modifier.width(24.dp)) },
-                    headlineContent = { Text(c.title, fontWeight = FontWeight.Bold) },
-                    supportingContent = { Text(c.summary) },
-                    modifier = Modifier.clickable { onChapter(c.id) },
+            item {
+                androidx.compose.material3.OutlinedTextField(
+                    query, { query = it }, singleLine = true,
+                    placeholder = { Text(stringResource(R.string.guide_search)) },
+                    leadingIcon = { Icon(androidx.compose.material.icons.Icons.Filled.Search, null) },
+                    trailingIcon = { if (query.isNotEmpty()) IconButton(onClick = { query = "" }) { Icon(androidx.compose.material.icons.Icons.Filled.Close, null) } },
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
                 )
-                HorizontalDivider()
+            }
+            if (query.isBlank()) {
+                itemsIndexed(chapters, key = { _, c -> c.id }) { i, c ->
+                    ListItem(
+                        leadingContent = { Text("${i + 1}", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, fontSize = 18.sp, modifier = Modifier.width(24.dp)) },
+                        headlineContent = { Text(c.title, fontWeight = FontWeight.Bold) },
+                        supportingContent = { Text(c.summary) },
+                        modifier = Modifier.clickable { onChapter(c.id) },
+                    )
+                    HorizontalDivider()
+                }
+            } else {
+                if (hits.isEmpty()) item { Text(stringResource(R.string.guide_search_none), modifier = Modifier.padding(16.dp), color = LocalNgExtra.current.subtle) }
+                itemsIndexed(hits, key = { _, h -> h.chapter.id }) { _, h ->
+                    ListItem(
+                        headlineContent = { Text(h.chapter.title, fontWeight = FontWeight.Bold) },
+                        supportingContent = { Text(h.snippet, maxLines = 3) },
+                        modifier = Modifier.clickable { onChapter(h.chapter.id) },
+                    )
+                    HorizontalDivider()
+                }
             }
         }
     }

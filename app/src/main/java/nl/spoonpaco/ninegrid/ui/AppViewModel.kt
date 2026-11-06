@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import nl.spoonpaco.ninegrid.NineGridApp
+import nl.spoonpaco.ninegrid.BuildConfig
 import nl.spoonpaco.ninegrid.R
 import nl.spoonpaco.ninegrid.data.AppSettings
 import nl.spoonpaco.ninegrid.data.BackupWorker
@@ -847,6 +848,15 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         }
         if (helped > 0) message = str(R.string.ai_helped, helped)
     }
+
+    /** "Wat is nieuw" tonen na een update (niet bij een nieuwe installatie). */
+    var showWhatsNew by mutableStateOf(false)
+    fun checkWhatsNew() = viewModelScope.launch {
+        val s = settingsStore.current()
+        if (s.lastSeenVersion == BuildConfig.VERSION_NAME) return@launch
+        if (s.onboardingDone) showWhatsNew = true else settingsStore.setLastSeenVersion(BuildConfig.VERSION_NAME)
+    }
+    fun closeWhatsNew() = viewModelScope.launch { showWhatsNew = false; settingsStore.setLastSeenVersion(BuildConfig.VERSION_NAME) }
 
     fun setDecksSort(v: String) = viewModelScope.launch { settingsStore.setDecksSort(v) }
     fun setCompletionist(v: Boolean) = viewModelScope.launch { settingsStore.setCompletionist(v) }

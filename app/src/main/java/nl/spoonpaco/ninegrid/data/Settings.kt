@@ -50,6 +50,8 @@ data class AppSettings(
     /** Melding bij een Breakout: een kaart die op één dag flink stijgt. */
     val breakoutAlerts: Boolean = true,
     val lastBreakoutDay: String = "",
+    /** De versie waarvan "Wat is nieuw" al is getoond. */
+    val lastSeenVersion: String = "",
     /** Offline kaartdatabase: off, newset (bij nieuwe set) of manual. */
     val offlineDb: String = OfflineDb.OFF,
     val offlineDbUpdated: Long = 0,
@@ -115,6 +117,7 @@ class SettingsStore(private val context: Context) {
         val autoSpeed = stringPreferencesKey("auto_speed")
         val breakoutAlerts = booleanPreferencesKey("breakout_alerts")
         val lastBreakoutDay = stringPreferencesKey("last_breakout_day")
+        val lastSeenVersion = stringPreferencesKey("last_seen_version")
         val offlineDb = stringPreferencesKey("offline_db")
         val offlineDbUpdated = longPreferencesKey("offline_db_updated")
         val offlineDbCount = androidx.datastore.preferences.core.intPreferencesKey("offline_db_count")
@@ -168,6 +171,7 @@ class SettingsStore(private val context: Context) {
         autoSpeed = this[K.autoSpeed] ?: "normal",
         breakoutAlerts = this[K.breakoutAlerts] ?: true,
         lastBreakoutDay = this[K.lastBreakoutDay] ?: "",
+        lastSeenVersion = this[K.lastSeenVersion] ?: "",
         offlineDb = this[K.offlineDb] ?: OfflineDb.OFF,
         offlineDbUpdated = this[K.offlineDbUpdated] ?: 0,
         offlineDbCount = this[K.offlineDbCount] ?: 0,
@@ -216,6 +220,7 @@ class SettingsStore(private val context: Context) {
     suspend fun setAutoSpeed(v: String) = context.dataStore.edit { it[K.autoSpeed] = v }
     suspend fun setBreakoutAlerts(v: Boolean) = context.dataStore.edit { it[K.breakoutAlerts] = v }
     suspend fun setLastBreakoutDay(v: String) = context.dataStore.edit { it[K.lastBreakoutDay] = v }
+    suspend fun setLastSeenVersion(v: String) = context.dataStore.edit { it[K.lastSeenVersion] = v }
     suspend fun setOfflineDb(v: String) = context.dataStore.edit { it[K.offlineDb] = v }
     suspend fun setOfflineDbDone(at: Long, count: Int) = context.dataStore.edit { it[K.offlineDbUpdated] = at; it[K.offlineDbCount] = count }
     suspend fun setOfflineDbMobile(v: Boolean) = context.dataStore.edit { it[K.offlineDbMobile] = v; if (!v) it[K.offlineDbMobileAuto] = false }

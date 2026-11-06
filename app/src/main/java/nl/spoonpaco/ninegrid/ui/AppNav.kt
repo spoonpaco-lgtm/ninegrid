@@ -91,7 +91,7 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
         if (r == androidx.compose.material3.SnackbarResult.ActionPerformed) vm.undo()
         vm.message = null
     }
-    LaunchedEffect(Unit) { vm.checkUpdate(manual = false) }
+    LaunchedEffect(Unit) { vm.checkUpdate(manual = false); vm.checkWhatsNew() }
     LaunchedEffect(vm.openImport) { if (vm.openImport) { vm.openImport = false; nav.navigate("import") } }
 
     // Na de eerste 20 kaarten één keer vragen om een back-upmap, zodat je collectie niet zomaar weg kan zijn.
@@ -172,6 +172,7 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
                     onAbout = { nav.navigate("about") },
                     onGuide = { nav.navigate("guide") },
                     onImport = { nav.navigate("import") },
+                    onShare = { nav.navigate("share") },
                 )
             }
             composable("card/{printId}", arguments = listOf(navArgument("printId") { type = NavType.StringType })) {
@@ -216,7 +217,12 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
                 nl.spoonpaco.ninegrid.ui.screens.ImportScreen(vm, onBack = { nav.popBackStack() }, onDone = { tab("collection") })
             }
             composable("changes") { ChangeLogScreen(vm, onBack = { nav.popBackStack() }) }
-            composable("settings") { SettingsScreen(vm, onBack = { nav.popBackStack() }) }
+            composable("settings") {
+                SettingsScreen(
+                    vm, onBack = { nav.popBackStack() }, onGuide = { nav.navigate("guide") },
+                    onAbout = { nav.navigate("about") }, onWhatsNew = { vm.showWhatsNew = true },
+                )
+            }
             composable("about") {
                 AboutScreen(onBack = { nav.popBackStack() }, onTour = { nav.navigate("onboarding") })
             }
@@ -224,6 +230,8 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
     }
 
     }
+
+    if (vm.showWhatsNew) nl.spoonpaco.ninegrid.ui.guide.WhatsNewDialog(onChapter = { nav.navigate("guide/$it") }, onDismiss = { vm.closeWhatsNew() })
 
     if (askBackup) {
         AlertDialog(

@@ -619,4 +619,27 @@
     <string name="scan_check_n">%1$d to check</string>
     <string name="scan_check_button">Check (%1$d)</string>
     <string name="scan_foil_preview_hint">Tap for foil</string>
+    <string name="on">on</string>
+    <string name="off">off</string>
+    <string name="set_group_view">Display</string>
+    <string name="set_group_scan">Scanning</string>
+    <string name="set_group_data">Card data</string>
+    <string name="set_group_collection">Collection</string>
+    <string name="set_group_ai">AI help</string>
+    <string name="set_group_backup">Backup and export</string>
+    <string name="set_group_about">About NineGrid</string>
+    <string name="setting_auto_short">Automatic</string>
+    <string name="setting_timing_short">times</string>
+    <string name="offline_db_short">offline database</string>
+    <string name="wipe_summary">Wipe collection, decks or history – always with a backup first</string>
+    <string name="whats_new">What\'s new</string>
+    <string name="about_app">About the app and credits</string>
+    <string name="guide_card_title">Guide: how does NineGrid work?</string>
+    <string name="guide_card_sub">Every part explained step by step, with search. The ? on each screen opens the right chapter.</string>
+    <string name="share_title">Share and trade</string>
+    <string name="share_sub">Send your collection, view friends\' collections, find trades</string>
+    <string name="whats_new_more">Read more in the guide →</string>
+    <string name="whats_new_later">You can read this again under Settings → About NineGrid.</string>
+    <string name="guide_search">Search the guide</string>
+    <string name="guide_search_none">Nothing found. Try another word.</string>
 </resources>

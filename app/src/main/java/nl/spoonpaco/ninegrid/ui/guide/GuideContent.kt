@@ -15,6 +15,33 @@ object Guide {
     fun chapters(dutch: Boolean): List<Chapter> = if (dutch) NL else EN
     fun chapter(id: String, dutch: Boolean) = chapters(dutch).firstOrNull { it.id == id }
 
+    data class Hit(val chapter: Chapter, val snippet: String, val score: Int)
+
+    /** Alle tekst van een hoofdstuk, als losse stukken. */
+    private fun texts(c: Chapter): List<String> = c.blocks.flatMap { b ->
+        when (b) { is H -> listOf(b.text); is P -> listOf(b.text); is Steps -> b.items; is Tip -> listOf(b.text); is Note -> listOf(b.text) }
+    }
+
+    /**
+     * Zoeken: elk woord moet ergens in het hoofdstuk staan. Treffers in de titel tellen zwaarder.
+     * Het fragment is het eerste stuk tekst met het eerste woord erin.
+     */
+    fun search(chapters: List<Chapter>, query: String): List<Hit> {
+        val words = query.lowercase().split(Regex("\\s+")).filter { it.length >= 2 }
+        if (words.isEmpty()) return emptyList()
+        return chapters.mapNotNull { c ->
+            val parts = listOf(c.title, c.summary) + texts(c)
+            val all = parts.joinToString(" ").lowercase()
+            if (!words.all { it in all }) return@mapNotNull null
+            val score = words.sumOf { w -> (if (w in c.title.lowercase()) 10 else 0) + (if (w in c.summary.lowercase()) 4 else 0) + (all.split(w).size - 1) }
+            val part = texts(c).firstOrNull { p -> words.any { it in p.lowercase() } } ?: c.summary
+            val i = words.mapNotNull { w -> part.lowercase().indexOf(w).takeIf { it >= 0 } }.minOrNull() ?: 0
+            val from = (i - 40).coerceAtLeast(0)
+            val snippet = (if (from > 0) "…" else "") + part.substring(from).take(160).replace("\n", " ") + if (part.length - from > 160) "…" else ""
+            Hit(c, snippet, score)
+        }.sortedByDescending { it.score }
+    }
+
     private val NL = listOf(
         Chapter("start", "Snel beginnen", "In vijf stappen van een lege app naar je eerste kaarten.", listOf(
             P("NineGrid begint leeg. Alles wat je invoert staat op je eigen telefoon en werkt ook zonder internet; alleen voor het opzoeken van kaarten en prijzen is internet nodig."),
