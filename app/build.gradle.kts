@@ -14,6 +14,17 @@ val versionCodenameValue = "Jace"
 val versionCodeValue = (System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 1)
 
 android {
+    // Bij een mislukte test de hele melding in de log (anders alleen de regel).
+    testOptions {
+        unitTests.all {
+            it.testLogging {
+                events("failed")
+                exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+                showStandardStreams = false
+            }
+        }
+    }
+
     namespace = "nl.spoonpaco.ninegrid"
     compileSdk = 35
 
