@@ -156,8 +156,8 @@ fun CollectionScreen(
                     Text(
                         when (mode) {
                             "all" -> stringResource(R.string.all_cards_sub)
-                            "wish" -> stringResource(R.string.wish_total, vm.wishlistCount(), Money.format(wishValue, settings.currency))
-                            else -> pluralStringResource(R.plurals.n_cards, count, count) + " · " + Money.format(value, settings.currency)
+                            "wish" -> stringResource(R.string.wish_total, vm.wishlistCount(), nl.spoonpaco.ninegrid.ui.components.money(wishValue, settings.currency))
+                            else -> pluralStringResource(R.plurals.n_cards, count, count) + " · " + nl.spoonpaco.ninegrid.ui.components.money(value, settings.currency)
                         },
                         style = MaterialTheme.typography.bodySmall, color = LocalNgExtra.current.subtle,
                     )
@@ -229,7 +229,7 @@ fun CollectionScreen(
                                             g.binder.isEmpty() -> stringResource(R.string.no_binder)
                                             else -> g.binder
                                         }
-                                        val detail = pluralStringResource(R.plurals.n_cards, g.count, g.count) + " · " + Money.format(g.value, settings.currency)
+                                        val detail = pluralStringResource(R.plurals.n_cards, g.count, g.count) + " · " + nl.spoonpaco.ninegrid.ui.components.money(g.value, settings.currency)
                                         if (g.binder != null && g.binder.isNotEmpty() && !g.binder.startsWith("\u0000")) {
                                             // Tik op een binder: de bladweergave.
                                             Row(Modifier.fillMaxWidth().clickable { onBinder(g.binder) }) { SectionHeader("$title  ▦ ›", detail) }
@@ -340,7 +340,7 @@ private fun WishlistPanel(vm: AppViewModel, onCard: (String) -> Unit, onPaste: (
             val where = if (w.item.anyPrint) stringResource(R.string.wish_any_print) else null
             val tag = listOfNotNull(
                 if (w.item.wanted > 1) stringResource(R.string.wish_progress, w.item.got, w.item.wanted) else null,
-                w.item.alarmPrice?.let { "🔔 " + stringResource(R.string.wish_alarm_below, Money.format(it, w.item.alarmCurrency)) },
+                w.item.alarmPrice?.let { "🔔 " + stringResource(R.string.wish_alarm_below, nl.spoonpaco.ninegrid.ui.components.money(it, w.item.alarmCurrency)) },
             ).joinToString(" · ").ifBlank { null }
             Column {
                 CardRow(e, p, settings, vm.images, location = where, tag = tag) { p?.let { onCard(it.id) } }

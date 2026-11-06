@@ -880,4 +880,20 @@
     <string name="accent_explain">Knoppen en grafieken in een manakleur of een combinatie van twee. Het logo blijft hetzelfde.</string>
     <string name="effects">Magic-effecten</string>
     <string name="effects_explain">Foil-glans bij kantelen, verbannen-animatie en stempels.</string>
+    <string name="privacy_gate_title">Bevestig dat jij het bent</string>
+    <string name="privacy_gate_off">Privacymodus uitzetten</string>
+    <string name="privacy_gate_peek">Bedragen 15 seconden tonen</string>
+    <string name="privacy_gate_export">De export bevat prijzen</string>
+    <string name="privacy_gate_settings">Privacy-instellingen wijzigen</string>
+    <string name="privacy_on">Privacymodus aan (ingedrukt houden om even te kijken)</string>
+    <string name="privacy_off">Privacymodus uit</string>
+    <string name="privacy_title">Privacy</string>
+    <string name="privacy_mode">Privacymodus</string>
+    <string name="privacy_explain">Verbergt alle bedragen, behalve in de ruilmatch. Uitzetten kan alleen met je vingerafdruk of schermvergrendeling.</string>
+    <string name="privacy_style">Stijl</string>
+    <string name="privacy_style_compleated">Compleated</string>
+    <string name="privacy_style_seal">Zegel</string>
+    <string name="privacy_style_shadow">Schaduw</string>
+    <string name="privacy_style_dots">Stippen</string>
+    <string name="privacy_note">Ook via het oog bovenin Collectie, Decks en Overzicht. Zolang hij aan staat vragen back-up en CSV-export om je vingerafdruk, en meldingen tonen geen bedragen.</string>
 </resources>

@@ -80,10 +80,12 @@ class MainActivity : AppCompatActivity() {
             val s = loaded
             NineGridTheme(themeMode = s?.theme ?: "system", accent = s?.accent ?: "") {
                 nl.spoonpaco.ninegrid.ui.components.EffectsProvider(s?.effects ?: true) {
-                    Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                        if (s != null) {
-                            val onboarding = remember { !s.onboardingDone }
-                            AppNav(vm, showOnboarding = onboarding)
+                    nl.spoonpaco.ninegrid.ui.components.PrivacyProvider(vm) {
+                        Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                            if (s != null) {
+                                val onboarding = remember { !s.onboardingDone }
+                                AppNav(vm, showOnboarding = onboarding)
+                            }
                         }
                     }
                 }

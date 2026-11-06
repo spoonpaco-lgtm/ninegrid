@@ -119,7 +119,7 @@ fun SetScreen(vm: AppViewModel, code: String, onBack: () -> Unit, onReview: () -
                         }
                         Spacer(Modifier.height(6.dp))
                         val missingValue = missing.sumOf { (if (settings.currency == "USD") it.usd else it.eur) ?: 0.0 }
-                        Text(stringResource(R.string.set_missing_value, Money.format(missingValue, settings.currency)), fontSize = 13.sp, color = extra.subtle)
+                        Text(stringResource(R.string.set_missing_value, nl.spoonpaco.ninegrid.ui.components.money(missingValue, settings.currency)), fontSize = 13.sp, color = extra.subtle)
                         Spacer(Modifier.height(8.dp))
                         nl.spoonpaco.ninegrid.ui.components.FilterSearchBar(
                             query = query, onQuery = { query = it }, placeholder = stringResource(R.string.sets_search_card),
@@ -147,7 +147,7 @@ fun SetScreen(vm: AppViewModel, code: String, onBack: () -> Unit, onReview: () -
                     },
                     trailingContent = {
                         Row {
-                            Text(((if (settings.currency == "USD") c.usd else c.eur))?.let { Money.format(it, settings.currency) } ?: "–", color = extra.price)
+                            Text(((if (settings.currency == "USD") c.usd else c.eur))?.let { nl.spoonpaco.ninegrid.ui.components.money(it, settings.currency) } ?: "–", color = extra.price)
                             if (showMissing) {
                                 Spacer(Modifier.width(4.dp))
                                 IconButton(onClick = { vm.addMissing(c.id, onReview) }) { Icon(Icons.Filled.Add, stringResource(R.string.add_cards)) }

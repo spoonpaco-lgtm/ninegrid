@@ -186,7 +186,7 @@ fun CardRow(
             ManaPips(print?.colors ?: "", size = 16)
             Spacer(Modifier.width(8.dp))
             Column(horizontalAlignment = Alignment.End) {
-                Text(Money.format(Money.total(entry, print, settings.currency), settings.currency), color = extra.price, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                Text(nl.spoonpaco.ninegrid.ui.components.money(Money.total(entry, print, settings.currency), settings.currency), color = extra.price, fontWeight = FontWeight.Bold, fontSize = 14.sp, modifier = Modifier.then(nl.spoonpaco.ninegrid.ui.components.privacyMask()))
                 if (entry.quantity > 1) Text("${entry.quantity}×", color = extra.subtle, fontSize = 12.sp)
             }
         }
@@ -220,6 +220,3 @@ fun StatRow(label: String, value: String, bold: Boolean = false, onClick: (() ->
     }
 }
 
-/** Het oog van de privacymodus (wordt ingevuld in de privacymodus). */
-@Composable
-fun PrivacyButton(vm: nl.spoonpaco.ninegrid.ui.AppViewModel) {}

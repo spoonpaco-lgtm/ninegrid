@@ -176,6 +176,12 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit, onGuide: () -> Unit = {
     }
     val folder = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { it?.let(vm::setBackupFolder) }
     val currentLang = AppCompatDelegate.getApplicationLocales().toLanguageTags().ifBlank { "system" }
+    // Privacymodus aan: back-up en CSV (met prijzen) en de privacy-instellingen alleen na vingerafdruk.
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val gateTitle = stringResource(R.string.privacy_gate_title)
+    val gateExport = stringResource(R.string.privacy_gate_export)
+    val gateSettings = stringResource(R.string.privacy_gate_settings)
+    fun gated(sub: String, action: () -> Unit) = if (settings.privacy) nl.spoonpaco.ninegrid.ui.components.PrivacyGate.ask(context, gateTitle, sub, action) else action()
     val themeLabels = mapOf("system" to themeLabelPlain("system"), "day" to themeLabelPlain("day"), "night" to themeLabelPlain("night"))
     val langLabels = mapOf("system" to langLabelPlain("system"), "nl" to "Nederlands", "en" to "English")
     val imageLabels = listOf(ImageMode.OFF, ImageMode.SMALL, ImageMode.FULL).associateWith { imageModeLabelPlain(it) }
@@ -237,6 +243,33 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit, onGuide: () -> Unit = {
                         }
                         Switch(checked = settings.effects, onCheckedChange = { vm.setEffects(it) })
                     }
+                    // Privacymodus: aanzetten mag altijd, uitzetten en de stijl wijzigen alleen na vingerafdruk.
+                    Spacer(Modifier.height(16.dp))
+                    Text(stringResource(R.string.privacy_title), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text(stringResource(R.string.privacy_mode))
+                            Text(stringResource(R.string.privacy_explain), fontSize = 12.sp, color = nl.spoonpaco.ninegrid.ui.theme.LocalNgExtra.current.subtle)
+                        }
+                        Switch(checked = settings.privacy, onCheckedChange = { on -> if (on) vm.setPrivacy(true) else gated(gateSettings) { vm.setPrivacy(false) } })
+                    }
+                    Text(stringResource(R.string.privacy_style), modifier = Modifier.padding(top = 8.dp))
+                    nl.spoonpaco.ninegrid.ui.components.PrivacyStyle.all.forEach { st ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth().clickableRow { if (st != settings.privacyStyle) gated(gateSettings) { vm.setPrivacyStyle(st) } }.padding(vertical = 2.dp),
+                        ) {
+                            androidx.compose.material3.RadioButton(selected = settings.privacyStyle == st, onClick = null)
+                            Text(privacyStyleLabel(st), modifier = Modifier.weight(1f).padding(start = 8.dp))
+                            androidx.compose.runtime.CompositionLocalProvider(
+                                nl.spoonpaco.ninegrid.ui.components.LocalPrivacy provides nl.spoonpaco.ninegrid.ui.components.PrivacyState(true, st),
+                            ) {
+                                Text(nl.spoonpaco.ninegrid.ui.components.money(12.5, settings.currency), fontWeight = FontWeight.Bold,
+                                    color = nl.spoonpaco.ninegrid.ui.theme.LocalNgExtra.current.price, modifier = Modifier.then(nl.spoonpaco.ninegrid.ui.components.privacyMask()))
+                            }
+                        }
+                    }
+                    Text(stringResource(R.string.privacy_note), fontSize = 12.sp, color = nl.spoonpaco.ninegrid.ui.theme.LocalNgExtra.current.subtle)
                     ChoiceRow(stringResource(R.string.app_language), listOf("system", "nl", "en"), currentLang.substringBefore('-'), { langLabels[it] ?: it }) {
                         AppCompatDelegate.setApplicationLocales(if (it == "system") LocaleListCompat.getEmptyLocaleList() else LocaleListCompat.forLanguageTags(it))
                     }
@@ -412,7 +445,7 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit, onGuide: () -> Unit = {
                     Text(stringResource(R.string.backup_explain), fontSize = 12.sp, color = LocalNgExtra.current.subtle)
                     Spacer(Modifier.height(6.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedButton(onClick = { backup.launch("ninegrid-backup-$today.json") }) { Icon(Icons.Filled.Backup, null); Spacer(Modifier.size(4.dp)); Text(stringResource(R.string.backup_now)) }
+                        OutlinedButton(onClick = { gated(gateExport) { backup.launch("ninegrid-backup-$today.json") } }) { Icon(Icons.Filled.Backup, null); Spacer(Modifier.size(4.dp)); Text(stringResource(R.string.backup_now)) }
                         OutlinedButton(onClick = { restore.launch(arrayOf("application/json", "*/*")) }) { Text(stringResource(R.string.restore)) }
                     }
                     Spacer(Modifier.height(8.dp))
@@ -428,7 +461,7 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit, onGuide: () -> Unit = {
                         Switch(checked = settings.backupFolder != null, onCheckedChange = { on -> if (on) folder.launch(null) else vm.setBackupFolder(null) })
                     }
                     Spacer(Modifier.height(8.dp))
-                    OutlinedButton(onClick = { csv.launch("ninegrid-collectie-$today.csv") }) { Text(stringResource(R.string.export_csv)) }
+                    OutlinedButton(onClick = { gated(gateExport) { csv.launch("ninegrid-collectie-$today.csv") } }) { Text(stringResource(R.string.export_csv)) }
                 }
                 SettingsGroup.WIPE -> {
                     Text(stringResource(R.string.wipe_title), fontWeight = FontWeight.Bold, color = NgColorsError)
@@ -501,6 +534,12 @@ private fun settingsSummary(g: SettingsGroup, vm: AppViewModel, st: nl.spoonpaco
         SettingsGroup.WIPE -> stringResource(R.string.wipe_summary)
         SettingsGroup.ABOUT -> stringResource(R.string.version_x, BuildConfig.VERSION_NAME + " – " + BuildConfig.CODENAME)
     }
+}
+
+@Composable
+private fun privacyStyleLabel(s: String) = when (s) {
+    "zegel" -> stringResource(R.string.privacy_style_seal); "schaduw" -> stringResource(R.string.privacy_style_shadow)
+    "stippen" -> stringResource(R.string.privacy_style_dots); else -> stringResource(R.string.privacy_style_compleated)
 }
 
 @Composable

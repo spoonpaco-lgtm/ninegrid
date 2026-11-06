@@ -134,8 +134,8 @@ fun CardDetailScreen(vm: AppViewModel, printId: String, onBack: () -> Unit, onFr
                     Spacer(Modifier.height(8.dp))
                     val normal = if (settings.currency == "USD") p.usd else p.eur
                     val foil = if (settings.currency == "USD") p.usdFoil else p.eurFoil
-                    Text(stringResource(R.string.price_normal, normal?.let { Money.format(it, settings.currency) } ?: "–"), color = extra.price)
-                    Text(stringResource(R.string.price_foil, foil?.let { Money.format(it, settings.currency) } ?: "–"), color = extra.price)
+                    Text(stringResource(R.string.price_normal, normal?.let { nl.spoonpaco.ninegrid.ui.components.money(it, settings.currency) } ?: "–"), color = extra.price)
+                    Text(stringResource(R.string.price_foil, foil?.let { nl.spoonpaco.ninegrid.ui.components.money(it, settings.currency) } ?: "–"), color = extra.price)
                     Text(stringResource(R.string.price_note_card), fontSize = 11.sp, color = extra.subtle)
                     if (p.gameChanger) SmallTag(stringResource(R.string.game_changer), MaterialTheme.colorScheme.primary)
                 }

@@ -633,6 +633,11 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun setAccent(v: String) = viewModelScope.launch { settingsStore.setAccent(v) }
     fun setPrivacyStyle(v: String) = viewModelScope.launch { settingsStore.setPrivacyStyle(v) }
     fun setPrivacy(v: Boolean) = viewModelScope.launch { settingsStore.setPrivacy(v) }
+    /** Even kijken in de privacymodus: tot dit moment zijn de bedragen zichtbaar. */
+    var peekUntil by mutableStateOf(0L)
+        private set
+    fun peek() { peekUntil = System.currentTimeMillis() + 15_000 }
+    fun endPeek() { peekUntil = 0L }
     fun setBulkThreshold(v: Double) = viewModelScope.launch { settingsStore.setBulkThreshold(v) }
     fun setChartLines(v: List<String>) = viewModelScope.launch { settingsStore.setChartLines(v) }
     fun setChartMetric(v: String) = viewModelScope.launch { settingsStore.setChartMetric(v) }

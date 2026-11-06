@@ -104,7 +104,7 @@ fun DecksScreen(vm: AppViewModel, onDeck: (Long) -> Unit, onNewDeck: () -> Unit)
     val settings by vm.settings.collectAsState()
     val extra = LocalNgExtra.current
     Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.decks), fontWeight = FontWeight.Bold) }, actions = { nl.spoonpaco.ninegrid.ui.guide.HelpButton("decks") }) },
+        topBar = { TopAppBar(title = { Text(stringResource(R.string.decks), fontWeight = FontWeight.Bold) }, actions = { nl.spoonpaco.ninegrid.ui.components.PrivacyButton(vm); nl.spoonpaco.ninegrid.ui.guide.HelpButton("decks") }) },
         floatingActionButton = {
             FloatingActionButton(onClick = onNewDeck, containerColor = MaterialTheme.colorScheme.primary) { Icon(Icons.Filled.Add, stringResource(R.string.new_deck)) }
         },
@@ -149,7 +149,7 @@ fun DecksScreen(vm: AppViewModel, onDeck: (Long) -> Unit, onNewDeck: () -> Unit)
                         item(key = "h_$f") {
                             Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 4.dp)) {
                                 Text(formatLabel(f), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, modifier = Modifier.weight(1f))
-                                Text(pluralStringResource(R.plurals.n_decks, l.size, l.size) + " · " + Money.format(l.sumOf { it.value }, settings.currency), fontSize = 12.sp, color = extra.subtle)
+                                Text(pluralStringResource(R.plurals.n_decks, l.size, l.size) + " · " + nl.spoonpaco.ninegrid.ui.components.money(l.sumOf { it.value }, settings.currency), fontSize = 12.sp, color = extra.subtle)
                             }
                         }
                         items(l, key = { it.d.id }) { r -> DeckRowCard(r.d, r.count, r.value, r.check, settings.currency) { onDeck(r.d.id) } }
@@ -183,7 +183,7 @@ private fun DeckRowCard(d: nl.spoonpaco.ninegrid.data.db.Deck, count: Int, value
             Spacer(Modifier.width(8.dp))
             ManaPips(check.colorIdentity, size = 16)
             Spacer(Modifier.width(10.dp))
-            Text(Money.format(value, currency), color = extra.price, fontWeight = FontWeight.Bold)
+            Text(nl.spoonpaco.ninegrid.ui.components.money(value, currency), color = extra.price, fontWeight = FontWeight.Bold, modifier = Modifier.then(nl.spoonpaco.ninegrid.ui.components.privacyMask()))
         }
     }
 }
@@ -266,7 +266,7 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
                     val bits = listOfNotNull(
                         formatLabel(d.format),
                         pluralStringResource(R.plurals.n_cards, cardCount, cardCount),
-                        Money.format(totalValue, settings.currency),
+                        nl.spoonpaco.ninegrid.ui.components.money(totalValue, settings.currency),
                         if (d.format == DeckFormat.COMMANDER) stringResource(R.string.bracket_short, check.bracketHint ?: "?") else null,
                         if (d.format == DeckFormat.CASUAL) null else if (check.issues.isEmpty()) "✓ " + stringResource(R.string.legal) else "⚠ " + pluralStringResource(R.plurals.n_issues, check.issues.size, check.issues.size),
                     )
@@ -290,7 +290,7 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
                                 val label = if (s == Section.COMMANDER && part.size == 1) part.first().print?.name ?: sectionLabel(s) else sectionLabel(s)
                                 val n = part.filter { !it.entry.proxy }.sumOf { it.entry.quantity }
                                 Text(label, modifier = Modifier.weight(1f), color = extra.subtle, maxLines = 1)
-                                Text(pluralStringResource(R.plurals.n_cards, n, n) + " · " + Money.format(part.sumOf { Money.total(it.entry, it.print, settings.currency) }, settings.currency), color = extra.subtle)
+                                Text(pluralStringResource(R.plurals.n_cards, n, n) + " · " + nl.spoonpaco.ninegrid.ui.components.money(part.sumOf { Money.total(it.entry, it.print, settings.currency) }, settings.currency), color = extra.subtle)
                             }
                         }
                         if (d.format == DeckFormat.COMMANDER) {
@@ -909,7 +909,7 @@ private fun AiDeckBlock(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.db.De
             r.buy.forEach { b ->
                 val price = Money.unitPrice(nl.spoonpaco.ninegrid.data.db.Entry(printId = b.print.id), b.print, settings.currency)
                 Column(Modifier.padding(vertical = 2.dp)) {
-                    SuggestionRow(b.print.name + (b.outName?.let { "  ⇄  $it" } ?: "") + "  ·  " + Money.format(price, settings.currency), b.reason,
+                    SuggestionRow(b.print.name + (b.outName?.let { "  ⇄  $it" } ?: "") + "  ·  " + nl.spoonpaco.ninegrid.ui.components.money(price, settings.currency), b.reason,
                         if (settings.currency == "USD") "TCGplayer" else "Cardmarket") {
                         ((if (settings.currency == "USD") b.print.tcgplayerUri else b.print.cardmarketUri) ?: b.print.scryfallUri)?.let { runCatching { uri.openUri(it) } }
                     }

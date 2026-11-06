@@ -108,7 +108,7 @@ fun BinderScreen(
             title = {
                 Column {
                     Text(stringResource(R.string.binder_title, binder) + if (overview) " · " + stringResource(R.string.binder_all_pages) else "", fontWeight = FontWeight.Bold, maxLines = 1)
-                    Text(stringResource(R.string.binder_sub, lastPage, total, Money.format(value, settings.currency)), fontSize = 12.sp, color = extra.subtle)
+                    Text(stringResource(R.string.binder_sub, lastPage, total, nl.spoonpaco.ninegrid.ui.components.money(value, settings.currency)), fontSize = 12.sp, color = extra.subtle)
                 }
             },
             navigationIcon = { IconButton(onClick = { if (overview) overview = false else onBack() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) } },
@@ -150,7 +150,7 @@ fun BinderScreen(
                     Row(Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
                         Text(stringResource(R.string.binder_page_of, pg, lastPage), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, modifier = Modifier.weight(1f))
                         Text(
-                            stringResource(R.string.share_cards_value, cards.sumOf { it.entry.quantity }, Money.format(cards.sumOf { Money.total(it.entry, it.print, settings.currency) }, settings.currency)),
+                            stringResource(R.string.share_cards_value, cards.sumOf { it.entry.quantity }, nl.spoonpaco.ninegrid.ui.components.money(cards.sumOf { Money.total(it.entry, it.print, settings.currency) }, settings.currency)),
                             fontSize = 13.sp,
                         )
                     }
@@ -247,7 +247,7 @@ private fun SlotCard(
         if (prints > 1) Text(stringResource(R.string.binder_n_cards, prints), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 10.sp,
             modifier = Modifier.align(Alignment.TopEnd).padding(4.dp).background(NgColors.Error, RoundedCornerShape(8.dp)).padding(horizontal = 5.dp))
         if (withPrice) Text(
-            Money.format(here.sumOf { Money.total(it.entry, it.print, settings.currency) }, settings.currency), color = Color.White, fontSize = 10.sp,
+            nl.spoonpaco.ninegrid.ui.components.money(here.sumOf { Money.total(it.entry, it.print, settings.currency) }, settings.currency), color = Color.White, fontSize = 10.sp,
             modifier = Modifier.align(Alignment.BottomEnd).padding(4.dp).background(Color.Black.copy(alpha = 0.7f), RoundedCornerShape(4.dp)).padding(horizontal = 4.dp),
         )
     }

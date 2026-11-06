@@ -44,7 +44,8 @@ class PriceWorker(context: Context, params: WorkerParameters) : CoroutineWorker(
         if (android.os.Build.VERSION.SDK_INT >= 26) {
             nm.createNotificationChannel(android.app.NotificationChannel(CHANNEL, ctx.getString(nl.spoonpaco.ninegrid.R.string.breakout_channel), android.app.NotificationManager.IMPORTANCE_DEFAULT))
         }
-        val money = { v: Double -> nl.spoonpaco.ninegrid.domain.Money.format(v, s.currency) }
+        // Privacymodus: geen bedragen in de melding (die is op het vergrendelscherm te zien).
+        val money = { v: Double -> if (s.privacy) "••••" else nl.spoonpaco.ninegrid.domain.Money.format(v, s.currency) }
         val open = android.app.PendingIntent.getActivity(
             ctx, 0, android.content.Intent(ctx, nl.spoonpaco.ninegrid.MainActivity::class.java).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK),
             android.app.PendingIntent.FLAG_IMMUTABLE,
@@ -75,7 +76,8 @@ class PriceWorker(context: Context, params: WorkerParameters) : CoroutineWorker(
         val w = hits[0].first
         val title = if (hits.size == 1) ctx.getString(nl.spoonpaco.ninegrid.R.string.wish_alarm_one, w.name)
         else ctx.getString(nl.spoonpaco.ninegrid.R.string.wish_alarm_many, hits.size)
-        val text = hits.joinToString(" · ") { (x, p) -> x.name + " " + nl.spoonpaco.ninegrid.domain.Money.format(p, x.alarmCurrency) }
+        val hide = c.settings.current().privacy
+        val text = hits.joinToString(" · ") { (x, p) -> x.name + if (hide) "" else " " + nl.spoonpaco.ninegrid.domain.Money.format(p, x.alarmCurrency) }
         val n = androidx.core.app.NotificationCompat.Builder(ctx, CHANNEL)
             .setSmallIcon(nl.spoonpaco.ninegrid.R.drawable.ic_stat_ninegrid)
             .setContentTitle(title).setContentText(text)

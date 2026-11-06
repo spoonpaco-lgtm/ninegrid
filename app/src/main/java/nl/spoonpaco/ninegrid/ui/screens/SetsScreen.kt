@@ -122,7 +122,7 @@ fun SetsScreen(vm: AppViewModel, onBack: () -> Unit, onSet: (String) -> Unit) {
                 Column {
                     Text(stringResource(R.string.sets_title), fontWeight = FontWeight.Bold)
                     Text(
-                        pluralStringResource(R.plurals.n_sets, rows.size, rows.size) + " · " + Money.format(rows.sumOf { it.value }, cur),
+                        pluralStringResource(R.plurals.n_sets, rows.size, rows.size) + " · " + nl.spoonpaco.ninegrid.ui.components.money(rows.sumOf { it.value }, cur),
                         style = MaterialTheme.typography.bodySmall, color = extra.subtle,
                     )
                 }
@@ -165,7 +165,7 @@ private fun SetRowView(r: SetRow, cur: String, icons: Boolean, vm: AppViewModel,
         Column(Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("${r.name} (${r.code})", fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
-                Text(Money.format(r.value, cur), fontWeight = FontWeight.Bold, color = extra.price)
+                Text(nl.spoonpaco.ninegrid.ui.components.money(r.value, cur), fontWeight = FontWeight.Bold, color = extra.price, modifier = Modifier.then(nl.spoonpaco.ninegrid.ui.components.privacyMask()))
             }
             // Rarity als één balkje; tik erop voor de getallen.
             val parts = listOf(r.mythic to NgColors.Mythic, r.rare to NgColors.Rare, r.uncommon to NgColors.Uncommon, r.common to NgColors.Common, r.other to NgColors.Special)
