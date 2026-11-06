@@ -146,6 +146,8 @@ fun CardRow(
     location: String? = null,
     /** Groen label, bijv. "In collectie ×3" bij Alle kaarten. */
     tag: String? = null,
+    /** Eigen prijstekst (bijv. "vanaf € 3,40" of "–") in plaats van de waarde van dit exemplaar. */
+    priceText: String? = null,
     onClick: () -> Unit,
 ) {
     val extra = LocalNgExtra.current
@@ -186,7 +188,7 @@ fun CardRow(
             ManaPips(print?.colors ?: "", size = 16)
             Spacer(Modifier.width(8.dp))
             Column(horizontalAlignment = Alignment.End) {
-                Text(nl.spoonpaco.ninegrid.ui.components.money(Money.total(entry, print, settings.currency), settings.currency), color = extra.price, fontWeight = FontWeight.Bold, fontSize = 14.sp, modifier = Modifier.then(nl.spoonpaco.ninegrid.ui.components.privacyMask()))
+                Text(priceText ?: nl.spoonpaco.ninegrid.ui.components.money(Money.total(entry, print, settings.currency), settings.currency), color = extra.price, fontWeight = FontWeight.Bold, fontSize = 14.sp, modifier = Modifier.then(nl.spoonpaco.ninegrid.ui.components.privacyMask()))
                 if (entry.quantity > 1) Text("${entry.quantity}×", color = extra.subtle, fontSize = 12.sp)
             }
         }

@@ -945,4 +945,6 @@
     <string name="deck_sort_mana">mana</string>
     <string name="deck_sort_name">name</string>
     <string name="deck_sort_price">price</string>
+    <string name="wish_from">from %1$s</string>
+    <string name="wish_total_from">%1$d cards · from %2$s</string>
 </resources>

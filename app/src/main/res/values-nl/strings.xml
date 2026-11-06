@@ -944,4 +944,6 @@
     <string name="deck_sort_mana">mana</string>
     <string name="deck_sort_name">naam</string>
     <string name="deck_sort_price">prijs</string>
+    <string name="wish_from">vanaf %1$s</string>
+    <string name="wish_total_from">%1$d kaarten · vanaf %2$s</string>
 </resources>

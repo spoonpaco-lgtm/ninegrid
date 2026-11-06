@@ -169,7 +169,7 @@ class SettingsStore(private val context: Context) {
         val aiDailyLimit = androidx.datastore.preferences.core.intPreferencesKey("ai_daily_limit")
         val aiCountDay = stringPreferencesKey("ai_count_day")
         val aiCount = androidx.datastore.preferences.core.intPreferencesKey("ai_count")
-        val filterScreens = listOf("collection", "pick", "set")
+        val filterScreens = FILTER_SCREENS
         val filters = filterScreens.associateWith { stringPreferencesKey("filter_$it") }
     }
 

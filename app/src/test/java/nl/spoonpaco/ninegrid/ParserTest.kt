@@ -589,4 +589,15 @@ class ParserTest {
         }
         assertEquals(expected.sorted(), (nl.spoonpaco.ninegrid.data.db.AppDatabase.FRIEND_SQL + nl.spoonpaco.ninegrid.data.db.AppDatabase.V10_SQL).sorted())
     }
+
+    /** Elk scherm dat een filter opslaat, moet als filterscherm geregistreerd zijn; anders springt het filter terug. */
+    @Test
+    fun everyFilterScreenIsRegistered() {
+        val root = java.io.File("src/main/java")
+        val used = root.walk().filter { it.isFile && it.extension == "kt" }
+            .flatMap { f -> Regex("""setFilter\("([a-z]+)"""").findAll(f.readText()).map { it.groupValues[1] } }.toSet()
+        assertTrue("geen setFilter-aanroepen gevonden", used.isNotEmpty())
+        val missing = used - nl.spoonpaco.ninegrid.data.FILTER_SCREENS.toSet()
+        assertTrue("niet geregistreerd: $missing", missing.isEmpty())
+    }
 }

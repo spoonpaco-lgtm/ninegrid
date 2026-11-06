@@ -105,7 +105,8 @@ data class CardFilter(
             if (f.rarities.isNotEmpty()) parts += or(f.rarities.map { "r:$it" })
             if (f.colors.isNotEmpty()) parts += or(f.colors.map { if (it == "C") "c:c" else "c:${it.lowercase()}" })
             if (f.types.isNotEmpty()) parts += or(f.types.map { "t:${it.lowercase()}" })
-            return parts.joinToString(" ")
+            // Alleen "alleen wat ik niet heb": Scryfall wil een zoekopdracht, dus alle papieren kaarten.
+            return parts.joinToString(" ").ifBlank { "game:paper" }
         }
     }
 }

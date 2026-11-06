@@ -1645,6 +1645,49 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     // ---------- Verlanglijst ----------
     val wishlist = repo.wishlist.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
+    // ---- Verlanglijst: goedkoopste prijs bij "elke print is goed" ----
+    private val cheapPrefs get() = getApplication<Application>().getSharedPreferences("wish_cheapest", android.content.Context.MODE_PRIVATE)
+    private fun cheapKey(w: nl.spoonpaco.ninegrid.data.db.WishItem, currency: String) = "${w.name.lowercase()}|${w.foilOnly}|$currency"
+    /** Opgeslagen goedkoopste prijzen (sleutel naam|foil|valuta); NaN = geen enkele print heeft een prijs. */
+    val cheapest = androidx.compose.runtime.mutableStateMapOf<String, Double>()
+
+    /**
+     * Prijs van een regel op de verlanglijst: bij "elke print" de goedkoopste print, anders de prijs van die print.
+     * Null = (nog) geen prijs bekend.
+     */
+    fun wishUnitPrice(w: nl.spoonpaco.ninegrid.data.db.WishWithPrint, currency: String): Double? {
+        if (w.item.anyPrint) return cheapest[cheapKey(w.item, currency)]?.takeIf { !it.isNaN() }
+        val p = w.print ?: return null
+        val usd = currency == "USD"
+        return when {
+            usd && w.item.foilOnly -> p.usdFoil ?: p.usdEtched
+            usd -> p.usd
+            w.item.foilOnly -> p.eurFoil
+            else -> p.eur
+        }
+    }
+
+    /** Goedkoopste prijzen laden: eerst wat bewaard is, daarna (hooguit één keer per 12 uur per kaart) vers ophalen. */
+    private var cheapJob: kotlinx.coroutines.Job? = null
+    fun loadCheapest() {
+        if (cheapJob?.isActive == true) return
+        val cur = settings.value.currency
+        val list = wishlist.value.filter { it.item.anyPrint }.map { it.item }
+        list.forEach { w -> cheapPrefs.getString(cheapKey(w, cur), null)?.substringBefore(';')?.toDoubleOrNull()?.let { cheapest[cheapKey(w, cur)] = it } }
+        cheapJob = viewModelScope.launch {
+            for (w in list) {
+                val k = cheapKey(w, cur)
+                val at = cheapPrefs.getString(k, null)?.substringAfter(';', "")?.toLongOrNull() ?: 0L
+                if (System.currentTimeMillis() - at < 12 * 3600_000L && cheapest.containsKey(k)) continue
+                val got = runCatching { repo.cheapestPrice(w.name, w.foilOnly, cur) }
+                if (got.isFailure) continue
+                val v = got.getOrNull() ?: Double.NaN
+                cheapest[k] = v
+                cheapPrefs.edit().putString(k, "$v;${System.currentTimeMillis()}").apply()
+            }
+        }
+    }
+
     // ---- Boosters ----
     /** In het controlescherm: "Dit was een booster", wat je betaalde, het type en eventueel de box. */
     var boosterOn by mutableStateOf(false)
@@ -1785,7 +1828,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
      */
     fun searchAll(text: String, f: nl.spoonpaco.ninegrid.ui.components.CardFilter) {
         val t = text.trim()
-        val hasFilter = f.rarities.isNotEmpty() || f.colors.isNotEmpty() || f.types.isNotEmpty()
+        val hasFilter = f.rarities.isNotEmpty() || f.colors.isNotEmpty() || f.types.isNotEmpty() || f.notOwned
         val key = t + "|" + f.toJson()
         if (key == allKey) return
         allKey = key
@@ -1796,10 +1839,10 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
             if (!offline) kotlinx.coroutines.delay(500)
             allLoading = true; allFailed = false; allPage = 1
             val q = nl.spoonpaco.ninegrid.ui.components.CardFilter.scryfallQuery(t, f)
-            val r = runCatching { repo.searchAllCards(t, q, offline, 1) }
+            val r = runCatching { repo.searchAllCards(t, q, offline, 1, f.rarities, f.colors, f.types) }
             r.onSuccess { page ->
-                // Offline: filters en "alleen wat ik niet heb" hier toepassen.
-                allResults = if (offline) page.cards.filter { p -> f.copy(decks = true, foil = false, binders = emptySet()).matches(EntryWithPrint(Entry(printId = p.id), p), t) } else page.cards
+                // De filters zitten al in de zoekopdracht (offline in de database, online bij Scryfall).
+                allResults = page.cards
                 allHasMore = page.hasMore; allOffline = page.offline
             }.onFailure { if (it is kotlinx.coroutines.CancellationException) throw it; allFailed = true; allResults = emptyList() }
             allLoading = false
@@ -1811,7 +1854,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         allJob = viewModelScope.launch {
             allLoading = true
             val q = nl.spoonpaco.ninegrid.ui.components.CardFilter.scryfallQuery(text.trim(), f)
-            runCatching { repo.searchAllCards(text, q, false, allPage + 1) }.onSuccess { p ->
+            runCatching { repo.searchAllCards(text.trim(), q, allOffline, allPage + 1, f.rarities, f.colors, f.types) }.onSuccess { p ->
                 allPage++; allResults = allResults + p.cards; allHasMore = p.hasMore
             }
             allLoading = false

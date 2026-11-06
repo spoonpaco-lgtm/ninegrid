@@ -744,10 +744,14 @@ class Repository(
      * Zoeken in alle Magic-kaarten: in de offline kaartdatabase als die er is, anders bij Scryfall.
      * Eén regel per kaart (de nieuwste print). [page] = welke pagina bij Scryfall (vanaf 1).
      */
-    suspend fun searchAllCards(query: String, scryfallQuery: String, useOffline: Boolean, page: Int = 1): SearchPage {
+    suspend fun searchAllCards(
+        query: String, scryfallQuery: String, useOffline: Boolean, page: Int = 1,
+        rarities: Set<String> = emptySet(), colors: Set<String> = emptySet(), types: Set<String> = emptySet(),
+    ): SearchPage {
         if (useOffline) {
-            val list = offlineSearch?.invoke(query) ?: emptyList()
-            return SearchPage(list.map { it.toPrint() }, hasMore = false, offline = true)
+            val size = 300
+            val list = offlineFiltered?.invoke(query, rarities, colors, types, size + 1, (page - 1) * size) ?: emptyList()
+            return SearchPage(list.take(size).map { it.toPrint() }, hasMore = list.size > size, offline = true)
         }
         val r = scryfall.search(scryfallQuery, page)
         return SearchPage(r.first.map { it.toPrint() }, r.second, offline = false)
@@ -755,6 +759,26 @@ class Repository(
 
     /** Ingesteld door de container: zoeken in de offline kaartdatabase. */
     var offlineSearch: (suspend (String) -> List<SfCard>)? = null
+    /** Zoeken in de offline kaartdatabase met de filters in de zoekopdracht zelf: tekst, rarities, kleuren, types, limiet, offset. */
+    var offlineFiltered: (suspend (String, Set<String>, Set<String>, Set<String>, Int, Int) -> List<SfCard>)? = null
+    /** Alle prints van een kaart uit de offline kaartdatabase. */
+    var offlinePrints: (suspend (String) -> List<SfCard>)? = null
+
+    /**
+     * Goedkoopste prijs van een kaart over alle prints ("elke print is goed"): bij Scryfall, zonder internet uit de
+     * offline kaartdatabase. Null als geen enkele print een prijs heeft.
+     */
+    suspend fun cheapestPrice(name: String, foilOnly: Boolean, currency: String): Double? {
+        val usd = currency == "USD"
+        fun priceOf(p: CardPrint): Double? = when {
+            usd && foilOnly -> p.usdFoil ?: p.usdEtched
+            usd -> p.usd ?: p.usdFoil
+            foilOnly -> p.eurFoil
+            else -> p.eur ?: p.eurFoil
+        }
+        val prints = runCatching { scryfall.printsOf(name) }.getOrNull()?.takeIf { it.isNotEmpty() } ?: offlinePrints?.invoke(name).orEmpty()
+        return prints.map { it.toPrint() }.mapNotNull { priceOf(it) }.minOrNull()
+    }
 
     data class SearchPage(val cards: List<CardPrint>, val hasMore: Boolean, val offline: Boolean)
 

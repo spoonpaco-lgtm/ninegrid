@@ -96,6 +96,9 @@ interface OfflineDao {
     @Query("DELETE FROM cards WHERE gen != :gen")
     suspend fun deleteOtherThan(gen: Long)
 
+    @androidx.room.RawQuery
+    suspend fun searchRaw(q: androidx.sqlite.db.SupportSQLiteQuery): List<OfflineCard>
+
     @Query("SELECT COUNT(*) FROM cards")
     suspend fun count(): Int
 }
@@ -137,10 +140,36 @@ class OfflineCards(private val context: Context) {
     /** Is de database aan en gevuld (dan zoekt Alle kaarten hier). */
     fun usable() = ready()
 
-    suspend fun search(text: String, limit: Int = 1500): List<SfCard> {
+    suspend fun search(text: String, limit: Int = 1500): List<SfCard> = search(text, emptySet(), emptySet(), emptySet(), limit, 0)
+
+    /**
+     * Zoeken met filters in de database zelf (vóór de limiet), zodat een filter over álle kaarten werkt.
+     * Kleuren: een van de gekozen kleuren ("C" = kleurloos). Types: een van de gekozen types op de voorkant.
+     */
+    suspend fun search(text: String, rarities: Set<String>, colors: Set<String>, types: Set<String>, limit: Int, offset: Int): List<SfCard> {
         if (!ready()) return emptyList()
-        val pat = "%" + text.trim().lowercase().replace("%", "").replace("_", "") + "%"
-        return runCatching { open().cards().search(pat, limit).map { it.toSfCard() } }.getOrDefault(emptyList())
+        val args = mutableListOf<Any>()
+        val where = mutableListOf<String>()
+        val t = text.trim().lowercase().replace("%", "").replace("_", "")
+        if (t.isNotEmpty()) { where += "front LIKE ?"; args += "%$t%" }
+        if (rarities.isNotEmpty()) { where += "rarity IN (" + rarities.joinToString(",") { "?" } + ")"; args.addAll(rarities) }
+        if (colors.isNotEmpty()) {
+            where += "(" + colors.joinToString(" OR ") { if (it == "C") "colors = ''" else "colors LIKE ?" } + ")"
+            colors.filter { it != "C" }.forEach { args += "%$it%" }
+        }
+        if (types.isNotEmpty()) { where += "(" + types.joinToString(" OR ") { "typeLine LIKE ?" } + ")"; types.forEach { args += "%$it%" } }
+        val sql = "SELECT * FROM cards" + (if (where.isEmpty()) "" else " WHERE " + where.joinToString(" AND ")) +
+            " GROUP BY oracleId HAVING releasedAt = MAX(releasedAt) ORDER BY name LIMIT $limit OFFSET $offset"
+        return runCatching { open().cards().searchRaw(androidx.sqlite.db.SimpleSQLiteQuery(sql, args.toTypedArray())).map { it.toSfCard() } }.getOrDefault(emptyList())
+    }
+
+    /** Alle prints van een kaart (voor de goedkoopste prijs), zonder internet. */
+    suspend fun printsOf(name: String): List<SfCard> {
+        if (!ready()) return emptyList()
+        return runCatching {
+            open().cards().searchRaw(androidx.sqlite.db.SimpleSQLiteQuery("SELECT * FROM cards WHERE front = ? OR LOWER(name) = ?", arrayOf(name.substringBefore(" // ").lowercase(), name.lowercase())))
+                .map { it.toSfCard() }
+        }.getOrDefault(emptyList())
     }
 
     suspend fun count(): Int = if (!file.exists()) 0 else runCatching { open().cards().count() }.getOrDefault(0)

@@ -144,9 +144,8 @@ fun CollectionScreen(
             else -> emptyList()
         }
     }
-    val wishValue = remember(wishes, settings.currency) {
-        wishes.sumOf { w -> (w.item.wanted - w.item.got).coerceAtLeast(0) * Money.unitPrice(nl.spoonpaco.ninegrid.data.db.Entry(printId = w.item.printId, finish = if (w.item.foilOnly) nl.spoonpaco.ninegrid.data.db.Finish.FOIL else nl.spoonpaco.ninegrid.data.db.Finish.NONFOIL), w.print, settings.currency) }
-    }
+    // Samen: bij "elke print" de goedkoopste print, kaarten zonder prijs tellen niet mee.
+    val wishValue = wishes.sumOf { w -> (w.item.wanted - w.item.got).coerceAtLeast(0) * (vm.wishUnitPrice(w, settings.currency) ?: 0.0) }
 
     Scaffold(
         topBar = {
@@ -156,7 +155,7 @@ fun CollectionScreen(
                     Text(
                         when (mode) {
                             "all" -> stringResource(R.string.all_cards_sub)
-                            "wish" -> stringResource(R.string.wish_total, vm.wishlistCount(), nl.spoonpaco.ninegrid.ui.components.money(wishValue, settings.currency))
+                            "wish" -> stringResource(R.string.wish_total_from, vm.wishlistCount(), nl.spoonpaco.ninegrid.ui.components.money(wishValue, settings.currency))
                             else -> pluralStringResource(R.plurals.n_cards, count, count) + " · " + nl.spoonpaco.ninegrid.ui.components.money(value, settings.currency)
                         },
                         style = MaterialTheme.typography.bodySmall, color = LocalNgExtra.current.subtle,
@@ -285,7 +284,7 @@ private fun AllCardsPanel(vm: AppViewModel, query: String, onQuery: (String) -> 
             fontSize = 11.sp, color = extra.subtle, modifier = Modifier.padding(horizontal = 16.dp),
         )
         if (vm.allLoading) LinearProgressIndicator(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp))
-        val hasFilter = filter.rarities.isNotEmpty() || filter.colors.isNotEmpty() || filter.types.isNotEmpty()
+        val hasFilter = filter.rarities.isNotEmpty() || filter.colors.isNotEmpty() || filter.types.isNotEmpty() || filter.notOwned
         if (query.trim().length < 2 && !hasFilter) {
             Text(stringResource(R.string.all_cards_min), fontSize = 13.sp, color = extra.subtle, modifier = Modifier.padding(16.dp))
             // Recente zoekopdrachten.
@@ -333,8 +332,15 @@ private fun WishlistPanel(vm: AppViewModel, onCard: (String) -> Unit, onPaste: (
         }
         return
     }
+    LaunchedEffect(wishes.map { it.item.id to it.item.anyPrint }, settings.currency) { vm.loadCheapest() }
     LazyColumn(contentPadding = PaddingValues(bottom = 96.dp)) {
         items(wishes, key = { it.item.id }) { w ->
+            val unitPrice = vm.wishUnitPrice(w, settings.currency)
+            val priceText = when {
+                unitPrice == null -> "–"
+                w.item.anyPrint -> stringResource(R.string.wish_from, nl.spoonpaco.ninegrid.ui.components.money(unitPrice, settings.currency))
+                else -> nl.spoonpaco.ninegrid.ui.components.money(unitPrice, settings.currency)
+            }
             val p = w.print
             val e = nl.spoonpaco.ninegrid.data.db.Entry(printId = w.item.printId, quantity = 1, finish = if (w.item.foilOnly) nl.spoonpaco.ninegrid.data.db.Finish.FOIL else nl.spoonpaco.ninegrid.data.db.Finish.NONFOIL)
             val where = if (w.item.anyPrint) stringResource(R.string.wish_any_print) else null
@@ -343,7 +349,7 @@ private fun WishlistPanel(vm: AppViewModel, onCard: (String) -> Unit, onPaste: (
                 w.item.alarmPrice?.let { "🔔 " + stringResource(R.string.wish_alarm_below, nl.spoonpaco.ninegrid.ui.components.money(it, w.item.alarmCurrency)) },
             ).joinToString(" · ").ifBlank { null }
             Column {
-                CardRow(e, p, settings, vm.images, location = where, tag = tag) { p?.let { onCard(it.id) } }
+                CardRow(e, p, settings, vm.images, location = where, tag = tag, priceText = priceText) { p?.let { onCard(it.id) } }
                 Row(Modifier.fillMaxWidth().padding(start = 56.dp, end = 12.dp), horizontalArrangement = Arrangement.End) {
                     TextButton(onClick = { edit = w }) { Text(stringResource(R.string.edit)) }
                     TextButton(onClick = { vm.boughtWish(w) }) { Text(stringResource(R.string.wish_bought_btn)) }
