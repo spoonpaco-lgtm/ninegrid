@@ -19,5 +19,10 @@ jobs:
           print('included:',len(inc),[ (v.get('id'),[u['card']['name'] for u in v.get('uses',[])]) for v in inc][:6])
           e=json.load(open('est.json'))
           print('est keys:',list(e.keys()))
-          print('DUMP', json.dumps(e)[:3000])
+          def strip(x):
+              if isinstance(x,dict): return {k:strip(v) for k,v in x.items() if not k.startswith('imageUri') and k not in ('oracleId','spoiler','layoutRotationFront','faces','typeLine')}
+              if isinstance(x,list): return [strip(i) for i in x]
+              return x
+          c=e['combos']; print('CTYPE', type(c).__name__, len(c))
+          print('CDUMP', json.dumps(strip(c))[:3500])
           PY
