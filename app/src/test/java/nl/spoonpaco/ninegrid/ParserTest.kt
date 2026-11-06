@@ -567,12 +567,14 @@ class ParserTest {
         assertFalse(A.retryable(A.classify(401)))
     }
 
-    /** De migratie naar versie 9 moet precies de tabellen maken die Room verwacht (anders start de app niet na de update). */
+    /** De migraties naar versie 9 en 10 moeten precies de tabellen maken die Room verwacht (anders start de app niet na de update). */
     @Test
     fun friendMigrationMatchesRoomSchema() {
-        val f = listOf("schemas", "app/schemas").map { java.io.File(it, "nl.spoonpaco.ninegrid.data.db.AppDatabase/9.json") }.firstOrNull { it.exists() }
-            ?: error("schema 10.json niet gevonden in " + java.io.File(".").absolutePath + ": " +
-                listOf("schemas", "app/schemas").joinToString { d -> d + "=" + (java.io.File(d).walkTopDown().map { it.path }.toList().joinToString()) })
+        // Het nieuwste schema dat Room schreef (bij elke nieuwe databaseversie een nieuw bestand).
+        val dir = listOf("schemas", "app/schemas").map { java.io.File(it, "nl.spoonpaco.ninegrid.data.db.AppDatabase") }.firstOrNull { it.isDirectory }
+            ?: error("geen schemamap in " + java.io.File(".").absolutePath)
+        val f = dir.listFiles().orEmpty().filter { it.name.endsWith(".json") }.maxByOrNull { it.nameWithoutExtension.toIntOrNull() ?: 0 }!!
+        assertEquals("10", f.nameWithoutExtension)
         val root = kotlinx.serialization.json.Json.parseToJsonElement(f.readText()) as kotlinx.serialization.json.JsonObject
         val entities = ((root["database"] as kotlinx.serialization.json.JsonObject)["entities"] as kotlinx.serialization.json.JsonArray).map { it as kotlinx.serialization.json.JsonObject }
         fun str(o: kotlinx.serialization.json.JsonObject, k: String) = (o[k] as kotlinx.serialization.json.JsonPrimitive).content
