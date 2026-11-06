@@ -104,8 +104,8 @@ fun SetScreen(vm: AppViewModel, code: String, onBack: () -> Unit, onReview: () -
                             FilterChip(selected = showMissing, onClick = { showMissing = true }, label = { Text(stringResource(R.string.set_show_missing)) })
                             FilterChip(selected = !showMissing, onClick = { showMissing = false }, label = { Text(stringResource(R.string.set_show_have)) })
                             FilterChip(selected = variants, onClick = { variants = !variants }, label = { Text(stringResource(R.string.set_variants)) })
-                            FilterChip(selected = settings.completionist, onClick = { vm.setCompletionist(!settings.completionist) }, label = { Text(stringResource(R.string.completionist)) })
                         }
+                        CompletionistToggle(settings.completionist, onChange = { vm.setCompletionist(it) })
                     }
                 }
             }

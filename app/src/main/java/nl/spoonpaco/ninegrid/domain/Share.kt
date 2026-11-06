@@ -61,6 +61,8 @@ data class ShareChoice(
     val binders: Set<String> = emptySet(),
     val sets: Set<String> = emptySet(),
     val decks: Set<Long> = emptySet(),
+    /** Verlanglijst meesturen (staat in het bestand als eigen pakket). */
+    val wishlist: Boolean = false,
 ) {
     val isEmpty get() = !all && !loose && binders.isEmpty() && sets.isEmpty() && decks.isEmpty()
 }

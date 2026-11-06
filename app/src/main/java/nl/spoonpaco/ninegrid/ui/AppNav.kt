@@ -8,6 +8,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import nl.spoonpaco.ninegrid.ui.AppViewModel
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Collections
@@ -144,6 +147,7 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
                         nav.navigate("collection") { popUpTo("onboarding") { inclusive = true } }
                         nav.navigate("guide")
                     },
+                    vm = vm,
                 )
             }
             composable("collection") {
@@ -272,12 +276,42 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
     }
 
     vm.update?.let { u ->
+        val busy = vm.updateProgress != null
         AlertDialog(
-            onDismissRequest = { vm.update = null },
-            title = { Text(stringResource(R.string.update_title)) },
-            text = { Text(stringResource(R.string.update_body, u.version)) },
-            confirmButton = { TextButton(onClick = { uri.openUri(u.url); vm.update = null }) { Text(stringResource(R.string.download)) } },
-            dismissButton = { TextButton(onClick = { vm.update = null }) { Text(stringResource(R.string.later)) } },
+            onDismissRequest = { if (!busy) vm.update = null },
+            title = { Text(stringResource(R.string.update_title_x, u.title.removePrefix("NineGrid ").ifBlank { "v" + u.version })) },
+            text = {
+                androidx.compose.foundation.layout.Column(androidx.compose.ui.Modifier.heightIn(max = 380.dp).verticalScroll(androidx.compose.foundation.rememberScrollState())) {
+                    if (u.notes.isNotBlank()) Text(u.notes.take(2500), fontSize = 13.sp)
+                    else Text(stringResource(R.string.update_body, u.version))
+                    if (u.apkSize > 0) Text(stringResource(R.string.update_size, u.apkSize / (1024 * 1024)), fontSize = 12.sp, modifier = androidx.compose.ui.Modifier.padding(top = 8.dp))
+                    vm.updateProgress?.let { p ->
+                        androidx.compose.material3.LinearProgressIndicator(progress = { p }, modifier = androidx.compose.ui.Modifier.fillMaxWidth().padding(top = 10.dp))
+                        Text(stringResource(R.string.update_downloading, (p * 100).toInt()), fontSize = 12.sp)
+                    }
+                }
+            },
+            confirmButton = { TextButton(onClick = { vm.installUpdate() }, enabled = !busy) { Text(stringResource(R.string.update_now)) } },
+            dismissButton = {
+                androidx.compose.foundation.layout.Row {
+                    TextButton(onClick = { uri.openUri(u.url) }) { Text("GitHub") }
+                    TextButton(onClick = { vm.update = null }, enabled = !busy) { Text(stringResource(R.string.later)) }
+                }
+            },
         )
     }
-}
+
+    if (vm.updateNeedsPermission) {
+        val ctx = androidx.compose.ui.platform.LocalContext.current
+        AlertDialog(
+            onDismissRequest = { vm.updateNeedsPermission = false },
+            title = { Text(stringResource(R.string.update_permission_title)) },
+            text = { Text(stringResource(R.string.update_permission_body)) },
+            confirmButton = { TextButton(onClick = {
+                vm.updateNeedsPermission = false
+                runCatching { ctx.startActivity(nl.spoonpaco.ninegrid.data.Updater.permissionIntent(ctx)) }
+            }) { Text(stringResource(R.string.update_permission_go)) } },
+            dismissButton = { TextButton(onClick = { vm.updateNeedsPermission = false }) { Text(stringResource(R.string.later)) } },
+        )
+    }
+}}

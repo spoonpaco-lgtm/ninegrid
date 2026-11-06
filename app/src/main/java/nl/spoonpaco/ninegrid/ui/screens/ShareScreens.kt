@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -185,97 +186,135 @@ private fun ShareChooser(vm: AppViewModel, onDismiss: () -> Unit) {
     val scope = rememberCoroutineScope()
     val extra = LocalNgExtra.current
     var name by rememberSaveable { mutableStateOf(settings.shareName) }
-    var choice by remember { mutableStateOf(ShareChoice(all = true)) }
+    // Wat stuur je: alles, losse collectie (met decks naar keuze) of zelf kiezen.
+    var mode by rememberSaveable { mutableStateOf("all") }
+    var binders by remember { mutableStateOf(setOf<String>()) }
+    var sets by remember { mutableStateOf(setOf<String>()) }
+    var deckSel by remember { mutableStateOf(setOf<Long>()) }
+    var wish by rememberSaveable { mutableStateOf(true) }
+    var open by remember { mutableStateOf<String?>(null) }
+    var setQuery by remember { mutableStateOf("") }
+    var setSortName by remember { mutableStateOf(false) }
     var file by remember { mutableStateOf<java.io.File?>(null) }
     val loose = entries.filter { it.entry.deckId == null && !it.entry.proxy && it.print != null }
-    val binders = loose.mapNotNull { it.entry.binder?.takeIf { b -> b.isNotBlank() } }.distinct().sortedBy { it.lowercase() }
-    val sets = loose.groupBy { it.print!!.setCode.uppercase() }.mapValues { (_, v) -> v.sumOf { it.entry.quantity } }.toSortedMap()
+    val binderList = loose.mapNotNull { it.entry.binder?.takeIf { b -> b.isNotBlank() } }.distinct().sortedBy { it.lowercase() }
+    data class SetRow(val code: String, val name: String, val count: Int)
+    val setList = loose.groupBy { it.print!!.setCode.uppercase() }.map { (c, v) -> SetRow(c, v.first().print!!.setName, v.sumOf { it.entry.quantity }) }
+    val choice = when (mode) {
+        "all" -> ShareChoice(all = true, wishlist = wish)
+        "loose" -> ShareChoice(loose = true, decks = deckSel, wishlist = wish)
+        else -> ShareChoice(binders = binders, sets = sets, decks = deckSel, wishlist = wish)
+    }
     val packs = remember(choice, entries, decks) { vm.sharePackages(choice) }
     val count = nl.spoonpaco.ninegrid.domain.Share.count(packs)
-    val looseIn = choice.all || choice.loose
     val save = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
         val f = file; if (uri != null && f != null) { vm.saveShareTo(uri, f); onDismiss() }
     }
     fun build(then: (java.io.File) -> Unit) = scope.launch { val f = vm.buildShareFile(choice, name); file = f; then(f) }
 
-    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
         androidx.compose.material3.Surface(Modifier.fillMaxSize()) {
-            Column(Modifier.fillMaxSize()) {
+            Column(Modifier.fillMaxSize().systemBarsPadding()) {
                 Row(Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = onDismiss) { Icon(Icons.Filled.Close, stringResource(R.string.cancel)) }
                     Text(stringResource(R.string.share_choose), fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 }
                 Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)) {
-                    OutlinedTextField(
-                        name, { name = it.take(40) }, singleLine = true, modifier = Modifier.fillMaxWidth(),
-                        label = { Text(stringResource(R.string.share_name_label)) },
-                        supportingText = { Text(stringResource(R.string.share_name_hint)) },
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    CheckLine(stringResource(R.string.share_all), stringResource(R.string.share_all_sub), choice.all) { choice = choice.copy(all = it) }
-                    CheckLine(stringResource(R.string.share_loose), null, looseIn, enabled = !choice.all) { choice = choice.copy(loose = it) }
-                    if (binders.isNotEmpty()) {
-                        Text(stringResource(R.string.share_binders), fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 10.dp))
-                        if (looseIn) Text(stringResource(R.string.share_in_loose), fontSize = 12.sp, color = extra.subtle)
-                        FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            binders.forEach { b ->
-                                FilterChip(selected = looseIn || b in choice.binders, enabled = !looseIn, onClick = {
-                                    choice = choice.copy(binders = if (b in choice.binders) choice.binders - b else choice.binders + b)
-                                }, label = { Text(b) })
-                            }
-                        }
+                    // Naam: één compacte regel, uitleg klein eronder.
+                    OutlinedTextField(name, { name = it.take(40) }, singleLine = true, modifier = Modifier.fillMaxWidth(),
+                        label = { Text(stringResource(R.string.share_name_label)) })
+                    Text(stringResource(R.string.share_name_hint), fontSize = 11.sp, color = extra.subtle, modifier = Modifier.padding(start = 4.dp, top = 2.dp))
+                    Spacer(Modifier.height(12.dp))
+                    Text(stringResource(R.string.share_what), fontWeight = FontWeight.Bold)
+                    RadioLine(stringResource(R.string.share_all), stringResource(R.string.share_all_sub), mode == "all") { mode = "all" }
+                    RadioLine(stringResource(R.string.share_loose), stringResource(R.string.share_loose_sub), mode == "loose") { mode = "loose" }
+                    RadioLine(stringResource(R.string.share_custom), stringResource(R.string.share_custom_sub), mode == "custom") { mode = "custom" }
+                    if (mode == "custom" && binderList.isNotEmpty()) Fold(stringResource(R.string.share_binders), binderList.size, binders.size, open == "b", { open = if (open == "b") null else "b" }) {
+                        binderList.forEach { b -> CheckLine(b, null, b in binders) { binders = if (it) binders + b else binders - b } }
                     }
-                    if (sets.isNotEmpty()) {
-                        Text(stringResource(R.string.share_sets), fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 10.dp))
-                        if (looseIn) Text(stringResource(R.string.share_in_loose), fontSize = 12.sp, color = extra.subtle)
-                        FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            sets.forEach { (code, n) ->
-                                FilterChip(selected = looseIn || code in choice.sets, enabled = !looseIn, onClick = {
-                                    choice = choice.copy(sets = if (code in choice.sets) choice.sets - code else choice.sets + code)
-                                }, label = { Text("$code · $n") })
-                            }
+                    if (mode == "custom" && setList.isNotEmpty()) Fold(stringResource(R.string.share_sets), setList.size, sets.size, open == "s", { open = if (open == "s") null else "s" }) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            OutlinedTextField(setQuery, { setQuery = it }, singleLine = true, placeholder = { Text(stringResource(R.string.share_set_search)) }, modifier = Modifier.weight(1f))
+                            TextButton(onClick = { setSortName = !setSortName }) { Text(stringResource(if (setSortName) R.string.sort_name else R.string.sort_count)) }
                         }
+                        setList.filter { setQuery.isBlank() || it.code.contains(setQuery, true) || it.name.contains(setQuery, true) }
+                            .let { l -> if (setSortName) l.sortedBy { it.name.lowercase() } else l.sortedByDescending { it.count } }
+                            .forEach { r -> CheckLine("${r.code} · ${r.name}", "${r.count}", r.code in sets) { sets = if (it) sets + r.code else sets - r.code } }
                     }
-                    if (decks.isNotEmpty()) {
-                        Text(stringResource(R.string.decks), fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 10.dp))
+                    if (mode != "all" && decks.isNotEmpty()) Fold(stringResource(R.string.decks), decks.size, deckSel.size, open == "d", { open = if (open == "d") null else "d" }) {
                         Text(stringResource(R.string.share_decks_why), fontSize = 12.sp, color = extra.subtle)
                         decks.sortedBy { it.name.lowercase() }.forEach { d ->
-                            CheckLine(d.name, formatLabelPlain(d.format), choice.all || d.id in choice.decks, enabled = !choice.all) {
-                                choice = choice.copy(decks = if (it) choice.decks + d.id else choice.decks - d.id)
-                            }
+                            CheckLine(d.name, formatLabelPlain(d.format), d.id in deckSel) { deckSel = if (it) deckSel + d.id else deckSel - d.id }
                         }
                     }
+                    if (vm.wishlistCount() > 0) CheckLine(stringResource(R.string.share_wishlist), stringResource(R.string.share_wishlist_sub, vm.wishlistCount()), wish) { wish = it }
                     Spacer(Modifier.height(12.dp))
                     Text(stringResource(R.string.share_privacy), fontSize = 12.sp, color = extra.subtle)
                     Spacer(Modifier.height(12.dp))
                 }
                 HorizontalDivider()
                 Column(Modifier.padding(16.dp)) {
-                    Text(
-                        if (packs.isEmpty()) stringResource(R.string.share_nothing) else stringResource(R.string.share_summary, count, packs.size),
-                        fontWeight = FontWeight.Bold,
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        val ok = packs.isNotEmpty() && name.isNotBlank()
-                        OutlinedButton(onClick = { build { save.launch(it.name) } }, enabled = ok) { Text(stringResource(R.string.share_save_file)) }
-                        Button(onClick = {
-                            build { f ->
-                                val uri = androidx.core.content.FileProvider.getUriForFile(context, context.packageName + ".files", f)
-                                val send = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
-                                    type = "application/octet-stream"
-                                    putExtra(android.content.Intent.EXTRA_STREAM, uri)
-                                    putExtra(android.content.Intent.EXTRA_SUBJECT, f.nameWithoutExtension)
-                                    addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                }
-                                context.startActivity(android.content.Intent.createChooser(send, null))
-                                onDismiss()
+                    // Samenvatting: wat er meegaat.
+                    if (packs.isEmpty()) Text(stringResource(R.string.share_nothing), fontWeight = FontWeight.Bold)
+                    else {
+                        Text(stringResource(R.string.share_total, count), fontWeight = FontWeight.Bold)
+                        val looseN = packs.filter { it.kind != ShareKind.DECK }.sumOf { p -> p.cards.sumOf { it.qty } }
+                        val deckPacks = packs.filter { it.kind == ShareKind.DECK }
+                        val bytes = nl.spoonpaco.ninegrid.domain.Share.encode(nl.spoonpaco.ninegrid.domain.ShareFile(senderId = "x", senderName = name, createdAt = 0, packages = packs)).length
+                        Text(
+                            listOfNotNull(
+                                if (looseN > 0) stringResource(R.string.share_sum_loose, looseN) else null,
+                                if (deckPacks.isNotEmpty()) stringResource(R.string.share_sum_decks, deckPacks.size, deckPacks.sumOf { p -> p.cards.sumOf { it.qty } }) else null,
+                                "± " + maxOf(1, bytes / 1024) + " KB",
+                            ).joinToString(" · "),
+                            fontSize = 12.sp, color = extra.subtle,
+                        )
+                    }
+                    Spacer(Modifier.height(10.dp))
+                    val ok = packs.isNotEmpty() && name.isNotBlank()
+                    Button(onClick = {
+                        build { f ->
+                            val uri = androidx.core.content.FileProvider.getUriForFile(context, context.packageName + ".files", f)
+                            val send = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                                type = "application/octet-stream"
+                                putExtra(android.content.Intent.EXTRA_STREAM, uri)
+                                putExtra(android.content.Intent.EXTRA_SUBJECT, f.nameWithoutExtension)
+                                addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
                             }
-                        }, enabled = ok, modifier = Modifier.weight(1f)) { Icon(Icons.Filled.Share, null); Spacer(Modifier.width(6.dp)); Text(stringResource(R.string.share_send)) }
+                            context.startActivity(android.content.Intent.createChooser(send, null))
+                            onDismiss()
+                        }
+                    }, enabled = ok, modifier = Modifier.fillMaxWidth()) { Icon(Icons.Filled.Share, null); Spacer(Modifier.width(6.dp)); Text(stringResource(R.string.share_send)) }
+                    TextButton(onClick = { build { save.launch(it.name) } }, enabled = ok, modifier = Modifier.align(Alignment.CenterHorizontally)) {
+                        Text(stringResource(R.string.share_save_file))
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun RadioLine(title: String, sub: String?, selected: Boolean, onClick: () -> Unit) {
+    Row(Modifier.fillMaxWidth().clickable(onClick = onClick), verticalAlignment = Alignment.CenterVertically) {
+        androidx.compose.material3.RadioButton(selected = selected, onClick = onClick)
+        Column(Modifier.weight(1f)) {
+            Text(title)
+            sub?.let { Text(it, fontSize = 12.sp, color = LocalNgExtra.current.subtle) }
+        }
+    }
+}
+
+/** Dichtgeklapt blok met teller: "Sets (62)" en wat gekozen is ("· 4 gekozen"). */
+@Composable
+private fun Fold(title: String, total: Int, chosen: Int, open: Boolean, onToggle: () -> Unit, content: @Composable () -> Unit) {
+    Card(colors = CardDefaults.cardColors(containerColor = LocalNgExtra.current.cardSurface), modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+        Row(Modifier.fillMaxWidth().clickable(onClick = onToggle).padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text("$title ($total)", fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+            if (chosen > 0) Text(stringResource(R.string.share_chosen, chosen), fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
+            Text(if (open) " ▴" else " ▾")
+        }
+        if (open) Column(Modifier.padding(start = 4.dp, end = 8.dp, bottom = 8.dp)) { content() }
     }
 }
 

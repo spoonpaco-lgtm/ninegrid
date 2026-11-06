@@ -402,6 +402,9 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit, onGuide: () -> Unit = {
                     Text("NineGrid ${BuildConfig.VERSION_NAME} – ${BuildConfig.CODENAME}", fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(8.dp))
                     OutlinedButton(onClick = { vm.checkUpdate(manual = true) }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.check_updates)) }
+                    val ul = mapOf("wifi" to stringResource(R.string.update_auto_wifi), "any" to stringResource(R.string.update_auto_any), "off" to stringResource(R.string.update_auto_off))
+                    ChoiceRow(stringResource(R.string.update_auto), listOf("wifi", "any", "off"), settings.updateAuto, { ul[it] ?: it }) { vm.setUpdateAuto(it) }
+                    Text(stringResource(R.string.update_auto_explain), fontSize = 12.sp, color = LocalNgExtra.current.subtle)
                     OutlinedButton(onClick = onWhatsNew, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.whats_new)) }
                     OutlinedButton(onClick = onGuide, modifier = Modifier.fillMaxWidth()) { Icon(Icons.AutoMirrored.Filled.MenuBook, null); Spacer(Modifier.size(6.dp)); Text(stringResource(R.string.guide)) }
                     OutlinedButton(onClick = onAbout, modifier = Modifier.fillMaxWidth()) { Icon(Icons.Filled.Info, null); Spacer(Modifier.size(6.dp)); Text(stringResource(R.string.about_app)) }
@@ -506,24 +509,56 @@ fun AboutScreen(onBack: () -> Unit, onTour: () -> Unit) {
 }
 
 @Composable
-fun OnboardingScreen(onDone: () -> Unit, onGuide: () -> Unit) {
+fun OnboardingScreen(onDone: () -> Unit, onGuide: () -> Unit, vm: AppViewModel? = null) {
     var page by remember { mutableStateOf(0) }
+    // Pagina 4 (index 3) is de vraag over de offline kaartdatabase; de laatste is de handleiding.
     val pages = listOf(
         R.string.tour1_title to R.string.tour1_body,
         R.string.tour2_title to R.string.tour2_body,
         R.string.tour3_title to R.string.tour3_body,
+        R.string.tour_offline_title to R.string.tour_offline_body,
         R.string.guide_ask_title to R.string.guide_ask_body,
     )
+    val offlinePage = 3
+    var offlineChosen by remember { mutableStateOf<String?>(null) }
+    androidx.compose.runtime.LaunchedEffect(page) { if (page == offlinePage) vm?.loadOfflineDbInfo() }
     Column(
-        Modifier.fillMaxSize().padding(28.dp),
+        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(28.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Image(painterResource(R.drawable.logo_ninegrid), null, Modifier.size(180.dp))
+        Image(painterResource(R.drawable.logo_ninegrid), null, Modifier.size(170.dp))
         Spacer(Modifier.height(24.dp))
         Text(stringResource(pages[page].first), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
         Spacer(Modifier.height(12.dp))
         Text(stringResource(pages[page].second), textAlign = TextAlign.Center)
+        if (page == offlinePage) {
+            Spacer(Modifier.height(10.dp))
+            val info = vm?.offlineDbInfo
+            Text(
+                if (info != null && info.downloadBytes > 0) stringResource(R.string.tour_offline_size, info.downloadBytes / (1024 * 1024))
+                else stringResource(R.string.tour_offline_size_est),
+                fontSize = 13.sp, textAlign = TextAlign.Center, color = LocalNgExtra.current.subtle,
+            )
+            Spacer(Modifier.height(16.dp))
+            when (offlineChosen) {
+                null -> {
+                    Button(onClick = { vm?.setOfflineDb(nl.spoonpaco.ninegrid.data.OfflineDb.NEW_SET); offlineChosen = "yes" }, enabled = vm != null) {
+                        Text(stringResource(R.string.tour_offline_yes))
+                    }
+                    TextButton(onClick = { offlineChosen = "no"; page++ }) { Text(stringResource(R.string.tour_offline_no)) }
+                }
+                "yes" -> {
+                    val metered = remember { vm?.onMeteredNetwork() == true }
+                    Text(stringResource(if (metered) R.string.tour_offline_waiting_wifi else R.string.tour_offline_started), fontSize = 13.sp, textAlign = TextAlign.Center, color = nl.spoonpaco.ninegrid.ui.theme.NgColors.Synced)
+                    if (metered) TextButton(onClick = { vm?.setOfflineDbMobile(true); vm?.updateOfflineDbNow(confirmed = true); offlineChosen = "mobile" }) {
+                        Text(stringResource(R.string.tour_offline_mobile_now))
+                    }
+                }
+                "mobile" -> Text(stringResource(R.string.tour_offline_started), fontSize = 13.sp, textAlign = TextAlign.Center, color = nl.spoonpaco.ninegrid.ui.theme.NgColors.Synced)
+            }
+            Text(stringResource(R.string.tour_offline_later), fontSize = 12.sp, textAlign = TextAlign.Center, color = LocalNgExtra.current.subtle, modifier = Modifier.padding(top = 8.dp))
+        }
         Spacer(Modifier.height(28.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             if (page < pages.lastIndex) {

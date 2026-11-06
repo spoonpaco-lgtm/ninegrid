@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Thema-icoon (Android 13+): het raster binnen de veilige zone van een adaptief icoon. -->
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/ic_stat_ninegrid"
+    android:inset="27%" />

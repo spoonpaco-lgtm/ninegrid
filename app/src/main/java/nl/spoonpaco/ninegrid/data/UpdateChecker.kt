@@ -10,13 +10,24 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 
 @Serializable
+private data class GhAsset(val name: String, @SerialName("browser_download_url") val url: String, val size: Long = 0)
+
+@Serializable
 private data class GhRelease(
     @SerialName("tag_name") val tag: String,
     @SerialName("html_url") val url: String,
     val name: String? = null,
+    val body: String? = null,
+    val assets: List<GhAsset> = emptyList(),
 )
 
-data class UpdateInfo(val version: String, val url: String)
+/** Een nieuwe versie: nummer, pagina, de APK om te downloaden, de naam ("NineGrid v0.9.1 – Kaya") en de release notes. */
+@Serializable
+data class UpdateInfo(
+    val version: String, val url: String,
+    val apkUrl: String? = null, val apkSize: Long = 0,
+    val title: String = "", val notes: String = "",
+)
 
 /** Uitkomst van een controle: nieuwe versie, al de nieuwste, of controleren lukte niet (met reden). */
 sealed interface UpdateResult {
@@ -46,7 +57,10 @@ object UpdateChecker {
                     else -> {
                         val r = json.decodeFromString(GhRelease.serializer(), resp.body?.string().orEmpty())
                         val latest = r.tag.removePrefix("v")
-                        if (isNewer(latest, BuildConfig.VERSION_NAME)) UpdateResult.Available(UpdateInfo(latest, r.url)) else UpdateResult.UpToDate
+                        val apk = r.assets.firstOrNull { it.name.endsWith(".apk", true) }
+                        if (isNewer(latest, BuildConfig.VERSION_NAME)) UpdateResult.Available(
+                            UpdateInfo(latest, r.url, apk?.url, apk?.size ?: 0, r.name ?: "NineGrid v$latest", r.body.orEmpty().trim()),
+                        ) else UpdateResult.UpToDate
                     }
                 }
             }

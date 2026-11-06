@@ -28,6 +28,7 @@ class MainActivity : AppCompatActivity() {
         // Getikt op de melding van de import: naar het scherm Importeren.
         if (intent.getBooleanExtra(nl.spoonpaco.ninegrid.data.ImportWorker.EXTRA_OPEN_IMPORT, false)) vm.openImport = true
         sharedUri(intent)?.let { vm.receiveShared(it) }
+        if (intent.getBooleanExtra(nl.spoonpaco.ninegrid.data.Updater.EXTRA_INSTALL, false)) vm.showReadyUpdate()
     }
 
     /** Een gedeelde collectie die vanuit een andere app (WhatsApp, Bestanden …) is geopend of gestuurd. */
@@ -63,6 +64,7 @@ class MainActivity : AppCompatActivity() {
         if (intent?.getBooleanExtra(nl.spoonpaco.ninegrid.data.ImportWorker.EXTRA_OPEN_IMPORT, false) == true) vm.openImport = true
         // Alleen bij een verse start, niet na draaien van het scherm.
         if (savedInstanceState == null) sharedUri(intent)?.let { vm.receiveShared(it) }
+        if (savedInstanceState == null && intent?.getBooleanExtra(nl.spoonpaco.ninegrid.data.Updater.EXTRA_INSTALL, false) == true) vm.showReadyUpdate()
         enableEdgeToEdge()
         setContent {
             // Wacht tot de instellingen geladen zijn, zodat de uitleg niet even opflitst.

@@ -9,6 +9,8 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Bijwerken vanuit de app zelf (APK van GitHub) -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
 
     <application
@@ -44,6 +46,9 @@
                 <data android:mimeType="application/octet-stream" />
             </intent-filter>
         </activity>
+
+        <!-- Uitkomst van een update-installatie -->
+        <receiver android:name=".data.InstallReceiver" android:exported="false" />
 
         <!-- Het deelbestand aan andere apps geven (WhatsApp, e-mail …) -->
         <provider

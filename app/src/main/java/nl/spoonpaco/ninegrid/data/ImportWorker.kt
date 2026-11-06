@@ -175,7 +175,7 @@ class ImportWorker(context: Context, params: WorkerParameters) : CoroutineWorker
         val text = if (pass == null) applicationContext.getString(R.string.import_preparing)
             else applicationContext.getString(R.string.import_notif_progress, done, total, pass)
         val n = NotificationCompat.Builder(applicationContext, CHANNEL)
-            .setSmallIcon(android.R.drawable.stat_sys_download)
+            .setSmallIcon(nl.spoonpaco.ninegrid.R.drawable.ic_stat_ninegrid)
             .setContentTitle(applicationContext.getString(R.string.import_notif_title))
             .setContentText(text)
             .setProgress(total.coerceAtLeast(1), done, pass == null)
@@ -186,7 +186,7 @@ class ImportWorker(context: Context, params: WorkerParameters) : CoroutineWorker
 
     private fun notifyDone(text: String) {
         val n = NotificationCompat.Builder(applicationContext, CHANNEL)
-            .setSmallIcon(android.R.drawable.stat_sys_download_done)
+            .setSmallIcon(nl.spoonpaco.ninegrid.R.drawable.ic_stat_ninegrid)
             .setContentTitle(applicationContext.getString(R.string.import_notif_done))
             .setContentText(text).setAutoCancel(true).setContentIntent(openApp())
             .build()

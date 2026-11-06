@@ -875,6 +875,35 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         else images.prefetch(repo.allPrintsOwned(), settings.value.copy(imageMode = v))
     }
 
+    // ---------- Bijwerken vanuit de app ----------
+    /** Voortgang van het downloaden van een update (0..1), of null als er niets loopt. */
+    var updateProgress by mutableStateOf<Float?>(null)
+        private set
+    /** Android moet eerst toestemming geven om apps te installeren. */
+    var updateNeedsPermission by mutableStateOf(false)
+
+    fun setUpdateAuto(v: String) = viewModelScope.launch {
+        settingsStore.setUpdateAuto(v)
+        nl.spoonpaco.ninegrid.data.UpdateWorker.schedule(getApplication(), v)
+    }
+
+    /** Getikt op de melding: de klaarstaande update tonen. */
+    fun showReadyUpdate() { nl.spoonpaco.ninegrid.data.Updater.ready(getApplication())?.let { update = it } }
+
+    /** Downloaden (als dat nog niet gebeurd is) en het installatievenster van Android openen. */
+    fun installUpdate() = viewModelScope.launch {
+        val app = getApplication<Application>()
+        val u = update ?: nl.spoonpaco.ninegrid.data.Updater.ready(app) ?: return@launch
+        if (u.apkUrl == null) { message = str(R.string.update_no_apk); return@launch }
+        if (!nl.spoonpaco.ninegrid.data.Updater.canInstall(app)) { updateNeedsPermission = true; return@launch }
+        updateProgress = 0f
+        val apk = runCatching { nl.spoonpaco.ninegrid.data.Updater.download(app, u) { p -> updateProgress = p } }
+            .getOrElse { updateProgress = null; message = str(if (it is java.io.IOException) R.string.msg_update_offline else R.string.update_failed); return@launch }
+        updateProgress = null
+        update = null
+        runCatching { nl.spoonpaco.ninegrid.data.Updater.install(app, apk, quiet = false) }.onFailure { message = str(R.string.update_failed) }
+    }
+
     fun checkUpdate(manual: Boolean) = viewModelScope.launch {
         val s = settingsStore.current()
         if (!manual && System.currentTimeMillis() - s.lastUpdateCheck < 24 * 3600 * 1000L) return@launch
@@ -1050,6 +1079,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         confirmMobileDownload = false
         nl.spoonpaco.ninegrid.data.offline.OfflineDbWorker.start(getApplication(), manual = true, anyNetwork = s.offlineDbMobile && metered)
     }
+    fun onMeteredNetwork() = c.images.onMeteredNetwork()
     fun setOfflineDbMobile(v: Boolean) = viewModelScope.launch { settingsStore.setOfflineDbMobile(v) }
     fun setOfflineDbMobileAuto(v: Boolean) = viewModelScope.launch { settingsStore.setOfflineDbMobileAuto(v) }
 
@@ -1331,6 +1361,9 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     val friendCards = repo.friendCards.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
     var shareBusy by mutableStateOf(false)
         private set
+
+    /** Aantal kaarten op de verlanglijst (wordt gevuld zodra de verlanglijst er is). */
+    fun wishlistCount(): Int = 0
 
     fun sharePackages(choice: nl.spoonpaco.ninegrid.domain.ShareChoice) =
         nl.spoonpaco.ninegrid.domain.Share.packages(entries.value, decks.value, choice)

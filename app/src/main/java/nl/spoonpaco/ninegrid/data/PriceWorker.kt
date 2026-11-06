@@ -49,7 +49,7 @@ class PriceWorker(context: Context, params: WorkerParameters) : CoroutineWorker(
             android.app.PendingIntent.FLAG_IMMUTABLE,
         )
         val n = androidx.core.app.NotificationCompat.Builder(ctx, CHANNEL)
-            .setSmallIcon(android.R.drawable.star_on)
+            .setSmallIcon(nl.spoonpaco.ninegrid.R.drawable.ic_stat_ninegrid)
             .setContentTitle("Breakout " + nl.spoonpaco.ninegrid.domain.PriceMovers.mainType(m.print.typeLine))
             .setContentText(ctx.getString(nl.spoonpaco.ninegrid.R.string.breakout_text, m.print.name, "+" + money(m.unitGain),
                 String.format(java.util.Locale.getDefault(), "%+.0f%%", m.pct), money(m.newUnit)))

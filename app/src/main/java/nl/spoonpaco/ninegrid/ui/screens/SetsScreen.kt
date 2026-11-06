@@ -2,6 +2,7 @@ package nl.spoonpaco.ninegrid.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -137,11 +138,7 @@ fun SetsScreen(vm: AppViewModel, onBack: () -> Unit, onSet: (String) -> Unit) {
                     "date" to stringResource(R.string.sort_date), "count" to stringResource(R.string.sort_count)),
                 sort = sort, onSort = { sort = it },
             )
-            Row(Modifier.padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-                FilterChip(selected = settings.completionist, onClick = { vm.setCompletionist(!settings.completionist) }, label = { Text(stringResource(R.string.completionist)) })
-                Spacer(Modifier.width(8.dp))
-                Text(stringResource(R.string.completionist_explain), fontSize = 11.sp, color = extra.subtle)
-            }
+            CompletionistToggle(settings.completionist, onChange = { vm.setCompletionist(it) }, modifier = Modifier.padding(horizontal = 4.dp))
             Spacer(Modifier.height(6.dp))
             LazyColumn {
                 items(shown, key = { it.code }) { r ->
@@ -188,4 +185,25 @@ private fun SetRowView(r: SetRow, cur: String, icons: Boolean, vm: AppViewModel,
             )
         }
     }
+}
+
+/** "☐ Completionist ⓘ": vinkje, met de uitleg achter het ⓘ. Overal dezelfde instelling als in Instellingen. */
+@Composable
+fun CompletionistToggle(on: Boolean, onChange: (Boolean) -> Unit, modifier: Modifier = Modifier) {
+    var info by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+    val help = nl.spoonpaco.ninegrid.ui.guide.LocalHelp.current
+    Row(modifier.clickable { onChange(!on) }, verticalAlignment = Alignment.CenterVertically) {
+        androidx.compose.material3.Checkbox(checked = on, onCheckedChange = onChange)
+        Text(stringResource(R.string.completionist))
+        androidx.compose.material3.IconButton(onClick = { info = true }, modifier = Modifier.size(32.dp)) {
+            androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Outlined.Info, stringResource(R.string.completionist_info_title), modifier = Modifier.size(18.dp))
+        }
+    }
+    if (info) androidx.compose.material3.AlertDialog(
+        onDismissRequest = { info = false },
+        title = { Text(stringResource(R.string.completionist_info_title)) },
+        text = { Text(stringResource(R.string.completionist_info_body)) },
+        confirmButton = { androidx.compose.material3.TextButton(onClick = { info = false }) { Text(stringResource(R.string.done)) } },
+        dismissButton = { androidx.compose.material3.TextButton(onClick = { info = false; help("collection") }) { Text(stringResource(R.string.more_in_guide)) } },
+    )
 }

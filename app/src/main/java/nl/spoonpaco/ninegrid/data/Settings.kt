@@ -55,6 +55,8 @@ data class AppSettings(
     /** Naam waaronder je deelt (gevraagd bij de eerste keer), en je vaste code als deler. */
     val shareName: String = "",
     val shareId: String = "",
+    /** Updates op de achtergrond downloaden: "wifi" (standaard), "any" (ook mobiel) of "off". */
+    val updateAuto: String = "wifi",
     /** Offline kaartdatabase: off, newset (bij nieuwe set) of manual. */
     val offlineDb: String = OfflineDb.OFF,
     val offlineDbUpdated: Long = 0,
@@ -123,6 +125,7 @@ class SettingsStore(private val context: Context) {
         val lastSeenVersion = stringPreferencesKey("last_seen_version")
         val shareName = stringPreferencesKey("share_name")
         val shareId = stringPreferencesKey("share_id")
+        val updateAuto = stringPreferencesKey("update_auto")
         val offlineDb = stringPreferencesKey("offline_db")
         val offlineDbUpdated = longPreferencesKey("offline_db_updated")
         val offlineDbCount = androidx.datastore.preferences.core.intPreferencesKey("offline_db_count")
@@ -179,6 +182,7 @@ class SettingsStore(private val context: Context) {
         lastSeenVersion = this[K.lastSeenVersion] ?: "",
         shareName = this[K.shareName] ?: "",
         shareId = this[K.shareId] ?: "",
+        updateAuto = this[K.updateAuto] ?: "wifi",
         offlineDb = this[K.offlineDb] ?: OfflineDb.OFF,
         offlineDbUpdated = this[K.offlineDbUpdated] ?: 0,
         offlineDbCount = this[K.offlineDbCount] ?: 0,
@@ -228,6 +232,7 @@ class SettingsStore(private val context: Context) {
     suspend fun setBreakoutAlerts(v: Boolean) = context.dataStore.edit { it[K.breakoutAlerts] = v }
     suspend fun setLastBreakoutDay(v: String) = context.dataStore.edit { it[K.lastBreakoutDay] = v }
     suspend fun setLastSeenVersion(v: String) = context.dataStore.edit { it[K.lastSeenVersion] = v }
+    suspend fun setUpdateAuto(v: String) = context.dataStore.edit { it[K.updateAuto] = v }
     suspend fun setShareName(v: String) = context.dataStore.edit { it[K.shareName] = v.trim() }
     /** Vaste code als deler: één keer gemaakt, daarna altijd dezelfde. */
     suspend fun shareId(): String {

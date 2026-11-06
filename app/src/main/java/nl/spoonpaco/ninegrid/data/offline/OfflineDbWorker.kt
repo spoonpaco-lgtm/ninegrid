@@ -94,7 +94,7 @@ class OfflineDbWorker(context: Context, params: WorkerParameters) : CoroutineWor
 
     private fun info(count: Int, pct: Int = -1): ForegroundInfo {
         val n = NotificationCompat.Builder(applicationContext, CHANNEL)
-            .setSmallIcon(android.R.drawable.stat_sys_download)
+            .setSmallIcon(nl.spoonpaco.ninegrid.R.drawable.ic_stat_ninegrid)
             .setContentTitle(applicationContext.getString(R.string.offline_db_notif))
             .setContentText(applicationContext.getString(R.string.offline_db_progress, count))
             .setProgress(100, pct.coerceAtLeast(0), pct < 0)
