@@ -314,4 +314,4 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
             dismissButton = { TextButton(onClick = { vm.updateNeedsPermission = false }) { Text(stringResource(R.string.later)) } },
         )
     }
-}}
+}
