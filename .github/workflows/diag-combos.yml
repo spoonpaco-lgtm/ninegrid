@@ -9,7 +9,7 @@ jobs:
       - name: Spellbook aanroepen met een combodeck
         run: |
           UA="NineGrid-diag/1.0 (+https://github.com/spoonpaco-lgtm/ninegrid)"
-          BODY='{"commanders":[{"card":"Tymna the Weaver","quantity":1},{"card":"Kraum, Ludevic'"'"'s Opus","quantity":1}],"main":[{"card":"Thassa'"'"'s Oracle","quantity":1},{"card":"Demonic Consultation","quantity":1},{"card":"Dramatic Reversal","quantity":1},{"card":"Isochron Scepter","quantity":1},{"card":"Sol Ring","quantity":1},{"card":"Basalt Monolith","quantity":1},{"card":"Rings of Brighthearth","quantity":1}]}'
+          BODY='{"commanders":[{"card":"Atraxa, Praetors'"'"' Voice","quantity":1}],"main":[{"card":"Exquisite Blood","quantity":1},{"card":"Sanguine Bond","quantity":1},{"card":"Mikaeus, the Unhallowed","quantity":1},{"card":"Triskelion","quantity":1},{"card":"Kiki-Jiki, Mirror Breaker","quantity":1},{"card":"Pestermite","quantity":1},{"card":"Niv-Mizzet, Parun","quantity":1},{"card":"Curiosity","quantity":1},{"card":"Heliod, Sun-Crowned","quantity":1},{"card":"Walking Ballista","quantity":1},{"card":"Peregrin Took","quantity":1},{"card":"Sol Ring","quantity":1}]}'
           curl -sS -A "$UA" -H "Content-Type: application/json" -H "Accept: application/json" -d "$BODY" https://backend.commanderspellbook.com/find-my-combos > find.json
           curl -sS -A "$UA" -H "Content-Type: application/json" -H "Accept: application/json" -d "$BODY" https://backend.commanderspellbook.com/estimate-bracket > est.json
           python3 - <<'PY'
