@@ -15,6 +15,12 @@ data class DeckRules(
     val includeOtherDecks: Boolean = false,
     /** Eén kleur buiten het deck toestaan, als de lands in het deck die kleur al maken (niet bij Commander). */
     val splash: Boolean = false,
+    /** Soort deck voor de streefgetallen: "auto" (de app bepaalt), "aggro", "midrange" of "control". */
+    val deckType: String = "auto",
+    /** Eigen streefgetal per rol (Role.name → aantal); niet ingevuld = zoals voorgesteld. */
+    val targets: Map<String, Int> = emptyMap(),
+    /** Kaarten die je zelf bij een rol hebt aangevinkt (Role.name → namen), voor wat de app niet herkent. */
+    val roleCards: Map<String, List<String>> = emptyMap(),
 )
 
 /** Een kaart die je zou kunnen gebruiken, met de reden. */
@@ -50,6 +56,11 @@ data class SuggestionReport(
     /** Met welke kleuren gerekend is (WUBRG-volgorde), en welke er als splash mogen. */
     val colors: String = "",
     val splashColors: String = "",
+    /** Welke kaarten per rol zijn meegeteld. */
+    val roleCards: Map<Role, List<String>> = emptyMap(),
+    /** Met welk soort deck gerekend is ("aggro", "midrange", "control") en of de app dat zelf bepaalde. */
+    val deckType: String = "midrange",
+    val deckTypeAuto: Boolean = true,
 )
 
 /**
@@ -100,12 +111,30 @@ object Suggestions {
 
     private fun order(c: Set<Char>) = WUBRG.filter { it in c }
 
-    /** Streefgetallen per rol (Commander tegenover 60 kaarten). */
-    private fun targets(commander: Boolean) = if (commander) mapOf(
-        Role.RAMP to 10, Role.DRAW to 10, Role.REMOVAL to 8, Role.WIPE to 3, Role.COUNTER to 0, Role.PROTECTION to 3, Role.TOKENS to 0, Role.RECURSION to 2,
-    ) else mapOf(
-        Role.RAMP to 0, Role.DRAW to 4, Role.REMOVAL to 6, Role.WIPE to 0, Role.COUNTER to 0, Role.PROTECTION to 0, Role.TOKENS to 0, Role.RECURSION to 0,
-    )
+    /** Streefgetallen per rol (Commander tegenover 60 kaarten), per soort deck. */
+    fun targets(commander: Boolean, type: String = "midrange"): Map<Role, Int> = if (commander) when (type) {
+        // Agressief (bijv. tribal): weinig board wipes (die ruimen je eigen bord op), meer protection, iets minder ramp.
+        "aggro" -> mapOf(Role.RAMP to 8, Role.DRAW to 10, Role.REMOVAL to 8, Role.WIPE to 1, Role.COUNTER to 0, Role.PROTECTION to 4, Role.TOKENS to 0, Role.RECURSION to 2)
+        "control" -> mapOf(Role.RAMP to 10, Role.DRAW to 12, Role.REMOVAL to 10, Role.WIPE to 4, Role.COUNTER to 3, Role.PROTECTION to 2, Role.TOKENS to 0, Role.RECURSION to 2)
+        else -> mapOf(Role.RAMP to 10, Role.DRAW to 10, Role.REMOVAL to 8, Role.WIPE to 3, Role.COUNTER to 0, Role.PROTECTION to 3, Role.TOKENS to 0, Role.RECURSION to 2)
+    } else when (type) {
+        "aggro" -> mapOf(Role.RAMP to 0, Role.DRAW to 2, Role.REMOVAL to 6, Role.WIPE to 0, Role.COUNTER to 0, Role.PROTECTION to 2, Role.TOKENS to 0, Role.RECURSION to 0)
+        "control" -> mapOf(Role.RAMP to 0, Role.DRAW to 6, Role.REMOVAL to 8, Role.WIPE to 2, Role.COUNTER to 4, Role.PROTECTION to 0, Role.TOKENS to 0, Role.RECURSION to 0)
+        else -> mapOf(Role.RAMP to 0, Role.DRAW to 4, Role.REMOVAL to 6, Role.WIPE to 0, Role.COUNTER to 0, Role.PROTECTION to 0, Role.TOKENS to 0, Role.RECURSION to 0)
+    }
+
+    /**
+     * Soort deck als de gebruiker niets koos: agressief als er een tribe in de regels staat of als het deck veel creatures
+     * heeft (Commander: meer dan 35, anders meer dan 24); anders midrange.
+     */
+    fun autoDeckType(deck: List<DeckCard>, rules: DeckRules, commander: Boolean): String {
+        if (rules.tribe.isNotBlank()) return "aggro"
+        val creatures = deck.filter { it.section != Section.SIDEBOARD && it.typeLine.contains("Creature") }.sumOf { it.quantity }
+        return if (creatures > (if (commander) 35 else 24)) "aggro" else "midrange"
+    }
+
+    fun deckTypeOf(deck: List<DeckCard>, rules: DeckRules, commander: Boolean) =
+        if (rules.deckType == "auto") autoDeckType(deck, rules, commander) else rules.deckType
 
     // Vooraf gecompileerd. Accolades altijd escapen: Android (ICU) weigert een losse '}'.
     private val reRamp = Regex("""add \{[wubrgc]\}|add one mana|add two mana|mana of any color""")
@@ -217,9 +246,13 @@ object Suggestions {
         val tribe = rules.tribe.trim()
         val gcInDeck = inDeck.count { it.gameChanger }
 
-        // Rollen in het deck tegenover het streefgetal.
-        val target = targets(commander)
-        val have = Role.entries.associateWith { r -> inDeck.filter { r in rolesOf(it.oracleText, it.typeLine) }.sumOf { it.quantity } }
+        // Rollen in het deck tegenover het streefgetal (aangepast aan het soort deck, of je eigen getallen).
+        val type = deckTypeOf(deck, rules, commander)
+        val target = targets(commander, type).mapValues { (r, v) -> rules.targets[r.name] ?: v }
+        val manual = rules.roleCards.mapValues { it.value.map { n -> n.lowercase() }.toSet() }
+        fun counts(r: Role, c: DeckCard) = r in rolesOf(c.oracleText, c.typeLine) || c.name.lowercase() in manual[r.name].orEmpty()
+        val roleCards = Role.entries.associateWith { r -> inDeck.filter { counts(r, it) }.map { it.name }.distinct() }
+        val have = Role.entries.associateWith { r -> inDeck.filter { counts(r, it) }.sumOf { it.quantity } }
         val need = Role.entries.associateWith { r -> ((target[r] ?: 0) - (have[r] ?: 0)).coerceAtLeast(0) }
         // Thema's van het deck (hoe vaak elk woord voorkomt).
         val deckThemes = inDeck.flatMap { themeHits(it.oracleText) }.groupingBy { it }.eachCount()
@@ -288,6 +321,9 @@ object Suggestions {
             .sortedByDescending { it.score }
             .take(8)
 
-        return SuggestionReport(adds, cuts, lands, Role.entries.associateWith { (have[it] ?: 0) to (target[it] ?: 0) }, tribe, order(identity), order(splash))
+        return SuggestionReport(
+            adds, cuts, lands, Role.entries.associateWith { (have[it] ?: 0) to (target[it] ?: 0) }, tribe, order(identity), order(splash),
+            roleCards = roleCards, deckType = type, deckTypeAuto = rules.deckType == "auto",
+        )
     }
 }

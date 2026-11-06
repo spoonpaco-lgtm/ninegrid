@@ -350,7 +350,8 @@ fun FriendScreen(vm: AppViewModel, friendId: String, onBack: () -> Unit, onCard:
     val extra = LocalNgExtra.current
     val friend = friends.firstOrNull { it.id == friendId }
     val packs = packages.filter { it.friendId == friendId }
-    var tab by rememberSaveable { mutableStateOf(0) }
+    // Een persoon openen = meteen de ruilmatch; de kaarten staan in het tweede tabblad.
+    var tab by rememberSaveable { mutableStateOf(1) }
     var only by rememberSaveable { mutableStateOf<Long?>(null) }
     var query by rememberSaveable { mutableStateOf("") }
     var renaming by remember { mutableStateOf(false) }

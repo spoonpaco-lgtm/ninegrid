@@ -39,7 +39,7 @@ object TradeMatch {
     }
 
     /** Voor elk deck de beste kaarten uit [pool]; per kaart samengevoegd over de decks heen. */
-    private fun forDecks(decks: List<DeckInput>, pool: List<EntryWithPrint>, skipNames: Set<String>, currency: String, perDeck: Int): List<Item> {
+    fun forDecks(decks: List<DeckInput>, pool: List<EntryWithPrint>, skipNames: Set<String>, currency: String, perDeck: Int): List<Item> {
         val usable = pool.filter { it.print != null && !it.entry.proxy && it.entry.quantity > 0 && it.print.name.lowercase() !in skipNames }
         if (usable.isEmpty()) return emptyList()
         // Eén kandidaat per kaartnaam: de goedkoopste versie (de ruil gaat meestal om de gewone print).

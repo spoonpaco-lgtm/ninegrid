@@ -101,12 +101,12 @@ fun MoreScreen(onPaste: () -> Unit, onChanges: () -> Unit, onSettings: () -> Uni
                     }
                 }
             }
+            ListItem(headlineContent = { Text(stringResource(R.string.share_title)) }, supportingContent = { Text(stringResource(R.string.share_sub)) },
+                leadingContent = { Icon(Icons.Filled.Share, null) }, modifier = Modifier.clickableRow(onShare))
             ListItem(headlineContent = { Text(stringResource(R.string.import_title)) }, supportingContent = { Text(stringResource(R.string.import_sub)) },
                 leadingContent = { Icon(Icons.Filled.FileOpen, null) }, modifier = Modifier.clickableRow(onImport))
             ListItem(headlineContent = { Text(stringResource(R.string.paste_list)) }, leadingContent = { Icon(Icons.Filled.ContentPaste, null) },
                 modifier = Modifier.clickableRow(onPaste))
-            ListItem(headlineContent = { Text(stringResource(R.string.share_title)) }, supportingContent = { Text(stringResource(R.string.share_sub)) },
-                leadingContent = { Icon(Icons.Filled.Share, null) }, modifier = Modifier.clickableRow(onShare))
             ListItem(headlineContent = { Text(stringResource(R.string.change_log)) }, leadingContent = { Icon(Icons.Filled.History, null) },
                 modifier = Modifier.clickableRow(onChanges))
             ListItem(headlineContent = { Text(stringResource(R.string.settings_backup)) }, leadingContent = { Icon(Icons.Filled.Settings, null) },

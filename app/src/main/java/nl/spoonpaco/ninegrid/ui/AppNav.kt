@@ -182,7 +182,12 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
                 DecksScreen(vm, onDeck = { nav.navigate("deck/$it") }, onNewDeck = { nav.navigate("paste?asNewDeck=true") })
             }
             composable("scan") { ScanScreen(vm, onBack = { if (!nav.popBackStack()) tab("collection") }, onResult = { nav.navigate("review") }) }
-            composable("overview") { OverviewScreen(vm, onSet = { nav.navigate("set/$it") }, onSets = { nav.navigate("sets") }, onDecks = { tab("decks") }) }
+            composable("overview") {
+                OverviewScreen(
+                    vm, onSet = { nav.navigate("set/$it") }, onSets = { nav.navigate("sets") }, onDecks = { tab("decks") },
+                    onFriend = { id -> nav.navigate("friend/$id") }, onShare = { nav.navigate("share") },
+                )
+            }
             composable("sets") { nl.spoonpaco.ninegrid.ui.screens.SetsScreen(vm, onBack = { nav.popBackStack() }, onSet = { nav.navigate("set/$it") }) }
             composable("set/{code}", arguments = listOf(navArgument("code") { type = NavType.StringType })) {
                 nl.spoonpaco.ninegrid.ui.screens.SetScreen(vm, it.arguments?.getString("code") ?: "", onBack = { nav.popBackStack() }, onReview = { nav.navigate("review") })
@@ -211,6 +216,7 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
                     onBack = { nav.popBackStack() },
                     onCard = { id -> nav.navigate("card/$id") },
                     onAddCards = { id -> nav.navigate("paste?intoDeck=$id") },
+                    onFriend = { id -> nav.navigate("friend/$id") },
                 )
             }
             composable(

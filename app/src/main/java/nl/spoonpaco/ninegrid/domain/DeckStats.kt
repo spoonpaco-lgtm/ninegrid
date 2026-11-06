@@ -15,7 +15,22 @@ data class DeckStats(
     val deckSize: Int,
     /** Kans op precies 2, 3 en 4 lands in een openingshand van 7, en samen. */
     val handOdds: Map<Int, Double>,
+    /** Aantal per hoofdtype (Creature, Instant …, Land), in vaste volgorde. */
+    val types: Map<String, Int> = emptyMap(),
+    /** Goedkope ramp (manawaarde 2 of minder) en of het een Commander-deck is: voor het landadvies. */
+    val cheapRamp: Int = 0,
+    val commander: Boolean = false,
 ) {
+    /**
+     * Advies voor het aantal lands op basis van de curve (de formule van Frank Karsten):
+     * 60 kaarten 19,59 + 1,90 × gemiddelde − 0,28 × goedkope ramp; Commander 31,42 + 3,13 × gemiddelde − 0,28 × goedkope ramp.
+     * Als bandbreedte van één land eronder tot één erboven.
+     */
+    val landAdvice: IntRange get() {
+        val x = if (commander) 31.42 + 3.13 * averageCmc - 0.28 * cheapRamp else 19.59 + 1.90 * averageCmc - 0.28 * cheapRamp
+        val mid = Math.round(x).toInt()
+        return (mid - 1)..(mid + 1)
+    }
     val oddsTwoToFour get() = (handOdds[2] ?: 0.0) + (handOdds[3] ?: 0.0) + (handOdds[4] ?: 0.0)
 }
 
@@ -59,7 +74,16 @@ object DeckStatsCalc {
         val n = library.sumOf { it.quantity }
         val k = landCards.sumOf { it.quantity }
         val odds = (0..7).associateWith { hyper(n, k, 7, it) }
-        return DeckStats(curve, avg, symbols, sources, k, n, odds)
+        val order = listOf("Creature", "Planeswalker", "Instant", "Sorcery", "Artifact", "Enchantment", "Battle", "Land")
+        val types = LinkedHashMap<String, Int>()
+        cards.filter { it.section != Section.SIDEBOARD }.forEach { c ->
+            val front = c.typeLine.substringBefore("//").substringBefore('—')
+            val t = order.firstOrNull { front.contains(it) } ?: return@forEach
+            types[t] = (types[t] ?: 0) + c.quantity
+        }
+        val sortedTypes = order.filter { it in types }.associateWith { types.getValue(it) }
+        val cheapRamp = nonLand.filter { it.cmc <= 2 && Role.RAMP in Suggestions.rolesOf(it.oracleText, it.typeLine) }.sumOf { it.quantity }
+        return DeckStats(curve, avg, symbols, sources, k, n, odds, sortedTypes, cheapRamp, cards.any { it.section == Section.COMMANDER })
     }
 
     /** Hypergeometrische kans: precies [x] lands in [draw] kaarten uit [n] kaarten waarvan [k] lands. */

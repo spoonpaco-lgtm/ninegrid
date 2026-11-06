@@ -90,7 +90,7 @@ private const val MAX_LINES = 6
 /** Zoals het tabblad Overzicht in de Sheet, plus het totaal bovenaan, de grafiek en waarde per rarity. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}, onSets: () -> Unit = {}, onDecks: () -> Unit = {}) {
+fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}, onSets: () -> Unit = {}, onDecks: () -> Unit = {}, onFriend: (String) -> Unit = {}, onShare: () -> Unit = {}) {
     val all by vm.entries.collectAsState()
     val decks by vm.decks.collectAsState()
     val settings by vm.settings.collectAsState()
@@ -211,6 +211,31 @@ fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}, onSets: () ->
                                     fontSize = 13.sp, fontWeight = FontWeight.Bold, color = NgColors.Synced,
                                 )
                             }
+                        }
+                    }
+                }
+            }
+
+            // Ruilen: per vriend hoeveel kaarten jouw decks beter maken. Tik = meteen de ruilmatch.
+            item {
+                val friends by vm.friends.collectAsState()
+                val fp by vm.friendPackages.collectAsState()
+                val fc by vm.friendCards.collectAsState()
+                androidx.compose.runtime.LaunchedEffect(friends, fp, fc.size, decks, all.size) { vm.computeTradeSummaries() }
+                Panel {
+                    Text(stringResource(R.string.trade_panel_title), fontWeight = FontWeight.Bold, color = extra.price)
+                    if (friends.isEmpty()) {
+                        Text(stringResource(R.string.trade_panel_none), fontSize = 13.sp, modifier = Modifier.padding(top = 4.dp))
+                        androidx.compose.material3.TextButton(onClick = onShare) { Text(stringResource(R.string.share_title) + " ›") }
+                    } else vm.tradeSummaries.forEach { t ->
+                        Row(Modifier.fillMaxWidth().clickable { onFriend(t.friend.id) }.padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Text(t.friend.name, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                            Text(
+                                if (t.cards == 0) stringResource(R.string.trade_panel_nothing)
+                                else stringResource(R.string.trade_panel_line, t.cards, Money.format(t.value, cur)),
+                                fontSize = 13.sp, color = if (t.cards > 0) NgColors.Synced else extra.subtle,
+                            )
+                            Text("  ›", color = extra.subtle)
                         }
                     }
                 }

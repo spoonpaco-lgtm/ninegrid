@@ -1452,6 +1452,73 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         return byFriend.mapNotNull { (id, n) -> fr[id]?.let { it to n } }.sortedByDescending { it.second }
     }
 
+    /** Per vriend: hoeveel kaarten jouw decks beter maken en wat ze waard zijn (voor Overzicht). */
+    data class TradeSummary(val friend: nl.spoonpaco.ninegrid.data.db.Friend, val cards: Int, val value: Double)
+    var tradeSummaries by mutableStateOf<List<TradeSummary>>(emptyList())
+        private set
+    private var tradeSummaryKey = ""
+
+    /** Kaarten van vrienden die precies dit deck beter maken (voor Suggesties → Bij vrienden). */
+    data class FriendOffer(val item: nl.spoonpaco.ninegrid.domain.TradeMatch.Item, val friend: nl.spoonpaco.ninegrid.data.db.Friend)
+    var friendOffers by mutableStateOf<List<FriendOffer>>(emptyList())
+        private set
+    var friendOffersDeck by mutableStateOf<Long?>(null)
+        private set
+    private var friendOffersKey = ""
+
+    /** Sleutel van alles waar de ruilmatch van afhangt: alleen opnieuw rekenen als die verandert. */
+    private fun tradeKey(extra: String) = extra + "|" + friends.value.joinToString { it.id + it.receivedAt } + "|" +
+        decks.value.joinToString { "" + it.id + ":" + it.updatedAt } + "|" + entries.value.size + "|" + wishlist.value.size + "|" + settings.value.currency
+
+    private fun looseOfFriends(): Pair<List<EntryWithPrint>, Map<Long, String>> {
+        val packs = friendPackages.value.filter { it.kind != nl.spoonpaco.ninegrid.domain.ShareKind.DECK && it.kind != nl.spoonpaco.ninegrid.domain.ShareKind.WISH }
+        val ids = packs.map { it.id }.toSet()
+        val owner = packs.associate { it.id to it.friendId }
+        val cardOwner = friendCards.value.filter { it.card.packageId in ids }.associate { it.card.id to owner.getValue(it.card.packageId) }
+        return friendEntries(ids) to cardOwner
+    }
+
+    fun computeTradeSummaries() = viewModelScope.launch {
+        val key = tradeKey("sum")
+        if (key == tradeSummaryKey) return@launch
+        tradeSummaryKey = key
+        val all = entries.value
+        val myDecks = decks.value.map { d -> nl.spoonpaco.ninegrid.domain.TradeMatch.DeckInput(d.name, d.format, all.filter { it.entry.deckId == d.id }, deckRules(d.id)) }
+        val (loose, owner) = looseOfFriends()
+        val currency = settings.value.currency
+        val fr = friends.value
+        tradeSummaries = runCatching {
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+                fr.map { f ->
+                    val pool = loose.filter { owner[it.entry.id] == f.id }
+                    val skip = all.filter { it.entry.deckId == null && !it.entry.proxy }.mapNotNull { it.print?.name?.lowercase() }.toSet()
+                    val items = nl.spoonpaco.ninegrid.domain.TradeMatch.forDecks(myDecks, pool, skip, currency, 8)
+                    TradeSummary(f, items.size, items.sumOf { it.unit })
+                }.sortedByDescending { it.cards }
+            }
+        }.getOrDefault(emptyList())
+    }
+
+    fun computeFriendOffers(deckId: Long) = viewModelScope.launch {
+        val key = tradeKey("deck$deckId")
+        if (key == friendOffersKey && friendOffersDeck == deckId) return@launch
+        friendOffersKey = key
+        val d = decks.value.firstOrNull { it.id == deckId } ?: return@launch
+        val all = entries.value
+        val input = nl.spoonpaco.ninegrid.domain.TradeMatch.DeckInput(d.name, d.format, all.filter { it.entry.deckId == d.id }, deckRules(d.id))
+        val (loose, owner) = looseOfFriends()
+        val fr = friends.value.associateBy { it.id }
+        val currency = settings.value.currency
+        friendOffers = runCatching {
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+                val skip = all.filter { it.entry.deckId == null && !it.entry.proxy }.mapNotNull { it.print?.name?.lowercase() }.toSet()
+                nl.spoonpaco.ninegrid.domain.TradeMatch.forDecks(listOf(input), loose, skip, currency, 6)
+                    .mapNotNull { i -> owner[i.entry.id]?.let { fr[it] }?.let { FriendOffer(i, it) } }
+            }
+        }.getOrDefault(emptyList())
+        friendOffersDeck = deckId
+    }
+
     var tradeMatch by mutableStateOf<nl.spoonpaco.ninegrid.domain.TradeMatch.Result?>(null)
         private set
     var tradeFriendId by mutableStateOf<String?>(null)
