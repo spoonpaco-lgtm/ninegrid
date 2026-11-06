@@ -48,6 +48,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import nl.spoonpaco.ninegrid.ui.components.foilShine
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
@@ -99,88 +100,109 @@ fun CardDetailScreen(vm: AppViewModel, printId: String, onBack: () -> Unit, onFr
         )
     }) { pad ->
         val p = print
-        Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
+        Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             if (p == null) return@Column
-            Row {
-                var imageIssue by remember(p.id) { mutableStateOf<nl.spoonpaco.ninegrid.data.Images.Issue?>(null) }
-                var anyway by remember(p.id) { mutableStateOf(false) }
-                Box(Modifier.width(150.dp).aspectRatio(0.716f).clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.surfaceContainerHigh), contentAlignment = Alignment.Center) {
+            // De kaart groot bovenaan; foils met een duidelijke glans. Tik = volledig scherm.
+            val shiny = copies.any { it.entry.finish != Finish.NONFOIL }
+            var imageIssue by remember(p.id) { mutableStateOf<nl.spoonpaco.ninegrid.data.Images.Issue?>(null) }
+            var anyway by remember(p.id) { mutableStateOf(false) }
+            var full by remember { mutableStateOf(false) }
+            val model = if (anyway) vm.images.requestAnyway(vm.images.urlFor(p, large = true)) else vm.images.request(vm.images.urlFor(p, large = true), settings)
+            Box(
+                Modifier.fillMaxWidth(0.75f).aspectRatio(0.716f).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                    .foilShine(shiny, strength = 1.8f).clickable(enabled = imageIssue == null) { full = true },
+                contentAlignment = Alignment.Center,
+            ) {
+                AsyncImage(
+                    model = model, imageLoader = vm.images.loader, contentDescription = p.name,
+                    onError = { imageIssue = if (anyway) nl.spoonpaco.ninegrid.data.Images.Issue.FAILED else vm.images.issueFor(it.result.throwable, settings) },
+                    onSuccess = { imageIssue = null },
+                    modifier = Modifier.fillMaxSize(),
+                )
+                // Een gewone reden in plaats van een technische fout; bij "alleen via wifi" toch één keer laden.
+                imageIssue?.let { iss ->
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        nl.spoonpaco.ninegrid.ui.components.ImageIssueMark(iss, small = false)
+                        if (iss == nl.spoonpaco.ninegrid.data.Images.Issue.WIFI_ONLY) TextButton(onClick = { anyway = true; imageIssue = null }) { Text(stringResource(R.string.img_load_anyway), fontSize = 12.sp) }
+                        if (iss == nl.spoonpaco.ninegrid.data.Images.Issue.FAILED) TextButton(onClick = { anyway = !anyway; imageIssue = null }) { Text(stringResource(R.string.img_retry), fontSize = 12.sp) }
+                    }
+                }
+            }
+            if (full) androidx.compose.ui.window.Dialog(onDismissRequest = { full = false }, properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)) {
+                Box(Modifier.fillMaxSize().clickable { full = false }, contentAlignment = Alignment.Center) {
                     AsyncImage(
-                        model = if (anyway) vm.images.requestAnyway(vm.images.urlFor(p, large = true)) else vm.images.request(vm.images.urlFor(p, large = true), settings),
-                        imageLoader = vm.images.loader,
-                        contentDescription = p.name,
-                        onError = { imageIssue = if (anyway) nl.spoonpaco.ninegrid.data.Images.Issue.FAILED else vm.images.issueFor(it.result.throwable, settings) },
-                        onSuccess = { imageIssue = null },
-                        modifier = Modifier.fillMaxSize(),
+                        model = model, imageLoader = vm.images.loader, contentDescription = p.name,
+                        modifier = Modifier.fillMaxWidth(0.95f).aspectRatio(0.716f).clip(RoundedCornerShape(16.dp)).foilShine(shiny, strength = 1.8f),
                     )
-                    // Een gewone reden in plaats van een technische fout; bij "alleen via wifi" toch één keer laden.
-                    imageIssue?.let { iss ->
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            nl.spoonpaco.ninegrid.ui.components.ImageIssueMark(iss, small = false)
-                            if (iss == nl.spoonpaco.ninegrid.data.Images.Issue.WIFI_ONLY) TextButton(onClick = { anyway = true; imageIssue = null }) { Text(stringResource(R.string.img_load_anyway), fontSize = 12.sp) }
-                            if (iss == nl.spoonpaco.ninegrid.data.Images.Issue.FAILED) TextButton(onClick = { anyway = !anyway; imageIssue = null }) { Text(stringResource(R.string.img_retry), fontSize = 12.sp) }
+                }
+            }
+
+            // Naam één keer, met type, kleuren, set en rarity.
+            Spacer(Modifier.height(12.dp))
+            Text(p.name, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 2.dp)) {
+                Text(p.typeLine, color = extra.subtle, fontSize = 13.sp)
+                if (p.colors.isNotEmpty()) { Spacer(Modifier.width(6.dp)); ManaPips(p.colors, size = 16) }
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("${p.setName} (${p.setCode}) #${p.collectorNumber} · ", fontSize = 13.sp, color = extra.subtle)
+                Text(p.rarity.replaceFirstChar { it.uppercase() }, color = NgColors.rarity(p.rarity), fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                if (p.gameChanger) SmallTag(stringResource(R.string.game_changer), MaterialTheme.colorScheme.primary)
+            }
+            // Legaliteit klein, in twee vaste regels van drie.
+            val legal = listOf("commander", "modern", "pioneer", "standard", "legacy", "pauper").map { f -> f to Formats.legalityOf(p.legalities, f) }
+            if (legal.any { it.second != null }) {
+                Spacer(Modifier.height(8.dp))
+                legal.chunked(3).forEach { line ->
+                    Text(
+                        line.joinToString(" · ") { (f, l) -> "${f.replaceFirstChar { it.uppercase() }} ${if (l == "legal") "✓" else if (l == "restricted") "1" else "✗"}" },
+                        fontSize = 12.sp, color = extra.subtle,
+                    )
+                }
+            }
+            // Toevoegen of op de verlanglijst, gevuld in de accentkleur.
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 10.dp, bottom = 6.dp)) {
+                if (copies.isEmpty()) androidx.compose.material3.Button(onClick = { vm.addOneToCollection(p) }) { Icon(Icons.Filled.Add, null); Spacer(Modifier.width(4.dp)); Text(stringResource(R.string.add_to_collection)) }
+                androidx.compose.material3.Button(onClick = { vm.addToWishlist(p) }) { Text("♡ " + stringResource(R.string.wish_add_btn)) }
+            }
+
+            // Prijs: normaal en foil groot naast elkaar; vrienden die hem hebben; de links klein.
+            val market = if (settings.currency == "USD") "TCGplayer" else "Cardmarket"
+            nl.spoonpaco.ninegrid.ui.components.SectionCard(
+                stringResource(R.string.price_title), info = stringResource(R.string.price_note_card),
+                trailing = { Text(market, fontSize = 12.sp, color = extra.subtle) },
+            ) {
+                val normal = if (settings.currency == "USD") p.usd else p.eur
+                val foil = if (settings.currency == "USD") p.usdFoil else p.eurFoil
+                Row {
+                    listOf(stringResource(R.string.price_normal_label) to normal, stringResource(R.string.foil) to foil).forEach { (label, v) ->
+                        Column(Modifier.weight(1f)) {
+                            Text(label, fontSize = 12.sp, color = extra.subtle)
+                            Text(v?.let { nl.spoonpaco.ninegrid.ui.components.money(it, settings.currency) } ?: "–", fontSize = 22.sp, fontWeight = FontWeight.Bold,
+                                color = extra.price, modifier = nl.spoonpaco.ninegrid.ui.components.privacyMask())
                         }
                     }
                 }
-                Spacer(Modifier.width(14.dp))
-                Column(Modifier.weight(1f)) {
-                    Text(p.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                    Text(p.typeLine, color = extra.subtle, fontSize = 13.sp)
-                    Spacer(Modifier.height(6.dp))
-                    ManaPips(p.colors)
-                    Spacer(Modifier.height(8.dp))
-                    Text("${p.setName} (${p.setCode}) #${p.collectorNumber}", fontSize = 13.sp)
-                    Text(p.rarity.replaceFirstChar { it.uppercase() }, color = NgColors.rarity(p.rarity), fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                    Spacer(Modifier.height(8.dp))
-                    val normal = if (settings.currency == "USD") p.usd else p.eur
-                    val foil = if (settings.currency == "USD") p.usdFoil else p.eurFoil
-                    Text(stringResource(R.string.price_normal, normal?.let { nl.spoonpaco.ninegrid.ui.components.money(it, settings.currency) } ?: "–"), color = extra.price)
-                    Text(stringResource(R.string.price_foil, foil?.let { nl.spoonpaco.ninegrid.ui.components.money(it, settings.currency) } ?: "–"), color = extra.price)
-                    Text(stringResource(R.string.price_note_card), fontSize = 11.sp, color = extra.subtle)
-                    if (p.gameChanger) SmallTag(stringResource(R.string.game_changer), MaterialTheme.colorScheme.primary)
-                }
-            }
-            Spacer(Modifier.height(12.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                p.scryfallUri?.let { u ->
-                    OutlinedButton(onClick = { uri.openUri(u) }) { Icon(Icons.AutoMirrored.Filled.OpenInNew, null); Spacer(Modifier.width(4.dp)); Text("Scryfall") }
-                }
-                // De doorverwijslink van Scryfall wordt door Cardmarket soms geblokkeerd; zoeken op naam werkt altijd.
-                val market = if (settings.currency == "USD") p.tcgplayerUri
-                else "https://www.cardmarket.com/en/Magic/Products/Search?searchString=" + java.net.URLEncoder.encode(p.name.substringBefore(" // "), "UTF-8")
-                market?.let { u ->
-                    OutlinedButton(onClick = { uri.openUri(u) }) {
-                        Icon(Icons.AutoMirrored.Filled.OpenInNew, null); Spacer(Modifier.width(4.dp))
-                        Text(if (settings.currency == "USD") "TCGplayer" else "Cardmarket")
+                val friendsHave = vm.friendsHaving(p.name)
+                if (friendsHave.isNotEmpty()) Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 6.dp)) {
+                    Text(stringResource(R.string.also_at) + " ", fontSize = 13.sp, color = NgColors.Synced)
+                    friendsHave.forEachIndexed { i, (f, n) ->
+                        Text((if (i > 0) " · " else "") + "${f.name} ×$n", fontSize = 13.sp, color = NgColors.Synced, fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.clickable { onFriend(f.id) })
                     }
+                    Text(" ›", fontSize = 13.sp, color = NgColors.Synced)
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.padding(top = 2.dp)) {
+                    p.scryfallUri?.let { u -> TextButton(onClick = { uri.openUri(u) }, contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 0.dp)) { Text("↗ Scryfall") } }
+                    // De doorverwijslink van Scryfall wordt door Cardmarket soms geblokkeerd; zoeken op naam werkt altijd.
+                    val marketUri = if (settings.currency == "USD") p.tcgplayerUri
+                    else "https://www.cardmarket.com/en/Magic/Products/Search?searchString=" + java.net.URLEncoder.encode(p.name.substringBefore(" // "), "UTF-8")
+                    marketUri?.let { u -> TextButton(onClick = { uri.openUri(u) }, contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 12.dp)) { Text("↗ $market") } }
                 }
             }
-            // Toevoegen of op de verlanglijst; en bij welke vrienden hij ligt.
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 6.dp)) {
-                if (copies.isEmpty()) androidx.compose.material3.Button(onClick = { vm.addOneToCollection(p) }) { Icon(Icons.Filled.Add, null); Spacer(Modifier.width(4.dp)); Text(stringResource(R.string.add_to_collection)) }
-                OutlinedButton(onClick = { vm.addToWishlist(p) }) { Text(stringResource(R.string.wish_add_btn)) }
-            }
-            val friendsHave = vm.friendsHaving(p.name)
-            if (friendsHave.isNotEmpty()) {
-                Spacer(Modifier.height(8.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(stringResource(R.string.also_at) + " ", fontSize = 13.sp)
-                    friendsHave.forEach { (f, n) ->
-                        TextButton(onClick = { onFriend(f.id) }, contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 6.dp)) { Text("${f.name} ×$n", fontSize = 13.sp) }
-                    }
-                }
-            }
-            val legal = listOf("commander", "modern", "pioneer", "standard", "legacy", "pauper").map { f -> f to Formats.legalityOf(p.legalities, f) }
-            if (legal.any { it.second != null }) {
-                Spacer(Modifier.height(10.dp))
-                Text(stringResource(R.string.legality), fontWeight = FontWeight.Bold)
-                Text(
-                    legal.joinToString("  ") { (f, l) -> "${f.replaceFirstChar { it.uppercase() }} ${if (l == "legal") "✓" else if (l == "restricted") "1" else "✗"}" },
-                    fontSize = 13.sp, color = extra.subtle,
-                )
-            }
-            Spacer(Modifier.height(16.dp))
-            Text(stringResource(R.string.your_copies, copies.sumOf { it.entry.quantity }), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+
+            Spacer(Modifier.height(6.dp))
+            Text(stringResource(R.string.your_copies, copies.sumOf { it.entry.quantity }), fontWeight = FontWeight.Bold, fontSize = 16.sp, modifier = Modifier.fillMaxWidth().padding(top = 4.dp))
             copies.forEach { cp ->
                 val e = cp.entry
                 Card(colors = CardDefaults.cardColors(containerColor = extra.cardSurface), modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {

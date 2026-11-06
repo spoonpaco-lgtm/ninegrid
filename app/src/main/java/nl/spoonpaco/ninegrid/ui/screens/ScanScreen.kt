@@ -78,6 +78,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.offset
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -586,17 +588,18 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
                 // Bij een blad zit foil in het voorbeeld (het raster); bij één kaart blijft de knop hier.
                 FilterChip(selected = vm.scanFoil, onClick = { vm.setPageFoil(!vm.scanFoil) }, label = { Text(stringResource(R.string.scan_foil_card)) }, colors = colors)
             }
-            // AI bezig? Eén regel boven de uitslag.
-            if (vm.aiBusyCount > 0) Text(
-                "AI · " + stringResource(R.string.ai_reading_n, vm.aiBusyCount),
-                color = NgColors.Amber, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 4.dp),
-            )
-            Box(Modifier.fillMaxWidth().heightIn(min = 56.dp).padding(horizontal = 12.dp, vertical = 4.dp), contentAlignment = Alignment.Center) {
+            // De uitslag heeft altijd dezelfde hoogte, ook vóór de eerste foto: zo blijft het kader op zijn plek.
+            Box(Modifier.fillMaxWidth().height(76.dp).padding(horizontal = 8.dp, vertical = 2.dp), contentAlignment = Alignment.Center) {
+                // AI bezig? Klein bovenin de uitslag, zonder dat de band groeit.
+                if (vm.aiBusyCount > 0) Text(
+                    "AI · " + stringResource(R.string.ai_reading_n, vm.aiBusyCount),
+                    color = NgColors.Amber, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.align(Alignment.TopCenter),
+                )
                 val err = error
                 val sum = vm.scanSummary
                 when {
                     err != null -> Text(err, color = Color.White, fontSize = 13.sp, textAlign = TextAlign.Center, maxLines = 2)
-                    sum != null -> ScanSummaryBar(vm, sum, single, lastPhoto, onPhoto = { showPhoto = true }, onReview = onResult, onSave = {
+                    sum != null -> ScanSummaryBar(vm, sum, single, lastPhoto, onPhoto = { showPhoto = true }, onReview = onResult, onDiscard = { vm.discardScan(single) }, onSave = {
                         scope.launch {
                             // Al eens gescand? Dan eerst kijken in het controlescherm.
                             if (vm.duplicateSlots().isNotEmpty()) onResult() else vm.savePending { }
@@ -606,29 +609,29 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
                 }
             }
             // Drie knoppen: Galerij, de fotoknop precies in het midden, en de lamp. Elk een even breed vak.
-            Row(Modifier.fillMaxWidth().height(104.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.fillMaxWidth().height(96.dp), verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
                     FilledIconButton(
                         onClick = { gallery.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
-                        enabled = !working, modifier = Modifier.size(52.dp),
+                        enabled = !working, modifier = Modifier.size(46.dp),
                         colors = IconButtonDefaults.filledIconButtonColors(containerColor = Color.White.copy(alpha = 0.18f), contentColor = Color.White),
                     ) { Icon(Icons.Filled.PhotoLibrary, stringResource(R.string.from_photos)) }
                     Text(stringResource(R.string.scan_btn_gallery), color = Color.White.copy(alpha = 0.8f), fontSize = 11.sp)
                 }
                 Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
                     // Ring om de knop zolang hij scherpstelt, leest of opzoekt.
-                    if (working || vm.scanSummary?.busy == true) CircularProgressIndicator(Modifier.size(88.dp), color = Color.White, strokeWidth = 3.dp)
+                    if (working || vm.scanSummary?.busy == true) CircularProgressIndicator(Modifier.size(74.dp), color = Color.White, strokeWidth = 3.dp)
                     FilledIconButton(
                         onClick = { takePhoto() },
                         enabled = permitted && !working,
-                        modifier = Modifier.size(76.dp),
+                        modifier = Modifier.size(64.dp),
                         colors = IconButtonDefaults.filledIconButtonColors(containerColor = MaterialTheme.colorScheme.primary),
-                    ) { Icon(Icons.Filled.CameraAlt, stringResource(R.string.take_photo), modifier = Modifier.size(36.dp)) }
+                    ) { Icon(Icons.Filled.CameraAlt, stringResource(R.string.take_photo), modifier = Modifier.size(30.dp)) }
                 }
                 Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
                     FilledIconButton(
                         onClick = { torch = !torch; camera?.cameraControl?.enableTorch(torch) },
-                        enabled = permitted && camera?.cameraInfo?.hasFlashUnit() == true, modifier = Modifier.size(52.dp),
+                        enabled = permitted && camera?.cameraInfo?.hasFlashUnit() == true, modifier = Modifier.size(46.dp),
                         colors = IconButtonDefaults.filledIconButtonColors(containerColor = Color.White.copy(alpha = 0.18f), contentColor = Color.White),
                     ) { Icon(if (torch) Icons.Filled.FlashlightOn else Icons.Filled.FlashlightOff, stringResource(R.string.torch)) }
                     Text(stringResource(R.string.scan_btn_torch), color = Color.White.copy(alpha = 0.8f), fontSize = 11.sp)
@@ -657,7 +660,15 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
 
     if (showPhoto) lastPhoto?.let { p ->
         androidx.compose.ui.window.Dialog(onDismissRequest = { showPhoto = false }) {
-            androidx.compose.foundation.Image(p, null, Modifier.fillMaxWidth().clickable { showPhoto = false }, contentScale = androidx.compose.ui.layout.ContentScale.Fit)
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                androidx.compose.foundation.Image(p, null, Modifier.fillMaxWidth().clickable { showPhoto = false }, contentScale = androidx.compose.ui.layout.ContentScale.Fit)
+                // De tijden van de herkenning (als die aan staan) staan hier, niet meer in de uitslag.
+                if (settings.showTiming && vm.lastReadMs > 0) Text(
+                    stringResource(R.string.scan_timing_steps, vm.lastReadMs / 1000.0, vm.lastRereadSlots, vm.lastNamesMs / 1000.0, vm.lastLookupMs / 1000.0, vm.lastImagesMs / 1000.0),
+                    color = Color.White, fontSize = 12.sp, textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(top = 8.dp).background(Color.Black.copy(alpha = 0.7f), RoundedCornerShape(8.dp)).padding(8.dp),
+                )
+            }
         }
     }
 
@@ -688,17 +699,23 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
 private fun ScanSummaryBar(
     vm: AppViewModel, sum: AppViewModel.ScanSummary, single: Boolean,
     photo: androidx.compose.ui.graphics.ImageBitmap?, onPhoto: () -> Unit,
-    onReview: () -> Unit, onSave: () -> Unit,
+    onReview: () -> Unit, onSave: () -> Unit, onDiscard: () -> Unit,
 ) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        // De laatste foto als klein plaatje; tik = groot.
+        // Weggooien: één tik, meteen weg; terugzetten kan vanuit de melding.
+        FilledIconButton(
+            onClick = onDiscard, modifier = Modifier.size(38.dp),
+            colors = IconButtonDefaults.filledIconButtonColors(containerColor = Color.White.copy(alpha = 0.14f), contentColor = Color.White),
+        ) { Icon(Icons.Filled.Delete, stringResource(if (single) R.string.scan_discard_card else R.string.scan_discard_page), modifier = Modifier.size(20.dp)) }
+        Spacer(Modifier.width(6.dp))
+        // De laatste foto als klein plaatje; tik = groot (met de tijden).
         if (photo != null) {
             androidx.compose.foundation.Image(
                 photo, stringResource(R.string.last_photo),
-                Modifier.size(44.dp).clip(RoundedCornerShape(6.dp)).clickable(onClick = onPhoto),
+                Modifier.size(36.dp).clip(RoundedCornerShape(6.dp)).clickable(onClick = onPhoto),
                 contentScale = androidx.compose.ui.layout.ContentScale.Crop,
             )
-            Spacer(Modifier.width(8.dp))
+            Spacer(Modifier.width(6.dp))
         }
         if (sum.busy) {
             CircularProgressIndicator(Modifier.size(18.dp), color = Color.White, strokeWidth = 2.dp)
@@ -737,21 +754,16 @@ private fun ScanSummaryBar(
                     )
                 }
             }
-            val st by vm.settings.collectAsState()
-            if (st.showTiming && vm.lastReadMs > 0 && !sum.busy) {
-                Text(
-                    stringResource(R.string.scan_timing_steps, vm.lastReadMs / 1000.0, vm.lastRereadSlots, vm.lastNamesMs / 1000.0, vm.lastLookupMs / 1000.0, vm.lastImagesMs / 1000.0),
-                    color = Color.White.copy(alpha = 0.6f), fontSize = 9.sp, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                )
-            }
         }
         // Het raster van de laatste foto: rand = hoe zeker, AI-label = wat de AI deed, ✦ = foil. Tik = groot.
         if (!single && vm.pending.any { it.slot != null }) {
             var big by remember { mutableStateOf(false) }
             var why by remember { mutableStateOf<String?>(null) }
-            Column(Modifier.padding(horizontal = 6.dp).clickable { big = true }, horizontalAlignment = Alignment.CenterHorizontally) {
-                FoilGrid(vm, cellWidth = 20, interactive = false, onLong = {})
-                Text(stringResource(R.string.scan_foil_preview_hint), color = Color.White.copy(alpha = 0.8f), fontSize = 10.sp)
+            // Klein raster; het ✦ in de hoek laat zien dat je hier foil zet. Tik = groot.
+            Box(Modifier.padding(horizontal = 4.dp).clickable { big = true }) {
+                FoilGrid(vm, cellWidth = 14, interactive = false, onLong = {})
+                Text("✦", color = NgColors.Amber, fontSize = 11.sp, fontWeight = FontWeight.Bold,
+                    modifier = Modifier.align(Alignment.TopEnd).offset(x = 5.dp, y = (-6).dp))
             }
             if (big) androidx.compose.ui.window.Dialog(onDismissRequest = { big = false }) {
                 Column(Modifier.background(Color(0xEE111111), RoundedCornerShape(12.dp)).padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {

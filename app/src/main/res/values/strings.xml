@@ -930,4 +930,11 @@
         <item quantity="one">%d opened</item>
         <item quantity="other">%d opened</item>
     </plurals>
+    <string name="price_title">Price</string>
+    <string name="price_normal_label">Normal</string>
+    <string name="scan_discard_page">Discard page</string>
+    <string name="scan_discard_card">Discard last card</string>
+    <string name="restore_discarded">Restore</string>
+    <string name="msg_page_discarded">Page discarded</string>
+    <string name="msg_card_discarded">Card discarded</string>
 </resources>

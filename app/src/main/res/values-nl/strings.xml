@@ -929,4 +929,11 @@
         <item quantity="one">%d geopend</item>
         <item quantity="other">%d geopend</item>
     </plurals>
+    <string name="price_title">Prijs</string>
+    <string name="price_normal_label">Normaal</string>
+    <string name="scan_discard_page">Blad weggooien</string>
+    <string name="scan_discard_card">Laatste kaart weggooien</string>
+    <string name="restore_discarded">Terugzetten</string>
+    <string name="msg_page_discarded">Blad weggegooid</string>
+    <string name="msg_card_discarded">Kaart weggegooid</string>
 </resources>

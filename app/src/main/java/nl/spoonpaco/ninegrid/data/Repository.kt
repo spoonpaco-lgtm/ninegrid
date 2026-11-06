@@ -115,6 +115,7 @@ class Repository(
     fun deck(id: Long) = db.decks().observe(id)
     fun print(id: String) = db.prints().observe(id)
 
+    suspend fun latestChangeId(): Long? = db.changes().latestActive()?.id
     suspend fun nextPage(binder: String): Int = (db.entries().maxPage(binder) ?: 0) + 1
     suspend fun entriesAtSlot(binder: String, page: Int, slot: Int) = db.entries().atSlot(binder, page, slot)
 

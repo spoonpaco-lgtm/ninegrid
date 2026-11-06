@@ -74,14 +74,17 @@ fun EffectsProvider(enabled: Boolean, content: @Composable () -> Unit) {
 }
 
 /** Regenboogglans over een foil die meebeweegt als je de telefoon kantelt. */
-fun Modifier.foilShine(on: Boolean): Modifier = if (!on) this else composed {
+fun Modifier.foilShine(on: Boolean, strength: Float = 1f): Modifier = if (!on) this else composed {
     val effects = LocalEffects.current
     val tilt = LocalTilt.current
     if (!effects) this else drawWithContent {
         drawContent()
         val w = size.width; val shift = tilt.value * w * 0.8f
+        // [strength] 1 = subtiel (lijsten), hoger = duidelijker (groot plaatje op het kaartscherm).
+        val a = (0.33f * strength).coerceAtMost(0.75f)
         val colors = listOf(
-            Color.Transparent, Color(0x55FF7AD9), Color(0x5579D7FF), Color(0x55A8FF8C), Color(0x55FFE27A), Color.Transparent,
+            Color.Transparent, Color(0xFFFF7AD9).copy(alpha = a), Color(0xFF79D7FF).copy(alpha = a), Color(0xFFA8FF8C).copy(alpha = a),
+            Color(0xFFFFE27A).copy(alpha = a), Color.Transparent,
         )
         drawRect(
             Brush.linearGradient(colors, start = Offset(-w * 0.6f + shift, 0f), end = Offset(w * 0.9f + shift, size.height)),

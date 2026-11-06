@@ -124,6 +124,8 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     var messageUndo by mutableStateOf(false)
     /** Eigen tekst voor de knop Ongedaan maken (bijv. "Terughalen uit ballingschap"); null = standaard. */
     var messageUndoLabel by mutableStateOf<String?>(null)
+    /** Wat de knop in de melding doet; null = de laatste wijziging ongedaan maken. */
+    var messageAction by mutableStateOf<(() -> Unit)?>(null)
     var busy by mutableStateOf(false)
     var update by mutableStateOf<UpdateInfo?>(null)
 
@@ -525,9 +527,12 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                     onDone(r.deckId)
                 }
             }
-            if (destination == Destination.COLLECTION && importSource == ImportSource.SCAN && binder.isNotBlank() && !savedForcedSlot) {
-                page = ((page.toIntOrNull() ?: 0) + 1).toString()
-            }
+            // Alleen na een heel blad (kaarten met een vak) verder naar het volgende blad; losse kaarten blijven op dit blad.
+            if (destination == Destination.COLLECTION && importSource == ImportSource.SCAN && binder.isNotBlank() && !savedForcedSlot && items.any { it.slot != null }) {
+                val done = page.toIntOrNull() ?: 0
+                page = (done + 1).toString()
+                pageAdvanced = Triple(binder, done, repo.latestChangeId())
+            } else pageAdvanced = null
             pending.clear()
             crops.clear(); aiMarks.clear()
             clearSavedPending()
@@ -573,9 +578,18 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         snapshot()
     }
 
+    /** Het laatst opgeslagen blad (binder, blad, wijziging): ongedaan maken zet de paginateller terug. */
+    private var pageAdvanced: Triple<String, Int, Long?>? = null
+
     fun undo() = viewModelScope.launch {
         boosterResult = null
-        message = if (repo.undoLatest()) str(R.string.msg_undone) else str(R.string.msg_nothing_to_undo)
+        val before = repo.latestChangeId()
+        val ok = repo.undoLatest()
+        pageAdvanced?.let { (b, p, change) ->
+            if (ok && change != null && change == before && binder == b && page == (p + 1).toString()) page = p.toString()
+        }
+        if (ok) pageAdvanced = null
+        message = if (ok) str(R.string.msg_undone) else str(R.string.msg_nothing_to_undo)
         snapshot()
     }
 
@@ -656,6 +670,31 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun setAutoSpeed(v: String) = viewModelScope.launch { settingsStore.setAutoSpeed(v) }
 
     /** Laatste losse kaart uit de lijst halen (doorlopend scannen). */
+    /** Weggegooide scan, om terug te zetten vanuit de melding. */
+    private var discarded: Triple<List<PendingItem>, Map<Int, androidx.compose.ui.graphics.ImageBitmap>, Map<Int, AiMark>>? = null
+
+    /** Weggooien: bij een blad de hele scan, bij 1 kaart alleen de laatste kaart. Terugzetten kan vanuit de melding. */
+    fun discardScan(single: Boolean) {
+        val gone = if (single) listOfNotNull(pending.lastOrNull()) else pending.toList()
+        if (gone.isEmpty()) return
+        val keys = gone.map { it.key }.toSet()
+        discarded = Triple(gone, crops.filterKeys { it in keys }, aiMarks.filterKeys { it in keys })
+        pending.removeAll { it.key in keys }
+        keys.forEach { crops.remove(it); aiMarks.remove(it) }
+        if (pending.isEmpty()) clearSavedPending() else savePendingToDisk()
+        messageUndo = true
+        messageUndoLabel = str(R.string.restore_discarded)
+        messageAction = { restoreDiscarded() }
+        message = str(if (single) R.string.msg_card_discarded else R.string.msg_page_discarded)
+    }
+
+    private fun restoreDiscarded() {
+        val d = discarded ?: return
+        discarded = null
+        pending.addAll(d.first); crops.putAll(d.second); aiMarks.putAll(d.third)
+        savePendingToDisk()
+    }
+
     fun removePending(key: Int) {
         pending.removeAll { it.key == key }
         crops.remove(key); aiMarks.remove(key)
