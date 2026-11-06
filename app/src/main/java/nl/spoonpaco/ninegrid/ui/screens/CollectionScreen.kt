@@ -1,6 +1,7 @@
 package nl.spoonpaco.ninegrid.ui.screens
 
 import androidx.compose.foundation.clickable
+import nl.spoonpaco.ninegrid.ui.theme.NgColors
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.Box
