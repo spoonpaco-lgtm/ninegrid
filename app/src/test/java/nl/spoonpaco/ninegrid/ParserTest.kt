@@ -475,4 +475,18 @@ class ParserTest {
         assertTrue(j != null && j.toString().contains("Lightning Bolt"))
         assertEquals(null, nl.spoonpaco.ninegrid.data.ai.AiClient.extractJson("no json here"))
     }
+
+    @Test
+    fun spellbookTwoCardCombosFromNewShape() {
+        val est = kotlinx.serialization.json.Json.parseToJsonElement("""
+            {"bracketTag":"S","cards":[],"combos":[
+             {"combo":{"id":"690-3966","uses":[{"card":{"name":"Sanguine Bond"}},{"card":{"name":"Exquisite Blood"}}]},"relevant":true,"definitelyTwoCard":false,"arguablyTwoCard":true,"speed":5},
+             {"combo":{"id":"1274-1495","uses":[{"card":{"name":"Heliod, Sun-Crowned"}},{"card":{"name":"Triskelion"}}]},"relevant":true,"definitelyTwoCard":true,"arguablyTwoCard":true,"speed":5},
+             {"combo":{"id":"628-3693","uses":[{"card":{"name":"Walking Ballista"}},{"card":{"name":"Mikaeus, the Unhallowed"}}]},"relevant":false,"definitelyTwoCard":true,"speed":5}
+            ]}""").let { (it as kotlinx.serialization.json.JsonObject) }
+        val combos = nl.spoonpaco.ninegrid.data.ComboService.twoCardCombos(est)
+        assertEquals(listOf(listOf("Heliod, Sun-Crowned", "Triskelion")), combos)
+        val check = Formats.check(DeckFormat.COMMANDER, emptyList(), Formats.ComboSignals(late = combos))
+        assertEquals("3", check.bracket)
+    }
 }

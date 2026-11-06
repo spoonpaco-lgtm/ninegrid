@@ -363,7 +363,7 @@
     <string name="combos_credit">Combo data from Commander Spellbook.</string>
     <string name="msg_combo_failed">Commander Spellbook could not be reached (%1$s).</string>
     <string name="bracket_combo_early">Early two-card combos</string>
-    <string name="bracket_combo_late">Late two-card combos</string>
+    <string name="bracket_combo_late">Two-card combos</string>
     <string name="privacy_text">No account, no tracking, no ads. Photos are read on your phone and never stored or sent. Only card names and numbers go to Scryfall to look up cards and prices, and only when you tap Find combos are the card names of that deck sent to Commander Spellbook.</string>
     <string name="scryfall_credit">Card data and images from Scryfall. Combo data from Commander Spellbook. NineGrid is not produced by or endorsed by Scryfall or Commander Spellbook.</string>
     <string name="import_format">Recognised: %1$s</string>
@@ -601,4 +601,5 @@
     <string name="scan_foil_preview_hint">Foil: tap</string>
     <string name="scan_foil_all">All foil</string>
     <string name="scan_foil_none">None foil</string>
+    <string name="combos_stale">The deck changed since this search – tap to search again</string>
 </resources>

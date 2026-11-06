@@ -362,7 +362,7 @@
     <string name="combos_credit">Combo-gegevens van Commander Spellbook.</string>
     <string name="msg_combo_failed">Commander Spellbook was niet bereikbaar (%1$s).</string>
     <string name="bracket_combo_early">Vroege combo\'s van twee kaarten</string>
-    <string name="bracket_combo_late">Late combo\'s van twee kaarten</string>
+    <string name="bracket_combo_late">Combo\'s van twee kaarten</string>
     <string name="privacy_text">Geen account, geen tracking, geen reclame. Foto\'s worden op je telefoon gelezen en nooit bewaard of verstuurd. Alleen kaartnamen en nummers gaan naar Scryfall om kaarten en prijzen op te zoeken, en alleen als je op Combo\'s zoeken tikt gaan de kaartnamen van dat deck naar Commander Spellbook.</string>
     <string name="scryfall_credit">Kaartgegevens en afbeeldingen van Scryfall. Combo-gegevens van Commander Spellbook. NineGrid is niet gemaakt of goedgekeurd door Scryfall of Commander Spellbook.</string>
     <string name="import_format">Herkend: %1$s</string>
@@ -600,4 +600,5 @@
     <string name="scan_foil_preview_hint">Foil: tik</string>
     <string name="scan_foil_all">Alles foil</string>
     <string name="scan_foil_none">Geen foil</string>
+    <string name="combos_stale">Deck gewijzigd sinds deze zoekactie – tik om opnieuw te zoeken</string>
 </resources>

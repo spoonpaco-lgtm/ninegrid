@@ -224,9 +224,10 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
         if (d == null) return@Scaffold
         androidx.compose.runtime.LaunchedEffect(deckId, list.size) { vm.loadCachedCombos(deckId) }
         val report = vm.comboReport?.takeIf { vm.comboDeckId == deckId }
+        // Is het deck veranderd, dan tellen alleen combo's waarvan beide kaarten er nog in zitten.
+        val names = list.map { it.print?.name?.lowercase() }.toSet()
         val signals = report?.let { r ->
-            fun cardsOf(ids: List<String>) = ids.mapNotNull { id -> r.included.firstOrNull { it.id == id }?.cards }
-            Formats.ComboSignals(cardsOf(r.earlyTwoCard), cardsOf(r.lateTwoCard))
+            Formats.ComboSignals(late = r.twoCardCombos.filter { c -> c.all { it.lowercase() in names } })
         }
         val check = Formats.check(d.format, Formats.toDeckCards(list.map { it.entry to it.print }), signals)
         val sections = listOf(Section.COMMANDER, Section.MAIN, Section.SIDEBOARD)
@@ -472,6 +473,12 @@ private fun CombosPanel(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.db.De
             Text(stringResource(R.string.combos_explain), fontSize = 12.sp, color = extra.subtle)
             return@Column
         }
+        if (vm.comboStale) androidx.compose.material3.Surface(
+            color = NgColors.Amber.copy(alpha = 0.15f), shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
+            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).clickable(enabled = !vm.comboLoading) { vm.findCombos(deck.id) },
+        ) {
+            Text(stringResource(R.string.combos_stale), fontSize = 13.sp, color = NgColors.Amber, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(10.dp))
+        }
         report.spellbookTag?.let { Text(stringResource(R.string.combos_spellbook_tag, spellbookTagLabel(it)), fontSize = 12.sp) }
         if (report.included.isEmpty()) Text(stringResource(R.string.combos_none), fontSize = 13.sp, color = extra.subtle)
         report.included.forEach { c ->
@@ -479,7 +486,7 @@ private fun CombosPanel(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.db.De
                 Text(c.cards.joinToString(" + "), fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                 if (c.produces.isNotEmpty()) Text("→ " + c.produces.joinToString(", "), fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
                 if (c.prerequisites.isNotBlank()) Text(c.prerequisites, fontSize = 11.sp, color = extra.subtle)
-                if (c.twoCard) Text(stringResource(R.string.combos_two_card), fontSize = 11.sp, color = nl.spoonpaco.ninegrid.ui.theme.NgColors.Error)
+                if (if (report.spellbookTag != null) report.twoCardCombos.any { it.toSet() == c.cards.toSet() } else c.twoCard) Text(stringResource(R.string.combos_two_card), fontSize = 11.sp, color = nl.spoonpaco.ninegrid.ui.theme.NgColors.Error)
             }
         }
         if (report.almost.isNotEmpty()) {

@@ -1098,6 +1098,8 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     var comboReport by mutableStateOf<nl.spoonpaco.ninegrid.data.ComboReport?>(null)
     var comboDeckId by mutableStateOf<Long?>(null)
     var comboLoading by mutableStateOf(false)
+    /** Deck veranderd sinds de laatste zoekactie: oude uitkomst tonen met "zoek opnieuw". */
+    var comboStale by mutableStateOf(false)
 
     private fun deckLists(deckId: Long): Pair<List<Pair<String, Int>>, List<Pair<String, Int>>> {
         val list = entries.value.filter { it.entry.deckId == deckId && it.print != null }
@@ -1109,7 +1111,9 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun loadCachedCombos(deckId: Long) {
         val (cmd, main) = deckLists(deckId)
         comboDeckId = deckId
-        comboReport = c.combos.cached(deckId, c.combos.hashOf(cmd, main))
+        val cached = c.combos.cached(deckId, c.combos.hashOf(cmd, main))
+        comboReport = cached?.report
+        comboStale = cached?.stale == true
     }
 
     fun findCombos(deckId: Long) = viewModelScope.launch {
@@ -1117,7 +1121,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         comboLoading = true
         comboDeckId = deckId
         runCatching { c.combos.find(deckId, cmd, main) }
-            .onSuccess { comboReport = it }
+            .onSuccess { comboReport = it; comboStale = false }
             .onFailure { message = if (it is java.io.IOException && it.message?.startsWith("Commander") != true) str(R.string.msg_network_error) else str(R.string.msg_combo_failed, it.message ?: "") }
         comboLoading = false
     }

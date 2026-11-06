@@ -45,9 +45,15 @@ data class ComboReport(
     val almost: List<Combo>,
     /** Bracketlabel van Commander Spellbook: R, S, P, O, PA of C. */
     val spellbookTag: String? = null,
+    /** Oud formaat (tot 0.8.9); Spellbook geeft deze velden niet meer. */
     val earlyTwoCard: List<String> = emptyList(),
     val lateTwoCard: List<String> = emptyList(),
+    /** Combo's van twee kaarten volgens de bracketschatting van Spellbook (definitelyTwoCard + relevant). */
+    val twoCardCombos: List<List<String>> = emptyList(),
 )
+
+/** Bewaarde uitkomst; [stale] = het deck is sindsdien veranderd. */
+data class CachedCombos(val report: ComboReport, val stale: Boolean)
 
 /**
  * Combo's zoeken via Commander Spellbook (https://commanderspellbook.com), de openbare combodatabase.
@@ -62,9 +68,9 @@ class ComboService(private val context: Context) {
     fun hashOf(commanders: List<Pair<String, Int>>, main: List<Pair<String, Int>>) =
         (commanders.sortedBy { it.first }.joinToString("|") + "#" + main.sortedBy { it.first }.joinToString("|")).hashCode().toString()
 
-    fun cached(deckId: Long, hash: String): ComboReport? = runCatching {
+    fun cached(deckId: Long, hash: String): CachedCombos? = runCatching {
         json.decodeFromString(ComboReport.serializer(), File(dir, "deck-$deckId.json").readText())
-    }.getOrNull()?.takeIf { it.deckHash == hash }
+    }.getOrNull()?.let { CachedCombos(it, it.deckHash != hash) }
 
     private fun body(commanders: List<Pair<String, Int>>, main: List<Pair<String, Int>>): String = buildJsonObject {
         put("commanders", buildJsonArray { commanders.forEach { (n, q) -> add(buildJsonObject { put("card", n); put("quantity", q) }) } })
@@ -109,15 +115,34 @@ class ComboService(private val context: Context) {
             .filter { it.missing.size == 1 }
         // Bracketschatting van Commander Spellbook zelf, met de combo's van twee kaarten (vroeg of laat in het spel).
         val est = runCatching { post("/estimate-bracket", b) }.getOrNull()
-        fun ids(vararg keys: String) = keys.flatMap { k -> est?.field(k).arr().mapNotNull { it.jsonObject.field("id").str() } }
         val report = ComboReport(
             deckHash = hashOf(commanders, main), fetchedAt = System.currentTimeMillis(),
             included = included.sortedBy { it.cards.size }, almost = almost.take(30),
             spellbookTag = est?.field("bracketTag", "bracket_tag").str(),
-            earlyTwoCard = ids("definitelyEarlyGameTwoCardCombos", "arguablyEarlyGameTwoCardCombos"),
-            lateTwoCard = ids("definitelyLateGameTwoCardCombos", "borderlineLateGameTwoCardCombos"),
+            twoCardCombos = est?.let { twoCardCombos(it) }.orEmpty(),
         )
         runCatching { File(dir, "deck-$deckId.json").writeText(json.encodeToString(ComboReport.serializer(), report)) }
         report
+    }
+
+    companion object {
+        /**
+         * Combo's van twee kaarten uit /estimate-bracket (vorm sinds eind 2026):
+         * combos[] = {combo:{id, uses[{card:{name}}]}, relevant, definitelyTwoCard, arguablyTwoCard, speed, ...}.
+         * Alleen definitelyTwoCard + relevant telt. "speed" gebruiken we niet: in onze test was die bij
+         * snelle en trage combo's steeds 5, dus zegt hij niets over vroeg of laat.
+         */
+        fun twoCardCombos(est: JsonObject): List<List<String>> {
+            val list = runCatching { est["combos"]?.jsonArray }.getOrNull() ?: return emptyList()
+            return list.mapNotNull { e ->
+                val o = runCatching { e.jsonObject }.getOrNull() ?: return@mapNotNull null
+                fun flag(k: String) = runCatching { o[k]?.jsonPrimitive?.contentOrNull == "true" }.getOrDefault(false)
+                if (!flag("definitelyTwoCard") || !flag("relevant")) return@mapNotNull null
+                val combo = runCatching { o["combo"]?.jsonObject }.getOrNull() ?: return@mapNotNull null
+                runCatching { combo["uses"]?.jsonArray }.getOrNull()?.mapNotNull { u ->
+                    runCatching { u.jsonObject["card"]?.jsonObject?.get("name")?.jsonPrimitive?.contentOrNull }.getOrNull()
+                }?.takeIf { it.isNotEmpty() }
+            }.distinct()
+        }
     }
 }
