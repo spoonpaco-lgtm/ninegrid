@@ -24,5 +24,6 @@ jobs:
               if isinstance(x,list): return [strip(i) for i in x]
               return x
           c=e['combos']; print('CTYPE', type(c).__name__, len(c))
-          print('CDUMP', json.dumps(strip(c))[:3500])
+          for x in c:
+              print('CSUM', x['combo']['id'], [u['card']['name'] for u in x['combo']['uses']], {k:v for k,v in x.items() if k!='combo'})
           PY
