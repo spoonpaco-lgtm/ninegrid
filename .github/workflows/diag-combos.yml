@@ -19,7 +19,5 @@ jobs:
           print('included:',len(inc),[ (v.get('id'),[u['card']['name'] for u in v.get('uses',[])]) for v in inc][:6])
           e=json.load(open('est.json'))
           print('est keys:',list(e.keys()))
-          for k,v in e.items():
-              if isinstance(v,list): print(k,len(v), json.dumps(v[:1])[:400])
-              else: print(k, json.dumps(v)[:200])
+          print('DUMP', json.dumps(e)[:3000])
           PY
