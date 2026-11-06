@@ -4,6 +4,18 @@
 
 Current version: **0.9.0 – Jace**. Every version is named after a planeswalker.
 
+## What makes NineGrid different
+
+- **A whole binder page in one photo, with its place.** Nine cards per photo, and every card is filed at its binder, page and slot straight away.
+- **Undo everything.** Every change can be reverted, even a whole import or a whole deck.
+- **Price movement separate from what you add.** The chart shows how much your collection rose or fell because of prices, not because you bought more cards.
+- **A trade match based on your decks.** Not just "you want X, they have X": NineGrid works out which of a friend's cards actually improve your decks, and the other way round, with prices.
+- **Sharing without an account.** A small file by WhatsApp or e-mail is enough; exports from other apps work too, for friends without NineGrid.
+- **Deck suggestions from your own collection.** What to add and what to cut, based on what the deck lacks, with your own rules (tribe, maximum bracket, splash). You review every swap first.
+- **Everything about a deck on your phone.** Bracket, combos and almost-combos (with where the missing card is in your collection), mana base versus costs and opening-hand odds.
+- **AI with your own key.** Choose from eight services; every AI result is checked at Scryfall before it reaches your collection.
+- **Free, no limits, no account.** No caps on decks or exports, no subscription, no tracking. Your collection lives on your own phone.
+
 ## Adding cards
 - **Scan a binder page of 9 cards** in one photo, or **one card at a time** with automatic capture. Text recognition runs on your phone.
 - Reads name, set and collector number, including **foreign-language cards** (the printed name is checked, the English print supplies the price).

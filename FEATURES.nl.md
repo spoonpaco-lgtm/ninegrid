@@ -4,6 +4,18 @@
 
 Huidige versie: **0.9.0 – Jace**. Elke versie heeft de naam van een planeswalker.
 
+## Wat NineGrid anders maakt
+
+- **Een heel binderblad in één foto, met de plek erbij.** Negen kaarten per foto, en elke kaart staat meteen op zijn map, blad en vak.
+- **Alles ongedaan maken.** Elke wijziging is terug te draaien, ook een hele import of een heel deck.
+- **Koers los van wat je toevoegt.** De grafiek laat zien hoeveel je collectie steeg of daalde door de prijzen, niet doordat je kaarten bijkocht.
+- **Ruilmatch op basis van je decks.** Niet alleen "jij zoekt X, hij heeft X": NineGrid rekent uit welke kaarten van een vriend jouw decks echt beter maken, en andersom, met prijzen.
+- **Delen zonder account.** Een klein bestand via WhatsApp of e-mail is genoeg; ook exports uit andere apps werken, voor vrienden zonder NineGrid.
+- **Decksuggesties uit je eigen collectie.** Wat erbij en wat eruit kan, op basis van wat het deck mist, met je eigen regels (tribe, hoogste bracket, splash). Elke ruil bekijk je eerst.
+- **Alles over een deck op je telefoon.** Bracket, combo's en bijna-combo's (met waar de ontbrekende kaart in je collectie ligt), manabase tegenover de kosten en de kansen voor je openingshand.
+- **AI met je eigen sleutel.** Kies uit acht diensten; elke uitkomst van de AI wordt bij Scryfall gecontroleerd voordat hij in je collectie komt.
+- **Gratis, zonder grenzen, zonder account.** Geen maximum aan decks of exports, geen abonnement, geen tracking. Je collectie staat op je eigen telefoon.
+
 ## Kaarten toevoegen
 - **Scan een verzamelblad met 9 kaarten** in één foto, of **één kaart tegelijk** met automatisch fotograferen. De tekstherkenning draait op je telefoon.
 - Leest naam, set en nummer, ook van **kaarten in andere talen** (de gedrukte naam wordt gecontroleerd, de Engelse print levert de prijs).
