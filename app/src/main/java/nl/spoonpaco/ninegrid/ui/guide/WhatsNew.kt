@@ -28,25 +28,13 @@ object WhatsNew {
     fun items(dutch: Boolean): List<Item> = if (dutch) NL else EN
 
     private val NL = listOf(
-        Item("Bijwerken vanuit de app: een melding als er een nieuwe versie is, en één tik op Bijwerken.", "settings"),
-        Item("Zoeken in alle Magic-kaarten, met een label wat je al hebt, en een verlanglijst met prijsalarm.", "allcards"),
-        Item("Binders: filteren, sorteren per binder en een bladweergave met lege vakken om te scannen.", "binders"),
-        Item("Privacymodus: verberg bedragen met het oog bovenin; uitzetten met je vingerafdruk.", "privacy"),
-        Item("Boosters bijhouden: wat je betaalde, wat eruit kwam, de hit en per set het gemiddelde.", "boosters"),
-        Item("Decks: Statistieken, Combo's en Suggesties opnieuw ingedeeld, met landadvies, Trek 7, doelen per decktype en Bij vrienden.", "decks"),
-        Item("Ruilen beter zichtbaar: op Overzicht, bij Suggesties en op het kaartscherm.", "share"),
-        Item("Nieuw logo, gildekleuren, dag/nacht met zon en maan, en Magic-effecten zoals foil-glans en verbannen.", "settings"),
+        Item("Opgelost: de bracket vond geen Game Changers en tutors meer als de offline kaartdatabase aan stond. Prijzen bijwerken gaat nu altijd naar Scryfall, en onvolledige kaarten worden vanzelf aangevuld.", "decks"),
+        Item("Alles uit 0.9.1 – Kaya: bijwerken vanuit de app, alle kaarten, verlanglijst, bladweergave, privacymodus en boosters.", "allcards"),
     )
 
     private val EN = listOf(
-        Item("Update from the app: a notification when a new version is ready, and one tap on Update.", "settings"),
-        Item("Search all Magic cards, with a label for what you already have, and a wishlist with price alerts.", "allcards"),
-        Item("Binders: filter, sort by binder and a page view with empty slots to scan.", "binders"),
-        Item("Privacy mode: hide amounts with the eye at the top; turn it off with your fingerprint.", "privacy"),
-        Item("Track boosters: what you paid, what came out, the hit and the average per set.", "boosters"),
-        Item("Decks: Statistics, Combos and Suggestions redesigned, with land advice, Draw 7, targets per deck type and At friends.", "decks"),
-        Item("Trading easier to find: on Overview, in Suggestions and on the card screen.", "share"),
-        Item("New logo, guild colours, day/night with sun and moon, and Magic effects such as foil shine and exile.", "settings"),
+        Item("Fixed: the bracket no longer found Game Changers and tutors when the offline card database was on. Updating prices now always goes to Scryfall, and incomplete cards are filled in by themselves.", "decks"),
+        Item("Everything from 0.9.1 – Kaya: updating from the app, all cards, wishlist, page view, privacy mode and boosters.", "allcards"),
     )
 }
 

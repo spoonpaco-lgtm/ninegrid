@@ -2,7 +2,7 @@
 
 *Nederlands: [FEATURES.nl.md](FEATURES.nl.md)*
 
-Current version: **0.9.1 – Kaya**. Every version is named after a planeswalker.
+Current version: **0.9.2 – Ajani**. Every version is named after a planeswalker.
 
 ## What makes NineGrid different
 

@@ -2,7 +2,7 @@
 
 *English: [FEATURES.md](FEATURES.md)*
 
-Huidige versie: **0.9.1 – Kaya**. Elke versie heeft de naam van een planeswalker.
+Huidige versie: **0.9.2 – Ajani**. Elke versie heeft de naam van een planeswalker.
 
 ## Wat NineGrid anders maakt
 
