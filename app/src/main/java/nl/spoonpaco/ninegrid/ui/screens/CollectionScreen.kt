@@ -1,6 +1,13 @@
 package nl.spoonpaco.ninegrid.ui.screens
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.background
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -79,6 +86,7 @@ fun CollectionScreen(
     onImport: () -> Unit = {},
     onShare: () -> Unit = {},
     onBinder: (String) -> Unit = {},
+    onFriend: (String) -> Unit = {},
 ) {
     val settings by vm.settings.collectAsState()
     val all by vm.entries.collectAsState()
@@ -155,7 +163,11 @@ fun CollectionScreen(
                     Text(
                         when (mode) {
                             "all" -> stringResource(R.string.all_cards_sub)
-                            "wish" -> stringResource(R.string.wish_total_from, vm.wishlistCount(), nl.spoonpaco.ninegrid.ui.components.money(wishValue, settings.currency))
+                            "wish" -> listOfNotNull(
+                                stringResource(R.string.wish_total_from, vm.wishlistCount(), nl.spoonpaco.ninegrid.ui.components.money(wishValue, settings.currency)),
+                                wishes.count { it.item.alarmPrice != null }.takeIf { it > 0 }?.let { "🔔 " + pluralStringResource(R.plurals.wish_n_alarms, it, it) },
+                                wishes.count { vm.friendsHaving(it.item.name).isNotEmpty() }.takeIf { it > 0 }?.let { stringResource(R.string.wish_n_at_friends, it) + " ›" },
+                            ).joinToString(" · ")
                             else -> pluralStringResource(R.plurals.n_cards, count, count) + " · " + nl.spoonpaco.ninegrid.ui.components.money(value, settings.currency)
                         },
                         style = MaterialTheme.typography.bodySmall, color = LocalNgExtra.current.subtle,
@@ -199,7 +211,7 @@ fun CollectionScreen(
             }
             when (mode) {
                 "all" -> AllCardsPanel(vm, allQuery, { allQuery = it }, allFilter, onCard)
-                "wish" -> WishlistPanel(vm, onCard, onPaste = { pasteWish = true }, onAll = { mode = "all" })
+                "wish" -> WishlistPanel(vm, onCard, onPaste = { pasteWish = true }, onAll = { mode = "all" }, onFriend = onFriend)
                 else -> {
                     FilterSearchBar(
                         query = query, onQuery = { query = it }, placeholder = stringResource(R.string.search_hint),
@@ -316,8 +328,81 @@ private fun AllCardsPanel(vm: AppViewModel, query: String, onQuery: (String) -> 
 }
 
 /** De verlanglijst: wat je zoekt, met "Gekocht", aanpassen en prijsalarm. */
+/**
+ * Eén regel op de verlanglijst: tik = bewerken, ✓ = gekocht. De tweede regel zegt wat er speelt:
+ * het prijsalarm, hoeveel je er nog zoekt, welke vriend hem heeft, en of het om een precieze print gaat.
+ */
 @Composable
-private fun WishlistPanel(vm: AppViewModel, onCard: (String) -> Unit, onPaste: () -> Unit, onAll: () -> Unit) {
+private fun WishRow(
+    vm: AppViewModel, w: nl.spoonpaco.ninegrid.data.db.WishWithPrint, unit: Double?, priceText: String,
+    onEdit: () -> Unit, onBought: () -> Unit, onFriend: (String) -> Unit,
+) {
+    val settings by vm.settings.collectAsState()
+    val extra = LocalNgExtra.current
+    val p = w.print
+    val i = w.item
+    androidx.compose.material3.Card(
+        onClick = onEdit,
+        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = extra.cardSurface),
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 3.dp),
+    ) {
+        Row(Modifier.padding(horizontal = 10.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.width(5.dp).height(34.dp).clip(RoundedCornerShape(3.dp)).background(NgColors.rarity(p?.rarity)))
+            Spacer(Modifier.width(8.dp))
+            nl.spoonpaco.ninegrid.ui.components.CardThumb(p, vm.images, settings, 30, foil = i.foilOnly)
+            if (settings.imageMode != nl.spoonpaco.ninegrid.data.ImageMode.OFF) Spacer(Modifier.width(8.dp))
+            Column(Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(i.name, fontWeight = FontWeight.Bold, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                    val cost = p?.manaCost.orEmpty()
+                    if (cost.isNotBlank()) {
+                        val symbols = Regex("""\{[^}]+\}""").findAll(cost.substringBefore(" // ")).count()
+                        Spacer(Modifier.width(5.dp))
+                        nl.spoonpaco.ninegrid.ui.components.ManaCost(cost, size = if (i.name.length + symbols * 2 > 22) 12 else 15)
+                    }
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    val parts = mutableListOf<@Composable () -> Unit>()
+                    i.alarmPrice?.let { target ->
+                        val below = unit != null && unit <= target
+                        parts += {
+                            Text(
+                                if (below) "🔔 " + stringResource(R.string.wish_below_target, nl.spoonpaco.ninegrid.ui.components.money(target, i.alarmCurrency))
+                                else "🔔 " + nl.spoonpaco.ninegrid.ui.components.money(target, i.alarmCurrency) + (unit?.let { " · " + stringResource(R.string.wish_now, nl.spoonpaco.ninegrid.ui.components.money(it, settings.currency)) } ?: ""),
+                                fontSize = 12.sp, color = if (below) NgColors.Synced else extra.subtle, fontWeight = if (below) FontWeight.Bold else FontWeight.Normal, maxLines = 1,
+                            )
+                        }
+                    }
+                    if (i.wanted > 1) parts += { Text(stringResource(R.string.wish_progress, i.got, i.wanted), fontSize = 12.sp, color = extra.subtle, maxLines = 1) }
+                    vm.friendsHaving(i.name).firstOrNull()?.let { (f, _) ->
+                        parts += {
+                            Text(stringResource(R.string.wish_friend_has, f.name) + " ›", fontSize = 12.sp, color = NgColors.Synced, fontWeight = FontWeight.Bold, maxLines = 1,
+                                modifier = Modifier.clickable { onFriend(f.id) })
+                        }
+                    }
+                    if (!i.anyPrint && p != null) parts += { Text(stringResource(R.string.wish_only_print, "${p.setCode} ${p.collectorNumber}") + if (i.foilOnly) " · foil" else "", fontSize = 12.sp, color = extra.subtle, maxLines = 1) }
+                    else if (i.foilOnly) parts += { Text(stringResource(R.string.wish_only_foil), fontSize = 12.sp, color = extra.subtle, maxLines = 1) }
+                    parts.forEachIndexed { k, part -> if (k > 0) Text(" · ", fontSize = 12.sp, color = extra.subtle); part() }
+                }
+            }
+            Spacer(Modifier.width(6.dp))
+            Column(horizontalAlignment = Alignment.End) {
+                if (i.anyPrint && unit != null) Text(stringResource(R.string.wish_from_label), fontSize = 10.sp, color = extra.subtle)
+                Text(if (i.anyPrint && unit != null) nl.spoonpaco.ninegrid.ui.components.money(unit, settings.currency) else priceText,
+                    color = extra.price, fontWeight = FontWeight.Bold, fontSize = 14.sp, modifier = nl.spoonpaco.ninegrid.ui.components.privacyMask())
+            }
+            Spacer(Modifier.width(6.dp))
+            // Gekocht: klein, zodat de naam ruimte houdt.
+            androidx.compose.material3.FilledTonalIconButton(onClick = onBought, modifier = Modifier.size(32.dp)) {
+                Icon(Icons.Filled.Check, stringResource(R.string.wish_bought_btn), modifier = Modifier.size(18.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun WishlistPanel(vm: AppViewModel, onCard: (String) -> Unit, onPaste: () -> Unit, onAll: () -> Unit, onFriend: (String) -> Unit = {}) {
     val settings by vm.settings.collectAsState()
     val wishes by vm.wishlist.collectAsState()
     val extra = LocalNgExtra.current
@@ -342,19 +427,7 @@ private fun WishlistPanel(vm: AppViewModel, onCard: (String) -> Unit, onPaste: (
                 else -> nl.spoonpaco.ninegrid.ui.components.money(unitPrice, settings.currency)
             }
             val p = w.print
-            val e = nl.spoonpaco.ninegrid.data.db.Entry(printId = w.item.printId, quantity = 1, finish = if (w.item.foilOnly) nl.spoonpaco.ninegrid.data.db.Finish.FOIL else nl.spoonpaco.ninegrid.data.db.Finish.NONFOIL)
-            val where = if (w.item.anyPrint) stringResource(R.string.wish_any_print) else null
-            val tag = listOfNotNull(
-                if (w.item.wanted > 1) stringResource(R.string.wish_progress, w.item.got, w.item.wanted) else null,
-                w.item.alarmPrice?.let { "🔔 " + stringResource(R.string.wish_alarm_below, nl.spoonpaco.ninegrid.ui.components.money(it, w.item.alarmCurrency)) },
-            ).joinToString(" · ").ifBlank { null }
-            Column {
-                CardRow(e, p, settings, vm.images, location = where, tag = tag, priceText = priceText) { p?.let { onCard(it.id) } }
-                Row(Modifier.fillMaxWidth().padding(start = 56.dp, end = 12.dp), horizontalArrangement = Arrangement.End) {
-                    TextButton(onClick = { edit = w }) { Text(stringResource(R.string.edit)) }
-                    TextButton(onClick = { vm.boughtWish(w) }) { Text(stringResource(R.string.wish_bought_btn)) }
-                }
-            }
+            WishRow(vm, w, unitPrice, priceText, onEdit = { edit = w }, onBought = { vm.boughtWish(w) }, onFriend = onFriend)
         }
         item { Text(stringResource(R.string.wish_alarm_note), fontSize = 11.sp, color = extra.subtle, modifier = Modifier.padding(16.dp)) }
     }

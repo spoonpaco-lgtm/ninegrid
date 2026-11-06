@@ -600,4 +600,46 @@ class ParserTest {
         val missing = used - nl.spoonpaco.ninegrid.data.FILTER_SCREENS.toSet()
         assertTrue("niet geregistreerd: $missing", missing.isEmpty())
     }
+
+    // ---- Lege vakken op een blad: het kader is het raster ----
+    private fun pageLines(slots: List<Int>, left: Float = 0f, top: Float = 0f, cw: Float = 300f, ch: Float = 420f) = slots.flatMap { slot ->
+        val r = (slot - 1) / 3; val c = (slot - 1) % 3
+        val x = left + c * cw; val y = top + r * ch
+        listOf(
+            nl.spoonpaco.ninegrid.domain.OcrLine("Kaart$slot", x + cw * 0.4f, y + ch * 0.07f),
+            nl.spoonpaco.ninegrid.domain.OcrLine("Creature — Elf", x + cw * 0.4f, y + ch * 0.55f),
+            nl.spoonpaco.ninegrid.domain.OcrLine("MH2 • EN", x + cw * 0.25f, y + ch * 0.93f),
+        )
+    }
+    private val guide = nl.spoonpaco.ninegrid.domain.Area(0f, 0f, 900f, 1260f)
+    private fun bySlot(lines: List<nl.spoonpaco.ninegrid.domain.OcrLine>, crop: nl.spoonpaco.ninegrid.domain.Area? = guide) =
+        nl.spoonpaco.ninegrid.domain.ScanParser.parse(lines, 900, 1260, crop).associate { it.slot to it.lines }
+
+    private fun assertPage(filled: List<Int>, lines: List<nl.spoonpaco.ninegrid.domain.OcrLine> = pageLines(filled)) {
+        val got = bySlot(lines)
+        for (slot in 1..9) {
+            if (slot in filled) assertTrue("vak $slot mist Kaart$slot: ${got[slot]}", got[slot].orEmpty().any { it == "Kaart$slot" })
+            else assertTrue("vak $slot hoort leeg te zijn: ${got[slot]}", got[slot].orEmpty().isEmpty())
+        }
+    }
+
+    @Test fun emptyTopRowKeepsSlots() = assertPage(listOf(4, 5, 6, 7, 8, 9))
+    @Test fun emptyBottomRowKeepsSlots() = assertPage(listOf(1, 2, 3, 4, 5, 6))
+    @Test fun emptyLeftColumnKeepsSlots() = assertPage(listOf(2, 3, 5, 6, 8, 9))
+    @Test fun emptyRightColumnKeepsSlots() = assertPage(listOf(1, 2, 4, 5, 7, 8))
+    @Test fun singleCardKeepsSlot() = assertPage(listOf(5))
+    @Test fun diagonalKeepsSlots() = assertPage(listOf(1, 5, 9))
+    @Test fun fullPageStillWorks() = assertPage((1..9).toList())
+
+    @Test
+    fun emptySlotsByImageStructure() {
+        val e = mapOf(1 to 1.5, 2 to 22.0, 3 to 25.0, 4 to 2.0, 5 to 20.0, 6 to 9.0, 7 to 18.0, 8 to 1.0, 9 to 24.0)
+        val hasText = setOf(2, 3, 5, 7, 9)
+        // 6 heeft geen tekst maar wel structuur (een kaart die niet gelezen kon worden): niet leeg.
+        assertEquals(setOf(1, 4, 8), nl.spoonpaco.ninegrid.domain.EmptySlots.decide(e, hasText))
+        val flat = IntArray(48 * 64) { 128 }
+        assertEquals(0.0, nl.spoonpaco.ninegrid.domain.EmptySlots.energy(flat, 48, 64), 0.0001)
+        val stripes = IntArray(48 * 64) { i -> if ((i % 48) % 2 == 0) 0 else 200 }
+        assertTrue(nl.spoonpaco.ninegrid.domain.EmptySlots.energy(stripes, 48, 64) > 50)
+    }
 }

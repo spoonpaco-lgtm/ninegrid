@@ -226,6 +226,24 @@ private fun cutOut(bmp: Bitmap, a: Area, maxW: Int = 260): Bitmap? = runCatching
 }.getOrNull()
 
 /** Per vak een uitsnede van de foto (blad), of één uitsnede (losse kaart). */
+/** Kijkt per vak naar het beeld (het midden, zonder de naden van het mapje) en markeert de lege vakken. */
+private fun markEmpty(bmp: Bitmap, result: ScanResult): ScanResult {
+    val f = result.frame ?: return result
+    val cw = f.width / 3f; val ch = f.height / 3f
+    val energies = (1..9).associateWith { slot ->
+        val r = (slot - 1) / 3; val c = (slot - 1) % 3
+        val a = Area(f.left + c * cw + cw * 0.12f, f.top + r * ch + ch * 0.12f, f.left + (c + 1) * cw - cw * 0.12f, f.top + (r + 1) * ch - ch * 0.12f)
+        val cut = cutOut(bmp, a) ?: return@associateWith 0.0
+        val small = Bitmap.createScaledBitmap(cut, 48, 64, true)
+        val px = IntArray(48 * 64); small.getPixels(px, 0, 48, 0, 0, 48, 64)
+        val gray = IntArray(px.size) { i -> val p = px[i]; (((p shr 16) and 0xFF) * 30 + ((p shr 8) and 0xFF) * 59 + (p and 0xFF) * 11) / 100 }
+        nl.spoonpaco.ninegrid.domain.EmptySlots.energy(gray, 48, 64)
+    }
+    val hasText = result.slots.filter { it.lines.isNotEmpty() }.map { it.slot }.toSet()
+    val empty = nl.spoonpaco.ninegrid.domain.EmptySlots.decide(energies, hasText)
+    return result.copy(slots = result.slots.map { if (it.slot in empty && it.lines.isEmpty()) it.copy(looksEmpty = true) else it })
+}
+
 private fun cropsFor(bmp: Bitmap, result: ScanResult, single: Boolean): Map<Int, Bitmap> {
     val f = result.frame ?: return emptyMap()
     if (single) return listOfNotNull(cutOut(bmp, f)?.let { 1 to it }).toMap()
@@ -292,7 +310,19 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
     var boxW by remember { mutableStateOf(0f) }
     var boxH by remember { mutableStateOf(0f) }
     var camera by remember { mutableStateOf<androidx.camera.core.Camera?>(null) }
+    /** Wat je met de knop Lamp wilt; [torchOn] is wat de camera echt doet. */
     var torch by remember { mutableStateOf(false) }
+    var torchOn by remember { mutableStateOf(false) }
+    DisposableEffect(camera) {
+        val ld = camera?.cameraInfo?.torchState
+        val obs = androidx.lifecycle.Observer<Int> { torchOn = it == androidx.camera.core.TorchState.ON }
+        ld?.observeForever(obs)
+        onDispose { ld?.removeObserver(obs) }
+    }
+    // Veel telefoons zetten de lamp uit bij het nemen van een foto: zet hem dan zelf weer aan.
+    androidx.compose.runtime.LaunchedEffect(torchOn, torch, camera) {
+        if (torch && !torchOn && camera != null) { kotlinx.coroutines.delay(400); camera?.cameraControl?.enableTorch(true) }
+    }
     var editFields by remember { mutableStateOf(false) }
     // Aanduiding dat de foto genomen is: flits, even stilstaand beeld, en een klein plaatje linksonder.
     val flash = remember { androidx.compose.animation.core.Animatable(0f) }
@@ -341,7 +371,9 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
                 val t0 = System.currentTimeMillis()
                 val sharp = withContext(Dispatchers.Default) { runCatching { sharpness(bmp, crop) }.getOrDefault(100.0) }
                 val first = readImage(bmp, crop, single)
-                val (r, reread) = reread(bmp, first, single)
+                val (r0, reread) = reread(bmp, first, single)
+                // Vakken zonder tekst: is er echt niets, of een kaart die we niet konden lezen?
+                val r = if (single) r0 else withContext(Dispatchers.Default) { runCatching { markEmpty(bmp, r0) }.getOrDefault(r0) }
                 vm.lastReadMs = System.currentTimeMillis() - t0
                 vm.lastRereadSlots = reread
                 val crops = withContext(Dispatchers.Default) { cropsFor(bmp, r, single) }
@@ -449,6 +481,8 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
             runCatching { p.unbindAll(); camera = p.bindToLifecycle(lifecycle, CameraSelector.DEFAULT_BACK_CAMERA, pv, capture) }
         }
         watcher.reset(); autoPaused = false
+        // Na het opnieuw koppelen is de lamp uit: weer aan als je hem aan had gezet.
+        if (torch) camera?.cameraControl?.enableTorch(true)
     }
     DisposableEffect(auto) {
         var last = 0L
@@ -515,7 +549,8 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
             val sum = vm.scanSummary
             val frameColor = when {
                 autoBlink -> NgColors.Synced
-                sum == null || sum.busy -> NgColors.Amber.copy(alpha = 0.9f)
+                // Wit tot er een uitslag is: oranje betekent in de scanner alleen "controleren".
+                sum == null || sum.busy -> Color.White.copy(alpha = 0.9f)
                 sum.allGood -> NgColors.Synced
                 else -> Color(0xFFFF8C00)
             }
@@ -544,9 +579,10 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
             // De set als eigen, opvallende knop: hij bepaalt het meest of een kaart goed gevonden wordt.
             AssistChip(
                 onClick = { editFields = true },
-                label = { Text(vm.scanSet.ifBlank { null }?.let { stringResource(R.string.set) + " " + it } ?: stringResource(R.string.scan_set_auto), maxLines = 1,
-                    color = if (vm.scanSet.isBlank()) Color.White else Color.Black, fontWeight = FontWeight.Bold) },
-                colors = androidx.compose.material3.AssistChipDefaults.assistChipColors(containerColor = if (vm.scanSet.isBlank()) Color.Transparent else NgColors.Amber),
+                label = { Text(vm.scanSet.ifBlank { null }?.let { "✓ " + stringResource(R.string.set) + " " + it } ?: stringResource(R.string.scan_set_auto), maxLines = 1,
+                    color = Color.White, fontWeight = FontWeight.Bold) },
+                colors = androidx.compose.material3.AssistChipDefaults.assistChipColors(containerColor = Color.Transparent),
+                border = androidx.compose.foundation.BorderStroke(if (vm.scanSet.isBlank()) 1.dp else 2.dp, if (vm.scanSet.isBlank()) Color.White.copy(alpha = 0.5f) else Color.White),
             )
             Spacer(Modifier.width(6.dp))
             AssistChip(
@@ -630,10 +666,10 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
                 }
                 Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
                     FilledIconButton(
-                        onClick = { torch = !torch; camera?.cameraControl?.enableTorch(torch) },
+                        onClick = { torch = !torchOn; camera?.cameraControl?.enableTorch(torch) },
                         enabled = permitted && camera?.cameraInfo?.hasFlashUnit() == true, modifier = Modifier.size(46.dp),
                         colors = IconButtonDefaults.filledIconButtonColors(containerColor = Color.White.copy(alpha = 0.18f), contentColor = Color.White),
-                    ) { Icon(if (torch) Icons.Filled.FlashlightOn else Icons.Filled.FlashlightOff, stringResource(R.string.torch)) }
+                    ) { Icon(if (torchOn) Icons.Filled.FlashlightOn else Icons.Filled.FlashlightOff, stringResource(R.string.torch)) }
                     Text(stringResource(R.string.scan_btn_torch), color = Color.White.copy(alpha = 0.8f), fontSize = 11.sp)
                 }
             }
@@ -856,6 +892,7 @@ private fun FoilGrid(vm: AppViewModel, cellWidth: Int, interactive: Boolean, onL
                 val ai = item?.let { vm.aiMarks[it.key] }
                 val status = when {
                     item == null || item.status == nl.spoonpaco.ninegrid.ui.ItemStatus.RESOLVING || item.status == nl.spoonpaco.ninegrid.ui.ItemStatus.WAITING -> Color.Transparent
+                    item.empty -> Color.White.copy(alpha = 0.25f)
                     item.status == nl.spoonpaco.ninegrid.ui.ItemStatus.NOT_FOUND -> NgColors.Error
                     !item.confident -> NgColors.Amber
                     else -> NgColors.Synced

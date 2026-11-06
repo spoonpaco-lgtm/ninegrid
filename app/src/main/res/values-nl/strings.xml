@@ -202,7 +202,7 @@
     <string name="scan_fields_hint">Optioneel. Set maakt herkennen betrouwbaarder.</string>
     <string name="torch">Zaklamp</string>
     <string name="msg_page_saved">%1$s blad %2$d opgeslagen · %3$d kaarten</string>
-    <string name="scan_nothing_read">Niets gelezen in dit vak</string>
+    <string name="scan_nothing_read">Kaart gezien, maar niets gelezen</string>
     <string name="scan_read_as">Gelezen: %1$s</string>
     <string name="scan_fill_frame">Vul het kader met het blad</string>
     <string name="scan_blurry_title">Foto lijkt onscherp</string>
@@ -946,4 +946,16 @@
     <string name="deck_sort_price">prijs</string>
     <string name="wish_from">vanaf %1$s</string>
     <string name="wish_total_from">%1$d kaarten · vanaf %2$s</string>
+    <string name="scan_slot_empty">Leeg vak</string>
+    <string name="wish_below_target">onder je doel %1$s</string>
+    <string name="wish_now">nu %1$s</string>
+    <string name="wish_friend_has">%1$s heeft hem</string>
+    <string name="wish_only_print">alleen %1$s</string>
+    <string name="wish_only_foil">alleen foil</string>
+    <string name="wish_from_label">vanaf</string>
+    <string name="wish_n_at_friends">%1$d bij vrienden</string>
+    <plurals name="wish_n_alarms">
+        <item quantity="one">%d alarm</item>
+        <item quantity="other">%d alarmen</item>
+    </plurals>
 </resources>

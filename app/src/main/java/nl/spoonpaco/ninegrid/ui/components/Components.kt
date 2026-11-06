@@ -148,6 +148,8 @@ fun CardRow(
     tag: String? = null,
     /** Eigen prijstekst (bijv. "vanaf € 3,40" of "–") in plaats van de waarde van dit exemplaar. */
     priceText: String? = null,
+    /** Iets rechts naast de prijs, bijv. de knop Gekocht op de verlanglijst. */
+    trailing: (@Composable () -> Unit)? = null,
     onClick: () -> Unit,
 ) {
     val extra = LocalNgExtra.current
@@ -173,6 +175,14 @@ fun CardRow(
                         color = if (entry.proxy) NgColors.Proxy else MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.weight(1f, fill = false),
                     )
+                    // Manakosten zoals op de kaart; bij een lange naam of veel symbolen eerst de symbolen kleiner.
+                    val cost = print?.manaCost.orEmpty()
+                    if (cost.isNotBlank()) {
+                        val symbols = Regex("""\{[^}]+\}""").findAll(cost.substringBefore(" // ")).count()
+                        val tight = (print?.name?.length ?: 0) + symbols * 2 > 24
+                        Spacer(Modifier.width(5.dp))
+                        ManaCost(cost, size = if (tight) 12 else 15)
+                    }
                     FoilBadge(entry.finish)
                     if (entry.language.isNotBlank()) SmallTag(entry.language)
                     if (entry.proxy) SmallTag(stringResource(R.string.proxy), NgColors.Proxy)
@@ -184,13 +194,17 @@ fun CardRow(
                 )
                 if (tag != null) Text(tag, color = NgColors.Synced, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
-            Spacer(Modifier.width(6.dp))
-            ManaPips(print?.colors ?: "", size = 16)
+            // Lands hebben geen manakosten: die tonen de kleuren die ze maken.
+            if (print != null && print.manaCost.isBlank() && print.typeLine.contains("Land")) {
+                Spacer(Modifier.width(6.dp))
+                ManaPips(print.producedMana.filter { it in "WUBRGC" }.ifEmpty { "C" }, size = 16)
+            }
             Spacer(Modifier.width(8.dp))
             Column(horizontalAlignment = Alignment.End) {
                 Text(priceText ?: nl.spoonpaco.ninegrid.ui.components.money(Money.total(entry, print, settings.currency), settings.currency), color = extra.price, fontWeight = FontWeight.Bold, fontSize = 14.sp, modifier = Modifier.then(nl.spoonpaco.ninegrid.ui.components.privacyMask()))
                 if (entry.quantity > 1) Text("${entry.quantity}×", color = extra.subtle, fontSize = 12.sp)
             }
+            trailing?.let { Spacer(Modifier.width(6.dp)); it() }
         }
     }
 }

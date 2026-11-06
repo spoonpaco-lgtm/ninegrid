@@ -23,6 +23,8 @@ data class SlotRead(
     val name: String? = null,
     /** Andere regels uit de bovenkant van het vak die een naam kunnen zijn, voor als de eerste niets oplevert. */
     val altNames: List<String> = emptyList(),
+    /** Op de foto ziet het vak er leeg uit (geen kaart: weinig randen en structuur). */
+    val looksEmpty: Boolean = false,
 ) {
     val complete get() = setCode != null && collectorNumber != null
 }
@@ -64,6 +66,12 @@ object ScanParser {
     /** Het kader van het blad: de uiterste tekst op de foto, iets ruimer genomen. Valt terug op de hele foto. */
     private data class Frame(val left: Float, val top: Float, val right: Float, val bottom: Float)
 
+    /**
+     * Het raster van het blad. Met een kader (de hoekjes in de camera) is dat kader het raster; de tekst mag het
+     * alleen bijstellen als hij (bijna) het hele kader beslaat. Zo schuift een lege rij of kolom de andere kaarten
+     * nooit een plek op. Ligt het blad te klein in beeld, dan waarschuwt de scanner al ("te ver weg").
+     * Zonder kader (een foto uit de galerij) bepaalt de tekst het raster, zoals voorheen.
+     */
     private fun frameOf(lines: List<OcrLine>, width: Int, height: Int, bounds: Area? = null): Frame {
         val full = bounds?.let { Frame(it.left, it.top, it.right, it.bottom) } ?: Frame(0f, 0f, width.toFloat(), height.toFloat())
         if (lines.size < 6) return full
@@ -71,8 +79,15 @@ object ScanParser {
         val minY = lines.minOf { it.centerY }; val maxY = lines.maxOf { it.centerY }
         val padX = (maxX - minX) * 0.06f; val padY = (maxY - minY) * 0.04f
         val f = Frame((minX - padX).coerceAtLeast(full.left), (minY - padY).coerceAtLeast(full.top), (maxX + padX).coerceAtMost(full.right), (maxY + padY).coerceAtMost(full.bottom))
-        // Te klein (bijvoorbeeld maar één rij kaarten tekst gevonden)? Dan het hele kader.
-        return if (f.right - f.left < (full.right - full.left) * 0.4f || f.bottom - f.top < (full.bottom - full.top) * 0.4f) full else f
+        val fw = f.right - f.left; val fh = f.bottom - f.top
+        val bw = full.right - full.left; val bh = full.bottom - full.top
+        if (bounds != null) {
+            // Alleen als de tekst (bijna) het hele kader beslaat, mag hij het raster een beetje bijstellen.
+            val coversAll = fw >= bw * 0.85f && fh >= bh * 0.85f
+            return if (coversAll) f else full
+        }
+        // Zonder kader: te klein (bijvoorbeeld maar één rij kaarten tekst gevonden)? Dan de hele foto.
+        return if (fw < bw * 0.4f || fh < bh * 0.4f) full else f
     }
 
     private fun slotIn(f: Frame, x: Float, y: Float): Int {
@@ -221,5 +236,33 @@ object ScanParser {
         val sets = linkedSetOf(set, set.replace('0', 'O'), set.replace('O', '0'), set.replace('1', 'I'), set.replace('I', '1'))
         val nums = linkedSetOf(number, number.replace('O', '0'), number.replace('I', '1'))
         return sets.flatMap { s -> nums.map { n -> s to n } }.filter { it != (set to number) }
+    }
+}
+
+/**
+ * Lege vakken herkennen aan het beeld: een kaart heeft randen, tekst en een tekening, een leeg vakje in een map
+ * is egaal. Rekent met grijswaarden (0..255) van een verkleind stuk uit het midden van het vak.
+ */
+object EmptySlots {
+    /** Gemiddeld verschil tussen buren: hoeveel "structuur" er in het beeld zit. */
+    fun energy(gray: IntArray, w: Int, h: Int): Double {
+        if (w < 2 || h < 2 || gray.size < w * h) return 0.0
+        var sum = 0L; var n = 0
+        for (y in 0 until h - 1) for (x in 0 until w - 1) {
+            val v = gray[y * w + x]
+            sum += kotlin.math.abs(v - gray[y * w + x + 1]) + kotlin.math.abs(v - gray[(y + 1) * w + x])
+            n += 2
+        }
+        return if (n == 0) 0.0 else sum.toDouble() / n
+    }
+
+    /**
+     * Welke vakken leeg zijn. Vergelijkt met de vakken waar wel tekst is gelezen (die bevatten zeker een kaart):
+     * leeg = minder dan 35% van hun structuur, of in elk geval minder dan [floor]. Zonder vakken met tekst alleen de vaste grens.
+     */
+    fun decide(energies: Map<Int, Double>, hasText: Set<Int>, floor: Double = 3.0): Set<Int> {
+        val ref = energies.filterKeys { it in hasText }.values.sorted().let { if (it.size >= 2) it[it.size / 2] else null }
+        val limit = if (ref != null) maxOf(floor, ref * 0.35) else floor * 1.5
+        return energies.filter { (slot, e) -> slot !in hasText && e < limit }.keys
     }
 }

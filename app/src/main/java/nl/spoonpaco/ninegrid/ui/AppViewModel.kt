@@ -56,6 +56,8 @@ data class PendingItem(
     val section: String = Section.MAIN,
     val include: Boolean = true,
     val fromCollection: Boolean = true,
+    /** Leeg vak op een blad (op de foto geen kaart te zien): telt niet als controleren. */
+    val empty: Boolean = false,
     /** Naam, set en nummer kloppen met elkaar: kan zonder controle worden opgeslagen. */
     val confident: Boolean = false,
 )
@@ -245,11 +247,15 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                 (r.name ?: r.altNames.firstOrNull())?.let { "‘" + it.take(22) + "’" },
             )
             val key = nextKey++
+            val emptySlot = !single && r.lines.isEmpty() && r.looksEmpty
             slotCrops[r.slot]?.let { crops[key] = it.asImageBitmapSafe() }
             pending += PendingItem(
                 key = key,
                 slot = if (single) null else r.slot,
-                label = if (readParts.isEmpty() && r.lines.isEmpty()) str(R.string.scan_nothing_read)
+                empty = emptySlot,
+                include = !emptySlot,
+                label = if (emptySlot) str(R.string.scan_slot_empty)
+                    else if (readParts.isEmpty() && r.lines.isEmpty()) str(R.string.scan_nothing_read)
                     else str(R.string.scan_read_as, (readParts.ifEmpty { r.lines.take(2).map { it.take(22) } }).joinToString(" · ")),
                 query = if (lang == null) CardQuery(setCode = set, collectorNumber = r.collectorNumber, name = r.name, altNames = r.altNames)
                     else CardQuery(setCode = set, collectorNumber = r.collectorNumber, lang = lang, printedName = r.name),
@@ -276,7 +282,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     val scanSummary: ScanSummary?
         get() {
             if (importSource != ImportSource.SCAN || pending.isEmpty()) return null
-            val emptySlots = pending.count { it.status == ItemStatus.NOT_FOUND && it.label == str(R.string.scan_nothing_read) }
+            val emptySlots = pending.count { it.empty }
             return ScanSummary(
                 busy = pending.any { it.status == ItemStatus.RESOLVING },
                 found = pending.count { it.status == ItemStatus.FOUND },
@@ -863,7 +869,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
      */
     private fun aiAssist(items: List<PendingItem>) = viewModelScope.launch {
         val client = aiClient() ?: return@launch
-        val todo = items.filter { (it.status == ItemStatus.NOT_FOUND || !it.confident) && it.key !in aiTried && crops[it.key] != null }
+        val todo = items.filter { !it.empty && (it.status == ItemStatus.NOT_FOUND || !it.confident) && it.key !in aiTried && crops[it.key] != null }
         if (todo.isEmpty()) return@launch
         todo.forEach { aiMarks[it.key] = AiMark(AiState.BUSY) }
         var helped = 0

@@ -203,7 +203,7 @@
     <string name="scan_fields_hint">Optional. Set makes recognition more reliable.</string>
     <string name="torch">Torch</string>
     <string name="msg_page_saved">%1$s page %2$d saved · %3$d cards</string>
-    <string name="scan_nothing_read">Nothing read in this slot</string>
+    <string name="scan_nothing_read">Card seen, but nothing read</string>
     <string name="scan_read_as">Read: %1$s</string>
     <string name="scan_fill_frame">Fill the frame with the page</string>
     <string name="scan_blurry_title">Photo looks blurry</string>
@@ -947,4 +947,16 @@
     <string name="deck_sort_price">price</string>
     <string name="wish_from">from %1$s</string>
     <string name="wish_total_from">%1$d cards · from %2$s</string>
+    <string name="scan_slot_empty">Empty slot</string>
+    <string name="wish_below_target">below your target %1$s</string>
+    <string name="wish_now">now %1$s</string>
+    <string name="wish_friend_has">%1$s has it</string>
+    <string name="wish_only_print">only %1$s</string>
+    <string name="wish_only_foil">only foil</string>
+    <string name="wish_from_label">from</string>
+    <string name="wish_n_at_friends">%1$d at friends</string>
+    <plurals name="wish_n_alarms">
+        <item quantity="one">%d alarm</item>
+        <item quantity="other">%d alarms</item>
+    </plurals>
 </resources>

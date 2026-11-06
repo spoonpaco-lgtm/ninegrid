@@ -110,7 +110,7 @@ fun CardDetailScreen(vm: AppViewModel, printId: String, onBack: () -> Unit, onFr
             val model = if (anyway) vm.images.requestAnyway(vm.images.urlFor(p, large = true)) else vm.images.request(vm.images.urlFor(p, large = true), settings)
             Box(
                 Modifier.fillMaxWidth(0.75f).aspectRatio(0.716f).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                    .foilShine(shiny, strength = 1.8f).clickable(enabled = imageIssue == null) { full = true },
+                    .foilShine(shiny, strength = 1.36f).clickable(enabled = imageIssue == null) { full = true },
                 contentAlignment = Alignment.Center,
             ) {
                 AsyncImage(
@@ -132,7 +132,7 @@ fun CardDetailScreen(vm: AppViewModel, printId: String, onBack: () -> Unit, onFr
                 Box(Modifier.fillMaxSize().clickable { full = false }, contentAlignment = Alignment.Center) {
                     AsyncImage(
                         model = model, imageLoader = vm.images.loader, contentDescription = p.name,
-                        modifier = Modifier.fillMaxWidth(0.95f).aspectRatio(0.716f).clip(RoundedCornerShape(16.dp)).foilShine(shiny, strength = 1.8f),
+                        modifier = Modifier.fillMaxWidth(0.95f).aspectRatio(0.716f).clip(RoundedCornerShape(16.dp)).foilShine(shiny, strength = 1.36f),
                     )
                 }
             }

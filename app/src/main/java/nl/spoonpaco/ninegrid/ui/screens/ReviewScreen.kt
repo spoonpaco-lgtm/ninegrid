@@ -266,7 +266,8 @@ private fun PendingRow(
                             FoilBadge(item.finish)
                         }
                         ItemStatus.RESOLVING -> Text(stringResource(R.string.looking_up), color = extra.subtle)
-                        ItemStatus.NOT_FOUND -> Text(stringResource(R.string.not_found), color = NgColors.Error, fontWeight = FontWeight.Bold)
+                        ItemStatus.NOT_FOUND -> if (item.empty) Text(stringResource(R.string.scan_slot_empty), color = extra.subtle, fontWeight = FontWeight.Bold)
+                            else Text(stringResource(R.string.not_found), color = NgColors.Error, fontWeight = FontWeight.Bold)
                         ItemStatus.WAITING -> Text(stringResource(R.string.scan_waiting), color = NgColors.Pending, fontWeight = FontWeight.Bold)
                     }
                     Text(

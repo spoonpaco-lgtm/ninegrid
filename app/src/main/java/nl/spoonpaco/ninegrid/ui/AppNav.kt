@@ -167,6 +167,7 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
                     onImport = { nav.navigate("import") },
                     onShare = { nav.navigate("share") },
                     onBinder = { b -> nav.navigate("binder/" + android.net.Uri.encode(b)) },
+                    onFriend = { id -> nav.navigate("friend/$id") },
                 )
             }
             composable(
