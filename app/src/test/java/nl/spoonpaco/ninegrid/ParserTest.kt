@@ -537,7 +537,7 @@ class ParserTest {
             ewp(-2, "Lightning Bolt", "CCC", "2", type = "Instant", ci = "R", eur = 1.5),
             ewp(-3, "Elf 1", "AAA", "1"),
         )
-        val r = T.compute(mine, listOf(T.DeckInput("Elves", DeckFormat.COMMANDER, myDeck)), theirs, emptyList(), "EUR")
+        val r = T.compute(mine, listOf(nl.spoonpaco.ninegrid.domain.TradeMatch.DeckInput("Elves", DeckFormat.COMMANDER, myDeck)), theirs, emptyList(), "EUR")
         val names = r.get.map { it.print.name }
         assertTrue(names.contains("Priest of Titania"))
         // Buiten de kleuren van de commander, en al in het deck: niet.
