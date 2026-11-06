@@ -936,4 +936,12 @@
     <string name="restore_discarded">Terugzetten</string>
     <string name="msg_page_discarded">Blad weggegooid</string>
     <string name="msg_card_discarded">Kaart weggegooid</string>
+    <string name="type_other">Overig</string>
+    <string name="deck_search">Zoek in deck</string>
+    <string name="deck_add">Toevoegen</string>
+    <string name="deck_by_type">Per type</string>
+    <string name="deck_sort_label">Sorteer: %1$s</string>
+    <string name="deck_sort_mana">mana</string>
+    <string name="deck_sort_name">naam</string>
+    <string name="deck_sort_price">prijs</string>
 </resources>

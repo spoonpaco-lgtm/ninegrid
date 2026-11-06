@@ -937,4 +937,12 @@
     <string name="restore_discarded">Restore</string>
     <string name="msg_page_discarded">Page discarded</string>
     <string name="msg_card_discarded">Card discarded</string>
+    <string name="type_other">Other</string>
+    <string name="deck_search">Search in deck</string>
+    <string name="deck_add">Add</string>
+    <string name="deck_by_type">By type</string>
+    <string name="deck_sort_label">Sort: %1$s</string>
+    <string name="deck_sort_mana">mana</string>
+    <string name="deck_sort_name">name</string>
+    <string name="deck_sort_price">price</string>
 </resources>

@@ -1286,6 +1286,13 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     // ---------- Suggesties per deck ----------
     private val rulesPrefs get() = getApplication<Application>().getSharedPreferences("deck_rules", android.content.Context.MODE_PRIVATE)
+
+    // Tabblad Kaarten van een deck: welke typegroepen dicht staan en hoe er gesorteerd wordt, per deck onthouden.
+    private val deckUiPrefs get() = getApplication<Application>().getSharedPreferences("deck_ui", android.content.Context.MODE_PRIVATE)
+    fun deckCollapsed(deckId: Long): Set<String> = deckUiPrefs.getStringSet("collapsed_$deckId", emptySet()).orEmpty().toSet()
+    fun setDeckCollapsed(deckId: Long, v: Set<String>) = deckUiPrefs.edit().putStringSet("collapsed_$deckId", v).apply()
+    fun deckSort(deckId: Long): String = deckUiPrefs.getString("sort_$deckId", "mana") ?: "mana"
+    fun setDeckSort(deckId: Long, v: String) = deckUiPrefs.edit().putString("sort_$deckId", v).apply()
     private val rulesJson = kotlinx.serialization.json.Json { ignoreUnknownKeys = true; encodeDefaults = true }
 
     /** Eigen regels van een deck; staat er nog niets, dan raadt de app het creaturetype van de commander. */

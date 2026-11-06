@@ -55,6 +55,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.ui.graphics.Color
@@ -202,15 +204,21 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
     var deleting by remember { mutableStateOf(false) }
     var picking by remember { mutableStateOf(false) }
     var tab by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(0) }
+    var cardQuery by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf("") }
+    var cardSort by remember(deckId) { mutableStateOf(vm.deckSort(deckId)) }
+    var collapsed by remember(deckId) { mutableStateOf(vm.deckCollapsed(deckId)) }
     val d = deck
     val text = Export.deckText(list, d?.format == DeckFormat.COMMANDER)
     val saveLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/plain")) { uri ->
         if (uri != null) vm.writeText(uri, text)
     }
 
+    val listState = androidx.compose.foundation.lazy.rememberLazyListState()
+    val hasBanner = d?.format == DeckFormat.COMMANDER && list.any { it.entry.section == Section.COMMANDER && it.print != null }
     Scaffold(topBar = {
         TopAppBar(
-            title = { Text(d?.name ?: "", maxLines = 1) },
+            // Met een commander-banner staat de naam pas in de balk als de banner weggescrold is.
+            title = { if (!hasBanner || listState.firstVisibleItemIndex > 0) Text(d?.name ?: "", maxLines = 1) },
             navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) } },
             actions = {
                 nl.spoonpaco.ninegrid.ui.guide.HelpButton("decks")
@@ -240,7 +248,10 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
         }
         val check = Formats.check(d.format, Formats.toDeckCards(list.map { it.entry to it.print }), signals)
         val sections = listOf(Section.COMMANDER, Section.MAIN, Section.SIDEBOARD)
-        LazyColumn(Modifier.padding(pad), contentPadding = PaddingValues(bottom = 40.dp)) {
+        LazyColumn(Modifier.padding(pad), state = listState, contentPadding = PaddingValues(bottom = 40.dp)) {
+            if (hasBanner) item(key = "banner") {
+                CommanderBanner(vm, list.filter { it.entry.section == Section.COMMANDER && it.print != null }, check.colorIdentity, onCard)
+            }
             item {
                 // Kop: bij Commander de commander zelf, anders het format. Eén samenvattende regel; tik voor de details.
                 // Is er een probleem met het deck, dan staat hij open.
@@ -251,8 +262,8 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
                 val hasError = check.issues.any { it.level == IssueLevel.ERROR }
                 var open by androidx.compose.runtime.saveable.rememberSaveable(deckId) { mutableStateOf(false) }
                 val expanded = open || hasError
-                Column(Modifier.fillMaxWidth().clickable { open = !open }.padding(16.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.fillMaxWidth().clickable { open = !open }.padding(horizontal = 16.dp, vertical = if (hasBanner) 6.dp else 16.dp)) {
+                    if (!hasBanner) Row(verticalAlignment = Alignment.CenterVertically) {
                         if (d.format == DeckFormat.COMMANDER && commanderCard?.print != null) {
                             nl.spoonpaco.ninegrid.ui.components.CardThumb(commanderCard.print, vm.images, settings, width = 40)
                             Spacer(Modifier.width(10.dp))
@@ -321,7 +332,7 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
                     androidx.compose.material3.Tab(selected = tab == 0, onClick = { tab = 0 }, text = { Text(stringResource(R.string.tab_cards)) })
                     androidx.compose.material3.Tab(selected = tab == 1, onClick = { tab = 1 }, text = { Text(stringResource(R.string.deck_stats)) })
                     androidx.compose.material3.Tab(selected = tab == 2, onClick = { tab = 2 }, text = {
-                        Text(if (report == null) stringResource(R.string.combos_title) else stringResource(R.string.combos_tab_count, report.included.size), maxLines = 1)
+                        Text(if (report == null || report.included.isEmpty()) stringResource(R.string.combos_title) else stringResource(R.string.combos_tab_count, report.included.size), maxLines = 1)
                     })
                     androidx.compose.material3.Tab(selected = tab == 3, onClick = { tab = 3 }, text = { Text(stringResource(R.string.tab_suggestions), maxLines = 1) })
                 }
@@ -329,20 +340,78 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
             if (tab == 1) item { DeckStatsPanel(vm, d, list, onLands = { tab = 3 }) }
             if (tab == 2) item { CombosPanel(vm, d, report, onFriend) }
             if (tab == 3) item { SuggestionsPanel(vm, d, list, onFriend) }
-            // Kaarten toevoegen hoort bij het tabblad Kaarten.
-            if (tab == 0) item {
-                Row(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    androidx.compose.material3.Button(onClick = { picking = true }) {
-                        Icon(Icons.Filled.Add, null); Spacer(Modifier.width(4.dp)); Text(stringResource(R.string.pick_from_collection))
+            // Tabblad Kaarten: zoeken en toevoegen op één regel, dan de kaarten per type.
+            if (tab == 0) item(key = "tools") {
+                Row(Modifier.padding(horizontal = 12.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    OutlinedTextField(
+                        cardQuery, { cardQuery = it }, singleLine = true, placeholder = { Text(stringResource(R.string.deck_search)) },
+                        leadingIcon = { Icon(Icons.Filled.Search, null) }, shape = RoundedCornerShape(24.dp),
+                        trailingIcon = { if (cardQuery.isNotEmpty()) IconButton(onClick = { cardQuery = "" }) { Icon(Icons.Filled.Close, null) } },
+                        modifier = Modifier.weight(1f),
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Box {
+                        var addMenu by remember { mutableStateOf(false) }
+                        androidx.compose.material3.Button(onClick = { addMenu = true }) { Icon(Icons.Filled.Add, null); Spacer(Modifier.width(2.dp)); Text(stringResource(R.string.deck_add) + " ▾") }
+                        DropdownMenu(expanded = addMenu, onDismissRequest = { addMenu = false }) {
+                            DropdownMenuItem(text = { Text(stringResource(R.string.pick_from_collection)) }, onClick = { addMenu = false; picking = true })
+                            DropdownMenuItem(text = { Text(stringResource(R.string.paste_list)) }, onClick = { addMenu = false; onAddCards(deckId) })
+                        }
                     }
-                    androidx.compose.material3.OutlinedButton(onClick = { onAddCards(deckId) }) { Text(stringResource(R.string.paste_list)) }
+                }
+                Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text(stringResource(R.string.deck_by_type), fontSize = 12.sp, color = extra.subtle, modifier = Modifier.weight(1f))
+                    Box {
+                        var sortMenu by remember { mutableStateOf(false) }
+                        TextButton(onClick = { sortMenu = true }) { Text(stringResource(R.string.deck_sort_label, deckSortName(cardSort)) + " ▾", fontSize = 12.sp) }
+                        DropdownMenu(expanded = sortMenu, onDismissRequest = { sortMenu = false }) {
+                            listOf("mana", "name", "price").forEach { k ->
+                                DropdownMenuItem(text = { Text(deckSortName(k)) }, onClick = { sortMenu = false; cardSort = k; vm.setDeckSort(deckId, k) })
+                            }
+                        }
+                    }
                 }
             }
-            if (tab == 0) sections.forEach { s ->
-                val part = list.filter { (it.entry.section ?: Section.MAIN) == s }.sortedBy { it.print?.name ?: "" }
-                if (part.isNotEmpty()) {
-                    item(key = "h_$s") { SectionHeader(sectionLabel(s), part.sumOf { it.entry.quantity }.let { n -> pluralStringResource(R.plurals.n_cards, n, n) }) }
-                    items(part, key = { it.entry.id }) { e -> CardRow(e.entry, e.print, settings, vm.images) { e.print?.let { onCard(it.id) } } }
+            if (tab == 0) {
+                val q = cardQuery.trim()
+                val visible = list.filter { e ->
+                    val sec = e.entry.section ?: Section.MAIN
+                    !(hasBanner && sec == Section.COMMANDER) && (q.isEmpty() || e.print?.name?.contains(q, true) == true || e.print?.typeLine?.contains(q, true) == true)
+                }
+                fun sorted(l: List<nl.spoonpaco.ninegrid.data.db.EntryWithPrint>) = when (cardSort) {
+                    "name" -> l.sortedBy { it.print?.name ?: "" }
+                    "price" -> l.sortedByDescending { Money.total(it.entry, it.print, settings.currency) }
+                    else -> l.sortedWith(compareBy<nl.spoonpaco.ninegrid.data.db.EntryWithPrint> { it.print?.cmc ?: 0.0 }.thenBy { it.print?.name ?: "" })
+                }
+                // Groepen: commander (zonder banner), de typen van het main deck, en het sideboard apart.
+                val groups = buildList {
+                    visible.filter { it.entry.section == Section.COMMANDER }.takeIf { it.isNotEmpty() }?.let { add("commander" to it) }
+                    val main = visible.filter { (it.entry.section ?: Section.MAIN) == Section.MAIN }
+                    nl.spoonpaco.ninegrid.ui.components.DECK_GROUP_ORDER.forEach { g ->
+                        main.filter { nl.spoonpaco.ninegrid.ui.components.deckGroupOf(it.print?.typeLine ?: "") == g }.takeIf { it.isNotEmpty() }?.let { add(g to it) }
+                    }
+                    visible.filter { it.entry.section == Section.SIDEBOARD }.takeIf { it.isNotEmpty() }?.let { add("sideboard" to it) }
+                }
+                if (groups.isEmpty() && q.isNotEmpty()) item { Text(stringResource(R.string.sugg_none), color = extra.subtle, modifier = Modifier.padding(16.dp)) }
+                groups.forEach { (g, part) ->
+                    // Bij zoeken staan alle groepen open.
+                    val closed = q.isEmpty() && g in collapsed
+                    val n = part.filter { !it.entry.proxy }.sumOf { it.entry.quantity }
+                    item(key = "g_$g") {
+                        Row(
+                            Modifier.fillMaxWidth().clickable {
+                                collapsed = if (g in collapsed) collapsed - g else collapsed + g
+                                vm.setDeckCollapsed(deckId, collapsed)
+                            }.padding(horizontal = 16.dp, vertical = 9.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text((if (closed) "▸ " else "▾ ") + deckGroupName(g), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, modifier = Modifier.weight(1f))
+                            Text("$n · " + nl.spoonpaco.ninegrid.ui.components.money(part.sumOf { Money.total(it.entry, it.print, settings.currency) }, settings.currency), fontSize = 12.sp, color = extra.subtle)
+                        }
+                    }
+                    if (!closed) items(sorted(part), key = { it.entry.id }) { e ->
+                        nl.spoonpaco.ninegrid.ui.components.DeckCardRow(e.entry, e.print, settings, vm.images) { e.print?.let { onCard(it.id) } }
+                    }
                 }
             }
         }
@@ -391,6 +460,51 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
             },
             dismissButton = { TextButton(onClick = { deleting = false }) { Text(stringResource(R.string.cancel)) } },
         )
+    }
+}
+
+@Composable
+private fun deckSortName(k: String) = when (k) {
+    "name" -> stringResource(R.string.deck_sort_name); "price" -> stringResource(R.string.deck_sort_price); else -> stringResource(R.string.deck_sort_mana)
+}
+
+@Composable
+private fun deckGroupName(g: String) = when (g) {
+    "commander" -> stringResource(R.string.section_commander)
+    "sideboard" -> stringResource(R.string.section_sideboard)
+    "Creature" -> stringResource(R.string.type_creatures); "Planeswalker" -> stringResource(R.string.type_planeswalkers)
+    "Instant" -> stringResource(R.string.type_instants); "Sorcery" -> stringResource(R.string.type_sorceries)
+    "Artifact" -> stringResource(R.string.type_artifacts); "Enchantment" -> stringResource(R.string.type_enchantments)
+    "Battle" -> stringResource(R.string.type_battles); "Land" -> stringResource(R.string.type_lands)
+    else -> stringResource(R.string.type_other)
+}
+
+/** Banner met de art van de commander (of beide partners): naam en kleuren erover. Tik op een naam = die kaart. */
+@Composable
+private fun CommanderBanner(vm: AppViewModel, commanders: List<nl.spoonpaco.ninegrid.data.db.EntryWithPrint>, colors: String, onCard: (String) -> Unit) {
+    val settings by vm.settings.collectAsState()
+    val first = commanders.first().print!!
+    // Scryfall heeft naast "normal" ook een "art_crop": alleen de tekening.
+    val art = vm.images.urlFor(first, large = true)?.replace("/normal/", "/art_crop/")?.replace("/large/", "/art_crop/")?.replace("version=normal", "version=art_crop")
+    Box(Modifier.fillMaxWidth().height(170.dp).background(MaterialTheme.colorScheme.surfaceContainerHigh)) {
+        if (settings.imageMode != nl.spoonpaco.ninegrid.data.ImageMode.OFF && art != null) coil.compose.AsyncImage(
+            model = vm.images.request(art, settings), imageLoader = vm.images.loader, contentDescription = first.name,
+            contentScale = androidx.compose.ui.layout.ContentScale.Crop, modifier = Modifier.matchParentSize(),
+        )
+        Box(Modifier.matchParentSize().background(androidx.compose.ui.graphics.Brush.verticalGradient(
+            0f to androidx.compose.ui.graphics.Color.Transparent, 0.45f to androidx.compose.ui.graphics.Color.Transparent,
+            1f to MaterialTheme.colorScheme.background,
+        )))
+        Row(Modifier.align(Alignment.BottomStart).padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f, fill = false)) {
+                commanders.forEach { c ->
+                    Text(c.print!!.name, fontWeight = FontWeight.Bold, fontSize = if (commanders.size > 1) 18.sp else 22.sp, maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.clickable { onCard(c.print.id) })
+                }
+            }
+            Spacer(Modifier.width(8.dp))
+            ManaPips(colors)
+        }
     }
 }
 
