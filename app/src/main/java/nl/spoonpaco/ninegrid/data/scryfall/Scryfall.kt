@@ -328,10 +328,11 @@ class ScryfallClient {
     /** Kan Scryfall met deze vraag iets in een collection-verzoek? (Een lege vraag laat het hele verzoek mislukken.) */
     private fun usable(q: CardQuery) = q.id != null || (q.setCode != null && q.collectorNumber != null) || q.name != null
 
-    suspend fun collection(queries: List<CardQuery>, background: Boolean = false): List<SfCard?> {
+    suspend fun collection(queries: List<CardQuery>, background: Boolean = false, useOffline: Boolean = !background): List<SfCard?> {
         val results = arrayOfNulls<SfCard>(queries.size)
-        // Offline kaartdatabase eerst (niet bij de prijsupdate op de achtergrond: die wil verse prijzen).
-        val off = if (background) null else offline
+        // Offline kaartdatabase eerst, behalve als het om verse gegevens gaat (prijsupdate, aanvullen):
+        // de offline database heeft geen regeltekst, legaliteit en Game Changers, en prijzen van de downloaddag.
+        val off = if (useOffline) offline else null
         if (off != null) queries.forEachIndexed { i, q -> if (usable(q)) results[i] = off.find(q)?.takeIf { matches(q, it) } }
         val idx = queries.indices.filter { usable(queries[it]) && results[it] == null }
         idx.chunked(75).forEach { chunkIdx ->

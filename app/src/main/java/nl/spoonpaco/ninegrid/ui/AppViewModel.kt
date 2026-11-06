@@ -311,6 +311,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     private val networkCallback = object : android.net.ConnectivityManager.NetworkCallback() {
         override fun onAvailable(network: android.net.Network) {
             viewModelScope.launch {
+                fillIncomplete()
                 // Weer verbinding: wachtende kaarten alsnog opzoeken.
                 if (pending.any { it.status == ItemStatus.WAITING }) {
                     pending.indices.forEach { i -> if (pending[i].status == ItemStatus.WAITING) pending[i] = pending[i].copy(status = ItemStatus.RESOLVING) }
@@ -486,6 +487,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                     val list = items.map { it.toNew(deckId = null, binder = b, page = pg, slot = if (b != null && importSource == ImportSource.SCAN) (fs ?: it.slot) else null) }
                     repo.addEntries(list, str(R.string.log_added_collection, count))
                     if (boosterOn) saveBoosterFrom(list)
+                    fillIncomplete()
                     message = (if (importSource == ImportSource.SCAN && b != null && pg != null) str(R.string.msg_page_saved, b, pg, count)
                     else getApplication<Application>().resources.getQuantityString(R.plurals.msg_added, count, count)) + strikeAfterSave(list)
                     images.prefetch(list.map { it.print }, settings.value)
@@ -519,6 +521,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                     message = (if (isNew) str(R.string.msg_deck_created, name) + " · " else "") + str(R.string.msg_taken_added, r.taken, r.added) +
                         strikeAfterSave(list.filter { !it.fromCollection }.map { it.item })
                     images.prefetch(list.map { it.item.print }, settings.value)
+                    fillIncomplete()
                     onDone(r.deckId)
                 }
             }
@@ -941,6 +944,18 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     init {
         runCatching { connectivity?.registerDefaultNetworkCallback(networkCallback) }
         loadSavedPending()
+        fillIncomplete()
+    }
+
+    /** Kaarten met ontbrekende regeltekst of legaliteit (uit de offline database) stil aanvullen. */
+    private var filling = false
+    fun fillIncomplete() {
+        if (filling) return
+        filling = true
+        viewModelScope.launch {
+            runCatching { repo.fillIncomplete() }
+            filling = false
+        }
     }
 
     // ---------- Importeren uit de Sheet (.xlsx of .csv) ----------

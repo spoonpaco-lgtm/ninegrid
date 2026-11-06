@@ -148,6 +148,7 @@ class ImportWorker(context: Context, params: WorkerParameters) : CoroutineWorker
         val history = data.history.map { h -> nl.spoonpaco.ninegrid.data.db.Snapshot(h.day, "total", SHEET_LABEL, h.value, 0.0, h.count) }
         val count = collection.sumOf { it.entry.quantity } + decks.sumOf { d -> d.second.sumOf { it.entry.quantity } }
         c.repository.importAll(collection, decks, history, job.replace, applicationContext.getString(R.string.log_imported, count, decks.size))
+        runCatching { c.repository.fillIncomplete() }
         runCatching { c.repository.takeSnapshot(); c.repository.recordPrices() }
         c.images.prefetch(c.repository.allPrintsOwned(), c.settings.current())
         val wrongNumber = all.filter { keyOf(it) in progress.wrongNumber && keyOf(it) in progress.found }.distinctBy { keyOf(it) }

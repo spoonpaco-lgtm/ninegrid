@@ -421,10 +421,24 @@ class Repository(
         // Ook de kaarten uit ontvangen collecties, zodat de ruilmatch met actuele prijzen rekent.
         val prints = db.prints().ownedOrShared()
         if (prints.isEmpty()) return 0
-        val cards = scryfall.collection(prints.map { CardQuery(id = it.id) }, background)
+        // Altijd bij Scryfall zelf, ook met de knop: de offline database heeft oude prijzen en geen regeltekst.
+        val cards = scryfall.collection(prints.map { CardQuery(id = it.id) }, background, useOffline = false)
         val updated = cards.filterNotNull().map { it.toPrint() }
         db.prints().upsert(updated)
         recordPrices(updated)
+        return updated.size
+    }
+
+    /**
+     * Kaarten uit de offline database missen regeltekst, legaliteit en de Game Changer-markering
+     * (nodig voor bracket, tutors, rollen en combo's). Vul die aan bij Scryfall zodra er internet is.
+     */
+    suspend fun fillIncomplete(): Int {
+        val todo = db.prints().ownedOrShared().filter { it.legalities.isBlank() }
+        if (todo.isEmpty()) return 0
+        val cards = scryfall.collection(todo.map { CardQuery(id = it.id) }, background = false, useOffline = false)
+        val updated = cards.filterNotNull().map { it.toPrint() }
+        if (updated.isNotEmpty()) db.prints().upsert(updated)
         return updated.size
     }
 
