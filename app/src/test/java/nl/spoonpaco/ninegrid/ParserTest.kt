@@ -571,7 +571,8 @@ class ParserTest {
     @Test
     fun friendMigrationMatchesRoomSchema() {
         val f = listOf("schemas", "app/schemas").map { java.io.File(it, "nl.spoonpaco.ninegrid.data.db.AppDatabase/9.json") }.firstOrNull { it.exists() }
-            ?: error("schema 10.json niet gevonden in " + java.io.File(".").absolutePath)
+            ?: error("schema 10.json niet gevonden in " + java.io.File(".").absolutePath + ": " +
+                listOf("schemas", "app/schemas").joinToString { d -> d + "=" + (java.io.File(d).walkTopDown().map { it.path }.toList().joinToString()) })
         val root = kotlinx.serialization.json.Json.parseToJsonElement(f.readText()) as kotlinx.serialization.json.JsonObject
         val entities = ((root["database"] as kotlinx.serialization.json.JsonObject)["entities"] as kotlinx.serialization.json.JsonArray).map { it as kotlinx.serialization.json.JsonObject }
         fun str(o: kotlinx.serialization.json.JsonObject, k: String) = (o[k] as kotlinx.serialization.json.JsonPrimitive).content
