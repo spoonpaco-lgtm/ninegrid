@@ -28,6 +28,7 @@ object WhatsNew {
     fun items(dutch: Boolean): List<Item> = if (dutch) NL else EN
 
     private val NL = listOf(
+        Item("Privacymodus: Compleated en Zegel zien er nu uit zoals bedoeld, en de zegel glinstert af en toe.", "privacy"),
         Item("Kaartscherm vernieuwd: de kaart groot (tik voor volledig scherm), foils glanzen als je kantelt, prijzen in één blok.", "collection"),
         Item("Decks: een banner met je commander, kaarten per type in- en uitklapbaar, manakosten op elke regel, GC bij Game Changers en zoeken in het deck.", "decks"),
         Item("Scannen: het kader blijft op zijn plek na een foto, grotere beeldruimte, en 🗑 om een mislukte scan weg te gooien (met Terugzetten).", "add"),
@@ -35,6 +36,7 @@ object WhatsNew {
     )
 
     private val EN = listOf(
+        Item("Privacy mode: Compleated and Seal now look as intended, and the seal glints now and then.", "privacy"),
         Item("New card screen: the card large (tap for full screen), foils shine when you tilt, prices in one block.", "collection"),
         Item("Decks: a banner with your commander, cards per type that fold open and shut, mana costs on every row, GC for Game Changers and search in the deck.", "decks"),
         Item("Scanning: the frame stays put after a photo, more room for the camera, and 🗑 to discard a failed scan (with Restore).", "add"),

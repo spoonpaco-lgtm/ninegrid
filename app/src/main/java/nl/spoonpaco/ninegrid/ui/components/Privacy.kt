@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.drawText
+import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -86,10 +87,14 @@ fun Modifier.privacyMask(): Modifier = composed {
     val wobble = if (effects && p.style != PrivacyStyle.SEAL) {
         rememberInfiniteTransition(label = "mask").animateFloat(0f, 1f, infiniteRepeatable(tween(4000, easing = LinearEasing), RepeatMode.Reverse), label = "w").value
     } else 0f
+    // Zegel: om de paar seconden een korte gouden glinstering over de was.
+    val glint = if (effects && p.style == PrivacyStyle.SEAL) {
+        rememberInfiniteTransition(label = "glint").animateFloat(0f, 1f, infiniteRepeatable(tween(3600, easing = LinearEasing), RepeatMode.Restart), label = "g").value
+    } else -1f
     val measurer = androidx.compose.ui.text.rememberTextMeasurer()
     drawWithContent {
         when (p.style) {
-            PrivacyStyle.SEAL -> drawSeal(measurer)
+            PrivacyStyle.SEAL -> drawSeal(measurer, glint)
             PrivacyStyle.SHADOW -> drawShadow(wobble)
             else -> drawOil(wobble)
         }
@@ -142,7 +147,7 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawOil(wobble: Flo
 }
 
 /** Zegel: gouden was met golvende rand, een vierkant met een 9 erin, en een koord door de hele breedte. */
-private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawSeal(measurer: androidx.compose.ui.text.TextMeasurer) {
+private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawSeal(measurer: androidx.compose.ui.text.TextMeasurer, glint: Float = -1f) {
     val w = size.width; val h = size.height
     val c = Offset(w / 2, h / 2)
     // Koord.
@@ -162,6 +167,19 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawSeal(measurer: 
     wax.close()
     drawPath(wax, Brush.radialGradient(listOf(Color(0xFFFBE08A), Color(0xFFE3A82B), Color(0xFFA9720F)), Offset(c.x - r * 0.3f, c.y - r * 0.3f), r * 1.4f))
     drawPath(wax, Color(0xFF8A5C10), style = Stroke(r * 0.05f))
+    // Glinstering: een schuine lichtband die in het eerste kwart van de cyclus over de was schuift, daarna rust.
+    if (glint in 0f..0.25f) {
+        val t = glint / 0.25f
+        val x = c.x - r * 1.6f + t * r * 3.2f
+        clipPath(wax) {
+            drawRect(
+                Brush.linearGradient(
+                    listOf(Color.Transparent, Color(0xE6FFFAE1), Color.Transparent),
+                    start = Offset(x - r * 0.18f, c.y - r), end = Offset(x + r * 0.18f, c.y + r),
+                ),
+            )
+        }
+    }
     // Het vierkant met de 9.
     val s = r * 1.0f; val tl = Offset(c.x - s / 2, c.y - s / 2)
     drawRoundRect(Color(0xFFD99B22), tl, Size(s, s), CornerRadius(s * 0.15f))
