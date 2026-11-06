@@ -566,4 +566,24 @@ class ParserTest {
         assertTrue(A.retryable(A.classify(503)) && A.retryable(A.classify(429)))
         assertFalse(A.retryable(A.classify(401)))
     }
+
+    /** De migratie naar versie 9 moet precies de tabellen maken die Room verwacht (anders start de app niet na de update). */
+    @Test
+    fun friendMigrationMatchesRoomSchema() {
+        val f = listOf("schemas", "app/schemas").map { java.io.File(it, "nl.spoonpaco.ninegrid.data.db.AppDatabase/9.json") }.firstOrNull { it.exists() }
+            ?: error("schema 9.json niet gevonden in " + java.io.File(".").absolutePath)
+        val root = kotlinx.serialization.json.Json.parseToJsonElement(f.readText()) as kotlinx.serialization.json.JsonObject
+        val entities = ((root["database"] as kotlinx.serialization.json.JsonObject)["entities"] as kotlinx.serialization.json.JsonArray).map { it as kotlinx.serialization.json.JsonObject }
+        fun str(o: kotlinx.serialization.json.JsonObject, k: String) = (o[k] as kotlinx.serialization.json.JsonPrimitive).content
+        val expected = mutableListOf<String>()
+        for (e in entities) {
+            val t = str(e, "tableName")
+            if (!t.startsWith("friend")) continue
+            expected += str(e, "createSql").replace("`\${TABLE_NAME}`", "`$t`")
+            (e["indices"] as? kotlinx.serialization.json.JsonArray)?.forEach { i ->
+                expected += str(i as kotlinx.serialization.json.JsonObject, "createSql").replace("`\${TABLE_NAME}`", "`$t`")
+            }
+        }
+        assertEquals(expected.sorted(), nl.spoonpaco.ninegrid.data.db.AppDatabase.FRIEND_SQL.sorted())
+    }
 }
