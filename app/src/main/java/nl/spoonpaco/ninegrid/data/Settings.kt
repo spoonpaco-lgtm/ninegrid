@@ -19,6 +19,10 @@ object ImageMode {
     const val FULL = "full"
 }
 
+
+/** Schermen die een eigen filter onthouden. Elk scherm dat vm.setFilter("x") gebruikt, moet hier staan (de unittest controleert dat). */
+val FILTER_SCREENS = listOf("collection", "pick", "set", "allcards")
+
 data class AppSettings(
     val theme: String = "system",
     val currency: String = "EUR",
