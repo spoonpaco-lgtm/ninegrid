@@ -1,0 +1,25 @@
+name: Diagnose combos
+on:
+  push:
+    branches: [diag-combos]
+jobs:
+  api:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Spellbook aanroepen met een combodeck
+        run: |
+          UA="NineGrid-diag/1.0 (+https://github.com/spoonpaco-lgtm/ninegrid)"
+          BODY='{"commanders":[{"card":"Tymna the Weaver","quantity":1},{"card":"Kraum, Ludevic'"'"'s Opus","quantity":1}],"main":[{"card":"Thassa'"'"'s Oracle","quantity":1},{"card":"Demonic Consultation","quantity":1},{"card":"Dramatic Reversal","quantity":1},{"card":"Isochron Scepter","quantity":1},{"card":"Sol Ring","quantity":1},{"card":"Basalt Monolith","quantity":1},{"card":"Rings of Brighthearth","quantity":1}]}'
+          curl -sS -A "$UA" -H "Content-Type: application/json" -H "Accept: application/json" -d "$BODY" https://backend.commanderspellbook.com/find-my-combos > find.json
+          curl -sS -A "$UA" -H "Content-Type: application/json" -H "Accept: application/json" -d "$BODY" https://backend.commanderspellbook.com/estimate-bracket > est.json
+          python3 - <<'PY'
+          import json
+          f=json.load(open('find.json')); r=f.get('results',f)
+          inc=r.get('included',[]); print('top keys find:',list(f.keys())[:10],'results keys:',list(r.keys())[:10])
+          print('included:',len(inc),[ (v.get('id'),[u['card']['name'] for u in v.get('uses',[])]) for v in inc][:6])
+          e=json.load(open('est.json'))
+          print('est keys:',list(e.keys()))
+          for k,v in e.items():
+              if isinstance(v,list): print(k,len(v), json.dumps(v[:1])[:400])
+              else: print(k, json.dumps(v)[:200])
+          PY
