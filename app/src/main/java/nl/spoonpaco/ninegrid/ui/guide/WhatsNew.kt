@@ -28,13 +28,17 @@ object WhatsNew {
     fun items(dutch: Boolean): List<Item> = if (dutch) NL else EN
 
     private val NL = listOf(
-        Item("Opgelost: de filters in Alle kaarten gaan weer aan, en werken offline over alle kaarten.", "allcards"),
-        Item("Verlanglijst: bij elke print staat de prijs van de goedkoopste print (vanaf …), en geen € 0,00 meer.", "allcards"),
+        Item("Scannen: het kader is het raster, dus lege vakken schuiven de andere kaarten niet meer op. Een leeg vak staat grijs als Leeg vak.", "add"),
+        Item("De lamp in de scanner blijft aan na een foto.", "add"),
+        Item("In de scanner betekent oranje alleen nog controleren: witte hoekjes, en ✓ bij een ingevulde set.", "add"),
+        Item("Manakosten naast de naam in je collectie, en een overzichtelijkere verlanglijst (tik = bewerken, ✓ = gekocht).", "collection"),
     )
 
     private val EN = listOf(
-        Item("Fixed: the filters in All cards turn on again, and work offline across all cards.", "allcards"),
-        Item("Wishlist: with any print you see the price of the cheapest print (from …), and no more € 0.00.", "allcards"),
+        Item("Scanning: the frame is the grid, so empty slots no longer shift the other cards. An empty slot shows in grey as Empty slot.", "add"),
+        Item("The scanner light stays on after a photo.", "add"),
+        Item("In the scanner, orange now only means check: white corners, and ✓ for a filled-in set.", "add"),
+        Item("Mana costs next to the name in your collection, and a clearer wishlist (tap = edit, ✓ = bought).", "collection"),
     )
 }
 

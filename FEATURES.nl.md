@@ -2,7 +2,7 @@
 
 *English: [FEATURES.md](FEATURES.md)*
 
-Huidige versie: **0.9.5 – Narset**. Elke versie heeft de naam van een planeswalker.
+Huidige versie: **0.9.6 – Chandra**. Elke versie heeft de naam van een planeswalker.
 
 ## Wat NineGrid anders maakt
 
