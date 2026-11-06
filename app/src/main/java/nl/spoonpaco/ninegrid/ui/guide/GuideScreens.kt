@@ -31,6 +31,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalConfiguration
@@ -74,8 +78,8 @@ fun GuideScreen(onBack: () -> Unit, onChapter: (String) -> Unit) {
                 androidx.compose.material3.OutlinedTextField(
                     query, { query = it }, singleLine = true,
                     placeholder = { Text(stringResource(R.string.guide_search)) },
-                    leadingIcon = { Icon(androidx.compose.material.icons.Icons.Filled.Search, null) },
-                    trailingIcon = { if (query.isNotEmpty()) IconButton(onClick = { query = "" }) { Icon(androidx.compose.material.icons.Icons.Filled.Close, null) } },
+                    leadingIcon = { Icon(Icons.Filled.Search, null) },
+                    trailingIcon = { if (query.isNotEmpty()) IconButton(onClick = { query = "" }) { Icon(Icons.Filled.Close, null) } },
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
                 )
             }
