@@ -2,7 +2,7 @@
 
 *Nederlands: [FEATURES.nl.md](FEATURES.nl.md)*
 
-Current version: **0.9.2 – Ajani**. Every version is named after a planeswalker.
+Current version: **0.9.3 – Nahiri**. Every version is named after a planeswalker.
 
 ## What makes NineGrid different
 
@@ -23,7 +23,8 @@ Current version: **0.9.2 – Ajani**. Every version is named after a planeswalke
 - **Scan a binder page of 9 cards** in one photo, or **one card at a time** with automatic capture. Text recognition runs on your phone.
 - Reads name, set and collector number, including **foreign-language cards** (the printed name is checked, the English print supplies the price).
 - **Set field**: fill in the set of a page for much more reliable recognition; remembered for the next scan.
-- **Foil per slot**: tap the small grid of the last photo, then tap a slot (or All foil).
+- **Foil per slot**: tap the small grid of the last photo (with ✦), then tap a slot (or All foil).
+- **Steady frame**: the frame doesn't move after a photo; discard a failed scan with 🗑 (with Restore).
 - Result in colour (● found, ● to check), with a **Check** button showing how many need a look.
 - **Review screen**: your photo next to the found card, search a card yourself, quantity, foil, language, condition, proxy.
 - **Paste a list** in Moxfield / Arena style: `1 Edgar Markov (INR) 328`, `*F*` foil, `*E*` etched, Commander / Deck / Sideboard.
@@ -37,12 +38,13 @@ Current version: **0.9.2 – Ajani**. Every version is named after a planeswalke
 - **Wishlist**: any or an exact print, foil only, quantity; ticked off when you scan; Bought in one tap; paste a list.
 - **Price alert** on the wishlist: target ready at −10%, one notification a day, the cheapest print when any print will do.
 - **Page view** per binder: 3×3 with foil, stacks and empty slots; all pages on one screen; long press to move.
-- **Card screen**: image, normal and foil price, legality per format, links to Scryfall and Cardmarket / TCGplayer.
+- **Card screen**: the card large (full screen with one tap, foil shine when tilting), normal and foil price, legality per format, which friends have it, links to Scryfall and Cardmarket / TCGplayer.
 - **Locations**: binder, page and slot per card.
 - **Sets screen**: completeness per set and per rarity, a Complete stamp, missing cards, variants; **Completionist** (checkbox with ⓘ) counts only cards in binders, not in decks.
 
 ## Decks
 - Decks per format (Commander, Modern, Pioneer, Standard, Legacy, Pauper, Casual) with **legality check**.
+- **Deck screen**: banner with your commander's art, cards per type (fold open and shut, sort by mana, name or price), mana costs on every row, GC label for Game Changers, search in the deck.
 - **Commander bracket estimate**: game changers, mass land denial, extra turns, tutors and two-card combos.
 - **Statistics**: mana curve with a verdict per deck type and **land advice** (Frank Karsten's formula), colours in costs versus lands, odds of 2–4 lands with **Draw 7** (sample hand with mulligan), card types.
 - **Combos** via Commander Spellbook: combos in the deck, influence on the bracket, almost-combos with an action per status (In deck, Trade match, On wishlist). Shows when the deck changed since the last search.

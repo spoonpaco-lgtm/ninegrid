@@ -2,7 +2,7 @@
 
 *English: [FEATURES.md](FEATURES.md)*
 
-Huidige versie: **0.9.2 – Ajani**. Elke versie heeft de naam van een planeswalker.
+Huidige versie: **0.9.3 – Nahiri**. Elke versie heeft de naam van een planeswalker.
 
 ## Wat NineGrid anders maakt
 
@@ -23,7 +23,8 @@ Huidige versie: **0.9.2 – Ajani**. Elke versie heeft de naam van een planeswal
 - **Scan een verzamelblad met 9 kaarten** in één foto, of **één kaart tegelijk** met automatisch fotograferen. De tekstherkenning draait op je telefoon.
 - Leest naam, set en nummer, ook van **kaarten in andere talen** (de gedrukte naam wordt gecontroleerd, de Engelse print levert de prijs).
 - **Setveld**: vul de set van een blad in voor veel betrouwbaarder herkennen; wordt onthouden voor de volgende scan.
-- **Foil per vak**: tik op het kleine raster van de laatste foto en dan op een vak (of Alles foil).
+- **Foil per vak**: tik op het kleine raster van de laatste foto (met ✦) en dan op een vak (of Alles foil).
+- **Vast kader**: het kader verschuift niet na een foto; een mislukte scan gooi je weg met 🗑 (met Terugzetten).
 - Uitslag in kleur (● gevonden, ● controleren), met een knop **Controleer** met het aantal.
 - **Controlescherm**: je foto naast de gevonden kaart, zelf een kaart zoeken, aantal, foil, taal, conditie, proxy.
 - **Lijst plakken** in Moxfield/Arena-stijl: `1 Edgar Markov (INR) 328`, `*F*` foil, `*E*` etched, Commander / Deck / Sideboard.
@@ -37,12 +38,13 @@ Huidige versie: **0.9.2 – Ajani**. Elke versie heeft de naam van een planeswal
 - **Verlanglijst**: willekeurige of precieze print, alleen foil, aantal; vanzelf afgestreept bij scannen; Gekocht in één tik; een lijst plakken.
 - **Prijsalarm** op de verlanglijst: doel staat klaar op −10%, één melding per dag, bij elke print de goedkoopste.
 - **Bladweergave** per binder: 3×3 met foil, stapels en lege vakken; alle bladen in één scherm; lang drukken om te verplaatsen.
-- **Kaartscherm**: plaatje, normale en foilprijs, legaliteit per format, links naar Scryfall en Cardmarket / TCGplayer.
+- **Kaartscherm**: de kaart groot (volledig scherm met een tik, foil-glans bij kantelen), normale en foilprijs, legaliteit per format, wie van je vrienden hem heeft, links naar Scryfall en Cardmarket / TCGplayer.
 - **Plekken**: map, blad en vak per kaart.
 - **Sets**: compleetheid per set en per rarity, stempel Compleet, ontbrekende kaarten, varianten; **Completionist** (vinkje met ⓘ) telt alleen kaarten in binders, niet in decks.
 
 ## Decks
 - Decks per format (Commander, Modern, Pioneer, Standard, Legacy, Pauper, Casual) met **legaliteitscontrole**.
+- **Deckscherm**: banner met de art van je commander, kaarten per type (in- en uitklapbaar, sorteren op mana, naam of prijs), manakosten op elke regel, label GC bij Game Changers, zoeken in het deck.
 - **Commander-bracket**: game changers, landvernietiging, extra beurten, tutors en combo's van twee kaarten.
 - **Statistieken**: manacurve met oordeel per decktype en **landadvies** (formule van Frank Karsten), kleuren in de kosten tegenover de lands, kans op 2–4 lands met **Trek 7** (voorbeeldhand met mulligan), kaarttypen.
 - **Combo's** via Commander Spellbook: combo's in het deck, invloed op de bracket, bijna-combo's met een actie per status (In deck, Ruilmatch, Op verlanglijst). Laat zien als het deck sinds de laatste zoekactie is veranderd.
