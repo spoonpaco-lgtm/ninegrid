@@ -27,6 +27,15 @@ class MainActivity : AppCompatActivity() {
         super.onNewIntent(intent)
         // Getikt op de melding van de import: naar het scherm Importeren.
         if (intent.getBooleanExtra(nl.spoonpaco.ninegrid.data.ImportWorker.EXTRA_OPEN_IMPORT, false)) vm.openImport = true
+        sharedUri(intent)?.let { vm.receiveShared(it) }
+    }
+
+    /** Een gedeelde collectie die vanuit een andere app (WhatsApp, Bestanden …) is geopend of gestuurd. */
+    private fun sharedUri(i: android.content.Intent?): android.net.Uri? = when (i?.action) {
+        android.content.Intent.ACTION_VIEW -> i.data
+        android.content.Intent.ACTION_SEND -> if (android.os.Build.VERSION.SDK_INT >= 33) i.getParcelableExtra(android.content.Intent.EXTRA_STREAM, android.net.Uri::class.java)
+            else @Suppress("DEPRECATION") (i.getParcelableExtra(android.content.Intent.EXTRA_STREAM) as? android.net.Uri)
+        else -> null
     }
 
     override fun onKeyDown(keyCode: Int, event: android.view.KeyEvent): Boolean {
@@ -52,6 +61,8 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (intent?.getBooleanExtra(nl.spoonpaco.ninegrid.data.ImportWorker.EXTRA_OPEN_IMPORT, false) == true) vm.openImport = true
+        // Alleen bij een verse start, niet na draaien van het scherm.
+        if (savedInstanceState == null) sharedUri(intent)?.let { vm.receiveShared(it) }
         enableEdgeToEdge()
         setContent {
             // Wacht tot de instellingen geladen zijn, zodat de uitleg niet even opflitst.

@@ -1325,4 +1325,113 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         kotlinx.coroutines.delay(300); computeSuggestions(deckId)
     }
 
+    // ---------- Delen en ruilen ----------
+    val friends = repo.friends.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+    val friendPackages = repo.friendPackages.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+    val friendCards = repo.friendCards.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+    var shareBusy by mutableStateOf(false)
+        private set
+
+    fun sharePackages(choice: nl.spoonpaco.ninegrid.domain.ShareChoice) =
+        nl.spoonpaco.ninegrid.domain.Share.packages(entries.value, decks.value, choice)
+
+    /** Maakt het deelbestand in de cache en geeft het terug; de naam wordt onthouden. */
+    suspend fun buildShareFile(choice: nl.spoonpaco.ninegrid.domain.ShareChoice, name: String): java.io.File {
+        settingsStore.setShareName(name)
+        val f = nl.spoonpaco.ninegrid.domain.ShareFile(
+            senderId = settingsStore.shareId(), senderName = name.trim(), createdAt = System.currentTimeMillis(),
+            app = BuildConfig.VERSION_NAME, packages = sharePackages(choice),
+        )
+        val dir = java.io.File(getApplication<Application>().cacheDir, "share").apply { mkdirs(); listFiles()?.forEach { it.delete() } }
+        val file = java.io.File(dir, nl.spoonpaco.ninegrid.domain.Share.fileName(name))
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { file.writeText(nl.spoonpaco.ninegrid.domain.Share.encode(f)) }
+        return file
+    }
+
+    fun saveShareTo(uri: Uri, file: java.io.File) = viewModelScope.launch {
+        runCatching {
+            getApplication<Application>().contentResolver.openOutputStream(uri)?.use { out -> file.inputStream().use { it.copyTo(out) } }
+        }.onSuccess { message = str(R.string.msg_exported) }.onFailure { message = str(R.string.msg_backup_failed) }
+    }
+
+    /** Geopend vanuit een andere app (een gedeeld bestand): naar Delen en ruilen. */
+    var openShare by mutableStateOf(false)
+    fun receiveShared(uri: Uri) { openShare = true; openShared(uri) }
+
+    /** Een bestand van een ander uit een export van een andere app: wacht op een naam. */
+    var pendingOtherApp by mutableStateOf<nl.spoonpaco.ninegrid.domain.ImportData?>(null)
+
+    /** Een ontvangen bestand openen: een NineGrid-bestand meteen, een export van een andere app na het kiezen van een naam. */
+    fun openShared(uri: Uri) = viewModelScope.launch {
+        shareBusy = true
+        try {
+            val app = getApplication<Application>()
+            val name = runCatching {
+                app.contentResolver.query(uri, arrayOf(android.provider.OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cur -> if (cur.moveToFirst()) cur.getString(0) else null }
+            }.getOrNull() ?: "bestand"
+            val bytes = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { app.contentResolver.openInputStream(uri)?.use { it.readBytes() } } ?: run {
+                message = str(R.string.share_open_failed); return@launch
+            }
+            val share = nl.spoonpaco.ninegrid.domain.Share.decode(bytes.decodeToString())
+            if (share != null) {
+                val r = repo.importShare(share)
+                message = str(if (r.replaced) R.string.share_received_replaced else R.string.share_received, r.name, r.cards) +
+                    if (r.notFound > 0) " · " + str(R.string.share_not_found, r.notFound) else ""
+                return@launch
+            }
+            val data = runCatching { kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { nl.spoonpaco.ninegrid.domain.SheetImport.read(name, bytes.inputStream()) } }.getOrNull()
+            if (data == null || data.needsMapping || (data.collection.isEmpty() && data.decks.isEmpty())) { message = str(R.string.share_open_unknown); return@launch }
+            pendingOtherApp = data
+        } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e
+            message = if (e is java.io.IOException) str(R.string.msg_network_error) else str(R.string.share_open_failed)
+        } finally { shareBusy = false }
+    }
+
+    fun importOtherAppAs(name: String) = viewModelScope.launch {
+        val data = pendingOtherApp ?: return@launch
+        pendingOtherApp = null
+        shareBusy = true
+        runCatching { repo.importOtherAppAsFriend(name.trim().ifBlank { "?" }, data) }
+            .onSuccess { r -> message = str(R.string.share_received, r.name, r.cards) + if (r.notFound > 0) " · " + str(R.string.share_not_found, r.notFound) else "" }
+            .onFailure { message = if (it is java.io.IOException) str(R.string.msg_network_error) else str(R.string.share_open_failed) }
+        shareBusy = false
+    }
+
+    fun renameFriend(id: String, name: String) = viewModelScope.launch { if (name.isNotBlank()) repo.renameFriend(id, name.trim()) }
+    fun deleteFriend(id: String) = viewModelScope.launch { repo.deleteFriend(id) }
+    fun deleteFriendPackage(id: Long) = viewModelScope.launch { repo.deleteFriendPackage(id) }
+
+    /** De kaarten van één pakket als gewone exemplaren, zodat prijzen, deckcontrole en suggesties gewoon werken. */
+    fun friendEntries(packageIds: Set<Long>): List<EntryWithPrint> = friendCards.value.filter { it.card.packageId in packageIds }.map { fc ->
+        EntryWithPrint(Entry(id = fc.card.id, printId = fc.card.printId, finish = fc.card.finish, language = fc.card.language,
+            quantity = fc.card.quantity, section = fc.card.section, deckId = if (fc.card.section != null) -fc.card.packageId else null), fc.print)
+    }
+
+    var tradeMatch by mutableStateOf<nl.spoonpaco.ninegrid.domain.TradeMatch.Result?>(null)
+        private set
+    var tradeFriendId by mutableStateOf<String?>(null)
+        private set
+    var tradeBusy by mutableStateOf(false)
+        private set
+
+    fun computeTrade(friendId: String) = viewModelScope.launch {
+        tradeBusy = true; tradeFriendId = friendId
+        val packs = friendPackages.value.filter { it.friendId == friendId }
+        val looseIds = packs.filter { it.kind != nl.spoonpaco.ninegrid.domain.ShareKind.DECK }.map { it.id }.toSet()
+        val theirDecks = packs.filter { it.kind == nl.spoonpaco.ninegrid.domain.ShareKind.DECK }.map { p ->
+            nl.spoonpaco.ninegrid.domain.TradeMatch.DeckInput(p.label, nl.spoonpaco.ninegrid.domain.TradeMatch.formatOf(p.format), friendEntries(setOf(p.id)))
+        }
+        val all = entries.value
+        val myDecks = decks.value.map { d -> nl.spoonpaco.ninegrid.domain.TradeMatch.DeckInput(d.name, d.format, all.filter { it.entry.deckId == d.id }, deckRules(d.id)) }
+        val theirLoose = friendEntries(looseIds)
+        val currency = settings.value.currency
+        tradeMatch = runCatching {
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+                nl.spoonpaco.ninegrid.domain.TradeMatch.compute(all, myDecks, theirLoose, theirDecks, currency)
+            }
+        }.getOrNull()
+        tradeBusy = false
+    }
+
 }

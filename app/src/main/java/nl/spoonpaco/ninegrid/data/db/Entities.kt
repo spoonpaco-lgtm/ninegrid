@@ -168,3 +168,44 @@ data class PricePoint(
 /** Stukken van een grote ongedaan-maak-gegevens (bijv. een import van duizenden kaarten), zodat één regel nooit te groot wordt. */
 @Entity(tableName = "undo_parts", primaryKeys = ["changeId", "idx"])
 data class UndoPart(val changeId: Long, val idx: Int, val data: String)
+
+/**
+ * Iemand van wie je een collectie hebt ontvangen (of ingelezen uit een andere app). Alleen om te bekijken en te ruilen.
+ * [id] = de vaste code van de deler, zodat een nieuwe versie de oude vervangt; bij een export uit een andere app een eigen code.
+ */
+@Entity(tableName = "friends")
+data class Friend(
+    @PrimaryKey val id: String,
+    val name: String,
+    val receivedAt: Long,
+    val fromOtherApp: Boolean = false,
+)
+
+/** Eén ontvangen pakket: de losse collectie, een binder, een set of een deck van die persoon. */
+@Entity(tableName = "friend_packages", indices = [Index("friendId")])
+data class FriendPackage(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val friendId: String,
+    val key: String,
+    val label: String,
+    val kind: String,
+    val format: String? = null,
+    val receivedAt: Long,
+)
+
+@Entity(tableName = "friend_cards", indices = [Index("packageId"), Index("printId")])
+data class FriendCard(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val packageId: Long,
+    val printId: String,
+    val finish: String = Finish.NONFOIL,
+    val language: String = "",
+    val quantity: Int,
+    val section: String? = null,
+)
+
+data class FriendCardWithPrint(
+    @androidx.room.Embedded val card: FriendCard,
+    @androidx.room.Relation(parentColumn = "printId", entityColumn = "id")
+    val print: CardPrint?,
+)

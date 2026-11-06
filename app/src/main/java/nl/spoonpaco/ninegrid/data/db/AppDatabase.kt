@@ -8,8 +8,8 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
-    entities = [CardPrint::class, Entry::class, Deck::class, ChangeRecord::class, Snapshot::class, Moment::class, PricePoint::class, UndoPart::class],
-    version = 8,
+    entities = [CardPrint::class, Entry::class, Deck::class, ChangeRecord::class, Snapshot::class, Moment::class, PricePoint::class, UndoPart::class, Friend::class, FriendPackage::class, FriendCard::class],
+    version = 9,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -20,12 +20,25 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun snapshots(): SnapshotDao
     abstract fun moments(): MomentDao
     abstract fun prices(): PriceDao
+    abstract fun friends(): FriendDao
 
     companion object {
         fun create(context: Context): AppDatabase =
             Room.databaseBuilder(context, AppDatabase::class.java, "ninegrid.db")
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9)
                 .build()
+
+        /** Versie 9: collecties van anderen (alleen bekijken en ruilen). */
+        val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("CREATE TABLE IF NOT EXISTS `friends` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `receivedAt` INTEGER NOT NULL, `fromOtherApp` INTEGER NOT NULL, PRIMARY KEY(`id`))")
+                db.execSQL("CREATE TABLE IF NOT EXISTS `friend_packages` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `friendId` TEXT NOT NULL, `key` TEXT NOT NULL, `label` TEXT NOT NULL, `kind` TEXT NOT NULL, `format` TEXT, `receivedAt` INTEGER NOT NULL)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_friend_packages_friendId` ON `friend_packages` (`friendId`)")
+                db.execSQL("CREATE TABLE IF NOT EXISTS `friend_cards` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `packageId` INTEGER NOT NULL, `printId` TEXT NOT NULL, `finish` TEXT NOT NULL, `language` TEXT NOT NULL, `quantity` INTEGER NOT NULL, `section` TEXT)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_friend_cards_packageId` ON `friend_cards` (`packageId`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_friend_cards_printId` ON `friend_cards` (`printId`)")
+            }
+        }
 
         /** Versie 8: een deck onthoudt wanneer het voor het laatst is gewijzigd (begint op de aanmaakdatum). */
         val MIGRATION_7_8 = object : Migration(7, 8) {

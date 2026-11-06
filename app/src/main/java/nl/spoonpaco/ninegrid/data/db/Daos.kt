@@ -26,7 +26,14 @@ interface PrintDao {
     @Query("SELECT * FROM prints WHERE id IN (SELECT DISTINCT printId FROM entries)")
     suspend fun owned(): List<CardPrint>
 
-    @Query("DELETE FROM prints WHERE id NOT IN (SELECT DISTINCT printId FROM entries)")
+    /** Prints van jezelf én van ontvangen collecties: die krijgen allemaal verse prijzen. */
+    @Query("SELECT * FROM prints WHERE id IN (SELECT DISTINCT printId FROM entries UNION SELECT DISTINCT printId FROM friend_cards)")
+    suspend fun ownedOrShared(): List<CardPrint>
+
+    @Query("SELECT id FROM prints")
+    suspend fun allIds(): List<String>
+
+    @Query("DELETE FROM prints WHERE id NOT IN (SELECT DISTINCT printId FROM entries UNION SELECT DISTINCT printId FROM friend_cards)")
     suspend fun deleteUnused()
 
     @Query("DELETE FROM prints")
@@ -231,4 +238,63 @@ interface PriceDao {
 
     @Query("DELETE FROM price_history")
     suspend fun deleteAll()
+}
+
+@Dao
+interface FriendDao {
+    @Query("SELECT * FROM friends ORDER BY name COLLATE NOCASE")
+    fun observeFriends(): Flow<List<Friend>>
+
+    @Query("SELECT * FROM friend_packages ORDER BY kind, label COLLATE NOCASE")
+    fun observePackages(): Flow<List<FriendPackage>>
+
+    @Transaction
+    @Query("SELECT * FROM friend_cards")
+    fun observeCards(): Flow<List<FriendCardWithPrint>>
+
+    @Query("SELECT * FROM friends WHERE id = :id")
+    suspend fun friend(id: String): Friend?
+
+    @androidx.room.Upsert
+    suspend fun upsertFriend(f: Friend)
+
+    @Query("SELECT * FROM friend_packages WHERE friendId = :friendId AND `key` = :key")
+    suspend fun packageByKey(friendId: String, key: String): FriendPackage?
+
+    @Insert
+    suspend fun insertPackage(p: FriendPackage): Long
+
+    @Insert
+    suspend fun insertCards(c: List<FriendCard>)
+
+    @Query("DELETE FROM friend_cards WHERE packageId = :packageId")
+    suspend fun deleteCardsOf(packageId: Long)
+
+    @Query("DELETE FROM friend_packages WHERE id = :id")
+    suspend fun deletePackageRow(id: Long)
+
+    @Query("SELECT id FROM friend_packages WHERE friendId = :friendId")
+    suspend fun packageIdsOf(friendId: String): List<Long>
+
+    @Query("DELETE FROM friends WHERE id = :id")
+    suspend fun deleteFriendRow(id: String)
+
+    @Query("UPDATE friends SET name = :name WHERE id = :id")
+    suspend fun rename(id: String, name: String)
+
+    @Transaction
+    suspend fun replacePackage(p: FriendPackage, cards: List<FriendCard>) {
+        packageByKey(p.friendId, p.key)?.let { old -> deleteCardsOf(old.id); deletePackageRow(old.id) }
+        val id = insertPackage(p)
+        insertCards(cards.map { it.copy(packageId = id) })
+    }
+
+    @Transaction
+    suspend fun deletePackage(id: Long) { deleteCardsOf(id); deletePackageRow(id) }
+
+    @Transaction
+    suspend fun deleteFriend(id: String) {
+        packageIdsOf(id).forEach { deleteCardsOf(it); deletePackageRow(it) }
+        deleteFriendRow(id)
+    }
 }

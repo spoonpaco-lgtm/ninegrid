@@ -840,7 +840,7 @@ private fun roleName(r: nl.spoonpaco.ninegrid.domain.Role) = when (r) {
 }
 
 @Composable
-private fun reasonText(code: String): String {
+fun reasonText(code: String): String {
     val arg = code.substringAfter(':', "")
     return when (code.substringBefore(':')) {
         "tribe" -> stringResource(R.string.why_tribe, arg)

@@ -389,7 +389,8 @@ class Repository(
 
     /** Ververst de prijzen en gegevens van alle kaarten die je hebt. */
     suspend fun refreshPrices(background: Boolean = false): Int {
-        val prints = db.prints().owned()
+        // Ook de kaarten uit ontvangen collecties, zodat de ruilmatch met actuele prijzen rekent.
+        val prints = db.prints().ownedOrShared()
         if (prints.isEmpty()) return 0
         val cards = scryfall.collection(prints.map { CardQuery(id = it.id) }, background)
         val updated = cards.filterNotNull().map { it.toPrint() }
@@ -603,6 +604,77 @@ class Repository(
      * Wist (een deel van) alles. Collectie en decks komen als één wijziging in het log, zodat je het
      * ongedaan kunt maken, tenzij je het log ook wist. Historie en plaatjes zijn niet ongedaan te maken.
      */
+    // ---------- Collecties van anderen ----------
+    val friends get() = db.friends().observeFriends()
+    val friendPackages get() = db.friends().observePackages()
+    val friendCards get() = db.friends().observeCards()
+
+    data class ShareImportResult(val name: String, val packages: Int, val cards: Int, val notFound: Int, val replaced: Boolean)
+
+    /** Zorgt dat alle prints bekend zijn: eerst op id, dan op set en nummer, dan op naam. */
+    private suspend fun ensurePrints(cards: List<nl.spoonpaco.ninegrid.domain.ShareCard>): Map<nl.spoonpaco.ninegrid.domain.ShareCard, String> {
+        val known = db.prints().allIds().toHashSet()
+        val out = HashMap<nl.spoonpaco.ninegrid.domain.ShareCard, String>()
+        cards.filter { it.id in known }.forEach { out[it] = it.id }
+        val todo = cards.filter { it !in out }.distinct()
+        if (todo.isEmpty()) return out
+        val res = resolve(todo.map { c ->
+            CardQuery(id = c.id.ifBlank { null }, setCode = c.set.ifBlank { null }, collectorNumber = c.nr.ifBlank { null }, name = c.name.ifBlank { null })
+        })
+        db.prints().upsert(res.filterNotNull().map { it.toPrint() })
+        todo.forEachIndexed { i, c -> res[i]?.let { out[c] = it.id } }
+        return out
+    }
+
+    /** Een gedeeld bestand inlezen. Zelfde deler en zelfde pakket vervangt het oude; een andere keuze komt ernaast. */
+    suspend fun importShare(f: nl.spoonpaco.ninegrid.domain.ShareFile, fromOtherApp: Boolean = false): ShareImportResult {
+        val all = f.packages.flatMap { it.cards }
+        val ids = ensurePrints(all.distinct())
+        val existing = db.friends().friend(f.senderId)
+        // Een naam die je zelf hebt aangepast blijft staan.
+        val name = existing?.name ?: f.senderName.ifBlank { "?" }
+        db.friends().upsertFriend(nl.spoonpaco.ninegrid.data.db.Friend(f.senderId, name, System.currentTimeMillis(), fromOtherApp))
+        var replaced = false
+        f.packages.forEach { p ->
+            if (db.friends().packageByKey(f.senderId, p.key) != null) replaced = true
+            db.friends().replacePackage(
+                nl.spoonpaco.ninegrid.data.db.FriendPackage(friendId = f.senderId, key = p.key, label = p.label, kind = p.kind, format = p.format, receivedAt = System.currentTimeMillis()),
+                p.cards.mapNotNull { c ->
+                    ids[c]?.let { id -> nl.spoonpaco.ninegrid.data.db.FriendCard(packageId = 0, printId = id, finish = c.finish, language = c.lang, quantity = c.qty, section = c.section) }
+                },
+            )
+        }
+        return ShareImportResult(name, f.packages.size, all.sumOf { it.qty }, all.filter { it !in ids }.sumOf { it.qty }, replaced)
+    }
+
+    /** Een export van een andere app (Moxfield, ManaBox …) als collectie van iemand anders. */
+    suspend fun importOtherAppAsFriend(name: String, data: nl.spoonpaco.ninegrid.domain.ImportData): ShareImportResult {
+        val langSuffix = Regex("""\s*\([A-Za-z]{2}\)\s*$""")
+        fun card(x: nl.spoonpaco.ninegrid.domain.ImportCard) = nl.spoonpaco.ninegrid.domain.ShareCard(
+            id = x.scryfallId.orEmpty(), set = x.setCode, nr = x.number, name = x.name.replace(langSuffix, ""),
+            finish = when { x.etched -> nl.spoonpaco.ninegrid.data.db.Finish.ETCHED; x.foil -> nl.spoonpaco.ninegrid.data.db.Finish.FOIL; else -> nl.spoonpaco.ninegrid.data.db.Finish.NONFOIL },
+            lang = x.language, qty = x.quantity, section = x.section,
+        )
+        val packages = buildList {
+            val loose = data.collection.filter { !it.proxy }.map(::card)
+            if (loose.isNotEmpty()) add(nl.spoonpaco.ninegrid.domain.SharePackage("loose", "", nl.spoonpaco.ninegrid.domain.ShareKind.LOOSE, cards = loose))
+            data.decks.forEach { d ->
+                add(nl.spoonpaco.ninegrid.domain.SharePackage(
+                    "deck:${d.name}", d.name, nl.spoonpaco.ninegrid.domain.ShareKind.DECK,
+                    cards = d.cards.filter { !it.proxy }.map { card(it).copy(section = it.section ?: nl.spoonpaco.ninegrid.data.db.Section.MAIN) },
+                ))
+            }
+        }
+        val f = nl.spoonpaco.ninegrid.domain.ShareFile(
+            senderId = "app-" + java.util.UUID.randomUUID(), senderName = name, createdAt = System.currentTimeMillis(), packages = packages,
+        )
+        return importShare(f, fromOtherApp = true)
+    }
+
+    suspend fun renameFriend(id: String, name: String) = db.friends().rename(id, name)
+    suspend fun deleteFriend(id: String) = db.friends().deleteFriend(id)
+    suspend fun deleteFriendPackage(id: Long) = db.friends().deletePackage(id)
+
     suspend fun wipe(o: WipeOptions, summary: String) {
         var removed: List<CardPrint> = emptyList()
         db.withTransaction {

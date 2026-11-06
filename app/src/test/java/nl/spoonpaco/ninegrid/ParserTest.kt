@@ -489,4 +489,81 @@ class ParserTest {
         val check = Formats.check(DeckFormat.COMMANDER, emptyList(), Formats.ComboSignals(late = combos))
         assertEquals("3", check.bracketHint)
     }
+
+    private fun ewp(id: Long, name: String, set: String, nr: String, qty: Int = 1, deckId: Long? = null, binder: String? = null, proxy: Boolean = false,
+                    type: String = "Creature — Elf", ci: String = "G", eur: Double = 1.0, section: String? = null) =
+        nl.spoonpaco.ninegrid.data.db.EntryWithPrint(
+            nl.spoonpaco.ninegrid.data.db.Entry(id = id, printId = "p-$name-$set", quantity = qty, deckId = deckId, binder = binder, proxy = proxy, section = section),
+            nl.spoonpaco.ninegrid.data.db.CardPrint(id = "p-$name-$set", name = name, setCode = set, collectorNumber = nr, typeLine = type, colorIdentity = ci, eur = eur, legalities = "commander:legal"),
+        )
+
+    @Test
+    fun shareFileRoundTripAndChoices() {
+        val S = nl.spoonpaco.ninegrid.domain.Share
+        val decks = listOf(nl.spoonpaco.ninegrid.data.db.Deck(id = 7, name = "Elves", format = DeckFormat.COMMANDER))
+        val entries = listOf(
+            ewp(1, "Llanowar Elves", "M19", "314", qty = 3, binder = "Groen"),
+            ewp(2, "Llanowar Elves", "M19", "314", qty = 1, binder = "Rood"),
+            ewp(3, "Sol Ring", "C21", "263", binder = "Rood"),
+            ewp(4, "Fake Ring", "C21", "999", proxy = true),
+            ewp(5, "Elvish Mystic", "M14", "169", deckId = 7, section = "MAIN"),
+        )
+        val all = S.packages(entries, decks, nl.spoonpaco.ninegrid.domain.ShareChoice(all = true))
+        assertEquals(listOf("loose", "deck:Elves"), all.map { it.key })
+        // Gelijke kaarten samen, proxy niet mee.
+        assertEquals(4, all[0].cards.first { it.name == "Llanowar Elves" }.qty)
+        assertTrue(all[0].cards.none { it.name == "Fake Ring" })
+        assertEquals("MAIN", all[1].cards.single().section)
+        val rood = S.packages(entries, decks, nl.spoonpaco.ninegrid.domain.ShareChoice(binders = setOf("Rood"), sets = setOf("c21")))
+        assertEquals(listOf("binder:Rood", "set:C21"), rood.map { it.key })
+        assertEquals(2, S.count(rood.take(1)))
+        val f = nl.spoonpaco.ninegrid.domain.ShareFile(senderId = "abc", senderName = "Mick", createdAt = 1, packages = all)
+        val back = S.decode(S.encode(f))
+        assertEquals(f, back)
+        assertNull(S.decode("{\"format\":\"something\",\"senderId\":\"x\",\"senderName\":\"\",\"createdAt\":1,\"packages\":[]}"))
+        assertNull(S.decode("not json"))
+        assertEquals("NineGrid - Mick.ninegrid", S.fileName("Mick"))
+        assertEquals("NineGrid - ab.ninegrid", S.fileName("a/b"))
+    }
+
+    @Test
+    fun tradeMatchFindsCardsForDecks() {
+        val T = nl.spoonpaco.ninegrid.domain.TradeMatch
+        val myDeck = (1..30).map { ewp(100L + it, "Elf $it", "AAA", "$it", deckId = 1, section = "MAIN") } +
+            ewp(99, "Elf Lord", "AAA", "99", deckId = 1, section = "COMMANDER", type = "Legendary Creature — Elf")
+        val mine = myDeck + ewp(200, "Mountain Goat", "BBB", "1", type = "Creature — Goat", ci = "R")
+        val theirs = listOf(
+            ewp(-1, "Priest of Titania", "CCC", "1", eur = 3.0),
+            ewp(-2, "Lightning Bolt", "CCC", "2", type = "Instant", ci = "R", eur = 1.5),
+            ewp(-3, "Elf 1", "AAA", "1"),
+        )
+        val r = T.compute(mine, listOf(T.DeckInput("Elves", DeckFormat.COMMANDER, myDeck)), theirs, emptyList(), "EUR")
+        val names = r.get.map { it.print.name }
+        assertTrue(names.contains("Priest of Titania"))
+        // Buiten de kleuren van de commander, en al in het deck: niet.
+        assertFalse(names.contains("Lightning Bolt"))
+        assertFalse(names.contains("Elf 1"))
+        assertEquals(listOf("Elves"), r.get.first { it.print.name == "Priest of Titania" }.decks)
+        assertTrue(r.give.isEmpty())
+    }
+
+    @Test
+    fun guideSearchFindsChapters() {
+        val G = nl.spoonpaco.ninegrid.ui.guide.Guide
+        val hits = G.search(G.chapters(true), "back-up")
+        assertTrue(hits.isNotEmpty() && hits.first().chapter.id == "backup")
+        assertTrue(G.search(G.chapters(true), "x").isEmpty())
+        assertTrue(G.search(G.chapters(false), "qqqzzz").isEmpty())
+    }
+
+    @Test
+    fun aiErrorsAreClassified() {
+        val A = nl.spoonpaco.ninegrid.data.ai.AiClient
+        assertEquals(nl.spoonpaco.ninegrid.data.ai.AiError.OVERLOADED, A.classify(503))
+        assertEquals(nl.spoonpaco.ninegrid.data.ai.AiError.RATE_LIMIT, A.classify(429))
+        assertEquals(nl.spoonpaco.ninegrid.data.ai.AiError.BAD_KEY, A.classify(401))
+        assertEquals(nl.spoonpaco.ninegrid.data.ai.AiError.MODEL, A.classify(404))
+        assertTrue(A.retryable(A.classify(503)) && A.retryable(A.classify(429)))
+        assertFalse(A.retryable(A.classify(401)))
+    }
 }

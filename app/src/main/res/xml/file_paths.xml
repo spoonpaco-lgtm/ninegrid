@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Alleen de map met het deelbestand is te delen met andere apps. -->
+<paths>
+    <cache-path name="share" path="share/" />
+</paths>

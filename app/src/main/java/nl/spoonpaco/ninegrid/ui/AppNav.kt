@@ -92,6 +92,7 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
         vm.message = null
     }
     LaunchedEffect(Unit) { vm.checkUpdate(manual = false); vm.checkWhatsNew() }
+    LaunchedEffect(vm.openShare) { if (vm.openShare) { vm.openShare = false; nav.navigate("share") } }
     LaunchedEffect(vm.openImport) { if (vm.openImport) { vm.openImport = false; nav.navigate("import") } }
 
     // Na de eerste 20 kaarten één keer vragen om een back-upmap, zodat je collectie niet zomaar weg kan zijn.
@@ -215,6 +216,10 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
             }
             composable("import") {
                 nl.spoonpaco.ninegrid.ui.screens.ImportScreen(vm, onBack = { nav.popBackStack() }, onDone = { tab("collection") })
+            }
+            composable("share") { nl.spoonpaco.ninegrid.ui.screens.ShareScreen(vm, onBack = { nav.popBackStack() }, onFriend = { nav.navigate("friend/$it") }) }
+            composable("friend/{id}", arguments = listOf(navArgument("id") { type = NavType.StringType })) {
+                nl.spoonpaco.ninegrid.ui.screens.FriendScreen(vm, it.arguments?.getString("id") ?: "", onBack = { nav.popBackStack() }, onCard = { id -> nav.navigate("card/$id") })
             }
             composable("changes") { ChangeLogScreen(vm, onBack = { nav.popBackStack() }) }
             composable("settings") {
