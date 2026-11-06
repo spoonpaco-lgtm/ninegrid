@@ -485,6 +485,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                     val fs = forcedSlot; forcedSlot = null; savedForcedSlot = fs != null
                     val list = items.map { it.toNew(deckId = null, binder = b, page = pg, slot = if (b != null && importSource == ImportSource.SCAN) (fs ?: it.slot) else null) }
                     repo.addEntries(list, str(R.string.log_added_collection, count))
+                    if (boosterOn) saveBoosterFrom(list)
                     message = (if (importSource == ImportSource.SCAN && b != null && pg != null) str(R.string.msg_page_saved, b, pg, count)
                     else getApplication<Application>().resources.getQuantityString(R.plurals.msg_added, count, count)) + strikeAfterSave(list)
                     images.prefetch(list.map { it.print }, settings.value)
@@ -570,6 +571,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun undo() = viewModelScope.launch {
+        boosterResult = null
         message = if (repo.undoLatest()) str(R.string.msg_undone) else str(R.string.msg_nothing_to_undo)
         snapshot()
     }
@@ -1581,6 +1583,73 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     // ---------- Verlanglijst ----------
     val wishlist = repo.wishlist.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    // ---- Boosters ----
+    /** In het controlescherm: "Dit was een booster", wat je betaalde, het type en eventueel de box. */
+    var boosterOn by mutableStateOf(false)
+    var boosterPaid by mutableStateOf("")
+    var boosterType by mutableStateOf("")
+    var boosterBoxId by mutableStateOf<Long?>(null)
+    val boosters = repo.boosters().stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    val boosterCards = repo.boosterCards().stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    val boosterBoxes = repo.boosterBoxes().stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    val boosterPrints = repo.boosterPrints().stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    /** Uitslag na het opslaan van een booster, voor het venster met de hit. */
+    data class BoosterResult(val booster: nl.spoonpaco.ninegrid.data.db.Booster, val cards: List<Pair<CardPrint, nl.spoonpaco.ninegrid.data.db.BoosterCard>>)
+    var boosterResult by mutableStateOf<BoosterResult?>(null)
+
+    fun parseMoney(t: String) = t.trim().replace("€", "").replace("$", "").replace(',', '.').toDoubleOrNull()
+
+    /** Prijs per booster: uit de box (prijs gedeeld door het aantal) of wat je invulde. */
+    fun boosterPrice(): Double {
+        val box = boosterBoxId?.let { id -> boosterBoxes.value.firstOrNull { it.id == id } }
+        return if (box != null && box.size > 0) box.price / box.size else parseMoney(boosterPaid) ?: 0.0
+    }
+
+    /** Waarde van een booster nu, en zonder bulk (kaarten onder de grens tellen niet mee). */
+    fun boosterValue(cards: List<Pair<CardPrint?, nl.spoonpaco.ninegrid.data.db.BoosterCard>>, currency: String, noBulk: Boolean = false): Double {
+        val limit = settings.value.bulkThreshold
+        return cards.sumOf { (p, c) ->
+            val u = nl.spoonpaco.ninegrid.domain.Money.unitPrice(Entry(printId = c.printId, finish = c.finish), p, currency)
+            if (noBulk && u < limit) 0.0 else u * c.quantity
+        }
+    }
+
+    private suspend fun saveBoosterFrom(list: List<nl.spoonpaco.ninegrid.data.NewEntry>) {
+        val cur = settings.value.currency
+        val cards = list.groupBy { it.print.id to it.entry.finish }.map { (k, v) ->
+            v.first().print to nl.spoonpaco.ninegrid.data.db.BoosterCard(boosterId = 0, printId = k.first, finish = k.second, quantity = v.sumOf { it.entry.quantity })
+        }
+        val set = list.groupingBy { it.print.setCode }.eachCount().maxByOrNull { it.value }?.key?.uppercase() ?: ""
+        val b = nl.spoonpaco.ninegrid.data.db.Booster(
+            setCode = set, type = boosterType, paid = boosterPrice(), currency = cur, boxId = boosterBoxId,
+            valueAtOpen = boosterValue(cards, cur), valueNoBulkAtOpen = boosterValue(cards, cur, noBulk = true),
+        )
+        val id = repo.saveBooster(b, cards.map { it.second })
+        settingsStore.setLastBooster(b.paid, boosterType)
+        boosterResult = BoosterResult(b.copy(id = id), cards)
+        boosterOn = false
+    }
+
+    /** Volgende booster: zelfde prijs, type en box staan klaar. */
+    fun nextBooster() { boosterResult = null; boosterOn = true }
+    fun closeBoosterResult() { boosterResult = null }
+
+    fun startBox(size: Int, price: Double) = viewModelScope.launch {
+        val set = pending.mapNotNull { it.print?.setCode }.groupingBy { it }.eachCount().maxByOrNull { it.value }?.key?.uppercase() ?: ""
+        boosterBoxId = repo.newBox(nl.spoonpaco.ninegrid.data.db.BoosterBox(setCode = set, type = boosterType, size = size, price = price, currency = settings.value.currency))
+    }
+    fun endBox() { boosterBoxId = null }
+    fun updateBoosterPaid(b: nl.spoonpaco.ninegrid.data.db.Booster, paid: Double) = viewModelScope.launch { repo.updateBooster(b.copy(paid = paid)) }
+    fun deleteBooster(b: nl.spoonpaco.ninegrid.data.db.Booster) = viewModelScope.launch { repo.deleteBooster(b.id); message = str(R.string.booster_deleted) }
+
+    /** Bij het openen van het controlescherm: de laatst betaalde prijs staat klaar. */
+    fun prefillBooster() {
+        val s = settings.value
+        if (boosterPaid.isBlank() && s.lastBoosterPrice > 0) boosterPaid = String.format(java.util.Locale.getDefault(), "%.2f", s.lastBoosterPrice)
+        if (boosterType.isBlank()) boosterType = s.lastBoosterType
+    }
 
     /** Op de verlanglijst; [anyPrint] = elke print is goed. */
     fun addToWishlist(print: CardPrint, anyPrint: Boolean = true, foilOnly: Boolean = false, wanted: Int = 1) = viewModelScope.launch {

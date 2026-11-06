@@ -30,6 +30,9 @@ interface PrintDao {
     @Query("SELECT * FROM prints WHERE id IN (SELECT DISTINCT printId FROM entries UNION SELECT DISTINCT printId FROM friend_cards UNION SELECT DISTINCT printId FROM wishlist UNION SELECT DISTINCT printId FROM booster_cards)")
     suspend fun ownedOrShared(): List<CardPrint>
 
+    @Query("SELECT * FROM prints WHERE id IN (SELECT DISTINCT printId FROM booster_cards)")
+    fun observeBoosterPrints(): Flow<List<CardPrint>>
+
     @Query("SELECT id FROM prints")
     suspend fun allIds(): List<String>
 

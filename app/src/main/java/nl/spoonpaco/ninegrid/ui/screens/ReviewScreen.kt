@@ -157,6 +157,7 @@ fun ReviewScreen(vm: AppViewModel, onBack: () -> Unit, onSaved: (Long?) -> Unit)
                     }
                 }
             }
+            if (vm.destination == Destination.COLLECTION) item { BoosterReviewBlock(vm) }
             if (vm.unreadableLines.isNotEmpty()) item {
                 Text(
                     stringResource(R.string.review_unreadable, vm.unreadableLines.joinToString("\n")),

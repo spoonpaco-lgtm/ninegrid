@@ -90,7 +90,8 @@ private const val MAX_LINES = 6
 /** Zoals het tabblad Overzicht in de Sheet, plus het totaal bovenaan, de grafiek en waarde per rarity. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}, onSets: () -> Unit = {}, onDecks: () -> Unit = {}, onFriend: (String) -> Unit = {}, onShare: () -> Unit = {}) {
+fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}, onSets: () -> Unit = {}, onDecks: () -> Unit = {}, onFriend: (String) -> Unit = {}, onShare: () -> Unit = {}, onBoosters: () -> Unit = {}) {
+    val boosterList by vm.boosters.collectAsState()
     val all by vm.entries.collectAsState()
     val decks by vm.decks.collectAsState()
     val settings by vm.settings.collectAsState()
@@ -216,6 +217,9 @@ fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}, onSets: () ->
                     }
                 }
             }
+
+            // Boosters: alleen als je er een hebt opgeslagen.
+            if (boosterList.isNotEmpty()) item { Panel { nl.spoonpaco.ninegrid.ui.screens.BoostersSummary(vm, onBoosters) } }
 
             // Ruilen: per vriend hoeveel kaarten jouw decks beter maken. Tik = meteen de ruilmatch.
             item {

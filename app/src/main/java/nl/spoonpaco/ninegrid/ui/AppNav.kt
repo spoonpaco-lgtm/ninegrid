@@ -97,6 +97,7 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
         vm.message = null
     }
     LaunchedEffect(Unit) { vm.checkUpdate(manual = false); vm.checkWhatsNew() }
+    nl.spoonpaco.ninegrid.ui.screens.BoosterResultDialog(vm)
     LaunchedEffect(vm.openCardRequest) { vm.openCardRequest?.let { id -> vm.openCardRequest = null; nav.navigate("card/$id") } }
     LaunchedEffect(vm.openShare) { if (vm.openShare) { vm.openShare = false; nav.navigate("share") } }
     LaunchedEffect(vm.openImport) { if (vm.openImport) { vm.openImport = false; nav.navigate("import") } }
@@ -188,6 +189,7 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
                 OverviewScreen(
                     vm, onSet = { nav.navigate("set/$it") }, onSets = { nav.navigate("sets") }, onDecks = { tab("decks") },
                     onFriend = { id -> nav.navigate("friend/$id") }, onShare = { nav.navigate("share") },
+                    onBoosters = { nav.navigate("boosters") },
                 )
             }
             composable("sets") { nl.spoonpaco.ninegrid.ui.screens.SetsScreen(vm, onBack = { nav.popBackStack() }, onSet = { nav.navigate("set/$it") }) }
@@ -251,6 +253,7 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
             composable("import") {
                 nl.spoonpaco.ninegrid.ui.screens.ImportScreen(vm, onBack = { nav.popBackStack() }, onDone = { tab("collection") })
             }
+            composable("boosters") { nl.spoonpaco.ninegrid.ui.screens.BoostersScreen(vm, onBack = { nav.popBackStack() }) }
             composable("share") { nl.spoonpaco.ninegrid.ui.screens.ShareScreen(vm, onBack = { nav.popBackStack() }, onFriend = { nav.navigate("friend/$it") }) }
             composable("friend/{id}", arguments = listOf(navArgument("id") { type = NavType.StringType })) {
                 nl.spoonpaco.ninegrid.ui.screens.FriendScreen(vm, it.arguments?.getString("id") ?: "", onBack = { nav.popBackStack() }, onCard = { id -> nav.navigate("card/$id") })

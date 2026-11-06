@@ -377,6 +377,14 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit, onGuide: () -> Unit = {
                     )
                 }
                 SettingsGroup.COLLECTION -> {
+                    // Boosters: onder dit bedrag telt een kaart als bulk ("zonder bulk" in de uitslag).
+                    Text(stringResource(R.string.booster_bulk_title), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                    var bulk by remember(settings.bulkThreshold) { mutableStateOf(String.format(java.util.Locale.getDefault(), "%.2f", settings.bulkThreshold)) }
+                    OutlinedTextField(bulk, { v -> bulk = v.filter { it.isDigit() || it == ',' || it == '.' }.take(6); vm.parseMoney(bulk)?.let { vm.setBulkThreshold(it) } },
+                        singleLine = true, modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.booster_bulk)) },
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal))
+                    Text(stringResource(R.string.booster_bulk_explain), fontSize = 12.sp, color = LocalNgExtra.current.subtle)
+                    Spacer(Modifier.height(16.dp))
                     Text(stringResource(R.string.completionist), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(stringResource(R.string.completionist_explain), fontSize = 13.sp, modifier = Modifier.weight(1f))

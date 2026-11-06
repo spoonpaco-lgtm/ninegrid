@@ -140,6 +140,26 @@ class Repository(
         a.language == b.language && a.condition == b.condition && a.proxy == b.proxy &&
         a.deckId == b.deckId && a.section == b.section && a.binder == b.binder && a.page == b.page && a.slot == b.slot
 
+    // Boosters: bewaard met wat je betaalde en wat eruit kwam. De kaarten zelf staan gewoon in de collectie.
+    fun boosters() = db.boosters().observe()
+    fun boosterCards() = db.boosters().observeCards()
+    fun boosterBoxes() = db.boosters().observeBoxes()
+    fun boosterPrints() = db.prints().observeBoosterPrints()
+
+    /** Slaat een booster op, gekoppeld aan de laatste wijziging (het opslaan van de kaarten), zodat ongedaan maken hem meeneemt. */
+    suspend fun saveBooster(b: nl.spoonpaco.ninegrid.data.db.Booster, cards: List<nl.spoonpaco.ninegrid.data.db.BoosterCard>): Long {
+        var id = 0L
+        db.withTransaction {
+            val change = db.changes().latestActive()?.id
+            id = db.boosters().insert(b.copy(id = 0, changeId = change))
+            db.boosters().insertCards(cards.map { it.copy(id = 0, boosterId = id) })
+        }
+        return id
+    }
+    suspend fun newBox(b: nl.spoonpaco.ninegrid.data.db.BoosterBox) = db.boosters().insertBox(b.copy(id = 0))
+    suspend fun updateBooster(b: nl.spoonpaco.ninegrid.data.db.Booster) = db.boosters().update(b)
+    suspend fun deleteBooster(id: Long) = db.boosters().delete(id)
+
     /** Voegt exemplaren toe. Gelijke exemplaren op dezelfde plek worden samengevoegd tot één stapel. */
     suspend fun addEntries(items: List<NewEntry>, summary: String): Int {
         if (items.isEmpty()) return 0
@@ -378,6 +398,8 @@ class Repository(
             if (undo.restoreDecks.isNotEmpty()) db.decks().upsert(undo.restoreDecks)
             undo.restoreEntries.chunked(500).forEach { db.entries().upsert(it) }
             undo.deleteDeckIds.chunked(500).forEach { db.decks().deleteIds(it) }
+            // Een booster die bij deze wijziging is opgeslagen, verdwijnt mee.
+            db.boosters().idsForChange(change.id).forEach { db.boosters().delete(it) }
             db.changes().markReverted(change.id)
             done = true
         }

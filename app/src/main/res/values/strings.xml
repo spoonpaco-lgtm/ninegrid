@@ -897,4 +897,37 @@
     <string name="privacy_style_shadow">Shadow</string>
     <string name="privacy_style_dots">Dots</string>
     <string name="privacy_note">Also via the eye at the top of Collection, Decks and Overview. While it is on, backup and CSV export ask for your fingerprint, and notifications show no amounts.</string>
+    <string name="booster">Booster</string>
+    <string name="booster_this_was">This was a booster</string>
+    <string name="booster_paid">What you paid</string>
+    <string name="booster_paid_short">Paid</string>
+    <string name="booster_out">Out of it</string>
+    <string name="booster_gain">Profit / loss</string>
+    <string name="booster_gain_nobulk">Without bulk (under %1$s)</string>
+    <string name="booster_hit">The hit</string>
+    <string name="booster_next">Next booster</string>
+    <string name="booster_box_start">From a box</string>
+    <string name="booster_box_end">Close box</string>
+    <string name="booster_box_size">Boosters in the box</string>
+    <string name="booster_box_price">Price of the box</string>
+    <string name="booster_box_line">Box: booster %1$d of %2$d · %3$s each</string>
+    <string name="booster_per">%1$s per booster</string>
+    <string name="booster_review_note">The cards go to your collection as usual; the booster is kept under Overview → Boosters.</string>
+    <string name="booster_edit">Booster</string>
+    <string name="booster_deleted">Booster removed (the cards stay in your collection)</string>
+    <string name="booster_bulk_title">Boosters</string>
+    <string name="booster_bulk">Bulk limit</string>
+    <string name="booster_bulk_explain">Cards below this amount count as bulk: the booster result also shows the profit without them.</string>
+    <string name="boosters_title">Boosters</string>
+    <string name="boosters_none">No boosters yet. Tick \"This was a booster\" when saving a scan.</string>
+    <string name="boosters_avg">On average %1$s out · %2$s paid</string>
+    <string name="boosters_per_booster">%1$s per booster</string>
+    <string name="boosters_box">Box: %1$d of %2$d opened · %3$s out · %4$s</string>
+    <string name="boosters_then_now">Then %1$s · now %2$s</string>
+    <string name="boosters_total">%1$s paid · %2$s now</string>
+    <string name="boosters_note">Value now uses today\'s prices. Tap a booster to change the price or remove it; the cards stay in your collection.</string>
+    <plurals name="n_opened">
+        <item quantity="one">%d opened</item>
+        <item quantity="other">%d opened</item>
+    </plurals>
 </resources>

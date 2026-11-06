@@ -896,4 +896,37 @@
     <string name="privacy_style_shadow">Schaduw</string>
     <string name="privacy_style_dots">Stippen</string>
     <string name="privacy_note">Ook via het oog bovenin Collectie, Decks en Overzicht. Zolang hij aan staat vragen back-up en CSV-export om je vingerafdruk, en meldingen tonen geen bedragen.</string>
+    <string name="booster">Booster</string>
+    <string name="booster_this_was">Dit was een booster</string>
+    <string name="booster_paid">Wat je betaalde</string>
+    <string name="booster_paid_short">Betaald</string>
+    <string name="booster_out">Eruit</string>
+    <string name="booster_gain">Winst / verlies</string>
+    <string name="booster_gain_nobulk">Zonder bulk (onder %1$s)</string>
+    <string name="booster_hit">De hit</string>
+    <string name="booster_next">Volgende booster</string>
+    <string name="booster_box_start">Uit een box</string>
+    <string name="booster_box_end">Box afsluiten</string>
+    <string name="booster_box_size">Boosters in de box</string>
+    <string name="booster_box_price">Prijs van de box</string>
+    <string name="booster_box_line">Box: booster %1$d van %2$d · %3$s per stuk</string>
+    <string name="booster_per">%1$s per booster</string>
+    <string name="booster_review_note">De kaarten gaan gewoon naar je collectie; de booster wordt bewaard onder Overzicht → Boosters.</string>
+    <string name="booster_edit">Booster</string>
+    <string name="booster_deleted">Booster verwijderd (de kaarten blijven in je collectie)</string>
+    <string name="booster_bulk_title">Boosters</string>
+    <string name="booster_bulk">Bulkgrens</string>
+    <string name="booster_bulk_explain">Kaarten onder dit bedrag tellen als bulk: de uitslag van een booster laat ook de winst zonder deze kaarten zien.</string>
+    <string name="boosters_title">Boosters</string>
+    <string name="boosters_none">Nog geen boosters. Vink \"Dit was een booster\" aan bij het opslaan van een scan.</string>
+    <string name="boosters_avg">Gemiddeld %1$s eruit · %2$s betaald</string>
+    <string name="boosters_per_booster">%1$s per booster</string>
+    <string name="boosters_box">Box: %1$d van %2$d geopend · %3$s eruit · %4$s</string>
+    <string name="boosters_then_now">Toen %1$s · nu %2$s</string>
+    <string name="boosters_total">%1$s betaald · %2$s nu</string>
+    <string name="boosters_note">Waarde nu rekent met de prijzen van vandaag. Tik op een booster om de prijs aan te passen of hem te verwijderen; de kaarten blijven in je collectie.</string>
+    <plurals name="n_opened">
+        <item quantity="one">%d geopend</item>
+        <item quantity="other">%d geopend</item>
+    </plurals>
 </resources>
