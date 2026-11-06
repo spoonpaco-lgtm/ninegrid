@@ -491,10 +491,10 @@ class ParserTest {
     }
 
     private fun ewp(id: Long, name: String, set: String, nr: String, qty: Int = 1, deckId: Long? = null, binder: String? = null, proxy: Boolean = false,
-                    type: String = "Creature — Elf", ci: String = "G", eur: Double = 1.0, section: String? = null) =
+                    type: String = "Creature — Elf", ci: String = "G", eur: Double = 1.0, section: String? = null, text: String = "") =
         nl.spoonpaco.ninegrid.data.db.EntryWithPrint(
             nl.spoonpaco.ninegrid.data.db.Entry(id = id, printId = "p-$name-$set", quantity = qty, deckId = deckId, binder = binder, proxy = proxy, section = section),
-            nl.spoonpaco.ninegrid.data.db.CardPrint(id = "p-$name-$set", name = name, setCode = set, collectorNumber = nr, typeLine = type, colorIdentity = ci, eur = eur, legalities = "commander:legal"),
+            nl.spoonpaco.ninegrid.data.db.CardPrint(id = "p-$name-$set", name = name, setCode = set, collectorNumber = nr, typeLine = type, oracleText = text, colorIdentity = ci, eur = eur, legalities = "commander=legal"),
         )
 
     @Test
@@ -533,8 +533,8 @@ class ParserTest {
             ewp(99, "Elf Lord", "AAA", "99", deckId = 1, section = "COMMANDER", type = "Legendary Creature — Elf")
         val mine = myDeck + ewp(200, "Mountain Goat", "BBB", "1", type = "Creature — Goat", ci = "R")
         val theirs = listOf(
-            ewp(-1, "Priest of Titania", "CCC", "1", eur = 3.0),
-            ewp(-2, "Lightning Bolt", "CCC", "2", type = "Instant", ci = "R", eur = 1.5),
+            ewp(-1, "Priest of Titania", "CCC", "1", eur = 3.0, text = "{T}: Add {G} for each Elf on the battlefield."),
+            ewp(-2, "Lightning Bolt", "CCC", "2", type = "Instant", ci = "R", eur = 1.5, text = "Lightning Bolt deals 3 damage to any target."),
             ewp(-3, "Elf 1", "AAA", "1"),
         )
         val r = T.compute(mine, listOf(nl.spoonpaco.ninegrid.domain.TradeMatch.DeckInput("Elves", DeckFormat.COMMANDER, myDeck)), theirs, emptyList(), "EUR")
