@@ -24,6 +24,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -566,11 +568,11 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
                     activeContainerColor = MaterialTheme.colorScheme.primary, activeContentColor = Color.Black,
                     inactiveContainerColor = Color.Transparent, inactiveContentColor = Color.White,
                 )
-                androidx.compose.material3.SegmentedButton(
+                SegmentedButton(
                     selected = !single, onClick = { vm.setScanMode("page") }, colors = segColors,
                     shape = androidx.compose.material3.SegmentedButtonDefaults.itemShape(0, 2),
                 ) { Text(stringResource(R.string.scan_mode_page)) }
-                androidx.compose.material3.SegmentedButton(
+                SegmentedButton(
                     selected = single, onClick = { vm.setScanMode("single") }, colors = segColors,
                     shape = androidx.compose.material3.SegmentedButtonDefaults.itemShape(1, 2),
                 ) { Text(stringResource(R.string.scan_mode_single)) }
