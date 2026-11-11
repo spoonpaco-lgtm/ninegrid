@@ -187,7 +187,6 @@ object ScanParser {
         var number: String? = null
         var set: String? = null
         var lang: String? = null
-        var setWithoutLanguage: String? = null
         var star = false
         // Onderste regels eerst: de verzamelregel staat onderaan de kaart.
         for (l in ls.sortedByDescending { it.centerY }) {
@@ -199,12 +198,12 @@ object ScanParser {
                     set = fixSetCode(it.groupValues[1])
                     lang = langMap[it.groupValues[3]] ?: it.groupValues[3]
                 }
-                if (inBottom && set == null && setWithoutLanguage == null) setWithoutLanguage = bareSetIn(t)
             }
             // De ster van een foil staat in de verzamelregel, onderaan de kaart.
             if (inBottom && hasStar(l.text)) star = true
         }
-        if (set == null && number != null) set = setWithoutLanguage
+        // Een setcode zonder taal wordt hier bewust NIET geraden: losse woorden of cijfers onderaan de kaart
+        // (vloeitekst, "2024") zagen er als setcode uit en hielden het opnieuw lezen tegen. Zie enrich().
         // De naam staat bovenaan de kaart: de bovenste regel in het bovenste deel die op een naam lijkt.
         val top = ls.filter { it.centerY < regionTop + regionH * 0.35f }.sortedBy { it.centerY }
         val names = top.mapNotNull { nameCandidate(it.text) }.distinct()
@@ -223,7 +222,7 @@ object ScanParser {
      * Vult een vak aan met wat er in de uitvergrote stroken gelezen is: de bovenste strook (naam) en de
      * onderste strook (nummer, set, taal). Alleen wat nog ontbrak wordt ingevuld.
      */
-    fun enrich(r: SlotRead, top: List<String>, bottom: List<String>): SlotRead {
+    fun enrich(r: SlotRead, top: List<String>, bottom: List<String>, knownSets: Set<String> = emptySet()): SlotRead {
         var number = r.collectorNumber; var set = r.setCode; var lang = r.language
         var setWithoutLanguage: String? = null
         for (raw in bottom) {
@@ -234,7 +233,8 @@ object ScanParser {
                 if (set == null && setWithoutLanguage == null) setWithoutLanguage = bareSetIn(t)
             }
         }
-        if (set == null && number != null) set = setWithoutLanguage
+        // Alleen een bekende setcode telt, anders is het een willekeurig woord.
+        if (set == null && number != null) set = setWithoutLanguage?.takeIf { it in knownSets }
         val name = r.name ?: top.firstNotNullOfOrNull { nameCandidate(it) }
         return r.copy(collectorNumber = number, setCode = set, language = lang, name = name, lines = r.lines + top + bottom, foilStar = r.foilStar || bottom.any { hasStar(it) })
     }

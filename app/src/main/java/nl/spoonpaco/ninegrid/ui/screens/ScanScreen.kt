@@ -232,7 +232,7 @@ private suspend fun readStrip(bmp: Bitmap, a: Area, highContrast: Boolean = fals
 }
 
 /** Vakken die iets missen opnieuw lezen: de naamstrook bovenaan en de strook met set en nummer onderaan. */
-private suspend fun reread(bmp: Bitmap, result: ScanResult, single: Boolean): Pair<ScanResult, Int> {
+private suspend fun reread(bmp: Bitmap, result: ScanResult, single: Boolean, knownSets: Set<String> = emptySet()): Pair<ScanResult, Int> {
     val f = result.frame ?: return result to 0
     var count = 0
     val slots = result.slots.map { r ->
@@ -248,11 +248,11 @@ private suspend fun reread(bmp: Bitmap, result: ScanResult, single: Boolean): Pa
         val top = runCatching { readStrip(bmp, topArea) }.getOrDefault(emptyList())
         // De regel met nummer en set is de kleinste tekst op de kaart: die strook drie keer vergroot.
         val bottom = runCatching { readStrip(bmp, bottomArea, scale = 3) }.getOrDefault(emptyList())
-        var enriched = ScanParser.enrich(r, top, bottom)
+        var enriched = ScanParser.enrich(r, top, bottom, knownSets)
         // De extra OCR-poging kost alleen tijd als de gewone uitsnede nog iets mist.
-        if (enriched.name == null) enriched = ScanParser.enrich(enriched, runCatching { readStrip(bmp, topArea, highContrast = true) }.getOrDefault(emptyList()), emptyList())
+        if (enriched.name == null) enriched = ScanParser.enrich(enriched, runCatching { readStrip(bmp, topArea, highContrast = true) }.getOrDefault(emptyList()), emptyList(), knownSets)
         if (enriched.setCode == null || enriched.collectorNumber == null) {
-            enriched = ScanParser.enrich(enriched, emptyList(), runCatching { readStrip(bmp, bottomArea, highContrast = true, scale = 3) }.getOrDefault(emptyList()))
+            enriched = ScanParser.enrich(enriched, emptyList(), runCatching { readStrip(bmp, bottomArea, highContrast = true, scale = 3) }.getOrDefault(emptyList()), knownSets)
         }
         enriched
     }
@@ -413,7 +413,7 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
                 val t0 = System.currentTimeMillis()
                 val sharp = withContext(Dispatchers.Default) { runCatching { sharpness(bmp, crop) }.getOrDefault(100.0) }
                 val first = readImage(bmp, crop, single)
-                val (r0, reread) = reread(bmp, first, single)
+                val (r0, reread) = reread(bmp, first, single, vm.setInfo.keys)
                 // Vakken zonder tekst: is er echt niets, of een kaart die we niet konden lezen?
                 val r = if (single) r0 else withContext(Dispatchers.Default) { runCatching { markEmpty(bmp, r0) }.getOrDefault(r0) }
                 vm.lastReadMs = System.currentTimeMillis() - t0

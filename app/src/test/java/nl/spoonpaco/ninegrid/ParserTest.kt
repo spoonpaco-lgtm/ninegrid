@@ -733,6 +733,17 @@ class ParserTest {
         assertEquals("MH1", again.setCode); assertTrue(again.foilStar)
     }
 
+    /** Een los woord of getal onderaan de kaart is geen setcode: het vak blijft onvolledig, zodat opnieuw lezen de echte set vindt. */
+    @Test
+    fun strayBottomWordIsNotASet() {
+        val r = single("229/254 M", "FIRE", "2024")
+        assertNull(r.setCode)
+        assertTrue(ScanParser.needsReread(r))
+        // Na opnieuw lezen telt een kale setcode alleen als de set bestaat.
+        assertEquals("MH2", ScanParser.enrich(r, emptyList(), listOf("MH2"), setOf("MH2")).setCode)
+        assertNull(ScanParser.enrich(r, emptyList(), listOf("FIRE"), setOf("MH2")).setCode)
+    }
+
     /** De as van de grafiek volgt de waarden: een verandering van een paar euro op duizenden is zichtbaar. */
     @Test
     fun chartAxisFollowsTheValues() {
