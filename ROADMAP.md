@@ -31,6 +31,17 @@ Dit is "de lijst": wat Mick wil dat NineGrid nog krijgt. Een nieuw gesprek begin
 | 0.9.6 | Chandra | Lamp, lege vakken, oranje alleen voor controleren, manakosten, verlanglijst-indeling |
 | 0.9.7 | Teyo | Bugfixes, verbeteringen en QOL: punten 12, 13, 14, 15, 17, 18, 20, 21, 22, 23, 24, 25 (zie RELEASE_NOTES.md) |
 | 0.9.7.1 | Teyo | Scannerreparatie: kale setcode, lege vakken, melding "X van 9 gelezen" bij een heel blad |
+| 0.9.8 | Kaito | 27 Ontwikkelaar-menu met scanrapport, 26 vegen, 16 label NIEUW, 19 commander wijzigen, 2 fabrieksinstellingen, 30 lampmelding, 31 combokaartjes |
+
+### 0.9.8 – nog na te kijken op Micks telefoon
+
+- Vegen op het kaartscherm (niet in vrienden- en ruillijsten, niet bij zoeken/scan).
+- Label NIEUW: alleen losse kaarten; ook als een stapel groter wordt.
+- Commander wijzigen: de oude commander die terug naar de collectie gaat wordt los (oude plek niet bewaard); creature-type als deckregel verandert niet vanzelf (alleen een melding).
+- Fabrieksinstellingen: app start daarna opnieuw bij de introductie; terugzetten via Meer → Back-up (niet in de introductie zelf).
+- Combokaartjes: plaatjes van kaarten die je niet hebt komen via Scryfall op naam.
+- Lampmelding en scanrapport (Ontwikkelaar-menu).
+- Nog open: foil-ster ★ bij echte foils; bladscan met 0.9.7.1; bladscan leest minder dan 0.9.6 (voorbeeldfoto/scanrapport nodig).
 
 ### 0.9.7 – nog na te kijken op Micks telefoon
 
@@ -59,7 +70,7 @@ Gebouwd en getest met unittests; dit kan alleen op een echte telefoon gecontrole
 
 | Versie | Naam | Inhoud |
 |---|---|---|
-| 0.9.8 | nog kiezen (voorstel: Kaito) | 27 Ontwikkelaar-menu met scanrapport, 26 vegen, 16 NIEUW, 19 commander wijzigen, 2 fabrieksinstellingen, 30 melding bij lamp die niet aangaat, 31 kaartjes bij combo's |
+| 0.9.8 ✔ | Kaito (uitgebracht) | 27 Ontwikkelaar-menu met scanrapport, 26 vegen, 16 NIEUW, 19 commander wijzigen, 2 fabrieksinstellingen, 30 melding bij lamp die niet aangaat, 31 kaartjes bij combo's |
 | 0.9.8.1 | nog kiezen (patchnaam) | 29 Vormgeving gelijk trekken (alleen opmaak, geen nieuwe functies) |
 | 0.9.9 | nog kiezen | 4 scannen naar een deck (pas als de bladscan weer goed leest), 28 deckimport: één keuze voor uit de collectie halen |
 | 0.9.10 | nog kiezen | 8 print kiezen, in twee stappen: eerst 8a–e (printlijst), daarna 8f–l (exemplaren wijzigen en splitsen) |
