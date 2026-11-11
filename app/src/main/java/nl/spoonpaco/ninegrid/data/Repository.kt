@@ -206,7 +206,8 @@ class Repository(
 
     /**
      * Zet kaarten in een (nieuw of bestaand) deck. Kaarten met fromCollection gaan uit de collectie het deck in,
-     * zodat niets dubbel telt: eerst dezelfde print en afwerking, dan dezelfde print, dan andere prints van dezelfde kaart.
+     * zodat niets dubbel telt: eerst dezelfde print en afwerking, dan dezelfde print, dan andere prints van dezelfde kaart
+     * (bij basic lands alleen precies dezelfde print, zodat een lijst met bepaalde prints ook die prints oplevert).
      * Wat de collectie niet heeft, komt er als nieuw exemplaar bij. Alles in één wijziging, dus in één keer ongedaan te maken.
      */
     suspend fun addToDeck(newDeck: Deck?, existingDeckId: Long?, items: List<DeckItem>, summary: (Int, Int) -> String): DeckResult {
@@ -235,9 +236,10 @@ class Repository(
                 val want = di.item.entry
                 var rem = want.quantity
                 if (di.fromCollection) {
-                    val oracle = di.item.print.oracleId
-                    val candidates = cur.filter { it.deckId == null && !it.proxy && (it.printId == want.printId || (oracle.isNotEmpty() && oracleOf[it.printId] == oracle)) }
-                        .sortedWith(compareBy({ if (it.printId == want.printId && it.finish == want.finish) 0 else if (it.printId == want.printId) 1 else if (it.finish == want.finish) 2 else 3 }, { -it.quantity }))
+                    // Basic lands: alleen precies dezelfde print (zie DeckTake); andere kaarten ook andere prints.
+                    val candidates = nl.spoonpaco.ninegrid.domain.DeckTake.candidates(
+                        want, di.item.print.oracleId, nl.spoonpaco.ninegrid.domain.Formats.isBasicLand(di.item.print.typeLine), cur, oracleOf,
+                    )
                     for (c in candidates) {
                         if (rem <= 0) break
                         val n = minOf(rem, c.quantity)

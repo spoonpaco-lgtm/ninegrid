@@ -26,7 +26,6 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.GridView
@@ -146,23 +145,32 @@ fun BinderScreen(
             HorizontalPager(pager, Modifier.weight(1f)) { idx ->
                 val pg = idx + 1
                 val cards = byPage[pg].orEmpty()
-                Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 12.dp, vertical = 6.dp)) {
-                    Row(Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
-                        Text(stringResource(R.string.binder_page_of, pg, lastPage), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, modifier = Modifier.weight(1f))
-                        Text(
-                            stringResource(R.string.share_cards_value, cards.sumOf { it.entry.quantity }, nl.spoonpaco.ninegrid.ui.components.money(cards.sumOf { Money.total(it.entry, it.print, settings.currency) }, settings.currency)),
-                            fontSize = 13.sp,
-                        )
-                    }
-                    for (r in 0..2) Row(Modifier.fillMaxWidth().padding(bottom = 7.dp), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-                        for (c in 0..2) {
-                            val slot = r * 3 + c + 1
-                            val here = cards.filter { it.entry.slot == slot }
-                            val mod = Modifier.weight(1f).aspectRatio(0.716f)
-                            if (here.isEmpty()) EmptySlot(slot, mod) { vm.scanForSlot(binder, pg, slot); onScanSlot() }
-                            else SlotCard(here, settings, vm, withPrice, lit == slot && startPage == pg, mod,
-                                onTap = { if (here.distinctBy { it.entry.printId }.size > 1) multi = here else here.first().print?.let { onCard(it.id) } },
-                                onLong = { moving = here.first().entry })
+                // Het hele blad past altijd op het scherm: de vakken schalen mee met de beschikbare hoogte én breedte.
+                androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxSize().padding(horizontal = 12.dp, vertical = 6.dp)) {
+                    val gap = 7.dp
+                    val header = 30.dp
+                    val byWidth = (maxWidth - gap * 2) / 3
+                    val byHeight = (maxHeight - header - gap * 2) / 3 * 0.716f
+                    val cellW = minOf(byWidth, byHeight).coerceAtLeast(24.dp)
+                    val cellH = cellW / 0.716f
+                    Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+                        Row(Modifier.fillMaxWidth().height(header), verticalAlignment = Alignment.Top) {
+                            Text(stringResource(R.string.binder_page_of, pg, lastPage), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, maxLines = 1, modifier = Modifier.weight(1f))
+                            Text(
+                                stringResource(R.string.share_cards_value, cards.sumOf { it.entry.quantity }, nl.spoonpaco.ninegrid.ui.components.money(cards.sumOf { Money.total(it.entry, it.print, settings.currency) }, settings.currency)),
+                                fontSize = 13.sp, maxLines = 1,
+                            )
+                        }
+                        for (r in 0..2) Row(Modifier.padding(bottom = if (r < 2) gap else 0.dp), horizontalArrangement = Arrangement.spacedBy(gap)) {
+                            for (c in 0..2) {
+                                val slot = r * 3 + c + 1
+                                val here = cards.filter { it.entry.slot == slot }
+                                val mod = Modifier.width(cellW).height(cellH)
+                                if (here.isEmpty()) EmptySlot(slot, mod) { vm.scanForSlot(binder, pg, slot); onScanSlot() }
+                                else SlotCard(here, settings, vm, withPrice, lit == slot && startPage == pg, mod,
+                                    onTap = { if (here.distinctBy { it.entry.printId }.size > 1) multi = here else here.first().print?.let { onCard(it.id) } },
+                                    onLong = { moving = here.first().entry })
+                            }
                         }
                     }
                 }

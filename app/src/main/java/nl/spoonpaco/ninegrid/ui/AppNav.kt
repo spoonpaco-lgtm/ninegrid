@@ -23,6 +23,8 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -126,7 +128,12 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
     CompositionLocalProvider(LocalHelp provides { id: String -> nav.navigate("guide/$id") }) {
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        snackbarHost = { SnackbarHost(snackbar) },
+        // De melding (met Ongedaan maken) staat altijd boven de navigatiebalk van Android en boven het toetsenbord.
+        // Met de tabbalk in beeld zorgt die balk daar zelf al voor.
+        snackbarHost = {
+            val withTabs = tabs.any { it.route == route } && route != "scan"
+            SnackbarHost(snackbar, if (withTabs) Modifier else Modifier.navigationBarsPadding().imePadding())
+        },
         bottomBar = {
             if (tabs.any { it.route == route } && route != "scan") {
                 NavigationBar {

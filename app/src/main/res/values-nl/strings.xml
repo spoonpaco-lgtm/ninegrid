@@ -958,4 +958,5 @@
         <item quantity="one">%d alarm</item>
         <item quantity="other">%d alarmen</item>
     </plurals>
+    <string name="review_other_print">Andere print uit je collectie: %1$s</string>
 </resources>

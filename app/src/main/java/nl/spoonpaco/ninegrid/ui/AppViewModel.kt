@@ -453,12 +453,28 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    /** Hoeveel exemplaren van deze kaart (alle prints, geen proxies) nu in de collectie liggen. */
-    fun inCollection(print: CardPrint?): Int {
+    /** De exemplaren die voor deze kaart uit de collectie gehaald zouden worden, in volgorde (zelfde regels als bij opslaan). */
+    private fun takeCandidates(print: CardPrint, finish: String): List<nl.spoonpaco.ninegrid.data.db.Entry> {
+        val all = entries.value
+        return nl.spoonpaco.ninegrid.domain.DeckTake.candidates(
+            nl.spoonpaco.ninegrid.data.db.Entry(printId = print.id, finish = finish), print.oracleId, Formats.isBasicLand(print.typeLine),
+            all.map { it.entry }, all.mapNotNull { e -> e.print?.let { it.id to it.oracleId } }.toMap(),
+        )
+    }
+
+    /** Hoeveel exemplaren van deze kaart nu uit de collectie te halen zijn (bij basic lands alleen precies deze print). */
+    fun inCollection(print: CardPrint?, finish: String = Finish.NONFOIL): Int {
         if (print == null) return 0
-        return entries.value.filter { it.entry.deckId == null && !it.entry.proxy &&
-            (it.entry.printId == print.id || (print.oracleId.isNotEmpty() && it.print?.oracleId == print.oracleId)) }
-            .sumOf { it.entry.quantity }
+        return takeCandidates(print, finish).sumOf { it.quantity }
+    }
+
+    /** Andere prints die bij [quantity] stuks uit de collectie gepakt worden, als tekst ("5ED 430 ×2"); leeg als het dezelfde print is. */
+    fun otherPrintsTaken(print: CardPrint, finish: String, quantity: Int): String {
+        val byId = entries.value.mapNotNull { it.print }.associateBy { it.id }
+        return nl.spoonpaco.ninegrid.domain.DeckTake.plan(takeCandidates(print, finish), quantity)
+            .filter { it.first.printId != print.id }
+            .groupBy { it.first.printId }.map { (id, l) -> (byId[id]?.let { it.setCode + " " + it.collectorNumber } ?: "?") + " ×" + l.sumOf { it.second } }
+            .joinToString(", ")
     }
 
     fun updatePending(item: PendingItem) {

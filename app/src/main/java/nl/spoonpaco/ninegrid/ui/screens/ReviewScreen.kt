@@ -293,14 +293,19 @@ private fun PendingRow(
                 IconButton(onClick = { vm.updatePending(item.copy(quantity = item.quantity + 1)) }) { Icon(Icons.Filled.Add, stringResource(R.string.more_one)) }
             }
             if (showSection && p != null && !item.proxy) {
-                val have = remember(p.id) { vm.inCollection(p) }
+                val have = remember(p.id, item.finish) { vm.inCollection(p, item.finish) }
+                val others = remember(p.id, item.finish, item.quantity, item.fromCollection) { if (item.fromCollection) vm.otherPrintsTaken(p, item.finish, item.quantity) else "" }
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = 40.dp)) {
                     if (have > 0) {
                         Checkbox(checked = item.fromCollection, onCheckedChange = { vm.updatePending(item.copy(fromCollection = it)) })
-                        Text(
-                            stringResource(R.string.review_take, have) + if (item.fromCollection && item.quantity > have) " · " + stringResource(R.string.review_shortage, item.quantity - have) else "",
-                            fontSize = 12.sp,
-                        )
+                        Column {
+                            Text(
+                                stringResource(R.string.review_take, have) + if (item.fromCollection && item.quantity > have) " · " + stringResource(R.string.review_shortage, item.quantity - have) else "",
+                                fontSize = 12.sp,
+                            )
+                            // Komt er een andere print uit je collectie dan in de lijst staat? Dan zie je welke; vinkje uit = nieuw toevoegen.
+                            if (others.isNotEmpty()) Text(stringResource(R.string.review_other_print, others), fontSize = 11.sp, color = NgColors.Amber)
+                        }
                     } else {
                         Text(stringResource(R.string.review_not_owned), fontSize = 12.sp, color = extra.subtle, modifier = Modifier.padding(start = 8.dp, top = 2.dp, bottom = 2.dp))
                     }

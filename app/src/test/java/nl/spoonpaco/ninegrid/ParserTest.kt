@@ -642,4 +642,25 @@ class ParserTest {
         val stripes = IntArray(48 * 64) { i -> if ((i % 48) % 2 == 0) 0 else 200 }
         assertTrue(nl.spoonpaco.ninegrid.domain.EmptySlots.energy(stripes, 48, 64) > 50)
     }
+
+    /** Deck met drie prints van Island, terwijl er 5th Edition Islands in de collectie liggen: alleen exact dezelfde print telt. */
+    @Test
+    fun basicLandsOnlyTakeTheExactPrint() {
+        val T = nl.spoonpaco.ninegrid.domain.DeckTake
+        fun e(id: Long, print: String, qty: Int, deck: Long? = null, finish: String = nl.spoonpaco.ninegrid.data.db.Finish.NONFOIL, proxy: Boolean = false) =
+            nl.spoonpaco.ninegrid.data.db.Entry(id = id, printId = print, quantity = qty, deckId = deck, finish = finish, proxy = proxy)
+        val oracle = mapOf("isl-5ed" to "o-island", "isl-mh3" to "o-island", "isl-blb" to "o-island", "isl-neo" to "o-island", "bolt-m10" to "o-bolt", "bolt-2xm" to "o-bolt")
+        val collection = listOf(e(1, "isl-5ed", 20), e(2, "isl-mh3", 2), e(3, "isl-mh3", 1, finish = nl.spoonpaco.ninegrid.data.db.Finish.FOIL), e(4, "bolt-m10", 3), e(5, "isl-blb", 4, deck = 9))
+        // MH3 Island: alleen de 2 gewone MH3-exemplaren, niet de foil en niet de 5ED-lands.
+        val mh3 = T.candidates(e(0, "isl-mh3", 4), "o-island", true, collection, oracle)
+        assertEquals(listOf(2L), mh3.map { it.id })
+        assertEquals(listOf(2L to 2), T.plan(mh3, 4).map { it.first.id to it.second })
+        // BLB en NEO Island: niets los in de collectie (BLB zit al in een deck), dus alles komt er nieuw bij.
+        assertTrue(T.candidates(e(0, "isl-blb", 3), "o-island", true, collection, oracle).isEmpty())
+        assertTrue(T.candidates(e(0, "isl-neo", 3), "o-island", true, collection, oracle).isEmpty())
+        // Een gewone kaart mag wel een andere print uit de collectie pakken.
+        val bolt = T.candidates(e(0, "bolt-2xm", 2), "o-bolt", false, collection, oracle)
+        assertEquals(listOf(4L), bolt.map { it.id })
+        assertEquals(2, T.plan(bolt, 2).sumOf { it.second })
+    }
 }
