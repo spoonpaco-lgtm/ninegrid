@@ -987,4 +987,6 @@
     <string name="set_tab_have">Heb ik (%1$d)</string>
     <string name="set_n_foil">%1$d foil</string>
     <string name="set_to_wishlist">Op de verlanglijst</string>
+    <string name="scan_read_hint">%1$d van 9 vakken gelezen. Niet gelezen: vak %2$s.</string>
+    <string name="scan_read_hint_blurry">%1$d van 9 vakken gelezen. Niet gelezen: vak %2$s. De foto lijkt onscherp; houd stil en tik om scherp te stellen.</string>
 </resources>

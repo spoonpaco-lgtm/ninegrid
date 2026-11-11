@@ -253,7 +253,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                 (r.name ?: r.altNames.firstOrNull())?.let { "‘" + it.take(22) + "’" },
             )
             val key = nextKey++
-            val emptySlot = !single && r.lines.isEmpty() && r.looksEmpty
+            val emptySlot = !single && r.looksEmpty && r.name == null && !r.complete
             val starFoil = r.foilStar && !emptySlot
             slotCrops[r.slot]?.let { crops[key] = it.asImageBitmapSafe() }
             pending += PendingItem(

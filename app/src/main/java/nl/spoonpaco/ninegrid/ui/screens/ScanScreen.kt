@@ -281,9 +281,10 @@ private fun markEmpty(bmp: Bitmap, result: ScanResult): ScanResult {
         val gray = IntArray(px.size) { i -> val p = px[i]; (((p shr 16) and 0xFF) * 30 + ((p shr 8) and 0xFF) * 59 + (p and 0xFF) * 11) / 100 }
         nl.spoonpaco.ninegrid.domain.EmptySlots.energy(gray, 48, 64)
     }
-    val hasText = result.slots.filter { it.lines.isNotEmpty() }.map { it.slot }.toSet()
-    val empty = nl.spoonpaco.ninegrid.domain.EmptySlots.decide(energies, hasText)
-    return result.copy(slots = result.slots.map { if (it.slot in empty && it.lines.isEmpty()) it.copy(looksEmpty = true) else it })
+    // Alleen een naam of nummer met set bewijst een kaart. Losse tekens (reflectie, rand van het hoesje) niet.
+    val hasCard = result.slots.filter { it.complete || it.name != null }.map { it.slot }.toSet()
+    val empty = nl.spoonpaco.ninegrid.domain.EmptySlots.decide(energies, hasCard)
+    return result.copy(slots = result.slots.map { if (it.slot in empty && it.name == null && !it.complete) it.copy(looksEmpty = true) else it })
 }
 
 private fun cropsFor(bmp: Bitmap, result: ScanResult, single: Boolean): Map<Int, Bitmap> {
@@ -366,6 +367,9 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
         if (torch && !torchOn && camera != null) { kotlinx.coroutines.delay(400); camera?.cameraControl?.enableTorch(true) }
     }
     var editFields by remember { mutableStateOf(false) }
+    /** Korte melding na een bladscan: hoeveel vakken gelezen zijn en welke ontbreken. */
+    var readHint by remember { mutableStateOf<String?>(null) }
+    androidx.compose.runtime.LaunchedEffect(readHint) { if (readHint != null) { kotlinx.coroutines.delay(8000); readHint = null } }
     // Aanduiding dat de foto genomen is: flits, even stilstaand beeld, en een klein plaatje linksonder.
     val flash = remember { androidx.compose.animation.core.Animatable(0f) }
     var frozen by remember { mutableStateOf<androidx.compose.ui.graphics.ImageBitmap?>(null) }
@@ -394,11 +398,20 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
         val reads = result.slots
         val complete = reads.count { it.complete || it.name != null }
         val enough = if (single) complete >= 1 else complete >= 7
+        // Bij een heel blad niet blokkeren met een gok ("onscherp" of "dichterbij"): ga door met wat gelezen is
+        // en zeg welke vakken ontbreken. Bij één kaart blijft de vraag om opnieuw te proberen.
         val problem = when {
-            enough -> null
+            enough || !single -> null
             sharp < 35.0 -> Quality.BLURRY
-            fromCamera && result.coverage < (if (single) 0.5f else 0.35f) -> Quality.TOO_FAR
+            fromCamera && result.coverage < 0.5f -> Quality.TOO_FAR
             else -> null
+        }
+        if (!single && reads.any { it.lines.isNotEmpty() }) {
+            val missing = reads.filter { !it.complete && it.name == null && !it.looksEmpty }.map { it.slot }
+            readHint = if (missing.isEmpty()) null else context.getString(
+                if (sharp < 35.0) R.string.scan_read_hint_blurry else R.string.scan_read_hint,
+                reads.count { it.complete || it.name != null }, missing.joinToString(", "),
+            )
         }
         when {
             problem != null -> quality = Triple(problem, reads, crops)
@@ -606,6 +619,7 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
             }
         }
         if (flash.value > 0f) Box(Modifier.fillMaxSize().background(Color.White.copy(alpha = flash.value)))
+        readHint?.let { Text(it, color = Color.White, fontSize = 13.sp, textAlign = TextAlign.Center, modifier = Modifier.align(Alignment.TopCenter).statusBarsPadding().padding(top = 72.dp, start = 16.dp, end = 16.dp).background(Color.Black.copy(alpha = 0.75f), RoundedCornerShape(10.dp)).clickable { readHint = null }.padding(horizontal = 12.dp, vertical = 8.dp)) }
 
         // Bovenbalk: terug, set/map/blad, hulp.
         Row(

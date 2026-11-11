@@ -1,3 +1,14 @@
+NineGrid 0.9.7.1 – Teyo (reparatie)
+
+Reparatie van de scanner uit 0.9.7.
+
+Opgelost
+- Een los woord of jaartal onderaan een kaart werd soms voor de setcode aangezien, waardoor het vak niet opnieuw gelezen werd en de kaart verkeerd of niet gevonden werd. Een setcode zonder taal telt nu alleen nog als hij letters en een cijfer heeft (MH2), of na opnieuw lezen als de set bestaat.
+- Lege vakken werden vaak "niet gevonden" als er losse tekens in gelezen waren (reflectie, rand van het hoesje). Alleen een naam of een nummer met set bewijst nu een kaart; een vak met alleen losse tekens en weinig structuur telt als leeg.
+- Bij een heel blad komt niet meer de blokkerende melding "dichterbij" of "onscherp". De scan gaat door met wat gelezen is en bovenin staat "6 van 9 vakken gelezen. Niet gelezen: vak 3, 7". Bij één kaart blijft de melding bestaan.
+
+---
+
 NineGrid 0.9.7 – Teyo
 
 Teyo, de schildmagiër: zijn kracht is beschermen. Deze versie zet fouten dicht, maakt je back-up compleet en poetst op wat er al was. Geen nieuwe functies; die komen in 0.9.8.

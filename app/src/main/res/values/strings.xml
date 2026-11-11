@@ -988,4 +988,6 @@
     <string name="set_tab_have">I have (%1$d)</string>
     <string name="set_n_foil">%1$d foil</string>
     <string name="set_to_wishlist">Add to wishlist</string>
+    <string name="scan_read_hint">%1$d of 9 slots read. Not read: slot %2$s.</string>
+    <string name="scan_read_hint_blurry">%1$d of 9 slots read. Not read: slot %2$s. The photo looks blurry; hold still and tap to focus.</string>
 </resources>

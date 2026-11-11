@@ -744,6 +744,16 @@ class ParserTest {
         assertNull(ScanParser.enrich(r, emptyList(), listOf("FIRE"), setOf("MH2")).setCode)
     }
 
+    /** Een leeg vak met losse tekens (reflectie) telt als leeg zodra alleen echte kaartgegevens als bewijs van een kaart gelden. */
+    @Test
+    fun emptySlotWithStrayTextIsStillEmpty() {
+        val e = mapOf(1 to 20.0, 2 to 22.0, 3 to 18.0, 4 to 1.5, 5 to 21.0)
+        // Vak 4 heeft losse tekens gelezen, maar geen naam of nummer: dus niet in de lijst met kaarten.
+        assertEquals(setOf(4), nl.spoonpaco.ninegrid.domain.EmptySlots.decide(e, setOf(1, 2, 3, 5)))
+        // Telt de losse tekst wel mee als kaart, dan wordt het vak nooit als leeg gezien.
+        assertEquals(emptySet<Int>(), nl.spoonpaco.ninegrid.domain.EmptySlots.decide(e, setOf(1, 2, 3, 4, 5)))
+    }
+
     /** De as van de grafiek volgt de waarden: een verandering van een paar euro op duizenden is zichtbaar. */
     @Test
     fun chartAxisFollowsTheValues() {
