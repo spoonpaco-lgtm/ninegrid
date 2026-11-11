@@ -79,7 +79,7 @@ Dit is "de lijst": wat Mick wil dat NineGrid nog krijgt. Een nieuw gesprek begin
 
 ### 0.9.8 – nog na te kijken op Micks telefoon
 
-- Vegen op het kaartscherm (niet in vrienden- en ruillijsten, niet bij zoeken/scan).
+- ✓ Vegen op het kaartscherm: nagekeken door Mick, werkt (niet in vrienden- en ruillijsten, niet bij zoeken/scan).
 - ✓ Label NIEUW: nagekeken door Mick, werkt (alleen losse kaarten; ook als een stapel groter wordt).
 - Commander wijzigen: de oude commander die terug naar de collectie gaat wordt los (oude plek niet bewaard); creature-type als deckregel verandert niet vanzelf (alleen een melding).
 - ✓ Fabrieksinstellingen: nagekeken door Mick, werkt (app start daarna opnieuw bij de introductie; terugzetten via Meer → Back-up, niet in de introductie zelf).
