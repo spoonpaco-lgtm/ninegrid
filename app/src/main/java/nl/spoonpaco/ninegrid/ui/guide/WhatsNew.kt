@@ -28,25 +28,23 @@ object WhatsNew {
     fun items(dutch: Boolean): List<Item> = if (dutch) NL else EN
 
     private val NL = listOf(
-        Item("Deck importeren met verschillende landjes: je krijgt nu precies de prints uit je lijst. Basic lands komen alleen nog uit je collectie als het dezelfde print is; bij andere kaarten zie je welke print er uit je collectie komt.", "decks"),
-        Item("De bladweergave past altijd op één scherm, het app-icoon past in het rondje, en de melding met Ongedaan maken staat boven de navigatiebalk van Android.", "binders"),
-        Item("Scanner: leest nummers beter (O/0 en I/1 hersteld), herkent de ster ★ van foils en zet die kaart alvast op foil (oranje: even controleren), en leest sneller.", "add"),
-        Item("Grafiek: de as volgt de waarden, zodat je ook kleine veranderingen ziet. Het aantal kaarten loopt mee als tweede lijn, en Koers heet nu Prijsbeweging.", "overview"),
-        Item("Back-up compleet: ook instellingen, deckregels, vrienden en het wijzigingslog. Je ziet wat erin zit en kiest bij terugzetten wat je terugzet.", "backup"),
-        Item("Setscherm vernieuwd: kopkaart met voortgang, schakelaar Ontbreekt | Heb ik, en per kaart ♡ en + of waar hij ligt.", "collection"),
-        Item("Manakosten staan nu rechts, vlak vóór de prijs, altijd even groot. Nieuw filter Game Changers. Verlanglijst: tik = kaartscherm, ✎ = bewerken.", "collection"),
-        Item("Suggesties bij een deck: de blokken klappen in en uit en leggen uit wat ze zijn.", "decks"),
+        Item("Op het kaartscherm veeg je naar links of rechts voor de volgende of vorige kaart uit de lijst waar je vandaan kwam.", "collection"),
+        Item("Nieuw: label NIEUW op kaarten die je pas toevoegde. In de instellingen kies je hoe lang (standaard 7 dagen), met een knop Alles gezien; in de collectie kun je filteren en sorteren op nieuw.", "collection"),
+        Item("Commander wijzigen: vervang je commander of voeg een tweede toe (Partner e.d.), vanuit het deckmenu of met Maak commander op het kaartscherm.", "decks"),
+        Item("Combo's als kaartjes met + ertussen; tik opent de kaart, lang indrukken toont hem groot. Met Namen krijg je de oude lijst terug.", "decks"),
+        Item("Ontwikkelaar-menu in de instellingen met een scanrapport: na een scan deel je met één tik de foto en wat er per vak gelezen is, zodat een slechte scan te onderzoeken is.", "settings"),
+        Item("Alles wissen heeft nu ook Alles (fabrieksinstellingen): na een back-up begint de app helemaal opnieuw.", "backup"),
+        Item("Gaat de lamp van de scanner niet aan, dan zegt de app waarom (bijvoorbeeld een lage batterij).", "add"),
     )
 
     private val EN = listOf(
-        Item("Importing a deck with different lands: you now get exactly the prints from your list. Basic lands only come out of your collection when it is the same print; for other cards you see which print comes out of your collection.", "decks"),
-        Item("The page view always fits on one screen, the app icon fits in the circle, and the message with Undo sits above Android's navigation bar.", "binders"),
-        Item("Scanner: reads numbers better (O/0 and I/1 repaired), recognises the foil star ★ and already sets that card to foil (orange: have a look), and reads faster.", "add"),
-        Item("Chart: the axis follows the values, so small changes show too. The number of cards runs along as a second line, and Market is now called Price movement.", "overview"),
-        Item("Complete backup: settings, deck rules, friends and the change log too. You see what is in it and choose what to restore.", "backup"),
-        Item("New set screen: header card with progress, a Missing | I have switch, and per card ♡ and + or where it is.", "collection"),
-        Item("Mana costs are now on the right, just before the price, always the same size. New Game Changers filter. Wishlist: tap = card screen, ✎ = edit.", "collection"),
-        Item("Deck suggestions: the blocks fold and unfold and explain what they are.", "decks"),
+        Item("On the card screen swipe left or right for the next or previous card of the list you came from.", "collection"),
+        Item("New: a NEW label on cards you just added. Choose how long in the settings (7 days by default), with an All seen button; in the collection you can filter and sort on new.", "collection"),
+        Item("Change commander: replace your commander or add a second one (Partner etc.), from the deck menu or with Make commander on the card screen.", "decks"),
+        Item("Combos as small cards with a + between them; tap opens the card, press and hold shows it large. Names brings the old list back.", "decks"),
+        Item("Developer menu in the settings with a scan report: after a scan you share the photo and what was read per slot with one tap, so a bad scan can be investigated.", "settings"),
+        Item("Erase everything now also has Everything (factory reset): after a backup the app starts over completely.", "backup"),
+        Item("If the scanner lamp does not turn on, the app tells you why (a low battery, for example).", "add"),
     )
 }
 

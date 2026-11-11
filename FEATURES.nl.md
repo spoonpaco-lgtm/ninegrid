@@ -2,7 +2,7 @@
 
 *English: [FEATURES.md](FEATURES.md)*
 
-Huidige versie: **0.9.7 – Teyo**. Elke versie heeft de naam van een planeswalker.
+Huidige versie: **0.9.8 – Kaito**. Elke versie heeft de naam van een planeswalker.
 
 ## Wat NineGrid anders maakt
 
@@ -32,6 +32,7 @@ Huidige versie: **0.9.7 – Teyo**. Elke versie heeft de naam van een planeswalk
 - Optioneel een **offline kaartdatabase** (alle ~110.000 kaarten): scannen en opzoeken zonder internet, veel sneller importeren.
 
 ## Collectie
+- **Vegen op het kaartscherm** naar de volgende of vorige kaart van je lijst; een **label NIEUW** op pas toegevoegde kaarten (jij kiest hoelang), met filter en sortering.
 - Schakelaar **Mijn collectie | Alle kaarten | Verlanglijst**.
 - Zoeken, **filteren** (rarity, kleur, type, foil, Game Changers, binder, ook in decks, regeltekst) en **sorteren** (set, naam, prijs, per binder); filters worden onthouden.
 - **Alle kaarten**: zoeken in alle Magic-kaarten (offline database of Scryfall), met een label wat je al hebt en het filter "Alleen wat ik niet heb".
@@ -43,6 +44,7 @@ Huidige versie: **0.9.7 – Teyo**. Elke versie heeft de naam van een planeswalk
 - **Sets**: compleetheid per set en per rarity, stempel Compleet, ontbrekende kaarten, varianten; **Completionist** (vinkje met ⓘ) telt alleen kaarten in binders, niet in decks. Setscherm met kopkaart, schakelaar Ontbreekt | Heb ik, en per kaart ♡ en + of waar hij ligt.
 
 ## Decks
+- **Commander wijzigen** (vervangen of een tweede erbij) en combo's als **kaartjes**.
 - Decks per format (Commander, Modern, Pioneer, Standard, Legacy, Pauper, Casual) met **legaliteitscontrole**.
 - **Deckscherm**: banner met de art van je commander, kaarten per type (in- en uitklapbaar, sorteren op mana, naam of prijs), manakosten op elke regel, label GC bij Game Changers, zoeken in het deck.
 - **Commander-bracket**: game changers, landvernietiging, extra beurten, tutors en combo's van twee kaarten.

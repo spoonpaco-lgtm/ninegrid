@@ -1,3 +1,20 @@
+NineGrid 0.9.8 – Kaito
+
+Kaito, de schaduwwandelaar: komt en gaat ongezien. Deze versie maakt het kaartscherm en de decks handiger en geeft je gereedschap om een slechte scan uit te zoeken.
+
+Nieuw
+- Vegen op het kaartscherm: links of rechts voor de volgende of vorige kaart uit de lijst waar je vandaan kwam (collectie, deck, set, verlanglijst).
+- Label NIEUW op kaarten die je pas toevoegde (ook als een stapel groter wordt). In de instellingen kies je hoe lang (1, 3, 7, 14, 30 dagen of nooit) en met Alles gezien haal je het weg. In de collectie is er een filter Nieuw en de sortering Nieuwste eerst.
+- Commander wijzigen: uit het deck, je losse collectie of een nieuw gezochte kaart; vervangen (de oude gaat naar het deck of terug naar je collectie) of als tweede commander erbij (Partner, Friends forever, Background, Doctor's companion). Ook via Maak commander op het kaartscherm. Een creature-type als deckregel verandert niet vanzelf; daar krijg je een melding van.
+- Combo's als kaartjes met + ertussen. Tik opent de kaart, lang indrukken toont hem groot, de ontbrekende kaart is vager met een oranje rand. Met Namen krijg je de oude weergave terug.
+- Ontwikkelaar-menu in de instellingen (de tijdmeting zit er nu ook in) met een scanrapport: na een scan deel je de foto en per vak wat er gelezen is.
+- Alles wissen heeft nu ook Alles (fabrieksinstellingen): eerst een back-up, daarna gaat alles weg (ook instellingen en AI-sleutel; de offline kaartdatabase kun je bewaren) en start de app als nieuw.
+
+Verbeterd
+- Gaat de lamp van de scanner niet aan, dan zegt de app waarom (lage batterij of batterijbesparing) en springt het icoon terug.
+
+---
+
 NineGrid 0.9.7.1 – Teyo (reparatie)
 
 Reparatie van de scanner uit 0.9.7.

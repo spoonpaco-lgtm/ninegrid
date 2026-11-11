@@ -2,7 +2,7 @@
 
 *Nederlands: [FEATURES.nl.md](FEATURES.nl.md)*
 
-Current version: **0.9.7 – Teyo**. Every version is named after a planeswalker.
+Current version: **0.9.8 – Kaito**. Every version is named after a planeswalker.
 
 ## What makes NineGrid different
 
@@ -32,6 +32,7 @@ Current version: **0.9.7 – Teyo**. Every version is named after a planeswalker
 - Optional **offline card database** (all ~110,000 cards): scan and look up without internet, much faster imports.
 
 ## Collection
+- **Swipe on the card screen** to the next or previous card of your list; a **NEW label** on recently added cards (you choose how long), with filter and sort.
 - Switch **My collection | All cards | Wishlist**.
 - Search, **filter** (rarity, colour, type, foil, Game Changers, binder, also in decks, rules text) and **sort** (set, name, price, by binder); filters are remembered.
 - **All cards**: search every Magic card (offline database or Scryfall), with a label for what you already have and the filter "Only what I don't have".
@@ -43,6 +44,7 @@ Current version: **0.9.7 – Teyo**. Every version is named after a planeswalker
 - **Sets screen**: completeness per set and per rarity, a Complete stamp, missing cards, variants; **Completionist** (checkbox with ⓘ) counts only cards in binders, not in decks. Set screen with a header card, a Missing | I have switch, and per card ♡ and + or where it is.
 
 ## Decks
+- **Change the commander** (replace or add a second one), and combos shown as **small cards**.
 - Decks per format (Commander, Modern, Pioneer, Standard, Legacy, Pauper, Casual) with **legality check**.
 - **Deck screen**: banner with your commander's art, cards per type (fold open and shut, sort by mana, name or price), mana costs on every row, GC label for Game Changers, search in the deck.
 - **Commander bracket estimate**: game changers, mass land denial, extra turns, tutors and two-card combos.

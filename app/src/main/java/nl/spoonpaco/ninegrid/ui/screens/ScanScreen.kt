@@ -366,6 +366,9 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
     androidx.compose.runtime.LaunchedEffect(torchOn, torch, camera) {
         if (torch && !torchOn && camera != null) { kotlinx.coroutines.delay(400); camera?.cameraControl?.enableTorch(true) }
     }
+    /** Korte melding na een bladscan: hoeveel vakken gelezen zijn en welke ontbreken. */
+    var readHint by remember { mutableStateOf<String?>(null) }
+    androidx.compose.runtime.LaunchedEffect(readHint) { if (readHint != null) { kotlinx.coroutines.delay(8000); readHint = null } }
     // Lamp wilde niet aan (vaak: batterij bijna leeg of batterijbesparing): melden en het icoon weer uit.
     var torchTry by remember { mutableStateOf(0) }
     androidx.compose.runtime.LaunchedEffect(torchTry) {
@@ -385,9 +388,6 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
         }
     }
     var editFields by remember { mutableStateOf(false) }
-    /** Korte melding na een bladscan: hoeveel vakken gelezen zijn en welke ontbreken. */
-    var readHint by remember { mutableStateOf<String?>(null) }
-    androidx.compose.runtime.LaunchedEffect(readHint) { if (readHint != null) { kotlinx.coroutines.delay(8000); readHint = null } }
     // Aanduiding dat de foto genomen is: flits, even stilstaand beeld, en een klein plaatje linksonder.
     val flash = remember { androidx.compose.animation.core.Animatable(0f) }
     var frozen by remember { mutableStateOf<androidx.compose.ui.graphics.ImageBitmap?>(null) }
