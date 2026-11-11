@@ -640,22 +640,46 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     // ---------- Back-up ----------
+    /** Wat er in een back-up zit, in één regel: "1.069 kaarten · 6 decks · 1.243 prijspunten · 3 vrienden · instellingen". */
+    fun backupSummary(b: nl.spoonpaco.ninegrid.data.BackupFile): String = listOfNotNull(
+        str(R.string.backup_sum_cards, b.cardCount),
+        str(R.string.backup_sum_decks, b.decks.size),
+        str(R.string.backup_sum_prices, b.prices.size),
+        b.friends?.let { str(R.string.backup_sum_friends, it.size) },
+        if (b.hasSettings) str(R.string.backup_sum_settings) else null,
+    ).joinToString(" · ")
+
     fun backupTo(uri: Uri) = viewModelScope.launch {
         runCatching {
-            val text = repo.backupToJson(repo.exportBackup())
-            getApplication<Application>().contentResolver.openOutputStream(uri)?.use { it.write(text.toByteArray()) }
+            val (backup, text) = nl.spoonpaco.ninegrid.data.Backups.toJson(getApplication(), repo, settingsStore)
+            getApplication<Application>().contentResolver.openOutputStream(uri)?.use { it.write(text.toByteArray()) } ?: error("no stream")
             settingsStore.setLastBackup(System.currentTimeMillis())
-        }.onSuccess { message = str(R.string.msg_backup_saved) }.onFailure { message = str(R.string.msg_backup_failed) }
+            backup
+        }.onSuccess { message = str(R.string.msg_backup_saved) + ": " + backupSummary(it) }.onFailure { message = str(R.string.msg_backup_failed) }
     }
 
-    fun restoreFrom(uri: Uri) = viewModelScope.launch {
+    /** De back-up die klaarstaat om terug te zetten: eerst zien wat erin zit en kiezen wat je terugzet. */
+    var restorePreview by mutableStateOf<nl.spoonpaco.ninegrid.data.BackupFile?>(null)
+
+    fun previewRestore(uri: Uri) = viewModelScope.launch {
         runCatching {
             val text = getApplication<Application>().contentResolver.openInputStream(uri)?.use { it.readBytes().decodeToString() } ?: error("empty")
-            repo.restoreBackup(repo.parseBackup(text))
+            repo.parseBackup(text)
+        }.onSuccess { restorePreview = it }.onFailure { message = str(R.string.msg_restore_failed) }
+    }
+
+    fun restoreBackup(parts: Set<nl.spoonpaco.ninegrid.data.BackupPart>) = viewModelScope.launch {
+        val b = restorePreview ?: return@launch
+        restorePreview = null
+        busy = true
+        runCatching {
+            nl.spoonpaco.ninegrid.data.Backups.restore(getApplication(), repo, settingsStore, b, parts)
         }.onSuccess {
             message = str(R.string.msg_restored)
+            clearPending()
             images.prefetch(repo.allPrintsOwned(), settings.value)
         }.onFailure { message = str(R.string.msg_restore_failed) }
+        busy = false
     }
 
     fun writeText(uri: Uri, text: String) = viewModelScope.launch {
@@ -673,8 +697,8 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         settingsStore.setBackupFolder(uri?.toString())
         BackupWorker.schedule(getApplication(), uri != null)
         if (uri != null) {
-            runCatching { BackupWorker.writeBackup(getApplication(), repo, uri) }
-                .onSuccess { settingsStore.setLastBackup(System.currentTimeMillis()); message = str(R.string.msg_backup_saved) }
+            runCatching { BackupWorker.writeBackup(getApplication(), repo, uri, settingsStore) }
+                .onSuccess { settingsStore.setLastBackup(System.currentTimeMillis()); message = str(R.string.msg_backup_saved) + ": " + backupSummary(it) }
         }
     }
 
@@ -743,10 +767,10 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
             val folder = settings.value.backupFolder
             when {
                 backupUri != null -> {
-                    val text = repo.backupToJson(repo.exportBackup())
+                    val (_, text) = nl.spoonpaco.ninegrid.data.Backups.toJson(ctx, repo, settingsStore)
                     ctx.contentResolver.openOutputStream(backupUri)?.use { it.write(text.toByteArray()) } ?: error("no stream")
                 }
-                folder != null -> BackupWorker.writeBackup(ctx, repo, Uri.parse(folder))
+                folder != null -> BackupWorker.writeBackup(ctx, repo, Uri.parse(folder), settingsStore)
                 else -> error("no backup")
             }
             settingsStore.setLastBackup(System.currentTimeMillis())

@@ -104,6 +104,16 @@ interface EntryDao {
 
     @Query("DELETE FROM entries")
     suspend fun deleteAll()
+
+    // Voor het terugzetten van een deel van een back-up.
+    @Query("DELETE FROM entries WHERE deckId IS NULL")
+    suspend fun deleteLoose()
+
+    @Query("DELETE FROM entries WHERE deckId IS NOT NULL")
+    suspend fun deleteInDecks()
+
+    @Insert
+    suspend fun insertAll(entries: List<Entry>)
 }
 
 @Dao
@@ -162,6 +172,16 @@ interface ChangeDao {
 
     @Query("DELETE FROM changes")
     suspend fun deleteAll()
+
+    // Voor de back-up: het hele log met de ongedaan-maak-gegevens (de nieuwste 500, zoals de lijst).
+    @Query("SELECT * FROM changes ORDER BY timestamp DESC LIMIT 500")
+    suspend fun allFull(): List<ChangeRecord>
+
+    @Query("SELECT * FROM undo_parts")
+    suspend fun allParts(): List<UndoPart>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(changes: List<ChangeRecord>)
 }
 
 @Dao
@@ -294,6 +314,16 @@ interface FriendDao {
 
     @Transaction
     suspend fun deletePackage(id: Long) { deleteCardsOf(id); deletePackageRow(id) }
+
+    // Voor de back-up.
+    @Query("SELECT * FROM friends") suspend fun allFriends(): List<Friend>
+    @Query("SELECT * FROM friend_packages") suspend fun allPackages(): List<FriendPackage>
+    @Query("SELECT * FROM friend_cards") suspend fun allCards(): List<FriendCard>
+    @Query("DELETE FROM friends") suspend fun deleteAllFriends()
+    @Query("DELETE FROM friend_packages") suspend fun deleteAllPackages()
+    @Query("DELETE FROM friend_cards") suspend fun deleteAllCards()
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertFriends(f: List<Friend>)
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertPackages(p: List<FriendPackage>)
 
     @Transaction
     suspend fun deleteFriend(id: String) {

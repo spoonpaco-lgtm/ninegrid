@@ -10,7 +10,7 @@
     <string name="auto_backup_off">Uit. Kies een map (bijvoorbeeld Google Drive) om dit aan te zetten.</string>
     <string name="auto_backup_on">Aan. Laatste back-up: %1$s</string>
     <string name="back">Terug</string>
-    <string name="backup_explain">Alles staat op deze telefoon. Met een back-upbestand kun je naar een nieuwe telefoon of herstellen na een vergissing.</string>
+    <string name="backup_explain">Alles staat op deze telefoon. Met een back-upbestand kun je naar een nieuwe telefoon of herstellen na een vergissing. Erin: je kaarten, decks en deckregels, historie, verlanglijst, boosters, vrienden, wijzigingslog en instellingen. Niet erin: de AI-sleutel, de offline kaartdatabase en de plaatjes.</string>
     <string name="backup_export">Back-up en export</string>
     <string name="backup_now">Nu back-uppen</string>
     <string name="binder_optional">Map (optioneel)</string>
@@ -130,7 +130,7 @@
     <string name="quantity">Aantal</string>
     <string name="rename">Hernoemen</string>
     <string name="restore">Terugzetten</string>
-    <string name="restore_warning">Dit vervangt alles op deze telefoon door de inhoud van de back-up.</string>
+    <string name="restore_warning">Wat je hier kiest, vervangt wat er op deze telefoon staat. Wat je niet kiest, blijft zoals het is.</string>
     <string name="review_commander_hint">Tik op Commander bij de kaart die het deck aanvoert.</string>
     <string name="review_pick_commander">Kies de commander</string>
     <string name="review_title">Kaarten controleren</string>
@@ -965,4 +965,20 @@
     <string name="sugg_cuts_explain">Kaarten in dit deck die het minst bijdragen. Ze vullen geen rol en passen niet bij het thema, kosten 6 of meer mana, gaan boven je bracket of zijn geen creature van je tribe. Bij Wisselen kies je wat ervoor in de plaats komt, en gaat deze kaart terug naar je collectie.</string>
     <string name="scan_foil_star">★ gelezen: foil?</string>
     <string name="chart_count_line">Aantal kaarten</string>
+    <string name="backup_sum_cards">%1$,d kaarten</string>
+    <string name="backup_sum_decks">%1$,d decks</string>
+    <string name="backup_sum_prices">%1$,d prijspunten</string>
+    <string name="backup_sum_friends">%1$,d vrienden</string>
+    <string name="backup_sum_settings">instellingen</string>
+    <string name="restore_contains">In deze back-up zit:</string>
+    <string name="restore_made_on">Gemaakt op %1$s</string>
+    <string name="restore_choose">Wat terugzetten</string>
+    <string name="restore_part_collection">Collectie (losse kaarten)</string>
+    <string name="restore_part_decks">Decks, met hun regels</string>
+    <string name="restore_part_history">Historie en prijshistorie</string>
+    <string name="restore_part_wishlist">Verlanglijst en prijsalarmen</string>
+    <string name="restore_part_boosters">Boosters</string>
+    <string name="restore_part_friends">Vrienden en hun gedeelde collecties</string>
+    <string name="restore_part_settings">Instellingen</string>
+    <string name="restore_partial_note">Zet je alleen de collectie of alleen de decks terug, dan wordt het wijzigingslog leeg: eerdere wijzigingen zijn daarna niet meer ongedaan te maken.</string>
 </resources>

@@ -119,6 +119,12 @@ object OfflineDb {
 }
 
 class SettingsStore(private val context: Context) {
+    private val NOT_IN_BACKUP = setOf(
+        "backup_folder", "last_backup", "backup_asked", "onboarding_done", "last_update_check", "last_price_update",
+        "offline_db_updated", "offline_db_count", "offline_db_offered", "last_breakout_day", "last_seen_version",
+        "ai_count_day", "ai_count",
+    )
+
     private object K {
         val theme = stringPreferencesKey("theme")
         val currency = stringPreferencesKey("currency")
@@ -181,6 +187,33 @@ class SettingsStore(private val context: Context) {
     }
 
     val flow: Flow<AppSettings> = context.dataStore.data.map { p -> p.toSettings() }
+
+    /**
+     * Alle instellingen voor de back-up, als naam naar "type:waarde" (b, s, i, l, d of f).
+     * Niet mee: wat bij deze telefoon hoort (de back-upmap, de stand van de offline database) en tellers van vandaag.
+     */
+    suspend fun exportForBackup(): Map<String, String> = context.dataStore.data.first().asMap()
+        .filterKeys { it.name !in NOT_IN_BACKUP }
+        .mapNotNull { (k, v) ->
+            val tag = when (v) { is Boolean -> "b"; is String -> "s"; is Int -> "i"; is Long -> "l"; is Double -> "d"; is Float -> "f"; else -> null }
+            tag?.let { k.name to "$it:$v" }
+        }.toMap()
+
+    /** Zet instellingen uit een back-up terug. Onbekende of onleesbare regels worden overgeslagen. */
+    suspend fun importFromBackup(values: Map<String, String>) = context.dataStore.edit { p ->
+        values.forEach { (name, tv) ->
+            if (name in NOT_IN_BACKUP || tv.length < 2 || tv[1] != ':') return@forEach
+            val v = tv.substring(2)
+            when (tv[0]) {
+                'b' -> p[booleanPreferencesKey(name)] = v.toBoolean()
+                's' -> p[stringPreferencesKey(name)] = v
+                'i' -> v.toIntOrNull()?.let { p[androidx.datastore.preferences.core.intPreferencesKey(name)] = it }
+                'l' -> v.toLongOrNull()?.let { p[longPreferencesKey(name)] = it }
+                'd' -> v.toDoubleOrNull()?.let { p[androidx.datastore.preferences.core.doublePreferencesKey(name)] = it }
+                'f' -> v.toFloatOrNull()?.let { p[androidx.datastore.preferences.core.floatPreferencesKey(name)] = it }
+            }
+        }
+    }
 
     suspend fun current(): AppSettings = flow.first()
 

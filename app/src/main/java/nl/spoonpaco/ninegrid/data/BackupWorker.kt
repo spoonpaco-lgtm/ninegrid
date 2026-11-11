@@ -20,7 +20,7 @@ class BackupWorker(context: Context, params: WorkerParameters) : CoroutineWorker
         val c = (applicationContext as NineGridApp).container
         val folder = c.settings.current().backupFolder ?: return Result.success()
         return runCatching {
-            writeBackup(applicationContext, c.repository, Uri.parse(folder))
+            writeBackup(applicationContext, c.repository, Uri.parse(folder), c.settings)
             c.settings.setLastBackup(System.currentTimeMillis())
             Result.success()
         }.getOrElse { Result.retry() }
@@ -39,13 +39,14 @@ class BackupWorker(context: Context, params: WorkerParameters) : CoroutineWorker
             wm.enqueueUniquePeriodicWork(NAME, ExistingPeriodicWorkPolicy.KEEP, req)
         }
 
-        suspend fun writeBackup(context: Context, repo: Repository, treeUri: Uri) {
+        suspend fun writeBackup(context: Context, repo: Repository, treeUri: Uri, settings: SettingsStore): BackupFile {
             val dir = DocumentFile.fromTreeUri(context, treeUri) ?: error("no folder")
             val name = "ninegrid-backup-" + SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date()) + ".json"
             dir.findFile(name)?.delete()
             val file = dir.createFile("application/json", name) ?: error("cannot create")
-            val text = repo.backupToJson(repo.exportBackup())
+            val (backup, text) = Backups.toJson(context, repo, settings)
             context.contentResolver.openOutputStream(file.uri)?.use { it.write(text.toByteArray()) }
+            return backup
         }
     }
 }

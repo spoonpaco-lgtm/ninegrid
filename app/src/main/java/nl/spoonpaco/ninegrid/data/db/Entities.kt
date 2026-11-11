@@ -99,6 +99,7 @@ data class Deck(
 )
 
 /** Eén wijziging, met alles wat nodig is om hem ongedaan te maken. */
+@Serializable
 @Entity(tableName = "changes")
 data class ChangeRecord(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
@@ -166,6 +167,7 @@ data class PricePoint(
 )
 
 /** Stukken van een grote ongedaan-maak-gegevens (bijv. een import van duizenden kaarten), zodat één regel nooit te groot wordt. */
+@Serializable
 @Entity(tableName = "undo_parts", primaryKeys = ["changeId", "idx"])
 data class UndoPart(val changeId: Long, val idx: Int, val data: String)
 
@@ -173,6 +175,7 @@ data class UndoPart(val changeId: Long, val idx: Int, val data: String)
  * Iemand van wie je een collectie hebt ontvangen (of ingelezen uit een andere app). Alleen om te bekijken en te ruilen.
  * [id] = de vaste code van de deler, zodat een nieuwe versie de oude vervangt; bij een export uit een andere app een eigen code.
  */
+@Serializable
 @Entity(tableName = "friends")
 data class Friend(
     @PrimaryKey val id: String,
@@ -182,6 +185,7 @@ data class Friend(
 )
 
 /** Eén ontvangen pakket: de losse collectie, een binder, een set of een deck van die persoon. */
+@Serializable
 @Entity(tableName = "friend_packages", indices = [Index("friendId")])
 data class FriendPackage(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
@@ -193,6 +197,7 @@ data class FriendPackage(
     val receivedAt: Long,
 )
 
+@Serializable
 @Entity(tableName = "friend_cards", indices = [Index("packageId"), Index("printId")])
 data class FriendCard(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,

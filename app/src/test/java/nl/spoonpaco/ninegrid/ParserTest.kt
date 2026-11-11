@@ -748,4 +748,37 @@ class ParserTest {
         val (d, e) = nl.spoonpaco.ninegrid.ui.overview.fitAxis(listOf(-3.0, 2.0))
         assertTrue(d < -3.0 && e > 2.0)
     }
+
+    /** Een back-up met decks, vrienden, log en instellingen komt heel terug uit het bestand; een oude back-up blijft leesbaar. */
+    @Test
+    fun backupFileRoundTripAndOldFiles() {
+        val json = kotlinx.serialization.json.Json { ignoreUnknownKeys = true; encodeDefaults = true }
+        val ser = nl.spoonpaco.ninegrid.data.BackupFile.serializer()
+        val b = nl.spoonpaco.ninegrid.data.BackupFile(
+            prints = listOf(nl.spoonpaco.ninegrid.data.db.CardPrint(id = "p1", name = "Sol Ring", setCode = "C21", collectorNumber = "263")),
+            entries = listOf(
+                nl.spoonpaco.ninegrid.data.db.Entry(id = 1, printId = "p1", quantity = 2),
+                nl.spoonpaco.ninegrid.data.db.Entry(id = 2, printId = "p1", quantity = 1, deckId = 7, section = "MAIN"),
+            ),
+            decks = listOf(nl.spoonpaco.ninegrid.data.db.Deck(id = 7, name = "Edgar Markov", format = DeckFormat.COMMANDER)),
+            friends = listOf(nl.spoonpaco.ninegrid.data.db.Friend("f1", "Sam", 1L)),
+            friendPackages = listOf(nl.spoonpaco.ninegrid.data.db.FriendPackage(id = 3, friendId = "f1", key = "loose", label = "Los", kind = "loose", receivedAt = 1L)),
+            friendCards = listOf(nl.spoonpaco.ninegrid.data.db.FriendCard(id = 4, packageId = 3, printId = "p1", quantity = 1)),
+            changes = listOf(nl.spoonpaco.ninegrid.data.db.ChangeRecord(id = 9, timestamp = 5L, summary = "3 kaarten toegevoegd", undoJson = "{}")),
+            undoParts = listOf(nl.spoonpaco.ninegrid.data.db.UndoPart(9, 0, "x")),
+            settings = mapOf("theme" to "s:dark", "privacy" to "b:true", "share_id" to "s:abc"),
+            deckRules = mapOf("7" to "s:{\"tribe\":\"Vampire\"}"),
+            deckUi = mapOf("collapsed_7" to "set:Land", "sort_7" to "s:mana"),
+        )
+        val back = json.decodeFromString(ser, json.encodeToString(ser, b))
+        assertEquals(b, back)
+        assertEquals(3, back.cardCount)
+        assertEquals(7L, back.entries.single { it.deckId != null }.deckId)
+        assertEquals("Edgar Markov", back.decks.single().name)
+        // Een back-up van vóór 0.9.7 heeft die velden niet: dan zijn ze null en blijft op de telefoon staan wat er stond.
+        val old = json.decodeFromString(ser, """{"app":"NineGrid","version":1,"exportedAt":1,"prints":[],"entries":[],"decks":[{"id":1,"name":"Krenko"}]}""")
+        assertNull(old.friends); assertNull(old.settings); assertNull(old.changes); assertNull(old.wishlist)
+        assertFalse(old.hasSettings)
+        assertEquals("Krenko", old.decks.single().name)
+    }
 }

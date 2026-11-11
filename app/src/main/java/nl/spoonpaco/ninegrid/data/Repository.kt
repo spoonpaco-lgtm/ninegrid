@@ -37,7 +37,27 @@ data class BackupFile(
     val boosters: List<nl.spoonpaco.ninegrid.data.db.Booster>? = null,
     val boosterCards: List<nl.spoonpaco.ninegrid.data.db.BoosterCard>? = null,
     val boosterBoxes: List<nl.spoonpaco.ninegrid.data.db.BoosterBox>? = null,
-)
+    /** Vanaf 0.9.7; null = oudere back-up (dan blijft wat er op de telefoon staat). */
+    val friends: List<nl.spoonpaco.ninegrid.data.db.Friend>? = null,
+    val friendPackages: List<nl.spoonpaco.ninegrid.data.db.FriendPackage>? = null,
+    val friendCards: List<nl.spoonpaco.ninegrid.data.db.FriendCard>? = null,
+    /** Het wijzigingslog, met wat nodig is om wijzigingen ongedaan te maken. */
+    val changes: List<nl.spoonpaco.ninegrid.data.db.ChangeRecord>? = null,
+    val undoParts: List<nl.spoonpaco.ninegrid.data.db.UndoPart>? = null,
+    /** Instellingen (zonder apparaat-gebonden zaken en zonder de AI-sleutel), naam naar "type:waarde". */
+    val settings: Map<String, String>? = null,
+    /** Deckregels per deck-id (JSON), en open/dicht en sortering van de groepen per deck. */
+    val deckRules: Map<String, String>? = null,
+    val deckUi: Map<String, String>? = null,
+) {
+    /** Wat er in deze back-up zit, voor de samenvatting na het maken en vóór het terugzetten. */
+    val cardCount get() = entries.sumOf { it.quantity }
+    val hasFriends get() = friends != null
+    val hasSettings get() = settings != null
+}
+
+/** De delen van een back-up die je los kunt terugzetten. */
+enum class BackupPart { COLLECTION, DECKS, HISTORY, WISHLIST, BOOSTERS, FRIENDS, SETTINGS }
 
 /**
  * Alle wijzigingen aan de collectie lopen via deze klasse. Elke wijziging komt in het wijzigingslog,
@@ -589,35 +609,80 @@ class Repository(
         snapshots = db.snapshots().all(),
         moments = db.moments().all(),
         prices = db.prices().all(),
+        friends = db.friends().allFriends(),
+        friendPackages = db.friends().allPackages(),
+        friendCards = db.friends().allCards(),
+        changes = db.changes().allFull(),
+        undoParts = db.changes().allParts(),
     )
 
     fun backupToJson(b: BackupFile): String = json.encodeToString(BackupFile.serializer(), b)
 
     fun parseBackup(text: String): BackupFile = json.decodeFromString(BackupFile.serializer(), text)
 
-    /** Vervangt alles door de inhoud van een back-up. */
-    suspend fun restoreBackup(b: BackupFile) {
+    /**
+     * Zet een back-up terug: alles (standaard) of alleen de gekozen delen. Wat je niet kiest, en wat een oudere
+     * back-up niet bevat, blijft zoals het op de telefoon is.
+     * Collectie en decks samen houden hun oorspronkelijke nummers, zodat het wijzigingslog uit de back-up blijft kloppen.
+     * Eén van de twee los: die kaarten komen er als nieuwe regels in, en het wijzigingslog wordt leeggemaakt
+     * (ongedaan maken zou anders naar regels wijzen die niet meer bestaan).
+     */
+    suspend fun restoreBackup(b: BackupFile, parts: Set<BackupPart> = BackupPart.entries.toSet()) {
+        val cards = BackupPart.COLLECTION in parts
+        val decks = BackupPart.DECKS in parts
         db.withTransaction {
-            db.entries().deleteAll()
-            db.decks().deleteAll()
-            // Prints van ontvangen collecties blijven: die staan niet in de back-up.
-            db.prints().deleteUnused()
-            db.changes().deleteAll()
-            db.changes().deleteAllParts()
             db.prints().upsert(b.prints)
-            db.decks().upsert(b.decks)
-            db.entries().upsert(b.entries)
-            if (b.snapshots.isNotEmpty()) { db.snapshots().deleteAll(); db.snapshots().upsert(b.snapshots) }
-            if (b.moments.isNotEmpty()) { db.moments().deleteAll(); b.moments.chunked(500).forEach { db.moments().upsert(it) } }
-            if (b.prices.isNotEmpty()) { db.prices().deleteAll(); b.prices.chunked(500).forEach { db.prices().upsert(it) } }
-            b.wishlist?.let { db.wishlist().deleteAll(); db.wishlist().insertAll(it) }
-            if (b.boosters != null) {
+            var logRestored = false
+            when {
+                cards && decks -> {
+                    db.entries().deleteAll()
+                    db.decks().deleteAll()
+                    db.changes().deleteAll()
+                    db.changes().deleteAllParts()
+                    db.decks().upsert(b.decks)
+                    b.entries.chunked(500).forEach { db.entries().upsert(it) }
+                    b.changes?.let { log ->
+                        log.chunked(20).forEach { db.changes().insertAll(it) }
+                        b.undoParts.orEmpty().chunked(20).forEach { db.changes().insertParts(it) }
+                        logRestored = true
+                    }
+                }
+                cards -> {
+                    db.entries().deleteLoose()
+                    db.changes().deleteAll()
+                    db.changes().deleteAllParts()
+                    b.entries.filter { it.deckId == null }.map { it.copy(id = 0) }.chunked(500).forEach { db.entries().insertAll(it) }
+                }
+                decks -> {
+                    db.entries().deleteInDecks()
+                    db.decks().deleteAll()
+                    db.changes().deleteAll()
+                    db.changes().deleteAllParts()
+                    db.decks().upsert(b.decks)
+                    b.entries.filter { it.deckId != null }.map { it.copy(id = 0) }.chunked(500).forEach { db.entries().insertAll(it) }
+                }
+            }
+            if (BackupPart.HISTORY in parts) {
+                if (b.snapshots.isNotEmpty()) { db.snapshots().deleteAll(); db.snapshots().upsert(b.snapshots) }
+                if (b.moments.isNotEmpty()) { db.moments().deleteAll(); b.moments.chunked(500).forEach { db.moments().upsert(it) } }
+                if (b.prices.isNotEmpty()) { db.prices().deleteAll(); b.prices.chunked(500).forEach { db.prices().upsert(it) } }
+            }
+            if (BackupPart.WISHLIST in parts) b.wishlist?.let { db.wishlist().deleteAll(); db.wishlist().insertAll(it) }
+            if (BackupPart.BOOSTERS in parts && b.boosters != null) {
                 db.boosters().deleteAll(); db.boosters().deleteAllCards(); db.boosters().deleteAllBoxes()
                 db.boosters().insertAllBoxes(b.boosterBoxes.orEmpty())
-                // Een terugzet wist het wijzigingslog; de koppeling met een wijziging vervalt dus.
-                db.boosters().insertAllBoosters(b.boosters.map { it.copy(changeId = null) })
+                // Zonder het wijzigingslog uit de back-up vervalt de koppeling met een wijziging.
+                db.boosters().insertAllBoosters(if (logRestored) b.boosters else b.boosters.map { it.copy(changeId = null) })
                 db.boosters().insertCards(b.boosterCards.orEmpty())
             }
+            if (BackupPart.FRIENDS in parts && b.friends != null) {
+                db.friends().deleteAllCards(); db.friends().deleteAllPackages(); db.friends().deleteAllFriends()
+                db.friends().insertFriends(b.friends)
+                db.friends().insertPackages(b.friendPackages.orEmpty())
+                b.friendCards.orEmpty().chunked(500).forEach { db.friends().insertCards(it) }
+            }
+            // Prints die nergens meer bij horen opruimen.
+            db.prints().deleteUnused()
         }
     }
 

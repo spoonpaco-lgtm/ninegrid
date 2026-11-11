@@ -75,6 +75,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.os.LocaleListCompat
 import nl.spoonpaco.ninegrid.BuildConfig
 import nl.spoonpaco.ninegrid.R
+import nl.spoonpaco.ninegrid.data.BackupPart
 import nl.spoonpaco.ninegrid.data.ImageMode
 import nl.spoonpaco.ninegrid.data.UpdateChecker
 import nl.spoonpaco.ninegrid.domain.Export
@@ -166,11 +167,10 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit, onGuide: () -> Unit = {
     androidx.activity.compose.BackHandler(enabled = group != null) { group = null }
     val all by vm.entries.collectAsState()
     val decks by vm.decks.collectAsState()
-    var confirmRestore by remember { mutableStateOf<android.net.Uri?>(null) }
     var wiping by remember { mutableStateOf(false) }
     val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
     val backup = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { it?.let(vm::backupTo) }
-    val restore = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { confirmRestore = it }
+    val restore = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { it?.let(vm::previewRestore) }
     val csv = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) { uri ->
         uri?.let { vm.writeText(it, Export.collectionCsv(all, decks.associate { d -> d.id to d.name })) }
     }
@@ -494,15 +494,48 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit, onGuide: () -> Unit = {
 
     if (wiping) WipeDialog(vm, hasFolder = settings.backupFolder != null, onDismiss = { wiping = false })
 
-    confirmRestore?.let { uri ->
-        AlertDialog(
-            onDismissRequest = { confirmRestore = null },
-            title = { Text(stringResource(R.string.restore)) },
-            text = { Text(stringResource(R.string.restore_warning)) },
-            confirmButton = { TextButton(onClick = { vm.restoreFrom(uri); confirmRestore = null }) { Text(stringResource(R.string.restore)) } },
-            dismissButton = { TextButton(onClick = { confirmRestore = null }) { Text(stringResource(R.string.cancel)) } },
+    vm.restorePreview?.let { b -> RestoreDialog(vm, b) }
+}
+
+/** Terugzetten: eerst wat er in de back-up zit, dan kiezen wat je terugzet (standaard alles). */
+@Composable
+private fun RestoreDialog(vm: AppViewModel, b: nl.spoonpaco.ninegrid.data.BackupFile) {
+    // Alleen wat er echt in deze back-up zit, is te kiezen (een oudere back-up heeft bijv. geen vrienden of instellingen).
+    val present = remember(b) {
+        listOfNotNull(
+            BackupPart.COLLECTION to R.string.restore_part_collection,
+            BackupPart.DECKS to R.string.restore_part_decks,
+            (BackupPart.HISTORY to R.string.restore_part_history).takeIf { b.snapshots.isNotEmpty() || b.prices.isNotEmpty() },
+            (BackupPart.WISHLIST to R.string.restore_part_wishlist).takeIf { b.wishlist != null },
+            (BackupPart.BOOSTERS to R.string.restore_part_boosters).takeIf { b.boosters != null },
+            (BackupPart.FRIENDS to R.string.restore_part_friends).takeIf { b.friends != null },
+            (BackupPart.SETTINGS to R.string.restore_part_settings).takeIf { b.settings != null },
         )
     }
+    var chosen by remember(b) { mutableStateOf(present.map { it.first }.toSet()) }
+    val both = BackupPart.COLLECTION in chosen && BackupPart.DECKS in chosen
+    AlertDialog(
+        onDismissRequest = { vm.restorePreview = null },
+        title = { Text(stringResource(R.string.restore)) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState())) {
+                Text(stringResource(R.string.restore_contains), fontSize = 12.sp, color = LocalNgExtra.current.subtle)
+                Text(vm.backupSummary(b), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                Text(
+                    stringResource(R.string.restore_made_on, nl.spoonpaco.ninegrid.domain.Dates.date(b.exportedAt, vm.settings.collectAsState().value.dateStyle)),
+                    fontSize = 12.sp, color = LocalNgExtra.current.subtle,
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(stringResource(R.string.restore_choose), fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                present.forEach { (part, label) -> CheckRow(label, part in chosen) { on -> chosen = if (on) chosen + part else chosen - part } }
+                Spacer(Modifier.height(6.dp))
+                Text(stringResource(R.string.restore_warning), fontSize = 12.sp)
+                if (!both && (BackupPart.COLLECTION in chosen || BackupPart.DECKS in chosen)) Text(stringResource(R.string.restore_partial_note), fontSize = 12.sp, color = NgColorsError)
+            }
+        },
+        confirmButton = { TextButton(enabled = chosen.isNotEmpty(), onClick = { vm.restoreBackup(chosen) }) { Text(stringResource(R.string.restore)) } },
+        dismissButton = { TextButton(onClick = { vm.restorePreview = null }) { Text(stringResource(R.string.cancel)) } },
+    )
 }
 
 /** De groepen van het instellingenscherm, in deze volgorde. */
