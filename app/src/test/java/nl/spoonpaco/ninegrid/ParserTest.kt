@@ -754,6 +754,23 @@ class ParserTest {
         assertEquals(emptySet<Int>(), nl.spoonpaco.ninegrid.domain.EmptySlots.decide(e, setOf(1, 2, 3, 4, 5)))
     }
 
+    /** Het scanrapport noemt per vak wat gelezen en wat ervan gemaakt is. */
+    @Test
+    fun scanReportListsEverySlot() {
+        val reads = listOf(
+            SlotRead(1, "MH2", "229", "EN", listOf("Fire // Ice", "229/254 M"), "Fire // Ice"),
+            SlotRead(2, null, null, null, listOf("xq"), null, looksEmpty = true),
+        )
+        val meta = nl.spoonpaco.ninegrid.domain.ScanMeta("0.9.8", false, true, 41.2, 0.62f, 3100, 2, 4000, 3000, "Test Toestel")
+        val text = nl.spoonpaco.ninegrid.domain.ScanReport.build(meta, reads, mapOf(1 to "gevonden: Fire // Ice (MH2 229)", 2 to "leeg vak"))
+        assertTrue(text.contains("versie: 0.9.8"))
+        assertTrue(text.contains("vak 1: gevonden: Fire // Ice (MH2 229)"))
+        assertTrue(text.contains("vak 2: leeg vak"))
+        assertTrue(text.contains("set=MH2 nummer=229"))
+        assertTrue(text.contains("> xq"))
+        assertTrue(text.contains("1 van 2"))
+    }
+
     /** De as van de grafiek volgt de waarden: een verandering van een paar euro op duizenden is zichtbaar. */
     @Test
     fun chartAxisFollowsTheValues() {

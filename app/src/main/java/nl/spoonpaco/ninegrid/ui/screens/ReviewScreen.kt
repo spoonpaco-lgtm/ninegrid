@@ -158,6 +158,23 @@ fun ReviewScreen(vm: AppViewModel, onBack: () -> Unit, onSaved: (Long?) -> Unit)
                 }
             }
             if (vm.destination == Destination.COLLECTION) item { BoosterReviewBlock(vm) }
+            // Ontwikkelaar: foto en per vak wat gelezen is, te delen om een scanfout te laten nakijken.
+            if (settings.devScanReport && vm.importSource == ImportSource.SCAN && vm.hasScanReport) item {
+                val context = androidx.compose.ui.platform.LocalContext.current
+                TextButton(onClick = {
+                    val files = vm.writeScanReport(java.io.File(context.cacheDir, "share"))
+                    if (files.isNotEmpty()) {
+                        val uris = ArrayList(files.map { androidx.core.content.FileProvider.getUriForFile(context, context.packageName + ".files", it) })
+                        val send = android.content.Intent(android.content.Intent.ACTION_SEND_MULTIPLE).apply {
+                            type = "*/*"
+                            putParcelableArrayListExtra(android.content.Intent.EXTRA_STREAM, uris)
+                            putExtra(android.content.Intent.EXTRA_SUBJECT, "NineGrid scanrapport")
+                            addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        }
+                        context.startActivity(android.content.Intent.createChooser(send, null))
+                    }
+                }, modifier = Modifier.padding(horizontal = 8.dp)) { Text(stringResource(R.string.scan_share_report)) }
+            }
             if (vm.unreadableLines.isNotEmpty()) item {
                 Text(
                     stringResource(R.string.review_unreadable, vm.unreadableLines.joinToString("\n")),

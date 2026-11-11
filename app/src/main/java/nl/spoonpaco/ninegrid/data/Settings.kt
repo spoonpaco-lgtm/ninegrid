@@ -45,6 +45,8 @@ data class AppSettings(
     val backupAsked: Boolean = false,
     /** Na elke scan tonen hoe lang de herkenning duurde. */
     val showTiming: Boolean = false,
+    /** Ontwikkelaar: knop Scan delen op het controlescherm (foto en per vak wat gelezen is). */
+    val devScanReport: Boolean = true,
     /** Trillen als de foto genomen is. */
     val haptics: Boolean = true,
     /** Sluitergeluid (standaard uit). */
@@ -142,6 +144,7 @@ class SettingsStore(private val context: Context) {
         val scanMode = stringPreferencesKey("scan_mode")
         val backupAsked = booleanPreferencesKey("backup_asked")
         val showTiming = booleanPreferencesKey("show_timing")
+        val devScanReport = booleanPreferencesKey("dev_scan_report")
         val haptics = booleanPreferencesKey("haptics")
         val shutterSound = booleanPreferencesKey("shutter_sound")
         val autoCapture = booleanPreferencesKey("auto_capture")
@@ -235,6 +238,7 @@ class SettingsStore(private val context: Context) {
         backupAsked = this[K.backupAsked] ?: false,
         // Nieuwe installaties: standaard uit. Wie al bezig was (en nooit koos), houdt ze aan zoals voorheen.
         showTiming = this[K.showTiming] ?: (this[K.onboarding] == true),
+        devScanReport = this[K.devScanReport] ?: true,
         haptics = this[K.haptics] ?: true,
         shutterSound = this[K.shutterSound] ?: false,
         autoCapture = this[K.autoCapture] ?: true,
@@ -296,6 +300,7 @@ class SettingsStore(private val context: Context) {
     suspend fun setScanMode(v: String) = context.dataStore.edit { it[K.scanMode] = v }
     suspend fun setBackupAsked(v: Boolean) = context.dataStore.edit { it[K.backupAsked] = v }
     suspend fun setShowTiming(v: Boolean) = context.dataStore.edit { it[K.showTiming] = v }
+    suspend fun setDevScanReport(v: Boolean) = context.dataStore.edit { it[K.devScanReport] = v }
     suspend fun setHaptics(v: Boolean) = context.dataStore.edit { it[K.haptics] = v }
     suspend fun setShutterSound(v: Boolean) = context.dataStore.edit { it[K.shutterSound] = v }
     suspend fun setAutoCapture(v: Boolean) = context.dataStore.edit { it[K.autoCapture] = v }

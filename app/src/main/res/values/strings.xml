@@ -990,4 +990,10 @@
     <string name="set_to_wishlist">Add to wishlist</string>
     <string name="scan_read_hint">%1$d of 9 slots read. Not read: slot %2$s.</string>
     <string name="scan_read_hint_blurry">%1$d of 9 slots read. Not read: slot %2$s. The photo looks blurry; hold still and tap to focus.</string>
+    <string name="set_group_dev">Developer</string>
+    <string name="dev_explain">For finding scan problems. Nothing is sent by itself.</string>
+    <string name="dev_scan_report">Show Share scan on the review screen</string>
+    <string name="dev_scan_report_short">scanrapport</string>
+    <string name="dev_scan_report_explain">After a scan, the button shares the photo and, per slot, what was read and what the app made of it. You choose where it goes.</string>
+    <string name="scan_share_report">Share scan (photo and report)</string>
 </resources>

@@ -432,6 +432,15 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
                 vm.lastReadMs = System.currentTimeMillis() - t0
                 vm.lastRereadSlots = reread
                 val crops = withContext(Dispatchers.Default) { cropsFor(bmp, r, single) }
+                // Ontwikkelaar: onthoud de foto en wat er gelezen is, voor het scanrapport.
+                withContext(Dispatchers.Default) {
+                    runCatching {
+                        vm.recordScan(bmp, r.slots, nl.spoonpaco.ninegrid.domain.ScanMeta(
+                            nl.spoonpaco.ninegrid.BuildConfig.VERSION_NAME, single, fromCamera, sharp, r.coverage, vm.lastReadMs, reread,
+                            bmp.width, bmp.height, android.os.Build.MANUFACTURER + " " + android.os.Build.MODEL,
+                        ))
+                    }
+                }
                 Triple(r, sharp, crops)
             }.onSuccess { (r, sharp, crops) -> handle(r, sharp, fromCamera, crops) }
                 .onFailure { working = false; error = failText }

@@ -29,6 +29,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.Backup
+import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Storage
@@ -292,12 +293,21 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit, onGuide: () -> Unit = {
                     }
                     Text(stringResource(R.string.date_example, nl.spoonpaco.ninegrid.domain.Dates.dateTime(System.currentTimeMillis(), settings.dateStyle)), fontSize = 12.sp, color = LocalNgExtra.current.subtle)
                 }
-                SettingsGroup.SCAN -> {
-                    Text(stringResource(R.string.scanning), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                SettingsGroup.DEV -> {
+                    Text(stringResource(R.string.set_group_dev), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                    Text(stringResource(R.string.dev_explain), fontSize = 12.sp, color = LocalNgExtra.current.subtle)
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(stringResource(R.string.setting_timing), modifier = Modifier.weight(1f))
                         Switch(checked = settings.showTiming, onCheckedChange = { vm.setShowTiming(it) })
                     }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(stringResource(R.string.dev_scan_report), modifier = Modifier.weight(1f))
+                        Switch(checked = settings.devScanReport, onCheckedChange = { vm.setDevScanReport(it) })
+                    }
+                    Text(stringResource(R.string.dev_scan_report_explain), fontSize = 12.sp, color = LocalNgExtra.current.subtle)
+                }
+                SettingsGroup.SCAN -> {
+                    Text(stringResource(R.string.scanning), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(stringResource(R.string.setting_auto), modifier = Modifier.weight(1f))
                         Switch(checked = settings.autoCapture, onCheckedChange = { vm.setAutoCapture(it) })
@@ -546,6 +556,7 @@ enum class SettingsGroup(val title: Int, val icon: androidx.compose.ui.graphics.
     COLLECTION(R.string.set_group_collection, Icons.Filled.Collections, "collection"),
     AI(R.string.set_group_ai, Icons.Filled.AutoAwesome, "settings"),
     BACKUP(R.string.set_group_backup, Icons.Filled.Backup, "backup"),
+    DEV(R.string.set_group_dev, Icons.Filled.BugReport, "settings"),
     WIPE(R.string.wipe_title, Icons.Filled.DeleteForever, "backup"),
     ABOUT(R.string.set_group_about, Icons.Filled.Info, "start"),
 }
@@ -573,6 +584,7 @@ private fun settingsSummary(g: SettingsGroup, vm: AppViewModel, st: nl.spoonpaco
         SettingsGroup.BACKUP -> if (st.backupFolder != null) stringResource(R.string.auto_backup_on, if (st.lastBackup > 0) nl.spoonpaco.ninegrid.domain.Dates.date(st.lastBackup, st.dateStyle) else "–")
             else stringResource(R.string.auto_backup_off)
         SettingsGroup.WIPE -> stringResource(R.string.wipe_summary)
+        SettingsGroup.DEV -> stringResource(R.string.setting_timing_short) + ": " + (if (st.showTiming) on else off) + " · " + stringResource(R.string.dev_scan_report_short) + ": " + (if (st.devScanReport) on else off)
         SettingsGroup.ABOUT -> stringResource(R.string.version_x, BuildConfig.VERSION_NAME + " – " + BuildConfig.CODENAME)
     }
 }

@@ -721,6 +721,45 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun setScanMode(v: String) = viewModelScope.launch { settingsStore.setScanMode(v) }
     fun setBackupAsked() = viewModelScope.launch { settingsStore.setBackupAsked(true) }
     fun setShowTiming(v: Boolean) = viewModelScope.launch { settingsStore.setShowTiming(v) }
+    fun setDevScanReport(v: Boolean) = viewModelScope.launch { settingsStore.setDevScanReport(v) }
+
+    // Ontwikkelaar: de laatste scan, voor het scanrapport.
+    var lastScanReads by mutableStateOf<List<SlotRead>>(emptyList()); private set
+    private var lastScanMeta: nl.spoonpaco.ninegrid.domain.ScanMeta? = null
+    private var lastScanPhoto: ByteArray? = null
+
+    /** Onthoudt de foto (verkleind) en wat er gelezen is, zodat het rapport erna gedeeld kan worden. */
+    fun recordScan(bmp: android.graphics.Bitmap, reads: List<SlotRead>, meta: nl.spoonpaco.ninegrid.domain.ScanMeta) {
+        lastScanReads = reads
+        lastScanMeta = meta
+        lastScanPhoto = runCatching {
+            val maxSide = 2000
+            val f = minOf(1f, maxSide.toFloat() / maxOf(bmp.width, bmp.height))
+            val small = if (f < 1f) android.graphics.Bitmap.createScaledBitmap(bmp, (bmp.width * f).toInt(), (bmp.height * f).toInt(), true) else bmp
+            java.io.ByteArrayOutputStream().also { small.compress(android.graphics.Bitmap.CompressFormat.JPEG, 85, it) }.toByteArray()
+        }.getOrNull()
+    }
+
+    val hasScanReport get() = lastScanMeta != null && lastScanReads.isNotEmpty()
+
+    /** Schrijft rapport en foto naar de deelmap; geeft de bestanden terug. */
+    fun writeScanReport(dir: java.io.File): List<java.io.File> {
+        val meta = lastScanMeta ?: return emptyList()
+        val outcomes = pending.filter { it.slot != null }.associate { it.slot!! to scanOutcome(it) }
+        val stamp = java.text.SimpleDateFormat("yyyyMMdd-HHmmss", java.util.Locale.US).format(java.util.Date())
+        dir.mkdirs()
+        dir.listFiles()?.filter { it.name.startsWith("scanrapport-") }?.forEach { it.delete() }
+        val txt = java.io.File(dir, "scanrapport-$stamp.txt").also { it.writeText(nl.spoonpaco.ninegrid.domain.ScanReport.build(meta, lastScanReads, outcomes)) }
+        val jpg = lastScanPhoto?.let { b -> java.io.File(dir, "scanrapport-$stamp.jpg").also { it.writeBytes(b) } }
+        return listOfNotNull(txt, jpg)
+    }
+
+    private fun scanOutcome(it: PendingItem): String = when {
+        it.empty -> "leeg vak"
+        it.status == ItemStatus.NOT_FOUND -> "niet gevonden (${it.label})"
+        it.print != null -> "gevonden: ${it.print.name} (${it.print.setCode.uppercase()} ${it.print.collectorNumber})" + (if (it.needsCheck) " [controleren]" else "") + (if (it.finish != Finish.NONFOIL) " [${it.finish}]" else "")
+        else -> "${it.status.name.lowercase()} (${it.label})"
+    }
     fun setHaptics(v: Boolean) = viewModelScope.launch { settingsStore.setHaptics(v) }
     fun setShutterSound(v: Boolean) = viewModelScope.launch { settingsStore.setShutterSound(v) }
     fun setAutoCapture(v: Boolean) = viewModelScope.launch { settingsStore.setAutoCapture(v) }
