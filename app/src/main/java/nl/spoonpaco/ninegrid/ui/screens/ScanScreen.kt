@@ -366,6 +366,24 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
     androidx.compose.runtime.LaunchedEffect(torchOn, torch, camera) {
         if (torch && !torchOn && camera != null) { kotlinx.coroutines.delay(400); camera?.cameraControl?.enableTorch(true) }
     }
+    // Lamp wilde niet aan (vaak: batterij bijna leeg of batterijbesparing): melden en het icoon weer uit.
+    var torchTry by remember { mutableStateOf(0) }
+    androidx.compose.runtime.LaunchedEffect(torchTry) {
+        if (torchTry == 0) return@LaunchedEffect
+        kotlinx.coroutines.delay(1500)
+        if (torch && !torchOn) {
+            torch = false
+            runCatching { camera?.cameraControl?.enableTorch(false) }
+            val pct = (context.getSystemService(android.content.Context.BATTERY_SERVICE) as? android.os.BatteryManager)
+                ?.getIntProperty(android.os.BatteryManager.BATTERY_PROPERTY_CAPACITY)?.takeIf { it in 1..100 }
+            val saver = (context.getSystemService(android.content.Context.POWER_SERVICE) as? android.os.PowerManager)?.isPowerSaveMode == true
+            readHint = when {
+                saver -> context.getString(R.string.torch_failed_saver)
+                pct != null && pct <= 20 -> context.getString(R.string.torch_failed_battery, pct)
+                else -> context.getString(R.string.torch_failed)
+            }
+        }
+    }
     var editFields by remember { mutableStateOf(false) }
     /** Korte melding na een bladscan: hoeveel vakken gelezen zijn en welke ontbreken. */
     var readHint by remember { mutableStateOf<String?>(null) }
@@ -731,7 +749,7 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
                 }
                 Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
                     FilledIconButton(
-                        onClick = { torch = !torchOn; camera?.cameraControl?.enableTorch(torch) },
+                        onClick = { torch = !torchOn; camera?.cameraControl?.enableTorch(torch); if (torch) torchTry++ },
                         enabled = permitted && camera?.cameraInfo?.hasFlashUnit() == true, modifier = Modifier.size(46.dp),
                         colors = IconButtonDefaults.filledIconButtonColors(containerColor = Color.White.copy(alpha = 0.18f), contentColor = Color.White),
                     ) { Icon(if (torchOn) Icons.Filled.FlashlightOn else Icons.Filled.FlashlightOff, stringResource(R.string.torch)) }

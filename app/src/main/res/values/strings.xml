@@ -1023,4 +1023,13 @@
     <string name="commander_new_card">This card is new: it is added straight to the deck.</string>
     <string name="commander_apply">Change</string>
     <string name="make_commander">Make commander</string>
+    <string name="wipe_mode_parts">Erase parts</string>
+    <string name="wipe_mode_factory">Everything (factory reset)</string>
+    <string name="wipe_factory_explain">Erases collection, decks, wishlist, boosters, friends, history, change log, images, all settings and the AI key. The app then restarts as if freshly installed.</string>
+    <string name="wipe_keep_offline">Keep the offline card database</string>
+    <string name="wipe_backup_folder_factory">A backup is saved in your backup folder first. Afterwards you can restore it under More → Backup.</string>
+    <string name="wipe_backup_choose_factory">You first choose where the backup goes. Afterwards you can restore it under More → Backup.</string>
+    <string name="torch_failed">The lamp would not turn on. Try again, or check whether your phone blocks it.</string>
+    <string name="torch_failed_battery">The lamp would not turn on. Your battery is at %1$d%%; many phones block the flash when the battery is low.</string>
+    <string name="torch_failed_saver">The lamp would not turn on. Battery saver is on; many phones block the flash then.</string>
 </resources>

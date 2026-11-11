@@ -290,6 +290,21 @@ class SettingsStore(private val context: Context) {
         aiCount = this[K.aiCount] ?: 0,
     )
 
+    /** Fabrieksinstellingen: alle instellingen weg; met [keepOffline] blijft de stand van de offline kaartdatabase staan. */
+    suspend fun resetAll(keepOffline: Boolean) = context.dataStore.edit { p ->
+        val keepStr = listOf(K.offlineDb).map { it to p[it] }
+        val keepLong = listOf(K.offlineDbUpdated).map { it to p[it] }
+        val keepInt = listOf(K.offlineDbCount).map { it to p[it] }
+        val keepBool = listOf(K.offlineDbOffered, K.offlineDbMobile, K.offlineDbMobileAuto).map { it to p[it] }
+        p.clear()
+        if (keepOffline) {
+            keepStr.forEach { (k, v) -> if (v != null) p[k] = v }
+            keepLong.forEach { (k, v) -> if (v != null) p[k] = v }
+            keepInt.forEach { (k, v) -> if (v != null) p[k] = v }
+            keepBool.forEach { (k, v) -> if (v != null) p[k] = v }
+        }
+    }
+
     suspend fun setTheme(v: String) = context.dataStore.edit { it[K.theme] = v }
     suspend fun setCurrency(v: String) = context.dataStore.edit { it[K.currency] = v }
     suspend fun setImageMode(v: String) = context.dataStore.edit { it[K.imageMode] = v }

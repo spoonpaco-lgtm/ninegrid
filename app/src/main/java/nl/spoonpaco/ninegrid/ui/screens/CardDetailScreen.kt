@@ -115,7 +115,7 @@ fun CardDetailScreen(vm: AppViewModel, printId: String, onBack: () -> Unit, onFr
             Modifier.padding(pad).fillMaxSize()
                 .pointerInput(printId) {
                     var dx = 0f
-                    androidx.compose.foundation.gestures.detectHorizontalDragGestures(
+                    detectHorizontalDragGestures(
                         onDragStart = { dx = 0f },
                         onHorizontalDrag = { _, d -> dx += d },
                         onDragEnd = {

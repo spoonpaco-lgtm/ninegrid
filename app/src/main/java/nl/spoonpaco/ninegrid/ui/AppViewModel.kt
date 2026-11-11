@@ -828,6 +828,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
             settingsStore.setLastBackup(System.currentTimeMillis())
         }.isSuccess
         if (!ok) { message = str(R.string.msg_wipe_no_backup); busy = false; return@launch }
+        if (o.factory) { factoryReset(o); return@launch }
         repo.wipe(o, str(R.string.log_wiped))
         if (o.images) images.clearAll()
         clearPending()
@@ -835,6 +836,25 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         messageUndo = !o.changeLog && (o.collection || o.decks)
         busy = false
         snapshot()
+    }
+
+    /** Terug naar een verse installatie en opnieuw starten bij de introductie. De back-up is al gemaakt. */
+    private suspend fun factoryReset(o: nl.spoonpaco.ninegrid.data.Repository.WipeOptions) {
+        val ctx = getApplication<Application>()
+        runCatching { androidx.work.WorkManager.getInstance(ctx).cancelAllWork() }
+        clearPending()
+        repo.clearEverything()
+        listOf("ai_vault", "import_mappings", "deck_rules", "deck_ui", "wish_cheapest").forEach {
+            ctx.getSharedPreferences(it, android.content.Context.MODE_PRIVATE).edit().clear().commit()
+        }
+        if (!o.keepOffline) runCatching { c.offline.delete() }
+        images.clearAll()
+        settingsStore.resetAll(o.keepOffline)
+        busy = false
+        val launch = ctx.packageManager.getLaunchIntentForPackage(ctx.packageName)?.component
+        if (launch != null) ctx.startActivity(android.content.Intent.makeRestartActivityTask(launch))
+        kotlinx.coroutines.delay(300)
+        Runtime.getRuntime().exit(0)
     }
 
     /** Koersverschil: wat dezelfde kaarten nu waard zijn tegenover [days] dagen terug (zonder toegevoegde of weggedane kaarten). */

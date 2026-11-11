@@ -493,7 +493,7 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit, onGuide: () -> Unit = {
                 SettingsGroup.WIPE -> {
                     Text(stringResource(R.string.wipe_title), fontWeight = FontWeight.Bold, color = NgColorsError)
                     Text(stringResource(R.string.wipe_explain), fontSize = 12.sp, color = LocalNgExtra.current.subtle)
-                    OutlinedButton(onClick = { wiping = true }) { Text(stringResource(R.string.wipe_button), color = NgColorsError) }
+                    OutlinedButton(onClick = { gated(gateSettings) { wiping = true } }) { Text(stringResource(R.string.wipe_button), color = NgColorsError) }
                 }
                 SettingsGroup.ABOUT -> {
                     Text("NineGrid ${BuildConfig.VERSION_NAME} – ${BuildConfig.CODENAME}", fontWeight = FontWeight.Bold)
@@ -728,9 +728,12 @@ private fun WipeDialog(vm: AppViewModel, hasFolder: Boolean, onDismiss: () -> Un
     var history by remember { mutableStateOf(false) }
     var changeLog by remember { mutableStateOf(false) }
     var images by remember { mutableStateOf(false) }
+    var factory by remember { mutableStateOf(false) }
+    var keepOffline by remember { mutableStateOf(false) }
     var typed by remember { mutableStateOf("") }
     val word = stringResource(R.string.wipe_word)
-    val options = nl.spoonpaco.ninegrid.data.Repository.WipeOptions(collection, decks, history, changeLog, images)
+    val options = if (factory) nl.spoonpaco.ninegrid.data.Repository.WipeOptions(true, true, true, true, true, factory = true, keepOffline = keepOffline)
+    else nl.spoonpaco.ninegrid.data.Repository.WipeOptions(collection, decks, history, changeLog, images)
     val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
     // Geen back-upmap? Dan eerst zelf een plek kiezen voor de back-up.
     val saveBackup = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
@@ -741,21 +744,33 @@ private fun WipeDialog(vm: AppViewModel, hasFolder: Boolean, onDismiss: () -> Un
         title = { Text(stringResource(R.string.wipe_title)) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState())) {
-                CheckRow(R.string.wipe_collection, collection) { collection = it }
-                CheckRow(R.string.wipe_decks, decks) { decks = it }
-                CheckRow(R.string.wipe_history, history) { history = it }
-                CheckRow(R.string.wipe_changelog, changeLog) { changeLog = it }
-                CheckRow(R.string.wipe_images, images) { images = it }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    androidx.compose.material3.RadioButton(selected = !factory, onClick = { factory = false }); Text(stringResource(R.string.wipe_mode_parts))
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    androidx.compose.material3.RadioButton(selected = factory, onClick = { factory = true }); Text(stringResource(R.string.wipe_mode_factory))
+                }
+                Spacer(Modifier.height(4.dp))
+                if (factory) {
+                    Text(stringResource(R.string.wipe_factory_explain), fontSize = 12.sp)
+                    CheckRow(R.string.wipe_keep_offline, keepOffline) { keepOffline = it }
+                } else {
+                    CheckRow(R.string.wipe_collection, collection) { collection = it }
+                    CheckRow(R.string.wipe_decks, decks) { decks = it }
+                    CheckRow(R.string.wipe_history, history) { history = it }
+                    CheckRow(R.string.wipe_changelog, changeLog) { changeLog = it }
+                    CheckRow(R.string.wipe_images, images) { images = it }
+                }
                 Spacer(Modifier.height(6.dp))
-                Text(stringResource(if (hasFolder) R.string.wipe_backup_folder else R.string.wipe_backup_choose), fontSize = 12.sp)
-                if (changeLog && (collection || decks)) Text(stringResource(R.string.wipe_no_undo), fontSize = 12.sp, color = NgColorsError)
+                Text(stringResource(if (factory) (if (hasFolder) R.string.wipe_backup_folder_factory else R.string.wipe_backup_choose_factory) else if (hasFolder) R.string.wipe_backup_folder else R.string.wipe_backup_choose), fontSize = 12.sp)
+                if (!factory && changeLog && (collection || decks)) Text(stringResource(R.string.wipe_no_undo), fontSize = 12.sp, color = NgColorsError)
                 Spacer(Modifier.height(8.dp))
                 androidx.compose.material3.OutlinedTextField(typed, { typed = it }, singleLine = true, label = { Text(stringResource(R.string.wipe_type, word)) })
             }
         },
         confirmButton = {
             TextButton(
-                enabled = typed.trim().equals(word, ignoreCase = true) && (collection || decks || history || changeLog || images),
+                enabled = typed.trim().equals(word, ignoreCase = true) && (factory || collection || decks || history || changeLog || images),
                 onClick = { if (hasFolder) { vm.wipe(options, null); onDismiss() } else saveBackup.launch("ninegrid-backup-voor-wissen-$today.json") },
             ) { Text(stringResource(R.string.wipe_button), color = NgColorsError) }
         },

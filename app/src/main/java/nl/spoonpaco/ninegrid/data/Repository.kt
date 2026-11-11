@@ -749,7 +749,16 @@ class Repository(
     }
 
     /** Wat je kunt wissen. */
-    data class WipeOptions(val collection: Boolean, val decks: Boolean, val history: Boolean, val changeLog: Boolean, val images: Boolean)
+    data class WipeOptions(
+        val collection: Boolean, val decks: Boolean, val history: Boolean, val changeLog: Boolean, val images: Boolean,
+        /** Fabrieksinstellingen: ook verlanglijst, boosters, vrienden, instellingen enzovoort. */
+        val factory: Boolean = false,
+        /** Bij fabrieksinstellingen: de offline kaartdatabase bewaren. */
+        val keepOffline: Boolean = false,
+    )
+
+    /** Alle tabellen leeg (collectie, decks, verlanglijst, boosters, vrienden, historie, log). Niet ongedaan te maken; de back-up is er al. */
+    suspend fun clearEverything() = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { db.clearAllTables() }
 
     /**
      * Wist (een deel van) alles. Collectie en decks komen als één wijziging in het log, zodat je het

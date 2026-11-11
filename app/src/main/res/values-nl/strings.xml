@@ -1022,4 +1022,13 @@
     <string name="commander_new_card">Deze kaart is nieuw: hij komt direct in het deck.</string>
     <string name="commander_apply">Wijzigen</string>
     <string name="make_commander">Maak commander</string>
+    <string name="wipe_mode_parts">Delen wissen</string>
+    <string name="wipe_mode_factory">Alles (fabrieksinstellingen)</string>
+    <string name="wipe_factory_explain">Wist collectie, decks, verlanglijst, boosters, vrienden, historie, wijzigingslog, plaatjes, alle instellingen en de AI-sleutel. Daarna start de app opnieuw alsof hij net is geïnstalleerd.</string>
+    <string name="wipe_keep_offline">Offline kaartdatabase bewaren</string>
+    <string name="wipe_backup_folder_factory">Eerst komt er een back-up in je back-upmap. Daarna kun je die terugzetten via Meer → Back-up.</string>
+    <string name="wipe_backup_choose_factory">Je kiest eerst waar de back-up komt. Daarna kun je die terugzetten via Meer → Back-up.</string>
+    <string name="torch_failed">De lamp ging niet aan. Probeer het nog eens of kijk of je telefoon hem blokkeert.</string>
+    <string name="torch_failed_battery">De lamp ging niet aan. Je batterij zit op %1$d%%; veel telefoons blokkeren de flits bij een lage batterij.</string>
+    <string name="torch_failed_saver">De lamp ging niet aan. Batterijbesparing staat aan; veel telefoons blokkeren dan de flits.</string>
 </resources>
