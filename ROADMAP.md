@@ -59,21 +59,25 @@ Gebouwd en getest met unittests; dit kan alleen op een echte telefoon gecontrole
 
 | Versie | Naam | Inhoud |
 |---|---|---|
-| 0.9.8 | nog kiezen (voorstel: Kaito) | Nieuwe features: 2, 3, 4, 8, 16, 19 (eventueel 3 en 8 naar 0.9.9) |
+| 0.9.8 | nog kiezen (voorstel: Kaito) | 27 Ontwikkelaar-menu met scanrapport, 26 vegen, 16 NIEUW, 19 commander wijzigen, 2 fabrieksinstellingen |
+| 0.9.9 | nog kiezen | 4 scannen naar een deck (pas als de bladscan weer goed leest) |
+| 0.9.10 | nog kiezen | 8 print kiezen, in twee stappen: eerst 8a–e (printlijst), daarna 8f–l (exemplaren wijzigen en splitsen) |
+| 0.9.11 | nog kiezen | 3 exporteren (sites nog te kiezen; eerst de actuele importformaten nakijken) |
 | 1.0 | — | Fase 2 |
 
 De nummers hieronder zijn die van de lijst zoals Mick ze kent.
 
-## 0.9.8 – Nieuwe features
+## Nieuwe features (zie Versieplan voor de volgorde)
 
 2. Fabrieksinstellingen (Instellingen → Wissen):
-   a. Eigen rode knop "Alles wissen (fabrieksinstellingen)", onder het bestaande Wissen
+   a. Geen tweede knop naast Wissen, maar in Wissen een keuze: alleen collectie, of alles (fabrieksinstellingen); rode knop
    b. Wist alles: collectie, decks, verlanglijst en prijsalarmen, boosters, gedeelde collecties van vrienden, historie, wijzigingslog, alle instellingen, AI-sleutel, deckregels, wachtende scans, offline kaartdatabase en afbeeldingencache
    c. Daarna start de app opnieuw met de introductie, zoals na een eerste installatie
    d. Eerst een back-up maken, net als bij Wissen (standaard aan); ongedaan maken kan hierna niet
    e. Bevestigen door WISSEN te typen; met privacymodus aan ook vingerafdruk
    f. Vinkje "Kaartdatabase bewaren" (standaard uit), zodat je schoon begint zonder opnieuw te downloaden
-3. Exporteren naar andere sites en apps:
+   g. In de introductie na het wissen ook "Terugzetten uit back-up"
+3. Exporteren naar andere sites en apps (eigen versie 0.9.11; begin met de twee of drie sites die Mick echt gebruikt):
    a. Decks: ⋮ → Exporteren met keuze Moxfield, Archidekt, MTG Arena, Deckbox, ManaBox, TCGplayer, Cardmarket (wants-lijst) of Tekst (zoals nu); elk in het formaat dat die site het best leest (Commander/Sideboard goed gelabeld, foil/etched zoals de site verwacht, Arena zonder onbekende setnummers)
    b. Kopiëren + site openen: lijst naar het klembord en de importpagina van die site opent; delen en opslaan als bestand blijven
    c. Collectie: Meer → Exporteren als CSV in het eigen formaat van Moxfield, Archidekt, Deckbox, ManaBox of TCGplayer (juiste kolommen, conditie voluit zoals "Near Mint", taal voluit, foil/etched in eigen kolom), zodat uploaden zonder kolommen koppelen werkt
@@ -108,6 +112,7 @@ De nummers hieronder zijn die van de lijst zoals Mick ze kent.
    c. Filter "Nieuw" en sortering "Nieuwste eerst"
    d. Wel nieuw: scannen, handmatig toevoegen, een lijst of Sheet importeren, en een extra exemplaar van een kaart die je al had (alleen dat exemplaar krijgt het label)
    e. Niet nieuw: een kaart van de collectie naar een deck verplaatsen (of terug), en een back-up terugzetten
+   f. Knop "Alles gezien" haalt het label meteen weg
 19. Commander wijzigen in een Commander-deck:
    a. In het deck: ⋮ → "Commander wijzigen", en op het kaartscherm van een kaart in het deck "Maak commander"
    b. Nieuwe commander kiezen uit de kaarten in het deck, uit je collectie of via zoeken/scannen; alleen kaarten die commander mogen zijn
@@ -121,6 +126,11 @@ De nummers hieronder zijn die van de lijst zoals Mick ze kent.
    b. Volgorde = de lijst waaruit je kwam: collectie of Alle kaarten (met filter en sortering), setscherm (binnen Ontbreekt of Heb ik), deck, verlanglijst, vriend; bij zoeken en scannen geen lijst, dus geen vegen
    c. Boven in beeld de plek, bijvoorbeeld "12 van 280"; aan begin of einde gebeurt niets
    d. Past op bestaande horizontale gebaren op het kaartscherm (afbeelding, printlijst); testen op de telefoon
+
+27. Ontwikkelaar-menu (nieuw, 0.9.8):
+   a. Onderaan Instellingen een onderdeel "Ontwikkelaar"; de bestaande instelling "Duur van de herkenning tonen" verhuist erheen
+   b. Scanrapport: na een scan (op het controlescherm) een knop "Scan delen" met de foto en per vak wat gelezen is (setcode, nummer, taal, naam, losse regels, leeg ja/nee, welke leesronde), zodat fouten zonder rondvragen te vinden zijn
+   c. Delen via het deelmenu van Android; geen automatisch versturen
 
 ## Fase 2 (wacht op startsein) → wordt 1.0
 - Sheet-koppeling (deel 2 punt 2, optie A: nieuwe Sheet via drive.file; Google Cloud-project + privacypagina nodig)
