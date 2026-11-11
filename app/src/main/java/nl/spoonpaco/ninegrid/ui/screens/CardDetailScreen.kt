@@ -41,6 +41,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -80,7 +81,7 @@ val LANGUAGES = listOf("", "DE", "FR", "IT", "ES", "PT", "JP", "KO", "RU", "CN",
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CardDetailScreen(vm: AppViewModel, printId: String, onBack: () -> Unit, onFriend: (String) -> Unit = {}, onBinder: (String, Int?, Int?) -> Unit = { _, _, _ -> }) {
+fun CardDetailScreen(vm: AppViewModel, printId: String, onBack: () -> Unit, onFriend: (String) -> Unit = {}, onBinder: (String, Int?, Int?) -> Unit = { _, _, _ -> }, onSwipe: (String) -> Unit = {}) {
     val settings by vm.settings.collectAsState()
     val print by vm.repo.print(printId).collectAsState(initial = null)
     val copies by vm.repo.entriesForPrint(printId).collectAsState(initial = emptyList())
@@ -94,13 +95,36 @@ fun CardDetailScreen(vm: AppViewModel, printId: String, onBack: () -> Unit, onFr
 
     Scaffold(topBar = {
         TopAppBar(
-            title = { Text(print?.name ?: "", maxLines = 1) },
+            title = {
+                Column {
+                    Text(print?.name ?: "", maxLines = 1)
+                    // Komt het kaartscherm uit een lijst, dan zie je waar je bent; vegen gaat naar de volgende of vorige kaart.
+                    vm.cardPosition(printId)?.let { (i, n) -> Text(stringResource(R.string.card_position, i, n), fontSize = 12.sp, color = LocalNgExtra.current.subtle) }
+                }
+            },
             navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) } },
             actions = { nl.spoonpaco.ninegrid.ui.guide.HelpButton("collection") },
         )
     }) { pad ->
         val p = print
-        Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        val swipePx = with(androidx.compose.ui.platform.LocalDensity.current) { 72.dp.toPx() }
+        Column(
+            Modifier.padding(pad).fillMaxSize()
+                .pointerInput(printId) {
+                    var dx = 0f
+                    androidx.compose.foundation.gestures.detectHorizontalDragGestures(
+                        onDragStart = { dx = 0f },
+                        onHorizontalDrag = { _, d -> dx += d },
+                        onDragEnd = {
+                            // Naar links = volgende kaart, naar rechts = vorige. Aan het begin of einde van de lijst gebeurt niets.
+                            val target = when { dx <= -swipePx -> vm.cardNeighbour(printId, +1); dx >= swipePx -> vm.cardNeighbour(printId, -1); else -> null }
+                            target?.let(onSwipe)
+                        },
+                    )
+                }
+                .verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
             if (p == null) return@Column
             // De kaart groot bovenaan; foils met een duidelijke glans. Tik = volledig scherm.
             val shiny = copies.any { it.entry.finish != Finish.NONFOIL }

@@ -102,6 +102,8 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
     }
     LaunchedEffect(Unit) { vm.checkUpdate(manual = false); vm.checkWhatsNew() }
     nl.spoonpaco.ninegrid.ui.screens.BoosterResultDialog(vm)
+    // De veeglijst hoort bij het scherm waar je de kaart opende: ben je op een ander scherm, dan is hij niet meer geldig.
+    LaunchedEffect(route) { if (route != null && !route.startsWith("card/")) vm.clearCardList() }
     LaunchedEffect(vm.openCardRequest) { vm.openCardRequest?.let { id -> vm.openCardRequest = null; nav.navigate("card/$id") } }
     LaunchedEffect(vm.openShare) { if (vm.openShare) { vm.openShare = false; nav.navigate("share") } }
     LaunchedEffect(vm.openImport) { if (vm.openImport) { vm.openImport = false; nav.navigate("import") } }
@@ -222,6 +224,8 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
                     vm, it.arguments?.getString("printId") ?: "", onBack = { nav.popBackStack() },
                     onFriend = { id -> nav.navigate("friend/$id") },
                     onBinder = { b, pg, sl -> nav.navigate("binder/" + android.net.Uri.encode(b) + "?page=${pg ?: -1}&slot=${sl ?: -1}") },
+                    // Vegen vervangt het kaartscherm, zodat Terug naar de lijst gaat en niet langs alle kaarten.
+                    onSwipe = { id -> vm.openCardId(id) { nav.navigate("card/$it") { popUpTo("card/{printId}") { inclusive = true } } } },
                 )
             }
             composable("deck/{deckId}", arguments = listOf(navArgument("deckId") { type = NavType.LongType })) {

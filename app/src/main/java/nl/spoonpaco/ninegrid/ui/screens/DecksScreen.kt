@@ -393,6 +393,8 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
                     visible.filter { it.entry.section == Section.SIDEBOARD }.takeIf { it.isNotEmpty() }?.let { add("sideboard" to it) }
                 }
                 if (groups.isEmpty() && q.isNotEmpty()) item { Text(stringResource(R.string.sugg_none), color = extra.subtle, modifier = Modifier.padding(16.dp)) }
+                // Het kaartscherm veegt door de kaarten in de volgorde van dit scherm (gesloten groepen tellen niet mee).
+                val deckPrintIds = groups.filter { q.isNotEmpty() || it.first !in collapsed }.flatMap { (_, part) -> sorted(part) }.mapNotNull { it.print?.id }
                 groups.forEach { (g, part) ->
                     // Bij zoeken staan alle groepen open.
                     val closed = q.isEmpty() && g in collapsed
@@ -410,7 +412,7 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
                         }
                     }
                     if (!closed) items(sorted(part), key = { it.entry.id }) { e ->
-                        nl.spoonpaco.ninegrid.ui.components.DeckCardRow(e.entry, e.print, settings, vm.images) { e.print?.let { onCard(it.id) } }
+                        nl.spoonpaco.ninegrid.ui.components.DeckCardRow(e.entry, e.print, settings, vm.images) { e.print?.let { vm.setCardList(deckPrintIds); onCard(it.id) } }
                     }
                 }
             }

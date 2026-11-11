@@ -851,6 +851,7 @@ class Repository(
 
     /** Een kaart uit Alle kaarten bekijken: de print moet bekend zijn voor het kaartscherm. */
     suspend fun rememberPrint(p: CardPrint) = db.prints().upsert(listOf(p))
+    suspend fun hasPrint(id: String) = db.prints().get(id) != null
 
     // ---------- Collecties van anderen ----------
     val friends get() = db.friends().observeFriends()

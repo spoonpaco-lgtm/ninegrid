@@ -1349,6 +1349,20 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /** Een kaart uit een setlijst openen in het kaartscherm (eerst opzoeken en bewaren, want je hebt hem nog niet). */
+    // ---------- Vegen op het kaartscherm ----------
+    /** De lijst waaruit het kaartscherm is geopend (printId's in de volgorde van die lijst). Leeg = geen vegen. */
+    var cardList: List<String> = emptyList(); private set
+    fun setCardList(ids: List<String>) { cardList = ids.distinct() }
+    fun clearCardList() { cardList = emptyList() }
+    /** De kaart links (dir -1) of rechts (dir +1) van [current] in de lijst, of null aan het begin of einde. */
+    fun cardNeighbour(current: String, dir: Int): String? = cardList.indexOf(current).takeIf { it >= 0 }?.let { cardList.getOrNull(it + dir) }
+    /** Plek in de lijst (1-gebaseerd) en lengte, of null als vegen niet kan. */
+    fun cardPosition(current: String): Pair<Int, Int>? = cardList.indexOf(current).takeIf { it >= 0 && cardList.size > 1 }?.let { (it + 1) to cardList.size }
+    /** Zorgt dat de print bekend is (kaarten uit een setlijst zitten er nog niet in) en gaat dan verder. */
+    fun openCardId(id: String, then: (String) -> Unit) = viewModelScope.launch {
+        if (repo.hasPrint(id)) then(id) else openSetCard(id, then)
+    }
+
     fun openSetCard(id: String, then: (String) -> Unit) = viewModelScope.launch {
         runCatching { repo.scryfall.cardById(id) }.onSuccess { card ->
             if (card != null) { repo.rememberPrint(card.toPrint()); then(card.id) }

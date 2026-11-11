@@ -205,6 +205,7 @@ fun SetScreen(vm: AppViewModel, code: String, onBack: () -> Unit, onReview: () -
                         onOpen = {
                             // Heb je hem: het kaartscherm van je eigen print. Anders eerst opzoeken.
                             val own = mine.firstOrNull()?.print?.id
+                            vm.setCardList(shown.map { m -> byNumber[m.number.lowercase()].orEmpty().firstOrNull()?.print?.id ?: m.id })
                             if (own != null) onCard(own) else vm.openSetCard(c.id, onCard)
                         },
                         onWish = { vm.wishSetCard(c.id) },

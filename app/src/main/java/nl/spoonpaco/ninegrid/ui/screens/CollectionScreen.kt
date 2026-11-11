@@ -154,6 +154,10 @@ fun CollectionScreen(
             else -> emptyList()
         }
     }
+    // De kaarten in de volgorde zoals ze op het scherm staan: het kaartscherm veegt daarbinnen.
+    val listedPrintIds = remember(groups, sortedFlat) {
+        (if (groups.isNotEmpty()) groups.flatMap { it.cards } else sortedFlat).mapNotNull { it.print?.id }
+    }
     // Samen: bij "elke print" de goedkoopste print, kaarten zonder prijs tellen niet mee.
     val wishValue = wishes.sumOf { w -> (w.item.wanted - w.item.got).coerceAtLeast(0) * (vm.wishUnitPrice(w, settings.currency) ?: 0.0) }
 
@@ -249,12 +253,12 @@ fun CollectionScreen(
                                         } else SectionHeader(title, detail)
                                     }
                                     items(g.cards, key = { it.entry.id }) { e ->
-                                        CardRow(e.entry, e.print, settings, vm.images, location = locationText(e.entry, deckNames)) { e.print?.let { onCard(it.id) } }
+                                        CardRow(e.entry, e.print, settings, vm.images, location = locationText(e.entry, deckNames)) { e.print?.let { vm.setCardList(listedPrintIds); onCard(it.id) } }
                                     }
                                 }
                             } else {
                                 items(sortedFlat, key = { it.entry.id }) { e ->
-                                    CardRow(e.entry, e.print, settings, vm.images, location = locationText(e.entry, deckNames)) { e.print?.let { onCard(it.id) } }
+                                    CardRow(e.entry, e.print, settings, vm.images, location = locationText(e.entry, deckNames)) { e.print?.let { vm.setCardList(listedPrintIds); onCard(it.id) } }
                                 }
                             }
                         }
@@ -320,7 +324,7 @@ private fun AllCardsPanel(vm: AppViewModel, query: String, onQuery: (String) -> 
                     if (loose > 0) stringResource(R.string.tag_in_collection, loose) else null,
                     inDecks.takeIf { it.isNotEmpty() }?.let { stringResource(R.string.in_deck, it.joinToString(", ")) },
                 ).joinToString(" · ").ifBlank { null }
-                CardRow(nl.spoonpaco.ninegrid.data.db.Entry(printId = p.id), p, settings, vm.images, tag = tag) { vm.openPrint(p, query, onCard) }
+                CardRow(nl.spoonpaco.ninegrid.data.db.Entry(printId = p.id), p, settings, vm.images, tag = tag) { vm.setCardList(shown.map { it.id }); vm.openPrint(p, query, onCard) }
             }
             if (vm.allHasMore) item {
                 TextButton(onClick = { vm.moreAll(query, filter) }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.load_more)) }
@@ -438,7 +442,7 @@ private fun WishlistPanel(vm: AppViewModel, onCard: (String) -> Unit, onPaste: (
                 else -> nl.spoonpaco.ninegrid.ui.components.money(unitPrice, settings.currency)
             }
             val p = w.print
-            WishRow(vm, w, unitPrice, priceText, onOpen = { if (p != null) vm.openPrint(p, then = onCard) else edit = w }, onEdit = { edit = w }, onBought = { vm.boughtWish(w) }, onFriend = onFriend)
+            WishRow(vm, w, unitPrice, priceText, onOpen = { if (p != null) { vm.setCardList(shownWishes.mapNotNull { it.print?.id }); vm.openPrint(p, then = onCard) } else edit = w }, onEdit = { edit = w }, onBought = { vm.boughtWish(w) }, onFriend = onFriend)
         }
         item { Text(stringResource(R.string.wish_alarm_note), fontSize = 11.sp, color = extra.subtle, modifier = Modifier.padding(16.dp)) }
     }
