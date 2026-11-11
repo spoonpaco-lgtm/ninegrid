@@ -46,7 +46,7 @@ Gebouwd en getest met unittests; dit kan alleen op een echte telefoon gecontrole
 ### 0.9.7.1 – nog open na de reparatie
 
 - **Bladscan leest minder dan in 0.9.6** bij een heel blad in beeld: oorzaak nog niet zeker. Verdachten uit 0.9.7: onderste strook 3× vergroot, contrastpoging, gedeelde tekstherkenner. Nodig: een voorbeeldfoto van zo'n blad met de vakken die ontbreken. Als de 0.9.7.1-reparatie niet genoeg blijkt, die punten terugdraaien naar 0.9.6.
-- **Lamp (zaklamp-knop) gaat niet aan**: het icoon verandert wel, maar de lamp brandt niet. Code is sinds 0.9.6 niet veranderd. Mick: laat maar. Opties als hij het weer wil: zaklampfunctie van Android zelf (CameraManager.setTorchMode), of flits als vaste stand bij de foto.
+- **Lamp (zaklamp-knop)**: oorzaak gevonden door Mick: batterij te laag (de telefoon laat de lamp dan niet branden). Het icoon veranderde wel. De code is dus niet stuk; er komt een melding, zie punt 30.
 
 ### Wat anders uitpakte dan op de lijst stond
 
@@ -59,7 +59,7 @@ Gebouwd en getest met unittests; dit kan alleen op een echte telefoon gecontrole
 
 | Versie | Naam | Inhoud |
 |---|---|---|
-| 0.9.8 | nog kiezen (voorstel: Kaito) | 27 Ontwikkelaar-menu met scanrapport, 26 vegen, 16 NIEUW, 19 commander wijzigen, 2 fabrieksinstellingen |
+| 0.9.8 | nog kiezen (voorstel: Kaito) | 27 Ontwikkelaar-menu met scanrapport, 26 vegen, 16 NIEUW, 19 commander wijzigen, 2 fabrieksinstellingen, 30 melding bij lamp die niet aangaat |
 | 0.9.8.1 | nog kiezen (patchnaam) | 29 Vormgeving gelijk trekken (alleen opmaak, geen nieuwe functies) |
 | 0.9.9 | nog kiezen | 4 scannen naar een deck (pas als de bladscan weer goed leest), 28 deckimport: één keuze voor uit de collectie halen |
 | 0.9.10 | nog kiezen | 8 print kiezen, in twee stappen: eerst 8a–e (printlijst), daarna 8f–l (exemplaren wijzigen en splitsen) |
@@ -147,6 +147,13 @@ De nummers hieronder zijn die van de lijst zoals Mick ze kent.
    d. Niet aanpassen: bladweergave en scanner (eigen maten door de rasters)
    e. Alleen opmaak; testen met een testbuild die Mick op zijn telefoon bekijkt, per scherm, vóór de release
    f. Het controle- en deckimportscherm (28) wordt in 0.9.9 al in de nieuwe stijl gebouwd
+
+30. Melding als de lamp niet aangaat (nieuw, 0.9.8; oorzaak bij Mick was een lage batterij):
+   a. Gaat de lamp na tikken niet aan (de camera meldt geen "aan", of enableTorch faalt), dan een korte melding in plaats van stil niets doen
+   b. Is de batterij laag of staat batterijbesparing aan, dan zegt de melding dat: bijvoorbeeld "De lamp gaat niet aan: batterij 8%. De telefoon blokkeert de lamp bij een lage batterij." Anders een algemene melding ("De lamp kon niet aan; sluit andere apps die de camera gebruiken")
+   c. Het icoon springt terug naar uit als de lamp niet aan wil
+   d. Bij het openen van de scanner met lage batterij kan de knop alvast een waarschuwingskleur krijgen (nog te beslissen)
+   e. De drempel per telefoon verschilt en is niet op te vragen; de melding rekent daarom op wat de camera meldt, niet op een vast percentage
 
 ## Fase 2 (wacht op startsein) → wordt 1.0
 - Sheet-koppeling (deel 2 punt 2, optie A: nieuwe Sheet via drive.file; Google Cloud-project + privacypagina nodig)
