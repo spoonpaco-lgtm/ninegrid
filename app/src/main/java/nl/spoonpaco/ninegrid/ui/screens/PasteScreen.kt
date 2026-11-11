@@ -1,5 +1,6 @@
 package nl.spoonpaco.ninegrid.ui.screens
 
+import nl.spoonpaco.ninegrid.ui.theme.NgText
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -46,7 +47,7 @@ fun PasteScreen(vm: AppViewModel, intoDeck: Long?, asNewDeck: Boolean, onBack: (
         )
     }) { pad ->
         Column(Modifier.padding(pad).padding(16.dp).fillMaxSize()) {
-            Text(stringResource(R.string.paste_explain), fontSize = 13.sp, color = LocalNgExtra.current.subtle)
+            Text(stringResource(R.string.paste_explain), fontSize = NgText.body, color = LocalNgExtra.current.subtle)
             Spacer(Modifier.height(8.dp))
             OutlinedTextField(
                 value = text, onValueChange = { text = it },

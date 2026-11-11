@@ -2,6 +2,7 @@
 
 package nl.spoonpaco.ninegrid.ui.screens
 
+import nl.spoonpaco.ninegrid.ui.theme.NgText
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatDelegate
@@ -102,8 +103,8 @@ fun MoreScreen(onPaste: () -> Unit, onChanges: () -> Unit, onSettings: () -> Uni
                     Icon(Icons.AutoMirrored.Filled.MenuBook, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(36.dp))
                     Spacer(Modifier.width(14.dp))
                     Column(Modifier.weight(1f)) {
-                        Text(stringResource(R.string.guide_card_title), fontWeight = FontWeight.Bold, fontSize = 17.sp)
-                        Text(stringResource(R.string.guide_card_sub), fontSize = 13.sp)
+                        Text(stringResource(R.string.guide_card_title), fontWeight = FontWeight.Bold, fontSize = NgText.heading)
+                        Text(stringResource(R.string.guide_card_sub), fontSize = NgText.body)
                     }
                 }
             }
@@ -143,7 +144,7 @@ fun ChangeLogScreen(vm: AppViewModel, onBack: () -> Unit) {
                 Icon(Icons.AutoMirrored.Filled.Undo, null); Spacer(Modifier.size(6.dp))
                 Text(stringResource(R.string.undo_latest))
             }
-            Text(stringResource(R.string.undo_explain), fontSize = 12.sp, color = LocalNgExtra.current.subtle, modifier = Modifier.padding(horizontal = 16.dp))
+            Text(stringResource(R.string.undo_explain), fontSize = NgText.body, color = LocalNgExtra.current.subtle, modifier = Modifier.padding(horizontal = 16.dp))
             LazyColumn {
                 items(changes, key = { it.id }) { ch ->
                     ListItem(
@@ -203,7 +204,7 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit, onGuide: () -> Unit = {
                     ListItem(
                         leadingContent = { Icon(g.icon, null, tint = if (red) NgColorsError else MaterialTheme.colorScheme.primary) },
                         headlineContent = { Text(stringResource(g.title), fontWeight = FontWeight.SemiBold, color = if (red) NgColorsError else androidx.compose.ui.graphics.Color.Unspecified) },
-                        supportingContent = { Text(settingsSummary(g, vm, settings, currentLang), fontSize = 12.sp, maxLines = 2) },
+                        supportingContent = { Text(settingsSummary(g, vm, settings, currentLang), fontSize = NgText.body, maxLines = 2) },
                         trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null) },
                         modifier = Modifier.clickableRow { group = g },
                     )
@@ -236,11 +237,11 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit, onGuide: () -> Unit = {
                             ) { vm.setAccent(a) }
                         }
                     }
-                    Text(stringResource(R.string.accent_explain), fontSize = 12.sp, color = nl.spoonpaco.ninegrid.ui.theme.LocalNgExtra.current.subtle)
+                    Text(stringResource(R.string.accent_explain), fontSize = NgText.body, color = nl.spoonpaco.ninegrid.ui.theme.LocalNgExtra.current.subtle)
                     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
                         Column(Modifier.weight(1f)) {
                             Text(stringResource(R.string.effects))
-                            Text(stringResource(R.string.effects_explain), fontSize = 12.sp, color = nl.spoonpaco.ninegrid.ui.theme.LocalNgExtra.current.subtle)
+                            Text(stringResource(R.string.effects_explain), fontSize = NgText.body, color = nl.spoonpaco.ninegrid.ui.theme.LocalNgExtra.current.subtle)
                         }
                         Switch(checked = settings.effects, onCheckedChange = { vm.setEffects(it) })
                     }
@@ -250,7 +251,7 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit, onGuide: () -> Unit = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
                             Text(stringResource(R.string.privacy_mode))
-                            Text(stringResource(R.string.privacy_explain), fontSize = 12.sp, color = nl.spoonpaco.ninegrid.ui.theme.LocalNgExtra.current.subtle)
+                            Text(stringResource(R.string.privacy_explain), fontSize = NgText.body, color = nl.spoonpaco.ninegrid.ui.theme.LocalNgExtra.current.subtle)
                         }
                         Switch(checked = settings.privacy, onCheckedChange = { on -> if (on) vm.setPrivacy(true) else gated(gateSettings) { vm.setPrivacy(false) } })
                     }
@@ -270,7 +271,7 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit, onGuide: () -> Unit = {
                             }
                         }
                     }
-                    Text(stringResource(R.string.privacy_note), fontSize = 12.sp, color = nl.spoonpaco.ninegrid.ui.theme.LocalNgExtra.current.subtle)
+                    Text(stringResource(R.string.privacy_note), fontSize = NgText.body, color = nl.spoonpaco.ninegrid.ui.theme.LocalNgExtra.current.subtle)
                     ChoiceRow(stringResource(R.string.app_language), listOf("system", "nl", "en"), currentLang.substringBefore('-'), { langLabels[it] ?: it }) {
                         AppCompatDelegate.setApplicationLocales(if (it == "system") LocaleListCompat.getEmptyLocaleList() else LocaleListCompat.forLanguageTags(it))
                     }
@@ -291,11 +292,11 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit, onGuide: () -> Unit = {
                         Text(stringResource(R.string.show_weekday), modifier = Modifier.weight(1f))
                         Switch(checked = settings.showWeekday, onCheckedChange = { vm.setShowWeekday(it) })
                     }
-                    Text(stringResource(R.string.date_example, nl.spoonpaco.ninegrid.domain.Dates.dateTime(System.currentTimeMillis(), settings.dateStyle)), fontSize = 12.sp, color = LocalNgExtra.current.subtle)
+                    Text(stringResource(R.string.date_example, nl.spoonpaco.ninegrid.domain.Dates.dateTime(System.currentTimeMillis(), settings.dateStyle)), fontSize = NgText.body, color = LocalNgExtra.current.subtle)
                 }
                 SettingsGroup.DEV -> {
                     Text(stringResource(R.string.set_group_dev), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                    Text(stringResource(R.string.dev_explain), fontSize = 12.sp, color = LocalNgExtra.current.subtle)
+                    Text(stringResource(R.string.dev_explain), fontSize = NgText.body, color = LocalNgExtra.current.subtle)
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(stringResource(R.string.setting_timing), modifier = Modifier.weight(1f))
                         Switch(checked = settings.showTiming, onCheckedChange = { vm.setShowTiming(it) })
@@ -304,7 +305,7 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit, onGuide: () -> Unit = {
                         Text(stringResource(R.string.dev_scan_report), modifier = Modifier.weight(1f))
                         Switch(checked = settings.devScanReport, onCheckedChange = { vm.setDevScanReport(it) })
                     }
-                    Text(stringResource(R.string.dev_scan_report_explain), fontSize = 12.sp, color = LocalNgExtra.current.subtle)
+                    Text(stringResource(R.string.dev_scan_report_explain), fontSize = NgText.body, color = LocalNgExtra.current.subtle)
                 }
                 SettingsGroup.SCAN -> {
                     Text(stringResource(R.string.scanning), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
@@ -314,7 +315,7 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit, onGuide: () -> Unit = {
                     }
                     val speedLabels = mapOf("fast" to stringResource(R.string.auto_fast), "normal" to stringResource(R.string.auto_normal), "sure" to stringResource(R.string.auto_sure))
                     ChoiceRow(stringResource(R.string.setting_auto_speed), listOf("fast", "normal", "sure"), settings.autoSpeed, { speedLabels[it] ?: it }) { vm.setAutoSpeed(it) }
-                    Text(stringResource(R.string.setting_volume), fontSize = 12.sp, color = LocalNgExtra.current.subtle)
+                    Text(stringResource(R.string.setting_volume), fontSize = NgText.body, color = LocalNgExtra.current.subtle)
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(stringResource(R.string.setting_haptics), modifier = Modifier.weight(1f))
                         Switch(checked = settings.haptics, onCheckedChange = { vm.setHaptics(it) })
@@ -331,16 +332,16 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit, onGuide: () -> Unit = {
                         Text(stringResource(R.string.wifi_only), modifier = Modifier.weight(1f))
                         Switch(checked = settings.wifiOnly, onCheckedChange = { vm.setWifiOnly(it) })
                     }
-                    Text(stringResource(R.string.images_used, vm.images.diskUsageBytes() / (1024 * 1024)), fontSize = 12.sp, color = LocalNgExtra.current.subtle)
+                    Text(stringResource(R.string.images_used, vm.images.diskUsageBytes() / (1024 * 1024)), fontSize = NgText.body, color = LocalNgExtra.current.subtle)
                     Spacer(Modifier.height(16.dp))
                     // Offline kaartdatabase: optie, standaard uit.
                     Spacer(Modifier.height(16.dp))
                     Text(stringResource(R.string.offline_db), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                     androidx.compose.runtime.LaunchedEffect(Unit) { vm.loadOfflineDbInfo() }
-                    Text(stringResource(R.string.offline_pros), fontSize = 12.sp)
-                    Text(stringResource(R.string.offline_cons), fontSize = 12.sp, color = LocalNgExtra.current.subtle)
+                    Text(stringResource(R.string.offline_pros), fontSize = NgText.body)
+                    Text(stringResource(R.string.offline_cons), fontSize = NgText.body, color = LocalNgExtra.current.subtle)
                     vm.offlineDbInfo?.let { info ->
-                        Text(stringResource(R.string.offline_size, info.downloadBytes / (1024 * 1024)), fontSize = 12.sp, color = LocalNgExtra.current.subtle)
+                        Text(stringResource(R.string.offline_size, info.downloadBytes / (1024 * 1024)), fontSize = NgText.body, color = LocalNgExtra.current.subtle)
                     }
                     val dbLabels = mapOf(
                         nl.spoonpaco.ninegrid.data.OfflineDb.OFF to stringResource(R.string.offline_off),
@@ -355,25 +356,25 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit, onGuide: () -> Unit = {
                                 else androidx.compose.material3.LinearProgressIndicator(Modifier.fillMaxWidth().padding(vertical = 4.dp))
                                 Text(
                                     if (vm.offlineDbPct >= 0) stringResource(R.string.offline_running_pct, vm.offlineDbPct, vm.offlineDbProgress)
-                                    else stringResource(R.string.offline_running, vm.offlineDbProgress), fontSize = 12.sp,
+                                    else stringResource(R.string.offline_running, vm.offlineDbProgress), fontSize = NgText.body,
                                 )
                             }
-                            vm.offlineDbWaiting -> Text(stringResource(if (settings.offlineDbMobile) R.string.offline_waiting_net else R.string.offline_waiting), fontSize = 12.sp, color = nl.spoonpaco.ninegrid.ui.theme.NgColors.Amber)
-                            vm.offlineDbFailed -> Text(stringResource(R.string.offline_failed), fontSize = 12.sp, color = NgColorsError)
+                            vm.offlineDbWaiting -> Text(stringResource(if (settings.offlineDbMobile) R.string.offline_waiting_net else R.string.offline_waiting), fontSize = NgText.body, color = nl.spoonpaco.ninegrid.ui.theme.NgColors.Amber)
+                            vm.offlineDbFailed -> Text(stringResource(R.string.offline_failed), fontSize = NgText.body, color = NgColorsError)
                             settings.offlineDbUpdated > 0 -> Text(
                                 stringResource(
                                     R.string.offline_status, settings.offlineDbCount,
                                     nl.spoonpaco.ninegrid.domain.Dates.date(settings.offlineDbUpdated, settings.dateStyle),
                                     vm.offlineDbBytes / (1024 * 1024),
-                                ), fontSize = 12.sp,
+                                ), fontSize = NgText.body,
                             )
-                            else -> Text(stringResource(R.string.offline_waiting), fontSize = 12.sp)
+                            else -> Text(stringResource(R.string.offline_waiting), fontSize = NgText.body)
                         }
                         val wifiL = stringResource(R.string.offline_via_wifi); val mobL = stringResource(R.string.offline_via_mobile)
                         ChoiceRow(stringResource(R.string.offline_via), listOf("wifi", "mobile"), if (settings.offlineDbMobile) "mobile" else "wifi",
                             { if (it == "mobile") mobL else wifiL }) { vm.setOfflineDbMobile(it == "mobile") }
                         if (settings.offlineDbMobile) Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(stringResource(R.string.offline_mobile_auto), fontSize = 13.sp, modifier = Modifier.weight(1f))
+                            Text(stringResource(R.string.offline_mobile_auto), fontSize = NgText.body, modifier = Modifier.weight(1f))
                             Switch(checked = settings.offlineDbMobileAuto, onCheckedChange = { vm.setOfflineDbMobileAuto(it) })
                         }
                         OutlinedButton(onClick = { vm.updateOfflineDbNow() }, enabled = !vm.offlineDbRunning) { Text(stringResource(R.string.offline_now)) }
@@ -393,7 +394,7 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit, onGuide: () -> Unit = {
                     OutlinedTextField(bulk, { v -> bulk = v.filter { it.isDigit() || it == ',' || it == '.' }.take(6); vm.parseMoney(bulk)?.let { vm.setBulkThreshold(it) } },
                         singleLine = true, modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.booster_bulk)) },
                         keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal))
-                    Text(stringResource(R.string.booster_bulk_explain), fontSize = 12.sp, color = LocalNgExtra.current.subtle)
+                    Text(stringResource(R.string.booster_bulk_explain), fontSize = NgText.body, color = LocalNgExtra.current.subtle)
                     Spacer(Modifier.height(16.dp))
                     // Label NIEUW: hoelang het blijft staan.
                     Text(stringResource(R.string.new_label_title), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
@@ -401,19 +402,19 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit, onGuide: () -> Unit = {
                     val dayWord = stringResource(R.string.new_days_unit)
                     ChoiceRow(stringResource(R.string.new_label_howlong), nl.spoonpaco.ninegrid.domain.NewLabel.CHOICES.map { it.toString() }, settings.newDays.toString(),
                         { if (it == "0") newOff else "$it $dayWord" }) { vm.setNewDays(it.toInt()) }
-                    Text(stringResource(R.string.new_label_explain), fontSize = 12.sp, color = LocalNgExtra.current.subtle)
+                    Text(stringResource(R.string.new_label_explain), fontSize = NgText.body, color = LocalNgExtra.current.subtle)
                     OutlinedButton(onClick = { vm.markNewSeen() }) { Text(stringResource(R.string.new_all_seen)) }
                     Spacer(Modifier.height(16.dp))
                     Text(stringResource(R.string.completionist), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(stringResource(R.string.completionist_explain), fontSize = 13.sp, modifier = Modifier.weight(1f))
+                        Text(stringResource(R.string.completionist_explain), fontSize = NgText.body, modifier = Modifier.weight(1f))
                         Switch(checked = settings.completionist, onCheckedChange = { vm.setCompletionist(it) })
                     }
 
                     Spacer(Modifier.height(16.dp))
                     Text(stringResource(R.string.breakout_alerts), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(stringResource(R.string.breakout_alerts_explain), fontSize = 13.sp, modifier = Modifier.weight(1f))
+                        Text(stringResource(R.string.breakout_alerts_explain), fontSize = NgText.body, modifier = Modifier.weight(1f))
                         Switch(checked = settings.breakoutAlerts, onCheckedChange = { vm.setBreakoutAlerts(it) })
                     }
                 }
@@ -422,14 +423,14 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit, onGuide: () -> Unit = {
                     Spacer(Modifier.height(16.dp))
                     Text(stringResource(R.string.ai_title), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(stringResource(R.string.ai_explain), fontSize = 13.sp, modifier = Modifier.weight(1f))
+                        Text(stringResource(R.string.ai_explain), fontSize = NgText.body, modifier = Modifier.weight(1f))
                         Switch(checked = settings.aiEnabled, onCheckedChange = { vm.setAiEnabled(it) })
                     }
                     if (settings.aiEnabled) {
                         val provider = nl.spoonpaco.ninegrid.data.ai.AiProviders.byId(settings.aiProvider)
                         ChoiceRow(stringResource(R.string.ai_provider), nl.spoonpaco.ninegrid.data.ai.AiProviders.all.map { it.id }, provider.id,
                             { id -> nl.spoonpaco.ninegrid.data.ai.AiProviders.byId(id).let { it.label + if (it.free) " ★" else "" } }) { vm.setAiProvider(it) }
-                        Text(stringResource(R.string.ai_free_star), fontSize = 11.sp, color = LocalNgExtra.current.subtle)
+                        Text(stringResource(R.string.ai_free_star), fontSize = NgText.caption, color = LocalNgExtra.current.subtle)
                         Text(stringResource(when (provider.id) {
                             "gemini" -> R.string.ai_note_gemini
                             "claude" -> R.string.ai_note_claude
@@ -437,7 +438,7 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit, onGuide: () -> Unit = {
                             "deepseek" -> R.string.ai_note_deepseek
                             "custom" -> R.string.ai_note_custom
                             else -> R.string.ai_note_other
-                        }), fontSize = 12.sp)
+                        }), fontSize = NgText.body)
                         var keyText by remember(provider.id, vm.aiKeyVersion) { mutableStateOf("") }
                         OutlinedTextField(
                             keyText, { keyText = it }, singleLine = true, modifier = Modifier.fillMaxWidth(),
@@ -458,18 +459,18 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit, onGuide: () -> Unit = {
                             modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.ai_limit)) },
                             keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number))
                         val usedToday = if (settings.aiCountDay == java.time.LocalDate.now().toString()) settings.aiCount else 0
-                        Text(stringResource(R.string.ai_used_today, usedToday, settings.aiDailyLimit), fontSize = 12.sp, color = LocalNgExtra.current.subtle)
+                        Text(stringResource(R.string.ai_used_today, usedToday, settings.aiDailyLimit), fontSize = NgText.body, color = LocalNgExtra.current.subtle)
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             OutlinedButton(onClick = { vm.testAi() }, enabled = !vm.aiTesting) { Text(stringResource(R.string.ai_test)) }
                             if (vm.aiTesting) { Spacer(Modifier.width(8.dp)); androidx.compose.material3.CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp) }
                         }
-                        vm.aiTestResult?.let { Text(it, fontSize = 12.sp) }
-                        Text(stringResource(R.string.ai_privacy), fontSize = 11.sp, color = LocalNgExtra.current.subtle)
+                        vm.aiTestResult?.let { Text(it, fontSize = NgText.body) }
+                        Text(stringResource(R.string.ai_privacy), fontSize = NgText.caption, color = LocalNgExtra.current.subtle)
                     }
                 }
                 SettingsGroup.BACKUP -> {
                     Text(stringResource(R.string.backup_export), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                    Text(stringResource(R.string.backup_explain), fontSize = 12.sp, color = LocalNgExtra.current.subtle)
+                    Text(stringResource(R.string.backup_explain), fontSize = NgText.body, color = LocalNgExtra.current.subtle)
                     Spacer(Modifier.height(6.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         OutlinedButton(onClick = { gated(gateExport) { backup.launch("ninegrid-backup-$today.json") } }) { Icon(Icons.Filled.Backup, null); Spacer(Modifier.size(4.dp)); Text(stringResource(R.string.backup_now)) }
@@ -482,7 +483,7 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit, onGuide: () -> Unit = {
                             Text(
                                 if (settings.backupFolder != null) stringResource(R.string.auto_backup_on, if (settings.lastBackup > 0) nl.spoonpaco.ninegrid.domain.Dates.date(settings.lastBackup, settings.dateStyle) else "–")
                                 else stringResource(R.string.auto_backup_off),
-                                fontSize = 12.sp, color = LocalNgExtra.current.subtle,
+                                fontSize = NgText.body, color = LocalNgExtra.current.subtle,
                             )
                         }
                         Switch(checked = settings.backupFolder != null, onCheckedChange = { on -> if (on) folder.launch(null) else vm.setBackupFolder(null) })
@@ -492,7 +493,7 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit, onGuide: () -> Unit = {
                 }
                 SettingsGroup.WIPE -> {
                     Text(stringResource(R.string.wipe_title), fontWeight = FontWeight.Bold, color = NgColorsError)
-                    Text(stringResource(R.string.wipe_explain), fontSize = 12.sp, color = LocalNgExtra.current.subtle)
+                    Text(stringResource(R.string.wipe_explain), fontSize = NgText.body, color = LocalNgExtra.current.subtle)
                     OutlinedButton(onClick = { gated(gateSettings) { wiping = true } }) { Text(stringResource(R.string.wipe_button), color = NgColorsError) }
                 }
                 SettingsGroup.ABOUT -> {
@@ -501,7 +502,7 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit, onGuide: () -> Unit = {
                     OutlinedButton(onClick = { vm.checkUpdate(manual = true) }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.check_updates)) }
                     val ul = mapOf("wifi" to stringResource(R.string.update_auto_wifi), "any" to stringResource(R.string.update_auto_any), "off" to stringResource(R.string.update_auto_off))
                     ChoiceRow(stringResource(R.string.update_auto), listOf("wifi", "any", "off"), settings.updateAuto, { ul[it] ?: it }) { vm.setUpdateAuto(it) }
-                    Text(stringResource(R.string.update_auto_explain), fontSize = 12.sp, color = LocalNgExtra.current.subtle)
+                    Text(stringResource(R.string.update_auto_explain), fontSize = NgText.body, color = LocalNgExtra.current.subtle)
                     OutlinedButton(onClick = onWhatsNew, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.whats_new)) }
                     OutlinedButton(onClick = onGuide, modifier = Modifier.fillMaxWidth()) { Icon(Icons.AutoMirrored.Filled.MenuBook, null); Spacer(Modifier.size(6.dp)); Text(stringResource(R.string.guide)) }
                     OutlinedButton(onClick = onAbout, modifier = Modifier.fillMaxWidth()) { Icon(Icons.Filled.Info, null); Spacer(Modifier.size(6.dp)); Text(stringResource(R.string.about_app)) }
@@ -538,18 +539,18 @@ private fun RestoreDialog(vm: AppViewModel, b: nl.spoonpaco.ninegrid.data.Backup
         title = { Text(stringResource(R.string.restore)) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState())) {
-                Text(stringResource(R.string.restore_contains), fontSize = 12.sp, color = LocalNgExtra.current.subtle)
-                Text(vm.backupSummary(b), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                Text(stringResource(R.string.restore_contains), fontSize = NgText.body, color = LocalNgExtra.current.subtle)
+                Text(vm.backupSummary(b), fontWeight = FontWeight.Bold, fontSize = NgText.emphasis)
                 Text(
                     stringResource(R.string.restore_made_on, nl.spoonpaco.ninegrid.domain.Dates.date(b.exportedAt, vm.settings.collectAsState().value.dateStyle)),
-                    fontSize = 12.sp, color = LocalNgExtra.current.subtle,
+                    fontSize = NgText.body, color = LocalNgExtra.current.subtle,
                 )
                 Spacer(Modifier.height(8.dp))
-                Text(stringResource(R.string.restore_choose), fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                Text(stringResource(R.string.restore_choose), fontWeight = FontWeight.Bold, fontSize = NgText.body)
                 present.forEach { (part, label) -> CheckRow(label, part in chosen) { on -> chosen = if (on) chosen + part else chosen - part } }
                 Spacer(Modifier.height(6.dp))
-                Text(stringResource(R.string.restore_warning), fontSize = 12.sp)
-                if (!both && (BackupPart.COLLECTION in chosen || BackupPart.DECKS in chosen)) Text(stringResource(R.string.restore_partial_note), fontSize = 12.sp, color = NgColorsError)
+                Text(stringResource(R.string.restore_warning), fontSize = NgText.body)
+                if (!both && (BackupPart.COLLECTION in chosen || BackupPart.DECKS in chosen)) Text(stringResource(R.string.restore_partial_note), fontSize = NgText.body, color = NgColorsError)
             }
         },
         confirmButton = { TextButton(enabled = chosen.isNotEmpty(), onClick = { vm.restoreBackup(chosen) }) { Text(stringResource(R.string.restore)) } },
@@ -634,11 +635,11 @@ fun AboutScreen(onBack: () -> Unit, onTour: () -> Unit) {
             Spacer(Modifier.height(12.dp))
             Text(stringResource(R.string.about_text), textAlign = TextAlign.Center)
             Spacer(Modifier.height(12.dp))
-            Text(stringResource(R.string.privacy_text), fontSize = 13.sp, textAlign = TextAlign.Center, color = LocalNgExtra.current.subtle)
+            Text(stringResource(R.string.privacy_text), fontSize = NgText.body, textAlign = TextAlign.Center, color = LocalNgExtra.current.subtle)
             Spacer(Modifier.height(12.dp))
-            Text(stringResource(R.string.scryfall_credit), fontSize = 12.sp, textAlign = TextAlign.Center, color = LocalNgExtra.current.subtle)
+            Text(stringResource(R.string.scryfall_credit), fontSize = NgText.body, textAlign = TextAlign.Center, color = LocalNgExtra.current.subtle)
             Spacer(Modifier.height(8.dp))
-            Text(stringResource(R.string.fan_content), fontSize = 11.sp, textAlign = TextAlign.Center, color = LocalNgExtra.current.subtle)
+            Text(stringResource(R.string.fan_content), fontSize = NgText.caption, textAlign = TextAlign.Center, color = LocalNgExtra.current.subtle)
             Spacer(Modifier.height(16.dp))
             OutlinedButton(onClick = { uri.openUri("https://github.com/${UpdateChecker.REPO}") }) { Text("GitHub") }
             TextButton(onClick = onTour) { Text(stringResource(R.string.show_tour)) }
@@ -676,7 +677,7 @@ fun OnboardingScreen(onDone: () -> Unit, onGuide: () -> Unit, vm: AppViewModel? 
             Text(
                 if (info != null && info.downloadBytes > 0) stringResource(R.string.tour_offline_size, info.downloadBytes / (1024 * 1024))
                 else stringResource(R.string.tour_offline_size_est),
-                fontSize = 13.sp, textAlign = TextAlign.Center, color = LocalNgExtra.current.subtle,
+                fontSize = NgText.body, textAlign = TextAlign.Center, color = LocalNgExtra.current.subtle,
             )
             Spacer(Modifier.height(16.dp))
             when (offlineChosen) {
@@ -688,14 +689,14 @@ fun OnboardingScreen(onDone: () -> Unit, onGuide: () -> Unit, vm: AppViewModel? 
                 }
                 "yes" -> {
                     val metered = remember { vm?.onMeteredNetwork() == true }
-                    Text(stringResource(if (metered) R.string.tour_offline_waiting_wifi else R.string.tour_offline_started), fontSize = 13.sp, textAlign = TextAlign.Center, color = nl.spoonpaco.ninegrid.ui.theme.NgColors.Synced)
+                    Text(stringResource(if (metered) R.string.tour_offline_waiting_wifi else R.string.tour_offline_started), fontSize = NgText.body, textAlign = TextAlign.Center, color = nl.spoonpaco.ninegrid.ui.theme.NgColors.Synced)
                     if (metered) TextButton(onClick = { vm?.setOfflineDbMobile(true); vm?.updateOfflineDbNow(confirmed = true); offlineChosen = "mobile" }) {
                         Text(stringResource(R.string.tour_offline_mobile_now))
                     }
                 }
-                "mobile" -> Text(stringResource(R.string.tour_offline_started), fontSize = 13.sp, textAlign = TextAlign.Center, color = nl.spoonpaco.ninegrid.ui.theme.NgColors.Synced)
+                "mobile" -> Text(stringResource(R.string.tour_offline_started), fontSize = NgText.body, textAlign = TextAlign.Center, color = nl.spoonpaco.ninegrid.ui.theme.NgColors.Synced)
             }
-            Text(stringResource(R.string.tour_offline_later), fontSize = 12.sp, textAlign = TextAlign.Center, color = LocalNgExtra.current.subtle, modifier = Modifier.padding(top = 8.dp))
+            Text(stringResource(R.string.tour_offline_later), fontSize = NgText.body, textAlign = TextAlign.Center, color = LocalNgExtra.current.subtle, modifier = Modifier.padding(top = 8.dp))
         }
         Spacer(Modifier.height(28.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -709,7 +710,7 @@ fun OnboardingScreen(onDone: () -> Unit, onGuide: () -> Unit, vm: AppViewModel? 
         }
         if (page == pages.lastIndex) {
             Spacer(Modifier.height(12.dp))
-            Text(stringResource(R.string.guide_where), fontSize = 13.sp, textAlign = TextAlign.Center, color = LocalNgExtra.current.subtle)
+            Text(stringResource(R.string.guide_where), fontSize = NgText.body, textAlign = TextAlign.Center, color = LocalNgExtra.current.subtle)
         }
         Spacer(Modifier.height(12.dp))
         Text("${page + 1} / ${pages.size}", color = LocalNgExtra.current.subtle)
@@ -752,7 +753,7 @@ private fun WipeDialog(vm: AppViewModel, hasFolder: Boolean, onDismiss: () -> Un
                 }
                 Spacer(Modifier.height(4.dp))
                 if (factory) {
-                    Text(stringResource(R.string.wipe_factory_explain), fontSize = 12.sp)
+                    Text(stringResource(R.string.wipe_factory_explain), fontSize = NgText.body)
                     CheckRow(R.string.wipe_keep_offline, keepOffline) { keepOffline = it }
                 } else {
                     CheckRow(R.string.wipe_collection, collection) { collection = it }
@@ -762,8 +763,8 @@ private fun WipeDialog(vm: AppViewModel, hasFolder: Boolean, onDismiss: () -> Un
                     CheckRow(R.string.wipe_images, images) { images = it }
                 }
                 Spacer(Modifier.height(6.dp))
-                Text(stringResource(if (factory) (if (hasFolder) R.string.wipe_backup_folder_factory else R.string.wipe_backup_choose_factory) else if (hasFolder) R.string.wipe_backup_folder else R.string.wipe_backup_choose), fontSize = 12.sp)
-                if (!factory && changeLog && (collection || decks)) Text(stringResource(R.string.wipe_no_undo), fontSize = 12.sp, color = NgColorsError)
+                Text(stringResource(if (factory) (if (hasFolder) R.string.wipe_backup_folder_factory else R.string.wipe_backup_choose_factory) else if (hasFolder) R.string.wipe_backup_folder else R.string.wipe_backup_choose), fontSize = NgText.body)
+                if (!factory && changeLog && (collection || decks)) Text(stringResource(R.string.wipe_no_undo), fontSize = NgText.body, color = NgColorsError)
                 Spacer(Modifier.height(8.dp))
                 androidx.compose.material3.OutlinedTextField(typed, { typed = it }, singleLine = true, label = { Text(stringResource(R.string.wipe_type, word)) })
             }

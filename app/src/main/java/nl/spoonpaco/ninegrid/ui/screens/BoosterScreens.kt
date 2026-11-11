@@ -1,5 +1,7 @@
 package nl.spoonpaco.ninegrid.ui.screens
 
+import nl.spoonpaco.ninegrid.ui.theme.NgText
+import nl.spoonpaco.ninegrid.ui.theme.NgShape
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -89,7 +91,7 @@ fun BoosterReviewBlock(vm: AppViewModel) {
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(top = 4.dp)) {
             types.forEach { t ->
                 FilterChip(selected = vm.boosterType == t, onClick = { vm.boosterType = t },
-                    label = { Text(if (t.isEmpty()) stringResource(R.string.booster) else t.replaceFirstChar { it.uppercase() }, fontSize = 12.sp) })
+                    label = { Text(if (t.isEmpty()) stringResource(R.string.booster) else t.replaceFirstChar { it.uppercase() }, fontSize = NgText.body) })
             }
         }
         // Box: prijs per booster = boxprijs gedeeld door het aantal.
@@ -99,7 +101,7 @@ fun BoosterReviewBlock(vm: AppViewModel) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     stringResource(R.string.booster_box_line, opened + 1, box.size, money(box.price / box.size, box.currency)),
-                    fontSize = 13.sp, modifier = Modifier.weight(1f),
+                    fontSize = NgText.body, modifier = Modifier.weight(1f),
                 )
                 TextButton(onClick = { vm.endBox() }) { Text(stringResource(R.string.booster_box_end)) }
             }
@@ -117,7 +119,7 @@ fun BoosterReviewBlock(vm: AppViewModel) {
                         OutlinedTextField(price, { price = it.filter { c -> c.isDigit() || c == ',' || c == '.' } }, singleLine = true, label = { Text(stringResource(R.string.booster_box_price)) },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal))
                         val s = size.toIntOrNull() ?: 0; val p = vm.parseMoney(price) ?: 0.0
-                        if (s > 0 && p > 0) Text(stringResource(R.string.booster_per, Money.format(p / s, vm.settings.value.currency)), fontSize = 12.sp, color = extra.subtle)
+                        if (s > 0 && p > 0) Text(stringResource(R.string.booster_per, Money.format(p / s, vm.settings.value.currency)), fontSize = NgText.body, color = extra.subtle)
                     }
                 },
                 confirmButton = {
@@ -129,7 +131,7 @@ fun BoosterReviewBlock(vm: AppViewModel) {
                 dismissButton = { TextButton(onClick = { startBox = false }) { Text(stringResource(R.string.cancel)) } },
             )
         }
-        Text(stringResource(R.string.booster_review_note), fontSize = 11.sp, color = extra.subtle)
+        Text(stringResource(R.string.booster_review_note), fontSize = NgText.caption, color = extra.subtle)
     }
 }
 
@@ -158,9 +160,9 @@ fun BoosterResultDialog(vm: AppViewModel) {
                         CardThumb(p, vm.images, settings, 90, foil = c.finish != nl.spoonpaco.ninegrid.data.db.Finish.NONFOIL)
                         Spacer(Modifier.width(10.dp))
                         Column {
-                            Text(p.name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                            Text("${p.setCode.uppercase()} ${p.collectorNumber}", fontSize = 12.sp, color = extra.subtle)
-                            Text(money(Money.unitPrice(Entry(printId = c.printId, finish = c.finish), p, cur), cur), fontSize = 20.sp, fontWeight = FontWeight.Bold,
+                            Text(p.name, fontWeight = FontWeight.Bold, fontSize = NgText.heading)
+                            Text("${p.setCode.uppercase()} ${p.collectorNumber}", fontSize = NgText.body, color = extra.subtle)
+                            Text(money(Money.unitPrice(Entry(printId = c.printId, finish = c.finish), p, cur), cur), fontSize = NgText.large, fontWeight = FontWeight.Bold,
                                 color = extra.price, modifier = privacyMask())
                         }
                     }
@@ -168,8 +170,8 @@ fun BoosterResultDialog(vm: AppViewModel) {
                 Spacer(Modifier.height(8.dp))
                 sorted.drop(1).forEach { (p, c) ->
                     Row {
-                        Text((if (c.quantity > 1) "${c.quantity}× " else "") + p.name, fontSize = 13.sp, modifier = Modifier.weight(1f))
-                        Text(money(Money.unitPrice(Entry(printId = c.printId, finish = c.finish), p, cur) * c.quantity, cur), fontSize = 13.sp, color = extra.subtle)
+                        Text((if (c.quantity > 1) "${c.quantity}× " else "") + p.name, fontSize = NgText.body, modifier = Modifier.weight(1f))
+                        Text(money(Money.unitPrice(Entry(printId = c.printId, finish = c.finish), p, cur) * c.quantity, cur), fontSize = NgText.body, color = extra.subtle)
                     }
                 }
             }
@@ -219,18 +221,18 @@ fun BoostersScreen(vm: AppViewModel, onBack: () -> Unit) {
                     val cur = list.first().currency
                     val avgOut = list.map { now(it) }.average()
                     val avgPaid = list.map { it.paid }.average()
-                    Card(colors = CardDefaults.cardColors(containerColor = extra.cardSurface), shape = RoundedCornerShape(12.dp),
+                    Card(colors = CardDefaults.cardColors(containerColor = extra.cardSurface), shape = NgShape.Normal,
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)) {
                         Column(Modifier.padding(12.dp)) {
                             Text("${k.first} " + boosterTypeLabel(k.second) + " · " + androidx.compose.ui.res.pluralStringResource(R.plurals.n_opened, list.size, list.size), fontWeight = FontWeight.Bold)
-                            Text(stringResource(R.string.boosters_avg, money(avgOut, cur), money(avgPaid, cur)), fontSize = 13.sp)
-                            Text(stringResource(R.string.boosters_per_booster, signed(avgOut - avgPaid, cur)), fontSize = 13.sp, fontWeight = FontWeight.Bold,
+                            Text(stringResource(R.string.boosters_avg, money(avgOut, cur), money(avgPaid, cur)), fontSize = NgText.body)
+                            Text(stringResource(R.string.boosters_per_booster, signed(avgOut - avgPaid, cur)), fontSize = NgText.body, fontWeight = FontWeight.Bold,
                                 color = if (avgOut >= avgPaid) NgColors.Synced else NgColors.Error)
                             list.mapNotNull { it.boxId }.distinct().forEach { bid ->
                                 boxes.firstOrNull { it.id == bid }?.let { box ->
                                     val inBox = list.filter { it.boxId == bid }
                                     val out = inBox.sumOf { now(it) }
-                                    Text(stringResource(R.string.boosters_box, inBox.size, box.size, money(out, cur), signed(out - box.price, cur)), fontSize = 12.sp, color = extra.subtle)
+                                    Text(stringResource(R.string.boosters_box, inBox.size, box.size, money(out, cur), signed(out - box.price, cur)), fontSize = NgText.body, color = extra.subtle)
                                 }
                             }
                         }
@@ -240,14 +242,14 @@ fun BoostersScreen(vm: AppViewModel, onBack: () -> Unit) {
                     val ds = settings.dateStyle
                     Row(Modifier.fillMaxWidth().clickable { editing = b }.padding(horizontal = 20.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
-                            Text(nl.spoonpaco.ninegrid.domain.Dates.date(b.openedAt, ds), fontSize = 13.sp)
-                            Text(stringResource(R.string.boosters_then_now, money(b.valueAtOpen, b.currency), money(now(b), b.currency)), fontSize = 12.sp, color = extra.subtle)
+                            Text(nl.spoonpaco.ninegrid.domain.Dates.date(b.openedAt, ds), fontSize = NgText.body)
+                            Text(stringResource(R.string.boosters_then_now, money(b.valueAtOpen, b.currency), money(now(b), b.currency)), fontSize = NgText.body, color = extra.subtle)
                         }
                         Text(money(b.paid, b.currency), color = extra.price, fontWeight = FontWeight.Bold)
                     }
                 }
             }
-            item { Text(stringResource(R.string.boosters_note), fontSize = 11.sp, color = extra.subtle, modifier = Modifier.padding(16.dp)) }
+            item { Text(stringResource(R.string.boosters_note), fontSize = NgText.caption, color = extra.subtle, modifier = Modifier.padding(16.dp)) }
         }
     }
     editing?.let { b ->
@@ -286,7 +288,7 @@ fun BoostersSummary(vm: AppViewModel, onOpen: () -> Unit) {
     Row(Modifier.fillMaxWidth().clickable(onClick = onOpen).padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f)) {
             Text(stringResource(R.string.boosters_title), fontWeight = FontWeight.Bold, color = extra.price)
-            Text(androidx.compose.ui.res.pluralStringResource(R.plurals.n_opened, boosters.size, boosters.size) + " · " + stringResource(R.string.boosters_total, money(paid, cur), money(out, cur)), fontSize = 13.sp)
+            Text(androidx.compose.ui.res.pluralStringResource(R.plurals.n_opened, boosters.size, boosters.size) + " · " + stringResource(R.string.boosters_total, money(paid, cur), money(out, cur)), fontSize = NgText.body)
         }
         Text(signed(out - paid, cur), fontWeight = FontWeight.Bold, color = if (out >= paid) NgColors.Synced else NgColors.Error)
         Text("  ›", color = extra.subtle)

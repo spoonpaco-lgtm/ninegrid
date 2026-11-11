@@ -1,5 +1,6 @@
 package nl.spoonpaco.ninegrid.ui.components
 
+import nl.spoonpaco.ninegrid.ui.theme.NgText
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -74,7 +75,7 @@ fun CardSearchDialog(
                         label = { Text(stringResource(R.string.card_name)) }, singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                     )
-                    if (failed) Text(stringResource(R.string.msg_network_error), color = LocalNgExtra.current.subtle, fontSize = 12.sp)
+                    if (failed) Text(stringResource(R.string.msg_network_error), color = LocalNgExtra.current.subtle, fontSize = NgText.body)
                     LazyColumn(Modifier.heightIn(max = 320.dp)) {
                         items(names) { n ->
                             Text(
@@ -104,9 +105,9 @@ fun CardSearchDialog(
                                 Spacer(Modifier.width(10.dp))
                                 Column(Modifier.weight(1f)) {
                                     Text("${p.setCode} ${p.collectorNumber}", fontWeight = FontWeight.Bold)
-                                    Text(p.setName, fontSize = 12.sp, color = LocalNgExtra.current.subtle)
+                                    Text(p.setName, fontSize = NgText.body, color = LocalNgExtra.current.subtle)
                                 }
-                                Text(p.rarity, fontSize = 12.sp, color = LocalNgExtra.current.subtle)
+                                Text(p.rarity, fontSize = NgText.body, color = LocalNgExtra.current.subtle)
                             }
                             HorizontalDivider()
                         }

@@ -1,5 +1,7 @@
 package nl.spoonpaco.ninegrid.ui.screens
 
+import nl.spoonpaco.ninegrid.ui.theme.NgText
+import nl.spoonpaco.ninegrid.ui.theme.NgShape
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.outlined.Info
@@ -170,18 +172,18 @@ private fun SetRowView(r: SetRow, cur: String, icons: Boolean, vm: AppViewModel,
             // Rarity als één balkje; tik erop voor de getallen.
             val parts = listOf(r.mythic to NgColors.Mythic, r.rare to NgColors.Rare, r.uncommon to NgColors.Uncommon, r.common to NgColors.Common, r.other to NgColors.Special)
             Row(
-                Modifier.padding(vertical = 4.dp).fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp))
+                Modifier.padding(vertical = 4.dp).fillMaxWidth().height(8.dp).clip(NgShape.Small)
                     .background(MaterialTheme.colorScheme.surfaceContainerHigh).clickable { open = !open },
             ) {
                 if (r.cards > 0) parts.filter { it.first > 0 }.forEach { (n, c) -> Box(Modifier.weight(n.toFloat()).fillMaxHeight().background(c)) }
             }
             if (open) Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                listOf("M" to parts[0], "R" to parts[1], "U" to parts[2], "C" to parts[3], "O" to parts[4]).forEach { (l, p) -> Text("$l ${p.first}", color = p.second, fontSize = 12.sp) }
+                listOf("M" to parts[0], "R" to parts[1], "U" to parts[2], "C" to parts[3], "O" to parts[4]).forEach { (l, p) -> Text("$l ${p.first}", color = p.second, fontSize = NgText.body) }
             }
             Text(
                 pluralStringResource(R.plurals.n_cards, r.cards, r.cards) +
                     if (r.size > 0) "  ·  " + stringResource(R.string.sets_complete, r.owned, r.size, r.pct) else "",
-                fontSize = 12.sp, color = extra.subtle,
+                fontSize = NgText.body, color = extra.subtle,
             )
             if (r.size > 0 && r.owned >= r.size) Row(Modifier.padding(top = 4.dp)) {
                 nl.spoonpaco.ninegrid.ui.components.Stamp(stringResource(R.string.stamp_complete), NgColors.Rare, "✓", angle = -4f)

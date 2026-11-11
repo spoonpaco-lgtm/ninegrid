@@ -2,6 +2,8 @@
 
 package nl.spoonpaco.ninegrid.ui.screens
 
+import nl.spoonpaco.ninegrid.ui.theme.NgText
+import nl.spoonpaco.ninegrid.ui.theme.NgShape
 import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -153,7 +155,7 @@ fun DecksScreen(vm: AppViewModel, onDeck: (Long) -> Unit, onNewDeck: () -> Unit)
                         item(key = "h_$f") {
                             Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 4.dp)) {
                                 Text(formatLabel(f), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, modifier = Modifier.weight(1f))
-                                Text(pluralStringResource(R.plurals.n_decks, l.size, l.size) + " · " + nl.spoonpaco.ninegrid.ui.components.money(l.sumOf { it.value }, settings.currency), fontSize = 12.sp, color = extra.subtle)
+                                Text(pluralStringResource(R.plurals.n_decks, l.size, l.size) + " · " + nl.spoonpaco.ninegrid.ui.components.money(l.sumOf { it.value }, settings.currency), fontSize = NgText.body, color = extra.subtle)
                             }
                         }
                         items(l, key = { it.d.id }) { r -> DeckRowCard(r.d, r.count, r.value, r.check, settings.currency) { onDeck(r.d.id) } }
@@ -172,7 +174,7 @@ private fun DeckRowCard(d: nl.spoonpaco.ninegrid.data.db.Deck, count: Int, value
     Card(
         onClick = onClick,
         colors = CardDefaults.cardColors(containerColor = extra.cardSurface),
-        shape = RoundedCornerShape(12.dp),
+        shape = NgShape.Normal,
         modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
     ) {
         Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -180,7 +182,7 @@ private fun DeckRowCard(d: nl.spoonpaco.ninegrid.data.db.Deck, count: Int, value
                 Text(d.name, fontWeight = FontWeight.Bold)
                 Text(
                     listOfNotNull(formatLabel(d.format), pluralStringResource(R.plurals.n_cards, count, count), check.bracketHint?.let { stringResource(R.string.bracket_short, it) }).joinToString(" · "),
-                    fontSize = 12.sp, color = extra.subtle,
+                    fontSize = NgText.body, color = extra.subtle,
                 )
             }
             if (check.issues.any { it.level == IssueLevel.ERROR }) Icon(Icons.Filled.Warning, null, tint = NgColors.Error)
@@ -286,7 +288,7 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
                         if (d.format == DeckFormat.CASUAL) null else if (check.issues.isEmpty()) "✓ " + stringResource(R.string.legal) else "⚠ " + pluralStringResource(R.plurals.n_issues, check.issues.size, check.issues.size),
                     )
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(bits.joinToString(" · "), fontSize = 13.sp, color = if (hasError) NgColors.Error else extra.subtle, modifier = Modifier.weight(1f))
+                        Text(bits.joinToString(" · "), fontSize = NgText.body, color = if (hasError) NgColors.Error else extra.subtle, modifier = Modifier.weight(1f))
                         Text(if (expanded) "▴" else "▾", color = extra.subtle)
                     }
                     if (expanded) {
@@ -310,12 +312,12 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
                         }
                         if (d.format == DeckFormat.COMMANDER) {
                             Spacer(Modifier.height(6.dp))
-                            Text(stringResource(R.string.bracket_min, check.bracketHint ?: "?"), fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                            if (check.bracketReasons.isEmpty()) Text(stringResource(R.string.bracket_no_signals), fontSize = 12.sp, color = extra.subtle)
+                            Text(stringResource(R.string.bracket_min, check.bracketHint ?: "?"), fontSize = NgText.body, fontWeight = FontWeight.Bold)
+                            if (check.bracketReasons.isEmpty()) Text(stringResource(R.string.bracket_no_signals), fontSize = NgText.body, color = extra.subtle)
                             check.bracketReasons.forEach { r ->
-                                Text(bracketReasonLabel(r.code) + ": " + r.cards.joinToString(", "), fontSize = 12.sp, color = extra.subtle)
+                                Text(bracketReasonLabel(r.code) + ": " + r.cards.joinToString(", "), fontSize = NgText.body, color = extra.subtle)
                             }
-                            Text(stringResource(R.string.bracket_note_short), fontSize = 11.sp, color = extra.subtle)
+                            Text(stringResource(R.string.bracket_note_short), fontSize = NgText.caption, color = extra.subtle)
                         }
                         if (d.format != DeckFormat.CASUAL) Row(Modifier.padding(top = 8.dp, bottom = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                             val banned = check.issues.any { it.code == "banned" || it.code == "not_legal" }
@@ -324,9 +326,9 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
                                 check.issues.isEmpty() -> nl.spoonpaco.ninegrid.ui.components.Stamp(stringResource(R.string.legal), NgColors.Synced, "✓")
                                 else -> {}
                             }
-                            if (check.issues.isEmpty()) { Spacer(Modifier.width(10.dp)); Text(stringResource(R.string.deck_ok), color = NgColors.Synced, fontSize = 13.sp) }
+                            if (check.issues.isEmpty()) { Spacer(Modifier.width(10.dp)); Text(stringResource(R.string.deck_ok), color = NgColors.Synced, fontSize = NgText.body) }
                         }
-                        check.issues.forEach { i -> Text("• " + issueText(i), color = if (i.level == IssueLevel.ERROR) NgColors.Error else extra.subtle, fontSize = 13.sp) }
+                        check.issues.forEach { i -> Text("• " + issueText(i), color = if (i.level == IssueLevel.ERROR) NgColors.Error else extra.subtle, fontSize = NgText.body) }
                     }
                 }
             }
@@ -364,10 +366,10 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
                     }
                 }
                 Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text(stringResource(R.string.deck_by_type), fontSize = 12.sp, color = extra.subtle, modifier = Modifier.weight(1f))
+                    Text(stringResource(R.string.deck_by_type), fontSize = NgText.body, color = extra.subtle, modifier = Modifier.weight(1f))
                     Box {
                         var sortMenu by remember { mutableStateOf(false) }
-                        TextButton(onClick = { sortMenu = true }) { Text(stringResource(R.string.deck_sort_label, deckSortName(cardSort)) + " ▾", fontSize = 12.sp) }
+                        TextButton(onClick = { sortMenu = true }) { Text(stringResource(R.string.deck_sort_label, deckSortName(cardSort)) + " ▾", fontSize = NgText.body) }
                         DropdownMenu(expanded = sortMenu, onDismissRequest = { sortMenu = false }) {
                             listOf("mana", "name", "price").forEach { k ->
                                 DropdownMenuItem(text = { Text(deckSortName(k)) }, onClick = { sortMenu = false; cardSort = k; vm.setDeckSort(deckId, k) })
@@ -412,7 +414,7 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Text((if (closed) "▸ " else "▾ ") + deckGroupName(g), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, modifier = Modifier.weight(1f))
-                            Text("$n · " + nl.spoonpaco.ninegrid.ui.components.money(part.sumOf { Money.total(it.entry, it.print, settings.currency) }, settings.currency), fontSize = 12.sp, color = extra.subtle)
+                            Text("$n · " + nl.spoonpaco.ninegrid.ui.components.money(part.sumOf { Money.total(it.entry, it.print, settings.currency) }, settings.currency), fontSize = NgText.body, color = extra.subtle)
                         }
                     }
                     if (!closed) items(sorted(part), key = { it.entry.id }) { e ->
@@ -560,18 +562,18 @@ private fun TabCard(
         Column(Modifier.padding(14.dp)) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = if (closed != null) Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).clickable(onClick = onToggle) else Modifier,
+                modifier = if (closed != null) Modifier.fillMaxWidth().clip(NgShape.Normal).clickable(onClick = onToggle) else Modifier,
             ) {
-                Text(title, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text(title, fontWeight = FontWeight.Bold, fontSize = NgText.heading)
                 if (info != null) androidx.compose.material3.IconButton(onClick = { open = true }, modifier = Modifier.size(30.dp)) {
                     Icon(Icons.Outlined.Info, null, modifier = Modifier.size(18.dp), tint = extra.subtle)
                 }
                 Spacer(Modifier.weight(1f))
                 trailing?.invoke()
-                if (closed != null) Text(if (closed) "▸" else "▾", fontSize = 16.sp, color = extra.subtle, modifier = Modifier.padding(start = 8.dp))
+                if (closed != null) Text(if (closed) "▸" else "▾", fontSize = NgText.heading, color = extra.subtle, modifier = Modifier.padding(start = 8.dp))
             }
             if (closed != true) {
-                if (explain != null) Text(explain, fontSize = 12.sp, lineHeight = 16.sp, color = extra.subtle, modifier = Modifier.padding(top = 2.dp))
+                if (explain != null) Text(explain, fontSize = NgText.body, lineHeight = 16.sp, color = extra.subtle, modifier = Modifier.padding(top = 2.dp))
                 Spacer(Modifier.height(6.dp))
                 content()
             }
@@ -588,12 +590,12 @@ private fun TabCard(
 private fun RoleBar(label: String, have: Int, target: Int, onClick: (() -> Unit)? = null, open: Boolean = false) {
     val ok = have >= target
     Row(Modifier.fillMaxWidth().let { m -> if (onClick != null) m.clickable(onClick = onClick) else m }.padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-        Text(label + if (onClick != null) (if (open) " ▴" else " ▾") else "", fontSize = 13.sp, modifier = Modifier.width(110.dp))
-        Box(Modifier.weight(1f).height(8.dp).clip(RoundedCornerShape(4.dp)).background(LocalNgExtra.current.subtle.copy(alpha = 0.25f))) {
+        Text(label + if (onClick != null) (if (open) " ▴" else " ▾") else "", fontSize = NgText.body, modifier = Modifier.width(110.dp))
+        Box(Modifier.weight(1f).height(8.dp).clip(NgShape.Small).background(LocalNgExtra.current.subtle.copy(alpha = 0.25f))) {
             Box(Modifier.fillMaxHeight().fillMaxWidth(if (target <= 0) 1f else (have.toFloat() / target).coerceIn(0.03f, 1f))
-                .clip(RoundedCornerShape(4.dp)).background(if (ok) NgColors.Synced else NgColors.Amber))
+                .clip(NgShape.Small).background(if (ok) NgColors.Synced else NgColors.Amber))
         }
-        Text("$have / $target" + if (ok) " ✓" else "", fontSize = 13.sp, fontWeight = FontWeight.Bold, textAlign = androidx.compose.ui.text.style.TextAlign.End, modifier = Modifier.width(72.dp))
+        Text("$have / $target" + if (ok) " ✓" else "", fontSize = NgText.body, fontWeight = FontWeight.Bold, textAlign = androidx.compose.ui.text.style.TextAlign.End, modifier = Modifier.width(72.dp))
     }
 }
 
@@ -613,34 +615,34 @@ private fun DeckStatsPanel(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.db
     var hand by remember { mutableStateOf(false) }
     Column(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
         TabCard(stringResource(R.string.mana_curve_title), info = stringResource(R.string.mana_curve_info),
-            trailing = { Text(stringResource(R.string.nonlands_n, st.curve.sum()), fontSize = 12.sp, color = extra.subtle) }) {
+            trailing = { Text(stringResource(R.string.nonlands_n, st.curve.sum()), fontSize = NgText.body, color = extra.subtle) }) {
             val max = (st.curve.maxOrNull() ?: 1).coerceAtLeast(1)
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                st.curve.forEach { n -> Text(if (n > 0) "$n" else "", fontSize = 11.sp, color = extra.subtle, textAlign = androidx.compose.ui.text.style.TextAlign.Center, modifier = Modifier.weight(1f)) }
+                st.curve.forEach { n -> Text(if (n > 0) "$n" else "", fontSize = NgText.caption, color = extra.subtle, textAlign = androidx.compose.ui.text.style.TextAlign.Center, modifier = Modifier.weight(1f)) }
             }
             Row(Modifier.fillMaxWidth().height(70.dp), verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 st.curve.forEach { n -> Box(Modifier.weight(1f).height((66f * n / max).dp.coerceAtLeast(2.dp)).clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp)).background(MaterialTheme.colorScheme.primary)) }
             }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                st.curve.indices.forEach { i -> Text(if (i == 7) "7+" else "$i", fontSize = 11.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center, modifier = Modifier.weight(1f)) }
+                st.curve.indices.forEach { i -> Text(if (i == 7) "7+" else "$i", fontSize = NgText.caption, textAlign = androidx.compose.ui.text.style.TextAlign.Center, modifier = Modifier.weight(1f)) }
             }
             // Oordeel over de curve, volgens het soort deck.
             val limit = when (type) { "aggro" -> if (commander) 3.0 else 2.6; "control" -> if (commander) 4.0 else 3.4; else -> if (commander) 3.5 else 3.0 }
             val avg = String.format(java.util.Locale.getDefault(), "%.1f", st.averageCmc)
             Row(Modifier.padding(top = 8.dp)) {
-                Text(stringResource(R.string.curve_avg, avg) + " · ", fontSize = 13.sp)
+                Text(stringResource(R.string.curve_avg, avg) + " · ", fontSize = NgText.body)
                 Text(
                     if (st.averageCmc <= limit) stringResource(R.string.curve_fits, deckTypeName(type)) else stringResource(R.string.curve_high, deckTypeName(type)),
-                    fontSize = 13.sp, fontWeight = FontWeight.Bold, color = if (st.averageCmc <= limit) NgColors.Synced else NgColors.Amber,
+                    fontSize = NgText.body, fontWeight = FontWeight.Bold, color = if (st.averageCmc <= limit) NgColors.Synced else NgColors.Amber,
                 )
             }
             val adv = st.landAdvice
             if (st.deckSize >= 40) Row {
-                Text(stringResource(R.string.lands_advice, st.lands, adv.first, adv.last), fontSize = 13.sp)
+                Text(stringResource(R.string.lands_advice, st.lands, adv.first, adv.last), fontSize = NgText.body)
                 when {
-                    st.lands > adv.last -> Text(" · " + stringResource(R.string.lands_fewer, st.lands - adv.last), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = NgColors.Amber)
-                    st.lands < adv.first -> Text(" · " + stringResource(R.string.lands_more, adv.first - st.lands), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = NgColors.Amber)
-                    else -> Text(" ✓", fontSize = 13.sp, color = NgColors.Synced)
+                    st.lands > adv.last -> Text(" · " + stringResource(R.string.lands_fewer, st.lands - adv.last), fontSize = NgText.body, fontWeight = FontWeight.Bold, color = NgColors.Amber)
+                    st.lands < adv.first -> Text(" · " + stringResource(R.string.lands_more, adv.first - st.lands), fontSize = NgText.body, fontWeight = FontWeight.Bold, color = NgColors.Amber)
+                    else -> Text(" ✓", fontSize = NgText.body, color = NgColors.Synced)
                 }
             }
         }
@@ -665,9 +667,9 @@ private fun DeckStatsPanel(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.db
                 }
             }
             behind?.let { (c, n) ->
-                Row(Modifier.fillMaxWidth().padding(top = 6.dp).clip(RoundedCornerShape(8.dp)).background(NgColors.Amber.copy(alpha = 0.14f)).clickable(onClick = onLands).padding(8.dp)) {
-                    Text("⚠ " + stringResource(R.string.colors_behind, colorName(c), n) + "  ", fontSize = 12.sp, color = NgColors.Amber)
-                    Text(stringResource(R.string.see_lands), fontSize = 12.sp, fontWeight = FontWeight.Bold, color = NgColors.Amber)
+                Row(Modifier.fillMaxWidth().padding(top = 6.dp).clip(NgShape.Normal).background(NgColors.Amber.copy(alpha = 0.14f)).clickable(onClick = onLands).padding(8.dp)) {
+                    Text("⚠ " + stringResource(R.string.colors_behind, colorName(c), n) + "  ", fontSize = NgText.body, color = NgColors.Amber)
+                    Text(stringResource(R.string.see_lands), fontSize = NgText.body, fontWeight = FontWeight.Bold, color = NgColors.Amber)
                 }
             }
         }
@@ -675,32 +677,32 @@ private fun DeckStatsPanel(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.db
             Row(verticalAlignment = Alignment.Bottom) {
                 Text("${Math.round(st.oddsTwoToFour * 100)}%", fontSize = 30.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                 Spacer(Modifier.width(8.dp))
-                Text(stringResource(R.string.odds_two_four), fontSize = 13.sp, modifier = Modifier.padding(bottom = 5.dp))
+                Text(stringResource(R.string.odds_two_four), fontSize = NgText.body, modifier = Modifier.padding(bottom = 5.dp))
             }
             val mx = (0..7).maxOf { st.handOdds[it] ?: 0.0 }.coerceAtLeast(0.01)
             Row(Modifier.fillMaxWidth().height(60.dp).padding(top = 6.dp), verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 (0..7).forEach { i ->
                     val v = st.handOdds[i] ?: 0.0
                     Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("${Math.round(v * 100)}%", fontSize = 9.sp, color = extra.subtle)
+                        Text("${Math.round(v * 100)}%", fontSize = NgText.caption, color = extra.subtle)
                         Box(Modifier.fillMaxWidth().height((40 * v / mx).dp.coerceAtLeast(2.dp)).clip(RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp))
                             .background(if (i in 2..4) MaterialTheme.colorScheme.primary else extra.subtle.copy(alpha = 0.4f)))
                     }
                 }
             }
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) { (0..7).forEach { Text("$it", fontSize = 10.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center, modifier = Modifier.weight(1f)) } }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) { (0..7).forEach { Text("$it", fontSize = NgText.caption, textAlign = androidx.compose.ui.text.style.TextAlign.Center, modifier = Modifier.weight(1f)) } }
             androidx.compose.material3.Button(onClick = { hand = true }, modifier = Modifier.padding(top = 8.dp)) { Text(stringResource(R.string.draw_seven)) }
         }
         if (st.types.isNotEmpty()) TabCard(stringResource(R.string.card_types_title)) {
             val total = st.types.values.sum().coerceAtLeast(1)
-            Row(Modifier.fillMaxWidth().height(12.dp).clip(RoundedCornerShape(6.dp))) {
+            Row(Modifier.fillMaxWidth().height(12.dp).clip(NgShape.Small)) {
                 st.types.forEach { (t, n) -> Box(Modifier.weight(n.toFloat() / total).fillMaxHeight().background(typeColor(t))) }
             }
             androidx.compose.foundation.layout.FlowRow(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 st.types.forEach { (t, n) ->
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(Modifier.size(9.dp).clip(RoundedCornerShape(2.dp)).background(typeColor(t))); Spacer(Modifier.width(4.dp))
-                        Text("${typeName(t)} $n", fontSize = 12.sp)
+                        Box(Modifier.size(9.dp).clip(NgShape.Small).background(typeColor(t))); Spacer(Modifier.width(4.dp))
+                        Text("${typeName(t)} $n", fontSize = NgText.body)
                     }
                 }
             }
@@ -712,11 +714,11 @@ private fun DeckStatsPanel(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.db
 @Composable
 private fun PairBar(label: String, pct: Double, color: Color, warn: Boolean) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(label, fontSize = 11.sp, color = LocalNgExtra.current.subtle, modifier = Modifier.width(52.dp))
-        Box(Modifier.weight(1f).height(7.dp).clip(RoundedCornerShape(4.dp)).background(LocalNgExtra.current.subtle.copy(alpha = 0.25f))) {
-            Box(Modifier.fillMaxHeight().fillMaxWidth((pct / 100).toFloat().coerceIn(0.02f, 1f)).clip(RoundedCornerShape(4.dp)).background(color))
+        Text(label, fontSize = NgText.caption, color = LocalNgExtra.current.subtle, modifier = Modifier.width(52.dp))
+        Box(Modifier.weight(1f).height(7.dp).clip(NgShape.Small).background(LocalNgExtra.current.subtle.copy(alpha = 0.25f))) {
+            Box(Modifier.fillMaxHeight().fillMaxWidth((pct / 100).toFloat().coerceIn(0.02f, 1f)).clip(NgShape.Small).background(color))
         }
-        Text("${Math.round(pct)}%" + if (warn) " ⚠" else "", fontSize = 11.sp, color = if (warn) NgColors.Amber else LocalNgExtra.current.subtle,
+        Text("${Math.round(pct)}%" + if (warn) " ⚠" else "", fontSize = NgText.caption, color = if (warn) NgColors.Amber else LocalNgExtra.current.subtle,
             textAlign = androidx.compose.ui.text.style.TextAlign.End, modifier = Modifier.width(48.dp))
     }
 }
@@ -760,12 +762,12 @@ private fun SampleHandDialog(vm: AppViewModel, list: List<nl.spoonpaco.ninegrid.
         title = { Text(stringResource(R.string.sample_hand_title) + if (mulligans > 0) " · " + stringResource(R.string.mulligan_n, mulligans) else "") },
         text = {
             Column(Modifier.verticalScroll(androidx.compose.foundation.rememberScrollState())) {
-                Text(stringResource(R.string.sample_hand_lands, lands, hand.size), fontSize = 13.sp, color = if (lands in 2..4) NgColors.Synced else NgColors.Amber)
+                Text(stringResource(R.string.sample_hand_lands, lands, hand.size), fontSize = NgText.body, color = if (lands in 2..4) NgColors.Synced else NgColors.Amber)
                 Spacer(Modifier.height(6.dp))
                 androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     hand.forEach { p -> nl.spoonpaco.ninegrid.ui.components.CardThumb(p, vm.images, settings, 70) }
                 }
-                if (settings.imageMode == nl.spoonpaco.ninegrid.data.ImageMode.OFF) hand.forEach { Text(it.name, fontSize = 12.sp) }
+                if (settings.imageMode == nl.spoonpaco.ninegrid.data.ImageMode.OFF) hand.forEach { Text(it.name, fontSize = NgText.body) }
             }
         },
         confirmButton = { TextButton(onClick = { if (drawn < deckOrder.size) drawn++ }) { Text(stringResource(R.string.draw_one_more)) } },
@@ -789,7 +791,7 @@ private fun CombosPanel(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.db.De
         Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(
                 if (report == null) stringResource(R.string.combos_never) else "Commander Spellbook · " + stringResource(R.string.combos_searched, nl.spoonpaco.ninegrid.domain.Dates.dateTime(report.fetchedAt, settings.dateStyle)),
-                fontSize = 12.sp, color = extra.subtle, modifier = Modifier.weight(1f),
+                fontSize = NgText.body, color = extra.subtle, modifier = Modifier.weight(1f),
             )
             androidx.compose.material3.OutlinedButton(onClick = { vm.findCombos(deck.id) }, enabled = !vm.comboLoading) {
                 Text(stringResource(if (report == null) R.string.combos_find else R.string.combos_refresh), maxLines = 1)
@@ -801,25 +803,25 @@ private fun CombosPanel(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.db.De
             androidx.compose.material3.FilterChip(selected = !asCards, onClick = { asCards = false; vm.setComboCards(false) }, label = { Text(stringResource(R.string.combos_view_names)) })
         }
         if (report == null) {
-            Text(stringResource(R.string.combos_explain), fontSize = 12.sp, color = extra.subtle, modifier = Modifier.padding(16.dp))
+            Text(stringResource(R.string.combos_explain), fontSize = NgText.body, color = extra.subtle, modifier = Modifier.padding(16.dp))
             return@Column
         }
         if (vm.comboStale) androidx.compose.material3.Surface(
-            color = NgColors.Amber.copy(alpha = 0.15f), shape = RoundedCornerShape(10.dp),
+            color = NgColors.Amber.copy(alpha = 0.15f), shape = NgShape.Normal,
             modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp).clickable(enabled = !vm.comboLoading) { vm.findCombos(deck.id) },
         ) {
-            Text(stringResource(R.string.combos_stale), fontSize = 13.sp, color = NgColors.Amber, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(10.dp))
+            Text(stringResource(R.string.combos_stale), fontSize = NgText.body, color = NgColors.Amber, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(10.dp))
         }
         if (deck.format == DeckFormat.COMMANDER) TabCard(stringResource(R.string.combos_bracket_title), info = stringResource(R.string.combos_bracket_info)) {
             val n = report.twoCardCombos.size
             Text(
                 if (n > 0) stringResource(R.string.combos_bracket_line, n) else stringResource(R.string.combos_bracket_none),
-                fontSize = 13.sp, fontWeight = if (n > 0) FontWeight.Bold else FontWeight.Normal, color = if (n > 0) MaterialTheme.colorScheme.primary else extra.subtle,
+                fontSize = NgText.body, fontWeight = if (n > 0) FontWeight.Bold else FontWeight.Normal, color = if (n > 0) MaterialTheme.colorScheme.primary else extra.subtle,
             )
-            report.spellbookTag?.let { Text(stringResource(R.string.combos_spellbook_tag, spellbookTagLabel(it)), fontSize = 12.sp, color = extra.subtle) }
+            report.spellbookTag?.let { Text(stringResource(R.string.combos_spellbook_tag, spellbookTagLabel(it)), fontSize = NgText.body, color = extra.subtle) }
         }
         TabCard(stringResource(R.string.combos_in_deck), trailing = { Text("${report.included.size}", color = extra.subtle) }) {
-            if (report.included.isEmpty()) Text(stringResource(R.string.combos_none), fontSize = 13.sp, color = extra.subtle)
+            if (report.included.isEmpty()) Text(stringResource(R.string.combos_none), fontSize = NgText.body, color = extra.subtle)
             report.included.forEachIndexed { i, c ->
                 if (i > 0) androidx.compose.material3.HorizontalDivider(Modifier.padding(vertical = 6.dp))
                 var open by remember(c.id) { mutableStateOf(false) }
@@ -829,8 +831,8 @@ private fun CombosPanel(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.db.De
                     c.produces.take(4).forEach { Pill(it, Color(0xFF1D2B38), Color(0xFF9FD3FF)) }
                 }
                 if (c.prerequisites.isNotBlank()) {
-                    Text((if (open) "▴ " else "▾ ") + stringResource(R.string.combos_prereq), fontSize = 12.sp, color = extra.subtle, modifier = Modifier.padding(top = 4.dp).clickable { open = !open })
-                    if (open) Text(c.prerequisites, fontSize = 12.sp)
+                    Text((if (open) "▴ " else "▾ ") + stringResource(R.string.combos_prereq), fontSize = NgText.body, color = extra.subtle, modifier = Modifier.padding(top = 4.dp).clickable { open = !open })
+                    if (open) Text(c.prerequisites, fontSize = NgText.body)
                 }
             }
         }
@@ -862,13 +864,13 @@ private fun CombosPanel(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.db.De
                 }
             }
         }
-        Text(stringResource(R.string.combos_credit), fontSize = 10.sp, color = extra.subtle, modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp))
+        Text(stringResource(R.string.combos_credit), fontSize = NgText.caption, color = extra.subtle, modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp))
     }
     big?.let { url ->
         androidx.compose.ui.window.Dialog(onDismissRequest = { big = null }) {
             coil.compose.AsyncImage(
                 model = vm.images.request(url, settings), imageLoader = vm.images.loader, contentDescription = null,
-                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).clickable { big = null },
+                modifier = Modifier.fillMaxWidth().clip(NgShape.Large).clickable { big = null },
             )
         }
     }
@@ -893,7 +895,7 @@ private fun ComboRow(
         cards.forEachIndexed { i, n ->
             if (i > 0) Text("+", color = extra.subtle, fontWeight = FontWeight.Bold)
             val miss = n.equals(missing, true)
-            val shape = RoundedCornerShape(6.dp)
+            val shape = NgShape.Small
             val ownedId = vm.entries.value.firstOrNull { it.print?.name?.substringBefore(" // ").equals(n, true) }?.print?.id
             Box(
                 Modifier.width(72.dp).height(101.dp).clip(shape)
@@ -921,8 +923,8 @@ private fun ComboPills(cards: List<String>, missing: String?, twoCard: Boolean) 
             val miss = n.equals(missing, true)
             Text(
                 n, fontSize = 12.5.sp, fontWeight = FontWeight.Bold,
-                modifier = Modifier.clip(RoundedCornerShape(10.dp))
-                    .let { m -> if (miss) m.border(1.5.dp, NgColors.Amber, RoundedCornerShape(10.dp)) else m.background(LocalNgExtra.current.subtle.copy(alpha = 0.2f)) }
+                modifier = Modifier.clip(NgShape.Normal)
+                    .let { m -> if (miss) m.border(1.5.dp, NgColors.Amber, NgShape.Normal) else m.background(LocalNgExtra.current.subtle.copy(alpha = 0.2f)) }
                     .padding(horizontal = 9.dp, vertical = 3.dp),
             )
         }
@@ -932,8 +934,8 @@ private fun ComboPills(cards: List<String>, missing: String?, twoCard: Boolean) 
 
 @Composable
 private fun Pill(text: String, bg: Color, fg: Color) {
-    Text(text, fontSize = 11.sp, color = fg, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-        modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(bg).padding(horizontal = 7.dp, vertical = 2.dp))
+    Text(text, fontSize = NgText.caption, color = fg, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+        modifier = Modifier.clip(NgShape.Normal).background(bg).padding(horizontal = 7.dp, vertical = 2.dp))
 }
 
 @Composable
@@ -962,33 +964,33 @@ private fun SuggestionsPanel(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.
                 Text(
                     (r?.let { colorDots(it.colors).ifEmpty { stringResource(R.string.sugg_colorless) } + (if (it.splashColors.isNotEmpty()) " +" + colorDots(it.splashColors) else "") + "  ·  " } ?: "") +
                         rulesSummary(rules, commander),
-                    fontSize = 13.sp,
+                    fontSize = NgText.body,
                 )
             }
             androidx.compose.material3.OutlinedButton(onClick = { editRules = true }) { Text(stringResource(R.string.sugg_rules_button)) }
         }
         if (vm.suggestionsFailed && vm.suggestionsDeckId == deck.id) {
-            Text(stringResource(R.string.sugg_failed), fontSize = 13.sp, color = NgColors.Error, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
+            Text(stringResource(R.string.sugg_failed), fontSize = NgText.body, color = NgColors.Error, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
             TextButton(onClick = { vm.computeSuggestions(deck.id) }, modifier = Modifier.padding(horizontal = 8.dp)) { Text(stringResource(R.string.sugg_retry)) }
             return@Column
         }
         if (r == null) { androidx.compose.material3.LinearProgressIndicator(Modifier.fillMaxWidth().padding(16.dp)); return@Column }
 
         TabCard(stringResource(R.string.sugg_roles), info = stringResource(R.string.sugg_roles_info)) {
-            Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).background(extra.subtle.copy(alpha = 0.12f)).clickable { editRules = true }.padding(8.dp)) {
+            Row(Modifier.fillMaxWidth().clip(NgShape.Normal).background(extra.subtle.copy(alpha = 0.12f)).clickable { editRules = true }.padding(8.dp)) {
                 Text(
                     stringResource(if (r.deckTypeAuto) R.string.sugg_targets_auto else R.string.sugg_targets_set, deckTypeName(r.deckType)) + "  ",
-                    fontSize = 12.sp, modifier = Modifier.weight(1f),
+                    fontSize = NgText.body, modifier = Modifier.weight(1f),
                 )
-                Text(stringResource(R.string.sugg_targets_change), fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                Text(stringResource(R.string.sugg_targets_change), fontSize = NgText.body, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
             }
             Spacer(Modifier.height(4.dp))
             r.roles.filter { it.value.second > 0 }.forEach { (role, v) ->
                 RoleBar(roleName(role), v.first, v.second, onClick = { openRole = if (openRole == role) null else role }, open = openRole == role)
                 if (openRole == role) Column(Modifier.padding(start = 12.dp, bottom = 6.dp)) {
                     val names = r.roleCards[role].orEmpty()
-                    if (names.isEmpty()) Text(stringResource(R.string.sugg_role_none), fontSize = 12.sp, color = extra.subtle)
-                    else Text(names.joinToString(" · "), fontSize = 12.sp, color = extra.subtle)
+                    if (names.isEmpty()) Text(stringResource(R.string.sugg_role_none), fontSize = NgText.body, color = extra.subtle)
+                    else Text(names.joinToString(" · "), fontSize = NgText.body, color = extra.subtle)
                     TextButton(onClick = { tickRole = role }) { Text("+ " + stringResource(R.string.sugg_role_tick)) }
                 }
             }
@@ -998,7 +1000,7 @@ private fun SuggestionsPanel(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.
         var suggClosed by remember(deck.id) { mutableStateOf(vm.suggCollapsed(deck.id)) }
         fun toggleSugg(k: String) { suggClosed = if (k in suggClosed) suggClosed - k else suggClosed + k; vm.setSuggCollapsed(deck.id, suggClosed) }
         TabCard(stringResource(R.string.sugg_adds) + " (${r.adds.size})", closed = "adds" in suggClosed, onToggle = { toggleSugg("adds") }, explain = stringResource(R.string.sugg_adds_explain)) {
-            if (r.adds.isEmpty()) Text(stringResource(R.string.sugg_none), fontSize = 12.sp, color = extra.subtle)
+            if (r.adds.isEmpty()) Text(stringResource(R.string.sugg_none), fontSize = NgText.body, color = extra.subtle)
             r.adds.forEach { s ->
                 SuggestionRow(s.card.name + (s.card.where?.let { " · $it" } ?: ""), s.reasons.map { reasonText(it) }.joinToString(" · "), stringResource(R.string.swap_action)) {
                     swap = SwapRequest(inName = s.card.name, outEntryId = r.cuts.firstOrNull()?.entryKey, land = false)
@@ -1013,7 +1015,7 @@ private fun SuggestionsPanel(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.
             }
         }
         TabCard(stringResource(R.string.sugg_cuts) + " (${r.cuts.size})", closed = "cuts" in suggClosed, onToggle = { toggleSugg("cuts") }, explain = stringResource(R.string.sugg_cuts_explain)) {
-            if (r.cuts.isEmpty()) Text(stringResource(R.string.sugg_none), fontSize = 12.sp, color = extra.subtle)
+            if (r.cuts.isEmpty()) Text(stringResource(R.string.sugg_none), fontSize = NgText.body, color = extra.subtle)
             r.cuts.forEach { c ->
                 SuggestionRow(c.name, c.reasons.map { reasonText(it) }.joinToString(" · "), stringResource(R.string.swap_action)) {
                     swap = SwapRequest(inName = r.adds.firstOrNull()?.card?.name, outEntryId = c.entryKey, land = false, fromCut = true)
@@ -1031,7 +1033,7 @@ private fun SuggestionsPanel(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.
             }
         }
         AiDeckBlock(vm, deck, onSwap = { inName, outId -> swap = SwapRequest(inName = inName, outEntryId = outId, land = false) })
-        Text(stringResource(R.string.sugg_note), fontSize = 11.sp, color = extra.subtle, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
+        Text(stringResource(R.string.sugg_note), fontSize = NgText.caption, color = extra.subtle, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
     }
 
     if (editRules) RulesDialog(rules, commander, r, onDismiss = { editRules = false }) { nr -> editRules = false; save(nr) }
@@ -1046,12 +1048,12 @@ private fun SuggestionsPanel(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.
             title = { Text(stringResource(R.string.sugg_role_tick_title, roleName(role))) },
             text = {
                 Column(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState())) {
-                    Text(stringResource(R.string.sugg_role_tick_body), fontSize = 12.sp, color = extra.subtle)
+                    Text(stringResource(R.string.sugg_role_tick_body), fontSize = NgText.body, color = extra.subtle)
                     names.forEach { n ->
                         val auto = n in counted && n !in manual
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().clickable(enabled = !auto) { picked = if (n in picked) picked - n else picked + n }) {
                             androidx.compose.material3.Checkbox(checked = auto || n in picked, onCheckedChange = null, enabled = !auto)
-                            Text(n + if (auto) "  · " + stringResource(R.string.sugg_role_auto) else "", fontSize = 13.sp, color = if (auto) extra.subtle else MaterialTheme.colorScheme.onSurface)
+                            Text(n + if (auto) "  · " + stringResource(R.string.sugg_role_auto) else "", fontSize = NgText.body, color = if (auto) extra.subtle else MaterialTheme.colorScheme.onSurface)
                         }
                     }
                 }
@@ -1074,7 +1076,7 @@ private fun AiDeckBlock(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.db.De
     var outside by remember { mutableStateOf(false) }
     val uri = androidx.compose.ui.platform.LocalUriHandler.current
     if (!settings.aiEnabled) {
-        Text(stringResource(R.string.ai_deck_off), fontSize = 12.sp, color = extra.subtle, modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp))
+        Text(stringResource(R.string.ai_deck_off), fontSize = NgText.body, color = extra.subtle, modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp))
         return
     }
     TabCard(stringResource(R.string.ai_deck_title), info = stringResource(R.string.ai_deck_privacy), accent = true) {
@@ -1086,16 +1088,16 @@ private fun AiDeckBlock(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.db.De
             androidx.compose.material3.Button(onClick = { vm.askAiDeck(deck.id, outside) }, enabled = !vm.aiDeckBusy) { Text(stringResource(R.string.ai_ask)) }
             if (vm.aiDeckBusy) { Spacer(Modifier.width(8.dp)); androidx.compose.material3.CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp) }
         }
-        vm.aiDeckError?.let { Text(it, fontSize = 12.sp, color = NgColors.Error) }
+        vm.aiDeckError?.let { Text(it, fontSize = NgText.body, color = NgColors.Error) }
         val r = vm.aiDeck?.takeIf { it.deckId == deck.id } ?: return@TabCard
         val deckEntries = all.filter { it.entry.deckId == deck.id }
         fun outId(name: String?) = name?.let { n -> deckEntries.firstOrNull { it.print?.name == n }?.entry?.id }
-        if (r.owned.isEmpty() && r.buy.isEmpty()) Text(stringResource(R.string.sugg_none), fontSize = 12.sp, color = extra.subtle)
+        if (r.owned.isEmpty() && r.buy.isEmpty()) Text(stringResource(R.string.sugg_none), fontSize = NgText.body, color = extra.subtle)
         r.owned.forEach { s ->
             SuggestionRow(s.inName + (s.outName?.let { "  ⇄  $it" } ?: ""), s.reason, stringResource(R.string.swap_action)) { onSwap(s.inName, outId(s.outName)) }
         }
         if (r.buy.isNotEmpty()) {
-            Text(stringResource(R.string.ai_buy_title), fontWeight = FontWeight.Bold, fontSize = 13.sp, modifier = Modifier.padding(top = 6.dp))
+            Text(stringResource(R.string.ai_buy_title), fontWeight = FontWeight.Bold, fontSize = NgText.body, modifier = Modifier.padding(top = 6.dp))
             r.buy.forEach { b ->
                 val price = Money.unitPrice(nl.spoonpaco.ninegrid.data.db.Entry(printId = b.print.id), b.print, settings.currency)
                 Column(Modifier.padding(vertical = 2.dp)) {
@@ -1103,11 +1105,11 @@ private fun AiDeckBlock(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.db.De
                         if (settings.currency == "USD") "TCGplayer" else "Cardmarket") {
                         ((if (settings.currency == "USD") b.print.tcgplayerUri else b.print.cardmarketUri) ?: b.print.scryfallUri)?.let { runCatching { uri.openUri(it) } }
                     }
-                    TextButton(onClick = { vm.addToWishlistByName(b.print.name) }, contentPadding = PaddingValues(horizontal = 4.dp)) { Text("+ " + stringResource(R.string.wish_add_btn), fontSize = 12.sp) }
+                    TextButton(onClick = { vm.addToWishlistByName(b.print.name) }, contentPadding = PaddingValues(horizontal = 4.dp)) { Text("+ " + stringResource(R.string.wish_add_btn), fontSize = NgText.body) }
                 }
             }
         }
-        if (r.dropped > 0) Text(stringResource(R.string.ai_dropped, r.dropped), fontSize = 11.sp, color = extra.subtle)
+        if (r.dropped > 0) Text(stringResource(R.string.ai_dropped, r.dropped), fontSize = NgText.caption, color = extra.subtle)
     }
 }
 
@@ -1144,7 +1146,7 @@ private fun RulesDialog(
                     label = { Text(stringResource(R.string.sugg_tribe)) }, placeholder = { Text("Vampire") }, modifier = Modifier.fillMaxWidth(),
                 )
                 if (commander) {
-                    Text(stringResource(R.string.sugg_max_bracket), fontSize = 13.sp, modifier = Modifier.padding(top = 6.dp))
+                    Text(stringResource(R.string.sugg_max_bracket), fontSize = NgText.body, modifier = Modifier.padding(top = 6.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         (0..4).forEach { b ->
                             androidx.compose.material3.FilterChip(selected = rules.maxBracket == b, onClick = { rules = rules.copy(maxBracket = b) },
@@ -1154,33 +1156,33 @@ private fun RulesDialog(
                 } else {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         androidx.compose.material3.Checkbox(checked = rules.splash, onCheckedChange = { rules = rules.copy(splash = it) })
-                        Text(stringResource(R.string.sugg_splash), fontSize = 13.sp)
+                        Text(stringResource(R.string.sugg_splash), fontSize = NgText.body)
                     }
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     androidx.compose.material3.Checkbox(checked = rules.includeOtherDecks, onCheckedChange = { rules = rules.copy(includeOtherDecks = it) })
-                    Text(stringResource(R.string.sugg_other_decks), fontSize = 13.sp)
+                    Text(stringResource(R.string.sugg_other_decks), fontSize = NgText.body)
                 }
                 // Soort deck: bepaalt de streefgetallen. Automatisch tenzij je zelf kiest.
-                Text(stringResource(R.string.sugg_deck_type), fontSize = 13.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp))
+                Text(stringResource(R.string.sugg_deck_type), fontSize = NgText.body, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp))
                 val types = listOf("auto", "aggro", "midrange", "control")
                 androidx.compose.material3.SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
                     types.forEachIndexed { i, t ->
                         SegmentedButton(
                             selected = rules.deckType == t, onClick = { rules = rules.copy(deckType = t, targets = emptyMap()) },
                             shape = androidx.compose.material3.SegmentedButtonDefaults.itemShape(i, types.size),
-                        ) { Text(if (t == "auto") stringResource(R.string.decktype_auto) else deckTypeName(t), fontSize = 11.sp, maxLines = 1) }
+                        ) { Text(if (t == "auto") stringResource(R.string.decktype_auto) else deckTypeName(t), fontSize = NgText.caption, maxLines = 1) }
                     }
                 }
                 // Doelen per rol: de voorgestelde waarde, met − en + aan te passen.
                 val type = if (rules.deckType == "auto") report?.deckType ?: "midrange" else rules.deckType
                 val base = nl.spoonpaco.ninegrid.domain.Suggestions.targets(commander, type)
-                Text(stringResource(R.string.sugg_targets_title), fontSize = 13.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp))
+                Text(stringResource(R.string.sugg_targets_title), fontSize = NgText.body, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp))
                 nl.spoonpaco.ninegrid.domain.Role.entries.forEach { role ->
                     val v = rules.targets[role.name] ?: base[role] ?: 0
                     val changed = rules.targets.containsKey(role.name)
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(roleName(role), fontSize = 13.sp, modifier = Modifier.weight(1f))
+                        Text(roleName(role), fontSize = NgText.body, modifier = Modifier.weight(1f))
                         IconButton(onClick = { rules = rules.copy(targets = rules.targets + (role.name to (v - 1).coerceAtLeast(0))) }, modifier = Modifier.size(32.dp)) { Text("−") }
                         Text("$v", fontWeight = if (changed) FontWeight.Bold else FontWeight.Normal, color = if (changed) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center, modifier = Modifier.width(28.dp))
@@ -1188,7 +1190,7 @@ private fun RulesDialog(
                     }
                 }
                 if (rules.targets.isNotEmpty()) TextButton(onClick = { rules = rules.copy(targets = emptyMap()) }) { Text(stringResource(R.string.sugg_targets_reset)) }
-                Text(stringResource(R.string.sugg_targets_note), fontSize = 11.sp, color = extra.subtle)
+                Text(stringResource(R.string.sugg_targets_note), fontSize = NgText.caption, color = extra.subtle)
             }
         },
         confirmButton = { TextButton(onClick = { onApply(rules) }) { Text(stringResource(R.string.sugg_apply)) } },
@@ -1256,7 +1258,7 @@ private fun SwapDialog(
                     SwapSide(stringResource(R.string.swap_in), inName?.let { inPrint } , inName ?: stringResource(R.string.swap_nothing_in), vm, settings, Modifier.weight(1f))
                     SwapSide(stringResource(R.string.swap_out), out?.print, out?.print?.let { p -> p.name + if (req.land) " · ${p.setCode}" else "" } ?: stringResource(R.string.swap_nothing_out), vm, settings, Modifier.weight(1f))
                 }
-                if (inName != null && available == 0) Text(stringResource(R.string.swap_none_available), fontSize = 12.sp, color = NgColors.Error)
+                if (inName != null && available == 0) Text(stringResource(R.string.swap_none_available), fontSize = NgText.body, color = NgColors.Error)
 
                 // Erin kiezen, als je vanuit "Eruit" begon.
                 if (req.fromCut) {
@@ -1269,7 +1271,7 @@ private fun SwapDialog(
 
                 // Eruit kiezen.
                 Spacer(Modifier.height(6.dp))
-                Text(stringResource(if (req.land) R.string.swap_choose_basic else R.string.swap_choose_out), fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                Text(stringResource(if (req.land) R.string.swap_choose_basic else R.string.swap_choose_out), fontWeight = FontWeight.Bold, fontSize = NgText.body)
                 SwapOption(stringResource(R.string.swap_nothing_out), outId == null) { outId = null }
                 val shown = if (showAllOut || req.land) outOptions else outOptions.take(6)
                 shown.forEach { e ->
@@ -1286,7 +1288,7 @@ private fun SwapDialog(
                     Text("$qty", fontWeight = FontWeight.Bold)
                     TextButton(onClick = { if (qty < maxQty) qty++ }) { Text("+") }
                 }
-                Text(stringResource(R.string.swap_note), fontSize = 11.sp, color = extra.subtle, modifier = Modifier.padding(top = 4.dp))
+                Text(stringResource(R.string.swap_note), fontSize = NgText.caption, color = extra.subtle, modifier = Modifier.padding(top = 4.dp))
             }
         },
         confirmButton = {
@@ -1309,10 +1311,10 @@ private fun SwapDialog(
 @Composable
 private fun SwapSide(title: String, print: nl.spoonpaco.ninegrid.data.db.CardPrint?, name: String, vm: AppViewModel, settings: nl.spoonpaco.ninegrid.data.AppSettings, modifier: Modifier) {
     Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(title, fontSize = 12.sp, color = LocalNgExtra.current.subtle)
+        Text(title, fontSize = NgText.body, color = LocalNgExtra.current.subtle)
         if (print != null) nl.spoonpaco.ninegrid.ui.components.CardThumb(print, vm.images, settings, width = 110)
-        else Box(Modifier.width(110.dp).height(154.dp).background(MaterialTheme.colorScheme.surfaceContainerHigh, RoundedCornerShape(4.dp)))
-        Text(name, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, maxLines = 2)
+        else Box(Modifier.width(110.dp).height(154.dp).background(MaterialTheme.colorScheme.surfaceContainerHigh, NgShape.Small))
+        Text(name, fontSize = NgText.body, fontWeight = FontWeight.SemiBold, maxLines = 2)
     }
 }
 
@@ -1320,7 +1322,7 @@ private fun SwapSide(title: String, print: nl.spoonpaco.ninegrid.data.db.CardPri
 private fun SwapOption(label: String, selected: Boolean, onClick: () -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)) {
         androidx.compose.material3.RadioButton(selected = selected, onClick = onClick)
-        Text(label, fontSize = 13.sp)
+        Text(label, fontSize = NgText.body)
     }
 }
 
@@ -1329,8 +1331,8 @@ private fun SuggestionRow(title: String, why: String, action: String, onClick: (
     // De hele regel is tikbaar, niet alleen de knop.
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 3.dp)) {
         Column(Modifier.weight(1f)) {
-            Text(title, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-            if (why.isNotBlank()) Text(why, fontSize = 11.sp, color = LocalNgExtra.current.subtle)
+            Text(title, fontSize = NgText.body, fontWeight = FontWeight.SemiBold)
+            if (why.isNotBlank()) Text(why, fontSize = NgText.caption, color = LocalNgExtra.current.subtle)
         }
         TextButton(onClick = onClick) { Text(action) }
     }

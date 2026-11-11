@@ -1,5 +1,7 @@
 package nl.spoonpaco.ninegrid.ui.screens
 
+import nl.spoonpaco.ninegrid.ui.theme.NgSpace
+import nl.spoonpaco.ninegrid.ui.theme.NgText
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -109,8 +111,8 @@ fun ShareScreen(vm: AppViewModel, onBack: () -> Unit, onFriend: (String) -> Unit
                     modifier = Modifier.fillMaxWidth().padding(12.dp),
                 ) {
                     Column(Modifier.padding(16.dp)) {
-                        Text(stringResource(R.string.share_mine_title), fontWeight = FontWeight.Bold, fontSize = 17.sp)
-                        Text(stringResource(R.string.share_mine_explain), fontSize = 13.sp)
+                        Text(stringResource(R.string.share_mine_title), fontWeight = FontWeight.Bold, fontSize = NgText.heading)
+                        Text(stringResource(R.string.share_mine_explain), fontSize = NgText.body)
                         Spacer(Modifier.height(10.dp))
                         Button(onClick = { choosing = true }) { Icon(Icons.Filled.Share, null); Spacer(Modifier.width(6.dp)); Text(stringResource(R.string.share_choose)) }
                     }
@@ -124,10 +126,10 @@ fun ShareScreen(vm: AppViewModel, onBack: () -> Unit, onFriend: (String) -> Unit
                     }
                 }
                 if (vm.shareBusy) LinearProgressIndicator(Modifier.fillMaxWidth().padding(horizontal = 16.dp))
-                Text(stringResource(R.string.share_open_explain), fontSize = 12.sp, color = extra.subtle, modifier = Modifier.padding(horizontal = 16.dp))
+                Text(stringResource(R.string.share_open_explain), fontSize = NgText.body, color = extra.subtle, modifier = Modifier.padding(horizontal = 16.dp))
             }
             if (friends.isEmpty()) item {
-                Text(stringResource(R.string.share_none_yet), fontSize = 13.sp, color = extra.subtle, modifier = Modifier.padding(16.dp))
+                Text(stringResource(R.string.share_none_yet), fontSize = NgText.body, color = extra.subtle, modifier = Modifier.padding(16.dp))
             }
             items(friends, key = { it.id }) { f ->
                 val packs = packages.filter { it.friendId == f.id }
@@ -143,7 +145,7 @@ fun ShareScreen(vm: AppViewModel, onBack: () -> Unit, onFriend: (String) -> Unit
                         Text(
                             pluralStringPackages(packs.size) + " · " + stringResource(R.string.share_cards_value, count, Money.format(value, settings.currency)) +
                                 " · " + nl.spoonpaco.ninegrid.domain.Dates.date(f.receivedAt, settings.dateStyle),
-                            fontSize = 12.sp,
+                            fontSize = NgText.body,
                         )
                     },
                     modifier = Modifier.clickable { onFriend(f.id) },
@@ -162,7 +164,7 @@ fun ShareScreen(vm: AppViewModel, onBack: () -> Unit, onFriend: (String) -> Unit
             title = { Text(stringResource(R.string.share_other_app_title)) },
             text = {
                 Column {
-                    Text(stringResource(R.string.share_other_app_body, data.format.ifBlank { "?" }, data.collectionCount + data.deckCount), fontSize = 13.sp)
+                    Text(stringResource(R.string.share_other_app_body, data.format.ifBlank { "?" }, data.collectionCount + data.deckCount), fontSize = NgText.body)
                     Spacer(Modifier.height(8.dp))
                     OutlinedTextField(name, { name = it }, singleLine = true, label = { Text(stringResource(R.string.share_whose)) })
                 }
@@ -218,13 +220,13 @@ private fun ShareChooser(vm: AppViewModel, onDismiss: () -> Unit) {
             Column(Modifier.fillMaxSize().systemBarsPadding()) {
                 Row(Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = onDismiss) { Icon(Icons.Filled.Close, stringResource(R.string.cancel)) }
-                    Text(stringResource(R.string.share_choose), fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    Text(stringResource(R.string.share_choose), fontWeight = FontWeight.Bold, fontSize = NgText.heading)
                 }
                 Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)) {
                     // Naam: één compacte regel, uitleg klein eronder.
                     OutlinedTextField(name, { name = it.take(40) }, singleLine = true, modifier = Modifier.fillMaxWidth(),
                         label = { Text(stringResource(R.string.share_name_label)) })
-                    Text(stringResource(R.string.share_name_hint), fontSize = 11.sp, color = extra.subtle, modifier = Modifier.padding(start = 4.dp, top = 2.dp))
+                    Text(stringResource(R.string.share_name_hint), fontSize = NgText.caption, color = extra.subtle, modifier = Modifier.padding(start = 4.dp, top = 2.dp))
                     Spacer(Modifier.height(12.dp))
                     Text(stringResource(R.string.share_what), fontWeight = FontWeight.Bold)
                     RadioLine(stringResource(R.string.share_all), stringResource(R.string.share_all_sub), mode == "all") { mode = "all" }
@@ -243,14 +245,14 @@ private fun ShareChooser(vm: AppViewModel, onDismiss: () -> Unit) {
                             .forEach { r -> CheckLine("${r.code} · ${r.name}", "${r.count}", r.code in sets) { sets = if (it) sets + r.code else sets - r.code } }
                     }
                     if (mode != "all" && decks.isNotEmpty()) Fold(stringResource(R.string.decks), decks.size, deckSel.size, open == "d", { open = if (open == "d") null else "d" }) {
-                        Text(stringResource(R.string.share_decks_why), fontSize = 12.sp, color = extra.subtle)
+                        Text(stringResource(R.string.share_decks_why), fontSize = NgText.body, color = extra.subtle)
                         decks.sortedBy { it.name.lowercase() }.forEach { d ->
                             CheckLine(d.name, formatLabelPlain(d.format), d.id in deckSel) { deckSel = if (it) deckSel + d.id else deckSel - d.id }
                         }
                     }
                     if (vm.wishlistCount() > 0) CheckLine(stringResource(R.string.share_wishlist), stringResource(R.string.share_wishlist_sub, vm.wishlistCount()), wish) { wish = it }
                     Spacer(Modifier.height(12.dp))
-                    Text(stringResource(R.string.share_privacy), fontSize = 12.sp, color = extra.subtle)
+                    Text(stringResource(R.string.share_privacy), fontSize = NgText.body, color = extra.subtle)
                     Spacer(Modifier.height(12.dp))
                 }
                 HorizontalDivider()
@@ -268,7 +270,7 @@ private fun ShareChooser(vm: AppViewModel, onDismiss: () -> Unit) {
                                 if (deckPacks.isNotEmpty()) stringResource(R.string.share_sum_decks, deckPacks.size, deckPacks.sumOf { p -> p.cards.sumOf { it.qty } }) else null,
                                 "± " + maxOf(1, bytes / 1024) + " KB",
                             ).joinToString(" · "),
-                            fontSize = 12.sp, color = extra.subtle,
+                            fontSize = NgText.body, color = extra.subtle,
                         )
                     }
                     Spacer(Modifier.height(10.dp))
@@ -301,7 +303,7 @@ private fun RadioLine(title: String, sub: String?, selected: Boolean, onClick: (
         androidx.compose.material3.RadioButton(selected = selected, onClick = onClick)
         Column(Modifier.weight(1f)) {
             Text(title)
-            sub?.let { Text(it, fontSize = 12.sp, color = LocalNgExtra.current.subtle) }
+            sub?.let { Text(it, fontSize = NgText.body, color = LocalNgExtra.current.subtle) }
         }
     }
 }
@@ -312,7 +314,7 @@ private fun Fold(title: String, total: Int, chosen: Int, open: Boolean, onToggle
     Card(colors = CardDefaults.cardColors(containerColor = LocalNgExtra.current.cardSurface), modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
         Row(Modifier.fillMaxWidth().clickable(onClick = onToggle).padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
             Text("$title ($total)", fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
-            if (chosen > 0) Text(stringResource(R.string.share_chosen, chosen), fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
+            if (chosen > 0) Text(stringResource(R.string.share_chosen, chosen), fontSize = NgText.body, color = MaterialTheme.colorScheme.primary)
             Text(if (open) " ▴" else " ▾")
         }
         if (open) Column(Modifier.padding(start = 4.dp, end = 8.dp, bottom = 8.dp)) { content() }
@@ -325,7 +327,7 @@ private fun CheckLine(title: String, sub: String?, checked: Boolean, enabled: Bo
         Checkbox(checked = checked, onCheckedChange = onChange, enabled = enabled)
         Column(Modifier.weight(1f)) {
             Text(title)
-            sub?.let { Text(it, fontSize = 12.sp, color = LocalNgExtra.current.subtle) }
+            sub?.let { Text(it, fontSize = NgText.body, color = LocalNgExtra.current.subtle) }
         }
     }
 }
@@ -363,7 +365,7 @@ fun FriendScreen(vm: AppViewModel, friendId: String, onBack: () -> Unit, onCard:
             title = {
                 Column {
                     Text(friend?.name ?: "", fontWeight = FontWeight.Bold, maxLines = 1)
-                    Text(stringResource(if (friend?.fromOtherApp == true) R.string.share_view_only_app else R.string.share_view_only), fontSize = 12.sp, color = extra.subtle)
+                    Text(stringResource(if (friend?.fromOtherApp == true) R.string.share_view_only_app else R.string.share_view_only), fontSize = NgText.body, color = extra.subtle)
                 }
             },
             navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) } },
@@ -395,7 +397,7 @@ fun FriendScreen(vm: AppViewModel, friendId: String, onBack: () -> Unit, onCard:
                             }
                         }
                         OutlinedTextField(query, { query = it }, singleLine = true, placeholder = { Text(stringResource(R.string.search_card)) },
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp))
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = NgSpace.screen))
                         Text(
                             stringResource(R.string.share_cards_value, list.sumOf { it.entry.quantity }, Money.format(list.sumOf { Money.total(it.entry, it.print, settings.currency) }, settings.currency)),
                             fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
@@ -411,11 +413,11 @@ fun FriendScreen(vm: AppViewModel, friendId: String, onBack: () -> Unit, onCard:
                                     Text(p?.name ?: "?", fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
                                     FoilBadge(e.entry.finish)
                                 }
-                                Text(listOfNotNull(p?.let { "${it.setCode} ${it.collectorNumber}" }, e.entry.language.ifBlank { null }, e.entry.section?.let { sectionLabel(it) }).joinToString(" · "), fontSize = 12.sp, color = extra.subtle)
+                                Text(listOfNotNull(p?.let { "${it.setCode} ${it.collectorNumber}" }, e.entry.language.ifBlank { null }, e.entry.section?.let { sectionLabel(it) }).joinToString(" · "), fontSize = NgText.body, color = extra.subtle)
                             }
                             Column(horizontalAlignment = Alignment.End) {
                                 Text("×${e.entry.quantity}", fontWeight = FontWeight.Bold)
-                                Text(Money.format(Money.unitPrice(e.entry, p, settings.currency), settings.currency), fontSize = 12.sp)
+                                Text(Money.format(Money.unitPrice(e.entry, p, settings.currency), settings.currency), fontSize = NgText.body)
                             }
                         }
                     }
@@ -429,7 +431,7 @@ fun FriendScreen(vm: AppViewModel, friendId: String, onBack: () -> Unit, onCard:
         AlertDialog(
             onDismissRequest = { renaming = false },
             title = { Text(stringResource(R.string.rename)) },
-            text = { Column { OutlinedTextField(n, { n = it }, singleLine = true); Text(stringResource(R.string.share_rename_local), fontSize = 12.sp) } },
+            text = { Column { OutlinedTextField(n, { n = it }, singleLine = true); Text(stringResource(R.string.share_rename_local), fontSize = NgText.body) } },
             confirmButton = { TextButton(onClick = { vm.renameFriend(friendId, n); renaming = false }) { Text(stringResource(R.string.save)) } },
             dismissButton = { TextButton(onClick = { renaming = false }) { Text(stringResource(R.string.cancel)) } },
         )
@@ -483,9 +485,9 @@ private fun TradePanel(vm: AppViewModel, name: String, friendId: String, theyHav
                 }
             }
             item {
-                Text(stringResource(R.string.trade_explain), fontSize = 12.sp, color = extra.subtle, modifier = Modifier.padding(16.dp))
+                Text(stringResource(R.string.trade_explain), fontSize = NgText.body, color = extra.subtle, modifier = Modifier.padding(16.dp))
                 Text(stringResource(R.string.trade_get_title, name), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(horizontal = 16.dp))
-                if (r != null && r.get.isEmpty()) Text(stringResource(R.string.trade_get_none), fontSize = 13.sp, color = extra.subtle, modifier = Modifier.padding(16.dp))
+                if (r != null && r.get.isEmpty()) Text(stringResource(R.string.trade_get_none), fontSize = NgText.body, color = extra.subtle, modifier = Modifier.padding(16.dp))
             }
             items(r?.get.orEmpty(), key = { "g" + it.entry.id }) { item ->
                 TradeRow(item, settings, vm, item.entry.id in getSel, onCard) { on -> getSel = if (on) getSel + item.entry.id else getSel - item.entry.id }
@@ -494,8 +496,8 @@ private fun TradePanel(vm: AppViewModel, name: String, friendId: String, theyHav
                 Spacer(Modifier.height(12.dp))
                 Text(stringResource(R.string.trade_give_title, name), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(horizontal = 16.dp))
                 when {
-                    !theyHaveDecks -> Text(stringResource(R.string.trade_give_no_decks, name), fontSize = 13.sp, color = extra.subtle, modifier = Modifier.padding(16.dp))
-                    r != null && r.give.isEmpty() -> Text(stringResource(R.string.trade_give_none), fontSize = 13.sp, color = extra.subtle, modifier = Modifier.padding(16.dp))
+                    !theyHaveDecks -> Text(stringResource(R.string.trade_give_no_decks, name), fontSize = NgText.body, color = extra.subtle, modifier = Modifier.padding(16.dp))
+                    r != null && r.give.isEmpty() -> Text(stringResource(R.string.trade_give_none), fontSize = NgText.body, color = extra.subtle, modifier = Modifier.padding(16.dp))
                 }
             }
             items(r?.give.orEmpty(), key = { "y" + it.entry.id }) { item ->
@@ -516,7 +518,7 @@ private fun TradePanel(vm: AppViewModel, name: String, friendId: String, theyHav
                     diff > 0 -> stringResource(R.string.trade_you_more, Money.format(diff, settings.currency))
                     else -> stringResource(R.string.trade_they_more, name, Money.format(-diff, settings.currency))
                 },
-                fontSize = 13.sp,
+                fontSize = NgText.body,
                 color = if (kotlin.math.abs(diff) < 0.5 || (getSel.isEmpty() && giveSel.isEmpty())) extra.subtle else NgColors.Amber,
             )
         }
@@ -535,11 +537,11 @@ private fun TradeRow(item: TradeMatch.Item, settings: nl.spoonpaco.ninegrid.data
                     Text(item.print.name, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
                     FoilBadge(item.entry.finish)
                 }
-                if (item.decks.isNotEmpty()) Text(stringResource(R.string.trade_for_decks, item.decks.joinToString(", ")), fontSize = 12.sp, color = MaterialTheme.colorScheme.primary, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                else Text(stringResource(R.string.trade_on_wishlist), fontSize = 12.sp, color = NgColors.Synced)
-                item.reasons.firstOrNull()?.takeIf { it != "wish" }?.let { Text(reasonText(it), fontSize = 11.sp, color = LocalNgExtra.current.subtle, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                if (item.decks.isNotEmpty()) Text(stringResource(R.string.trade_for_decks, item.decks.joinToString(", ")), fontSize = NgText.body, color = MaterialTheme.colorScheme.primary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                else Text(stringResource(R.string.trade_on_wishlist), fontSize = NgText.body, color = NgColors.Synced)
+                item.reasons.firstOrNull()?.takeIf { it != "wish" }?.let { Text(reasonText(it), fontSize = NgText.caption, color = LocalNgExtra.current.subtle, maxLines = 1, overflow = TextOverflow.Ellipsis) }
             }
         }
-        Text(Money.format(item.unit, settings.currency), fontSize = 13.sp, modifier = Modifier.padding(start = 6.dp))
+        Text(Money.format(item.unit, settings.currency), fontSize = NgText.body, modifier = Modifier.padding(start = 6.dp))
     }
 }

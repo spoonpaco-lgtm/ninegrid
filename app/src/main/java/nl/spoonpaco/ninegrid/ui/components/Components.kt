@@ -1,5 +1,7 @@
 package nl.spoonpaco.ninegrid.ui.components
 
+import nl.spoonpaco.ninegrid.ui.theme.NgText
+import nl.spoonpaco.ninegrid.ui.theme.NgShape
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -73,13 +75,13 @@ fun ManaPips(colors: String, modifier: Modifier = Modifier, size: Int = 18) {
 fun FoilBadge(finish: String) {
     if (finish == Finish.NONFOIL) return
     Box(
-        Modifier.padding(start = 6.dp).clip(RoundedCornerShape(6.dp))
+        Modifier.padding(start = 6.dp).clip(NgShape.Small)
             .background(Brush.horizontalGradient(listOf(Color(0xFF7AD3FF), Color(0xFFC79BFF), Color(0xFFFFB3C7))))
             .padding(horizontal = 6.dp, vertical = 1.dp),
     ) {
         Text(
             if (finish == Finish.ETCHED) stringResource(R.string.etched).uppercase() else stringResource(R.string.foil).uppercase(),
-            color = NgColors.KaartBruin, fontSize = 10.sp, fontWeight = FontWeight.Bold,
+            color = NgColors.KaartBruin, fontSize = NgText.caption, fontWeight = FontWeight.Bold,
         )
     }
 }
@@ -87,9 +89,9 @@ fun FoilBadge(finish: String) {
 @Composable
 fun SmallTag(text: String, color: Color = MaterialTheme.colorScheme.onSurfaceVariant) {
     Box(
-        Modifier.padding(start = 6.dp).clip(RoundedCornerShape(6.dp)).border(1.dp, color.copy(alpha = 0.5f), RoundedCornerShape(6.dp))
+        Modifier.padding(start = 6.dp).clip(NgShape.Small).border(1.dp, color.copy(alpha = 0.5f), NgShape.Small)
             .padding(horizontal = 5.dp, vertical = 1.dp),
-    ) { Text(text, color = color, fontSize = 10.sp, fontWeight = FontWeight.Bold) }
+    ) { Text(text, color = color, fontSize = NgText.caption, fontWeight = FontWeight.Bold) }
 }
 
 @Composable
@@ -97,7 +99,7 @@ fun CardThumb(print: CardPrint?, images: Images, settings: AppSettings, width: I
     if (settings.imageMode == ImageMode.OFF) return
     var issue by androidx.compose.runtime.remember(print?.id) { androidx.compose.runtime.mutableStateOf<Images.Issue?>(null) }
     Box(
-        Modifier.width(width.dp).height((width * 1.4).dp).clip(RoundedCornerShape(4.dp)).background(MaterialTheme.colorScheme.surfaceContainerHigh).foilShine(foil),
+        Modifier.width(width.dp).height((width * 1.4).dp).clip(NgShape.Small).background(MaterialTheme.colorScheme.surfaceContainerHigh).foilShine(foil),
         contentAlignment = Alignment.Center,
     ) {
         AsyncImage(
@@ -133,7 +135,7 @@ fun ImageIssueMark(issue: Images.Issue, small: Boolean) {
     if (small) androidx.compose.material3.Icon(icon, text, tint = tint, modifier = Modifier.size(16.dp))
     else Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(6.dp)) {
         androidx.compose.material3.Icon(icon, null, tint = tint, modifier = Modifier.size(28.dp))
-        Text(text, fontSize = 11.sp, color = tint, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+        Text(text, fontSize = NgText.caption, color = tint, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
     }
 }
 
@@ -178,11 +180,11 @@ fun CardRow(
     Card(
         onClick = onClick,
         colors = CardDefaults.cardColors(containerColor = extra.cardSurface),
-        shape = RoundedCornerShape(12.dp),
+        shape = NgShape.Normal,
         modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 3.dp),
     ) {
         Row(Modifier.padding(horizontal = 10.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.width(5.dp).height(34.dp).clip(RoundedCornerShape(3.dp)).background(NgColors.rarity(print?.rarity)))
+            Box(Modifier.width(5.dp).height(34.dp).clip(NgShape.Small).background(NgColors.rarity(print?.rarity)))
             Spacer(Modifier.width(8.dp))
             CardThumb(print, images, settings, 30, foil = entry.finish != Finish.NONFOIL)
             if (settings.imageMode != ImageMode.OFF) Spacer(Modifier.width(8.dp))
@@ -205,17 +207,17 @@ fun CardRow(
                 }
                 Text(
                     listOfNotNull("${print?.setCode ?: ""} ${print?.collectorNumber ?: ""}", print?.rarity, location).joinToString(" · "),
-                    color = extra.subtle, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    color = extra.subtle, fontSize = NgText.body, maxLines = 1, overflow = TextOverflow.Ellipsis,
                 )
-                if (tag != null) Text(tag, color = NgColors.Synced, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                if (tag != null) Text(tag, color = NgColors.Synced, fontSize = NgText.caption, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
             // Manakosten rechts, vlak vóór de prijs: altijd even groot en rechts uitgelijnd, zodat ze een kolom vormen.
             // Lands hebben geen manakosten: die tonen op dezelfde plek de kleuren die ze maken.
             RowManaCost(print)
             Spacer(Modifier.width(8.dp))
             Column(horizontalAlignment = Alignment.End, modifier = Modifier.widthIn(min = 56.dp)) {
-                Text(priceText ?: nl.spoonpaco.ninegrid.ui.components.money(Money.total(entry, print, settings.currency), settings.currency), color = extra.price, fontWeight = FontWeight.Bold, fontSize = 14.sp, maxLines = 1, modifier = Modifier.then(nl.spoonpaco.ninegrid.ui.components.privacyMask()))
-                if (entry.quantity > 1) Text("${entry.quantity}×", color = extra.subtle, fontSize = 12.sp)
+                Text(priceText ?: nl.spoonpaco.ninegrid.ui.components.money(Money.total(entry, print, settings.currency), settings.currency), color = extra.price, fontWeight = FontWeight.Bold, fontSize = NgText.emphasis, maxLines = 1, modifier = Modifier.then(nl.spoonpaco.ninegrid.ui.components.privacyMask()))
+                if (entry.quantity > 1) Text("${entry.quantity}×", color = extra.subtle, fontSize = NgText.body)
             }
             trailing?.let { Spacer(Modifier.width(6.dp)); it() }
         }

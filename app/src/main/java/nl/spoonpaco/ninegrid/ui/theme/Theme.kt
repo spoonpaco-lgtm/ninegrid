@@ -8,6 +8,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 object NgColors {
     val KaartBruin = Color(0xFF2B1A0E)
@@ -48,6 +50,25 @@ object NgColors {
     fun mana(c: Char): Color = when (c) {
         'W' -> ManaW; 'U' -> ManaU; 'B' -> ManaB; 'R' -> ManaR; 'G' -> ManaG; else -> ManaC
     }
+}
+
+/** Vaste maten voor de hele app (behalve de bladweergave en de scanner, die eigen maten door de rasters hebben). */
+object NgShape {
+    val Small = androidx.compose.foundation.shape.RoundedCornerShape(6.dp)
+    val Normal = androidx.compose.foundation.shape.RoundedCornerShape(12.dp)
+    val Large = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)
+}
+
+object NgText {
+    val caption = 11.sp
+    val body = 13.sp
+    val emphasis = 14.sp
+    val heading = 16.sp
+    val large = 24.sp
+}
+
+object NgSpace {
+    val screen = 16.dp
 }
 
 data class NgExtra(val isDark: Boolean, val price: Color, val cardSurface: Color, val subtle: Color)
@@ -119,6 +140,11 @@ fun NineGridTheme(themeMode: String = "system", accent: String = "", content: @C
             val onP = if (dark) NgColors.KaartBruin else Color.White
             base.copy(primary = p, onPrimary = onP, secondary = if (accent.length > 1) accentColor(accent[1], dark) else base.secondary)
         }
-        MaterialTheme(colorScheme = scheme, content = content)
+        MaterialTheme(
+            colorScheme = scheme,
+            // Titels in de balk zijn overal vet.
+            typography = androidx.compose.material3.Typography().let { it.copy(titleLarge = it.titleLarge.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)) },
+            content = content,
+        )
     }
 }

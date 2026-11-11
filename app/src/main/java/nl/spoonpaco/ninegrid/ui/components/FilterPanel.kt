@@ -1,5 +1,6 @@
 package nl.spoonpaco.ninegrid.ui.components
 
+import nl.spoonpaco.ninegrid.ui.theme.NgText
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -234,7 +235,7 @@ private fun Set<String>.toggle(v: String) = if (v in this) this - v else this + 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun Group(title: String, content: @Composable () -> Unit) {
-    Text(title, fontWeight = FontWeight.Bold, fontSize = 13.sp, modifier = Modifier.padding(top = 10.dp, bottom = 4.dp))
+    Text(title, fontWeight = FontWeight.Bold, fontSize = NgText.body, modifier = Modifier.padding(top = 10.dp, bottom = 4.dp))
     FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) { content() }
 }
 

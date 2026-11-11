@@ -1,3 +1,14 @@
+NineGrid 0.9.8.2 – Kaito (opmaak)
+
+Alleen opmaak, geen nieuwe functies. Bladweergave en scanner zijn bewust niet aangepast.
+
+Verbeterd
+- Titels in de balk zijn overal vet.
+- Hoekafrondingen teruggebracht tot drie maten (klein 6, normaal 12, groot 16) en lettergroottes tot vijf (11, 13, 14, 16, 24); vaste bouwstenen in het thema (NgShape, NgText, NgSpace).
+- Schermmarge in lijsten en filters 16 dp in plaats van 12.
+
+---
+
 NineGrid 0.9.8.1 – Kaito (reparatie)
 
 Scanner: een set is nu een grens.

@@ -8,7 +8,7 @@ plugins {
     id("com.google.devtools.ksp")
 }
 
-val versionNameValue = "0.9.8.1"
+val versionNameValue = "0.9.8.2"
 /** Elke versie krijgt de naam van een planeswalker die bij de aanpassingen past. */
 val versionCodenameValue = "Kaito"
 val versionCodeValue = (System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 1)

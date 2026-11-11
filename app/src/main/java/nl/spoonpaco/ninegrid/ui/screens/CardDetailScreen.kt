@@ -1,5 +1,7 @@
 package nl.spoonpaco.ninegrid.ui.screens
 
+import nl.spoonpaco.ninegrid.ui.theme.NgText
+import nl.spoonpaco.ninegrid.ui.theme.NgShape
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -102,7 +104,7 @@ fun CardDetailScreen(vm: AppViewModel, printId: String, onBack: () -> Unit, onFr
                 Column {
                     Text(print?.name ?: "", maxLines = 1)
                     // Komt het kaartscherm uit een lijst, dan zie je waar je bent; vegen gaat naar de volgende of vorige kaart.
-                    vm.cardPosition(printId)?.let { (i, n) -> Text(stringResource(R.string.card_position, i, n), fontSize = 12.sp, color = LocalNgExtra.current.subtle) }
+                    vm.cardPosition(printId)?.let { (i, n) -> Text(stringResource(R.string.card_position, i, n), fontSize = NgText.body, color = LocalNgExtra.current.subtle) }
                 }
             },
             navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) } },
@@ -136,7 +138,7 @@ fun CardDetailScreen(vm: AppViewModel, printId: String, onBack: () -> Unit, onFr
             var full by remember { mutableStateOf(false) }
             val model = if (anyway) vm.images.requestAnyway(vm.images.urlFor(p, large = true)) else vm.images.request(vm.images.urlFor(p, large = true), settings)
             Box(
-                Modifier.fillMaxWidth(0.75f).aspectRatio(0.716f).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                Modifier.fillMaxWidth(0.75f).aspectRatio(0.716f).clip(NgShape.Normal).background(MaterialTheme.colorScheme.surfaceContainerHigh)
                     .foilShine(shiny, strength = 1.36f).clickable(enabled = imageIssue == null) { full = true },
                 contentAlignment = Alignment.Center,
             ) {
@@ -150,8 +152,8 @@ fun CardDetailScreen(vm: AppViewModel, printId: String, onBack: () -> Unit, onFr
                 imageIssue?.let { iss ->
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         nl.spoonpaco.ninegrid.ui.components.ImageIssueMark(iss, small = false)
-                        if (iss == nl.spoonpaco.ninegrid.data.Images.Issue.WIFI_ONLY) TextButton(onClick = { anyway = true; imageIssue = null }) { Text(stringResource(R.string.img_load_anyway), fontSize = 12.sp) }
-                        if (iss == nl.spoonpaco.ninegrid.data.Images.Issue.FAILED) TextButton(onClick = { anyway = !anyway; imageIssue = null }) { Text(stringResource(R.string.img_retry), fontSize = 12.sp) }
+                        if (iss == nl.spoonpaco.ninegrid.data.Images.Issue.WIFI_ONLY) TextButton(onClick = { anyway = true; imageIssue = null }) { Text(stringResource(R.string.img_load_anyway), fontSize = NgText.body) }
+                        if (iss == nl.spoonpaco.ninegrid.data.Images.Issue.FAILED) TextButton(onClick = { anyway = !anyway; imageIssue = null }) { Text(stringResource(R.string.img_retry), fontSize = NgText.body) }
                     }
                 }
             }
@@ -159,7 +161,7 @@ fun CardDetailScreen(vm: AppViewModel, printId: String, onBack: () -> Unit, onFr
                 Box(Modifier.fillMaxSize().clickable { full = false }, contentAlignment = Alignment.Center) {
                     AsyncImage(
                         model = model, imageLoader = vm.images.loader, contentDescription = p.name,
-                        modifier = Modifier.fillMaxWidth(0.95f).aspectRatio(0.716f).clip(RoundedCornerShape(16.dp)).foilShine(shiny, strength = 1.36f),
+                        modifier = Modifier.fillMaxWidth(0.95f).aspectRatio(0.716f).clip(NgShape.Large).foilShine(shiny, strength = 1.36f),
                     )
                 }
             }
@@ -168,12 +170,12 @@ fun CardDetailScreen(vm: AppViewModel, printId: String, onBack: () -> Unit, onFr
             Spacer(Modifier.height(12.dp))
             Text(p.name, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 2.dp)) {
-                Text(p.typeLine, color = extra.subtle, fontSize = 13.sp)
+                Text(p.typeLine, color = extra.subtle, fontSize = NgText.body)
                 if (p.colors.isNotEmpty()) { Spacer(Modifier.width(6.dp)); ManaPips(p.colors, size = 16) }
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("${p.setName} (${p.setCode}) #${p.collectorNumber} · ", fontSize = 13.sp, color = extra.subtle)
-                Text(p.rarity.replaceFirstChar { it.uppercase() }, color = NgColors.rarity(p.rarity), fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                Text("${p.setName} (${p.setCode}) #${p.collectorNumber} · ", fontSize = NgText.body, color = extra.subtle)
+                Text(p.rarity.replaceFirstChar { it.uppercase() }, color = NgColors.rarity(p.rarity), fontWeight = FontWeight.Bold, fontSize = NgText.body)
                 if (p.gameChanger) SmallTag(stringResource(R.string.game_changer), MaterialTheme.colorScheme.primary)
             }
             // Legaliteit klein, in twee vaste regels van drie.
@@ -183,7 +185,7 @@ fun CardDetailScreen(vm: AppViewModel, printId: String, onBack: () -> Unit, onFr
                 legal.chunked(3).forEach { line ->
                     Text(
                         line.joinToString(" · ") { (f, l) -> "${f.replaceFirstChar { it.uppercase() }} ${if (l == "legal") "✓" else if (l == "restricted") "1" else "✗"}" },
-                        fontSize = 12.sp, color = extra.subtle,
+                        fontSize = NgText.body, color = extra.subtle,
                     )
                 }
             }
@@ -197,27 +199,27 @@ fun CardDetailScreen(vm: AppViewModel, printId: String, onBack: () -> Unit, onFr
             val market = if (settings.currency == "USD") "TCGplayer" else "Cardmarket"
             nl.spoonpaco.ninegrid.ui.components.SectionCard(
                 stringResource(R.string.price_title), info = stringResource(R.string.price_note_card),
-                trailing = { Text(market, fontSize = 12.sp, color = extra.subtle) },
+                trailing = { Text(market, fontSize = NgText.body, color = extra.subtle) },
             ) {
                 val normal = if (settings.currency == "USD") p.usd else p.eur
                 val foil = if (settings.currency == "USD") p.usdFoil else p.eurFoil
                 Row {
                     listOf(stringResource(R.string.price_normal_label) to normal, stringResource(R.string.foil) to foil).forEach { (label, v) ->
                         Column(Modifier.weight(1f)) {
-                            Text(label, fontSize = 12.sp, color = extra.subtle)
-                            Text(v?.let { nl.spoonpaco.ninegrid.ui.components.money(it, settings.currency) } ?: "–", fontSize = 22.sp, fontWeight = FontWeight.Bold,
+                            Text(label, fontSize = NgText.body, color = extra.subtle)
+                            Text(v?.let { nl.spoonpaco.ninegrid.ui.components.money(it, settings.currency) } ?: "–", fontSize = NgText.large, fontWeight = FontWeight.Bold,
                                 color = extra.price, modifier = nl.spoonpaco.ninegrid.ui.components.privacyMask())
                         }
                     }
                 }
                 val friendsHave = vm.friendsHaving(p.name)
                 if (friendsHave.isNotEmpty()) Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 6.dp)) {
-                    Text(stringResource(R.string.also_at) + " ", fontSize = 13.sp, color = NgColors.Synced)
+                    Text(stringResource(R.string.also_at) + " ", fontSize = NgText.body, color = NgColors.Synced)
                     friendsHave.forEachIndexed { i, (f, n) ->
-                        Text((if (i > 0) " · " else "") + "${f.name} ×$n", fontSize = 13.sp, color = NgColors.Synced, fontWeight = FontWeight.SemiBold,
+                        Text((if (i > 0) " · " else "") + "${f.name} ×$n", fontSize = NgText.body, color = NgColors.Synced, fontWeight = FontWeight.SemiBold,
                             modifier = Modifier.clickable { onFriend(f.id) })
                     }
-                    Text(" ›", fontSize = 13.sp, color = NgColors.Synced)
+                    Text(" ›", fontSize = NgText.body, color = NgColors.Synced)
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.padding(top = 2.dp)) {
                     p.scryfallUri?.let { u -> TextButton(onClick = { uri.openUri(u) }, contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 0.dp)) { Text("↗ Scryfall") } }
@@ -229,7 +231,7 @@ fun CardDetailScreen(vm: AppViewModel, printId: String, onBack: () -> Unit, onFr
             }
 
             Spacer(Modifier.height(6.dp))
-            Text(stringResource(R.string.your_copies, copies.sumOf { it.entry.quantity }), fontWeight = FontWeight.Bold, fontSize = 16.sp, modifier = Modifier.fillMaxWidth().padding(top = 4.dp))
+            Text(stringResource(R.string.your_copies, copies.sumOf { it.entry.quantity }), fontWeight = FontWeight.Bold, fontSize = NgText.heading, modifier = Modifier.fillMaxWidth().padding(top = 4.dp))
             copies.forEach { cp ->
                 val e = cp.entry
                 Card(colors = CardDefaults.cardColors(containerColor = extra.cardSurface), modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
@@ -254,7 +256,7 @@ fun CardDetailScreen(vm: AppViewModel, printId: String, onBack: () -> Unit, onFr
                             Spacer(Modifier.weight(1f))
                             val cmdDeck = decks.firstOrNull { it.id == e.deckId && it.format == nl.spoonpaco.ninegrid.data.db.DeckFormat.COMMANDER }
                             if (cmdDeck != null && e.section != nl.spoonpaco.ninegrid.data.db.Section.COMMANDER && nl.spoonpaco.ninegrid.domain.CommanderRules.canBeCommander(p.typeLine, p.oracleText)) {
-                                TextButton(onClick = { makeCommander = cmdDeck to cp }, contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 8.dp)) { Text(stringResource(R.string.make_commander), fontSize = 12.sp) }
+                                TextButton(onClick = { makeCommander = cmdDeck to cp }, contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 8.dp)) { Text(stringResource(R.string.make_commander), fontSize = NgText.body) }
                             }
                             IconButton(onClick = { moving = e }) { Icon(Icons.Filled.SwapHoriz, stringResource(R.string.move)) }
                             IconButton(onClick = { editing = e }) { Icon(Icons.Filled.Edit, stringResource(R.string.edit)) }
@@ -264,7 +266,7 @@ fun CardDetailScreen(vm: AppViewModel, printId: String, onBack: () -> Unit, onFr
                 }
             }
             Spacer(Modifier.height(24.dp))
-            Text(stringResource(R.string.scryfall_credit), fontSize = 11.sp, color = extra.subtle)
+            Text(stringResource(R.string.scryfall_credit), fontSize = NgText.caption, color = extra.subtle)
         }
     }
 

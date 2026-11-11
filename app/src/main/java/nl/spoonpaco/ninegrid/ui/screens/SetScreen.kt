@@ -1,5 +1,7 @@
 package nl.spoonpaco.ninegrid.ui.screens
 
+import nl.spoonpaco.ninegrid.ui.theme.NgText
+import nl.spoonpaco.ninegrid.ui.theme.NgShape
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -115,7 +117,7 @@ fun SetScreen(vm: AppViewModel, code: String, onBack: () -> Unit, onReview: () -
 
     Scaffold(topBar = {
         TopAppBar(
-            title = { Column { Text(code.uppercase(), fontWeight = FontWeight.Bold); list?.let { Text(it.name, fontSize = 12.sp, color = extra.subtle) } } },
+            title = { Column { Text(code.uppercase(), fontWeight = FontWeight.Bold); list?.let { Text(it.name, fontSize = NgText.body, color = extra.subtle) } } },
             navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) } },
             actions = {
                 nl.spoonpaco.ninegrid.ui.guide.HelpButton("collection")
@@ -129,21 +131,21 @@ fun SetScreen(vm: AppViewModel, code: String, onBack: () -> Unit, onReview: () -
 
             // Kopkaart: voortgang, per rarity, wat ontbrekende kaarten samen kosten, Completionist.
             Card(
-                colors = CardDefaults.cardColors(containerColor = extra.cardSurface), shape = RoundedCornerShape(14.dp),
+                colors = CardDefaults.cardColors(containerColor = extra.cardSurface), shape = NgShape.Large,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp).animateContentSize()
                     .clickable(enabled = scrolled) { forceOpen = !forceOpen },
             ) {
                 Column(Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
                     val pct = if (cards.isEmpty()) 0 else have.size * 100 / cards.size
                     Row(verticalAlignment = Alignment.Bottom) {
-                        Text(stringResource(R.string.set_complete, have.size, cards.size), fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.set_complete, have.size, cards.size), fontSize = NgText.large, fontWeight = FontWeight.Bold)
                         Text(
                             "  $pct%" + if (collapsed) " · ▾ " + stringResource(R.string.set_details) else if (scrolled) " · ▴" else "",
-                            fontSize = 13.sp, color = extra.subtle, modifier = Modifier.padding(bottom = 4.dp),
+                            fontSize = NgText.body, color = extra.subtle, modifier = Modifier.padding(bottom = 4.dp),
                         )
                     }
                     Spacer(Modifier.height(6.dp))
-                    LinearProgressIndicator(progress = { if (cards.isEmpty()) 0f else have.size / cards.size.toFloat() }, modifier = Modifier.fillMaxWidth().height(7.dp).clip(RoundedCornerShape(4.dp)))
+                    LinearProgressIndicator(progress = { if (cards.isEmpty()) 0f else have.size / cards.size.toFloat() }, modifier = Modifier.fillMaxWidth().height(7.dp).clip(NgShape.Small))
                     if (!collapsed) {
                         if (cards.isNotEmpty() && missing.isEmpty()) Row(Modifier.padding(top = 8.dp)) {
                             nl.spoonpaco.ninegrid.ui.components.Stamp(stringResource(R.string.stamp_complete), Color(0xFFD4AF37), "✓")
@@ -155,12 +157,12 @@ fun SetScreen(vm: AppViewModel, code: String, onBack: () -> Unit, onReview: () -
                             if (total > 0) {
                                 val got = have.count { it.rarity == r }
                                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 2.dp)) {
-                                    Text(r.replaceFirstChar { it.uppercase() }, fontSize = 13.sp, modifier = Modifier.width(84.dp))
+                                    Text(r.replaceFirstChar { it.uppercase() }, fontSize = NgText.body, modifier = Modifier.width(84.dp))
                                     Box(
-                                        Modifier.weight(1f).height(8.dp).clip(RoundedCornerShape(4.dp)).background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                                            .border(1.dp, col.copy(alpha = 0.5f), RoundedCornerShape(4.dp)),
+                                        Modifier.weight(1f).height(8.dp).clip(NgShape.Small).background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                                            .border(1.dp, col.copy(alpha = 0.5f), NgShape.Small),
                                     ) { Box(Modifier.fillMaxWidth(got / total.toFloat()).height(8.dp).background(col)) }
-                                    Text("$got/$total" + if (got == total) " ✓" else "", fontSize = 13.sp, fontWeight = FontWeight.Bold,
+                                    Text("$got/$total" + if (got == total) " ✓" else "", fontSize = NgText.body, fontWeight = FontWeight.Bold,
                                         textAlign = androidx.compose.ui.text.style.TextAlign.End, modifier = Modifier.width(76.dp))
                                 }
                             }
@@ -168,8 +170,8 @@ fun SetScreen(vm: AppViewModel, code: String, onBack: () -> Unit, onReview: () -
                         Spacer(Modifier.height(6.dp))
                         val missingValue = missing.sumOf { (if (settings.currency == "USD") it.usd else it.eur) ?: 0.0 }
                         Row {
-                            Text(stringResource(R.string.set_missing_total) + " ", fontSize = 13.sp, color = extra.subtle)
-                            Text(nl.spoonpaco.ninegrid.ui.components.money(missingValue, settings.currency), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = extra.price,
+                            Text(stringResource(R.string.set_missing_total) + " ", fontSize = NgText.body, color = extra.subtle)
+                            Text(nl.spoonpaco.ninegrid.ui.components.money(missingValue, settings.currency), fontSize = NgText.body, fontWeight = FontWeight.Bold, color = extra.price,
                                 modifier = nl.spoonpaco.ninegrid.ui.components.privacyMask())
                         }
                         CompletionistToggle(settings.completionist, onChange = { vm.setCompletionist(it) })
@@ -194,7 +196,7 @@ fun SetScreen(vm: AppViewModel, code: String, onBack: () -> Unit, onReview: () -
             }
             Row(Modifier.fillMaxWidth().clickable { variants = !variants }.padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                 Checkbox(checked = variants, onCheckedChange = { variants = it })
-                Text(stringResource(R.string.set_variants), fontSize = 14.sp)
+                Text(stringResource(R.string.set_variants), fontSize = NgText.emphasis)
             }
 
             LazyColumn(state = listState, contentPadding = PaddingValues(bottom = 24.dp), modifier = Modifier.weight(1f)) {
@@ -212,7 +214,7 @@ fun SetScreen(vm: AppViewModel, code: String, onBack: () -> Unit, onReview: () -
                         onAdd = { vm.addMissing(c.id, onReview) },
                     )
                 }
-                if (shown.isEmpty()) item { Text(stringResource(R.string.guide_search_none), color = extra.subtle, fontSize = 13.sp, modifier = Modifier.padding(16.dp)) }
+                if (shown.isEmpty()) item { Text(stringResource(R.string.guide_search_none), color = extra.subtle, fontSize = NgText.body, modifier = Modifier.padding(16.dp)) }
             }
         }
     }
@@ -245,14 +247,14 @@ private fun SetCardRow(
     Card(
         onClick = onOpen,
         colors = CardDefaults.cardColors(containerColor = extra.cardSurface),
-        shape = RoundedCornerShape(12.dp),
+        shape = NgShape.Normal,
         modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 3.dp),
     ) {
         Row(Modifier.padding(horizontal = 10.dp, vertical = 7.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.width(5.dp).height(34.dp).clip(RoundedCornerShape(3.dp)).background(NgColors.rarity(c.rarity)))
+            Box(Modifier.width(5.dp).height(34.dp).clip(NgShape.Small).background(NgColors.rarity(c.rarity)))
             Spacer(Modifier.width(8.dp))
             if (settings.imageMode != ImageMode.OFF) {
-                Box(Modifier.width(30.dp).height(42.dp).clip(RoundedCornerShape(4.dp)).background(MaterialTheme.colorScheme.surfaceContainerHigh)) {
+                Box(Modifier.width(30.dp).height(42.dp).clip(NgShape.Small).background(MaterialTheme.colorScheme.surfaceContainerHigh)) {
                     coil.compose.AsyncImage(
                         model = vm.images.request(c.image ?: "https://api.scryfall.com/cards/${c.id}?format=image&version=small", settings),
                         imageLoader = vm.images.loader, contentDescription = c.name, contentScale = ContentScale.Crop,
@@ -264,7 +266,7 @@ private fun SetCardRow(
             }
             Column(Modifier.weight(1f)) {
                 Text(c.name, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(detail, color = extra.subtle, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(detail, color = extra.subtle, fontSize = NgText.body, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
             if (c.mana.isNotBlank()) {
                 Spacer(Modifier.width(6.dp))
@@ -272,7 +274,7 @@ private fun SetCardRow(
             }
             Spacer(Modifier.width(8.dp))
             Text(
-                price?.let { nl.spoonpaco.ninegrid.ui.components.money(it, settings.currency) } ?: "–", color = extra.price, fontWeight = FontWeight.Bold, fontSize = 14.sp,
+                price?.let { nl.spoonpaco.ninegrid.ui.components.money(it, settings.currency) } ?: "–", color = extra.price, fontWeight = FontWeight.Bold, fontSize = NgText.emphasis,
                 maxLines = 1, textAlign = androidx.compose.ui.text.style.TextAlign.End, modifier = Modifier.widthIn(min = 52.dp),
             )
             if (missing) {

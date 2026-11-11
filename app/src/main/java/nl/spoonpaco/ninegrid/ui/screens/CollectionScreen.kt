@@ -1,5 +1,8 @@
 package nl.spoonpaco.ninegrid.ui.screens
 
+import nl.spoonpaco.ninegrid.ui.theme.NgSpace
+import nl.spoonpaco.ninegrid.ui.theme.NgText
+import nl.spoonpaco.ninegrid.ui.theme.NgShape
 import androidx.compose.foundation.clickable
 import nl.spoonpaco.ninegrid.ui.theme.NgColors
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -213,7 +216,7 @@ fun CollectionScreen(
             SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp)) {
                 listOf("mine" to R.string.mode_mine, "all" to R.string.mode_all, "wish" to R.string.mode_wish).forEachIndexed { i, (k, l) ->
                     SegmentedButton(selected = mode == k, onClick = { mode = k }, shape = SegmentedButtonDefaults.itemShape(i, 3)) {
-                        Text(stringResource(l), maxLines = 1, fontSize = 13.sp)
+                        Text(stringResource(l), maxLines = 1, fontSize = NgText.body)
                     }
                 }
             }
@@ -301,15 +304,15 @@ private fun AllCardsPanel(vm: AppViewModel, query: String, onQuery: (String) -> 
         )
         Text(
             stringResource(if (vm.allCardsOffline(filter)) R.string.all_cards_src_offline else R.string.all_cards_src_online),
-            fontSize = 11.sp, color = extra.subtle, modifier = Modifier.padding(horizontal = 16.dp),
+            fontSize = NgText.caption, color = extra.subtle, modifier = Modifier.padding(horizontal = 16.dp),
         )
         if (vm.allLoading) LinearProgressIndicator(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp))
         val hasFilter = filter.rarities.isNotEmpty() || filter.colors.isNotEmpty() || filter.types.isNotEmpty() || filter.notOwned || filter.gameChangers
         if (query.trim().length < 2 && !hasFilter) {
-            Text(stringResource(R.string.all_cards_min), fontSize = 13.sp, color = extra.subtle, modifier = Modifier.padding(16.dp))
+            Text(stringResource(R.string.all_cards_min), fontSize = NgText.body, color = extra.subtle, modifier = Modifier.padding(16.dp))
             // Recente zoekopdrachten.
             if (settings.recentSearches.isNotEmpty()) Row(
-                Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(6.dp),
+                Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = NgSpace.screen), horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 settings.recentSearches.forEach { r -> AssistChip(onClick = { onQuery(r) }, label = { Text(r) }) }
             }
@@ -352,11 +355,11 @@ private fun WishRow(
     androidx.compose.material3.Card(
         onClick = onOpen,
         colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = extra.cardSurface),
-        shape = RoundedCornerShape(12.dp),
+        shape = NgShape.Normal,
         modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 3.dp),
     ) {
         Row(Modifier.padding(horizontal = 10.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.width(5.dp).height(34.dp).clip(RoundedCornerShape(3.dp)).background(NgColors.rarity(p?.rarity)))
+            Box(Modifier.width(5.dp).height(34.dp).clip(NgShape.Small).background(NgColors.rarity(p?.rarity)))
             Spacer(Modifier.width(8.dp))
             nl.spoonpaco.ninegrid.ui.components.CardThumb(p, vm.images, settings, 30, foil = i.foilOnly)
             if (settings.imageMode != nl.spoonpaco.ninegrid.data.ImageMode.OFF) Spacer(Modifier.width(8.dp))
@@ -372,28 +375,28 @@ private fun WishRow(
                             Text(
                                 if (below) "🔔 " + stringResource(R.string.wish_below_target, nl.spoonpaco.ninegrid.ui.components.money(target, i.alarmCurrency))
                                 else "🔔 " + nl.spoonpaco.ninegrid.ui.components.money(target, i.alarmCurrency) + (unit?.let { " · " + stringResource(R.string.wish_now, nl.spoonpaco.ninegrid.ui.components.money(it, settings.currency)) } ?: ""),
-                                fontSize = 12.sp, color = if (below) NgColors.Synced else extra.subtle, fontWeight = if (below) FontWeight.Bold else FontWeight.Normal, maxLines = 1,
+                                fontSize = NgText.body, color = if (below) NgColors.Synced else extra.subtle, fontWeight = if (below) FontWeight.Bold else FontWeight.Normal, maxLines = 1,
                             )
                         }
                     }
-                    if (i.wanted > 1) parts += { Text(stringResource(R.string.wish_progress, i.got, i.wanted), fontSize = 12.sp, color = extra.subtle, maxLines = 1) }
+                    if (i.wanted > 1) parts += { Text(stringResource(R.string.wish_progress, i.got, i.wanted), fontSize = NgText.body, color = extra.subtle, maxLines = 1) }
                     vm.friendsHaving(i.name).firstOrNull()?.let { (f, _) ->
                         parts += {
-                            Text(stringResource(R.string.wish_friend_has, f.name) + " ›", fontSize = 12.sp, color = NgColors.Synced, fontWeight = FontWeight.Bold, maxLines = 1,
+                            Text(stringResource(R.string.wish_friend_has, f.name) + " ›", fontSize = NgText.body, color = NgColors.Synced, fontWeight = FontWeight.Bold, maxLines = 1,
                                 modifier = Modifier.clickable { onFriend(f.id) })
                         }
                     }
-                    if (!i.anyPrint && p != null) parts += { Text(stringResource(R.string.wish_only_print, "${p.setCode} ${p.collectorNumber}") + if (i.foilOnly) " · foil" else "", fontSize = 12.sp, color = extra.subtle, maxLines = 1) }
-                    else if (i.foilOnly) parts += { Text(stringResource(R.string.wish_only_foil), fontSize = 12.sp, color = extra.subtle, maxLines = 1) }
-                    parts.forEachIndexed { k, part -> if (k > 0) Text(" · ", fontSize = 12.sp, color = extra.subtle); part() }
+                    if (!i.anyPrint && p != null) parts += { Text(stringResource(R.string.wish_only_print, "${p.setCode} ${p.collectorNumber}") + if (i.foilOnly) " · foil" else "", fontSize = NgText.body, color = extra.subtle, maxLines = 1) }
+                    else if (i.foilOnly) parts += { Text(stringResource(R.string.wish_only_foil), fontSize = NgText.body, color = extra.subtle, maxLines = 1) }
+                    parts.forEachIndexed { k, part -> if (k > 0) Text(" · ", fontSize = NgText.body, color = extra.subtle); part() }
                 }
             }
             nl.spoonpaco.ninegrid.ui.components.RowManaCost(p)
             Spacer(Modifier.width(6.dp))
             Column(horizontalAlignment = Alignment.End) {
-                if (i.anyPrint && unit != null) Text(stringResource(R.string.wish_from_label), fontSize = 10.sp, color = extra.subtle)
+                if (i.anyPrint && unit != null) Text(stringResource(R.string.wish_from_label), fontSize = NgText.caption, color = extra.subtle)
                 Text(if (i.anyPrint && unit != null) nl.spoonpaco.ninegrid.ui.components.money(unit, settings.currency) else priceText,
-                    color = extra.price, fontWeight = FontWeight.Bold, fontSize = 14.sp, modifier = nl.spoonpaco.ninegrid.ui.components.privacyMask())
+                    color = extra.price, fontWeight = FontWeight.Bold, fontSize = NgText.emphasis, modifier = nl.spoonpaco.ninegrid.ui.components.privacyMask())
             }
             Spacer(Modifier.width(6.dp))
             // Bewerken en Gekocht: klein en onder elkaar, zodat de naam ruimte houdt.
@@ -431,9 +434,9 @@ private fun WishlistPanel(vm: AppViewModel, onCard: (String) -> Unit, onPaste: (
     val shownWishes = if (gcOnly) wishes.filter { it.print?.gameChanger == true } else wishes
     LazyColumn(contentPadding = PaddingValues(bottom = 96.dp)) {
         item(key = "filters") {
-            Row(Modifier.padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.padding(horizontal = NgSpace.screen), verticalAlignment = Alignment.CenterVertically) {
                 androidx.compose.material3.FilterChip(selected = gcOnly, onClick = { gcOnly = !gcOnly }, label = { Text(stringResource(R.string.filter_game_changers)) })
-                if (gcOnly && shownWishes.isEmpty()) Text(stringResource(R.string.guide_search_none), fontSize = 12.sp, color = extra.subtle, modifier = Modifier.padding(start = 10.dp))
+                if (gcOnly && shownWishes.isEmpty()) Text(stringResource(R.string.guide_search_none), fontSize = NgText.body, color = extra.subtle, modifier = Modifier.padding(start = 10.dp))
             }
         }
         items(shownWishes, key = { it.item.id }) { w ->
@@ -446,7 +449,7 @@ private fun WishlistPanel(vm: AppViewModel, onCard: (String) -> Unit, onPaste: (
             val p = w.print
             WishRow(vm, w, unitPrice, priceText, onOpen = { if (p != null) { vm.setCardList(shownWishes.mapNotNull { it.print?.id }); vm.openPrint(p, then = onCard) } else edit = w }, onEdit = { edit = w }, onBought = { vm.boughtWish(w) }, onFriend = onFriend)
         }
-        item { Text(stringResource(R.string.wish_alarm_note), fontSize = 11.sp, color = extra.subtle, modifier = Modifier.padding(16.dp)) }
+        item { Text(stringResource(R.string.wish_alarm_note), fontSize = NgText.caption, color = extra.subtle, modifier = Modifier.padding(16.dp)) }
     }
     edit?.let { w -> WishEditDialog(vm, w, onDismiss = { edit = null }) }
 }
@@ -469,7 +472,7 @@ private fun WishEditDialog(vm: AppViewModel, w: nl.spoonpaco.ninegrid.data.db.Wi
                 androidx.compose.material3.OutlinedTextField(wanted, { v -> wanted = v.filter { it.isDigit() }.take(3) }, singleLine = true, label = { Text(stringResource(R.string.wish_wanted)) },
                     keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number))
                 CheckRowSimple(stringResource(R.string.wish_any_print_long), anyPrint) { anyPrint = it }
-                if (!anyPrint && w.print != null) Text("${w.print.setCode} ${w.print.collectorNumber} · ${w.print.setName}", fontSize = 12.sp, modifier = Modifier.padding(start = 48.dp))
+                if (!anyPrint && w.print != null) Text("${w.print.setCode} ${w.print.collectorNumber} · ${w.print.setName}", fontSize = NgText.body, modifier = Modifier.padding(start = 48.dp))
                 CheckRowSimple(stringResource(R.string.wish_foil_only), foilOnly) { foilOnly = it }
                 Spacer(Modifier.padding(4.dp))
                 CheckRowSimple(stringResource(R.string.wish_alarm), alarmOn) { alarmOn = it }
@@ -477,7 +480,7 @@ private fun WishEditDialog(vm: AppViewModel, w: nl.spoonpaco.ninegrid.data.db.Wi
                     androidx.compose.material3.OutlinedTextField(target, { v -> target = v.replace(',', '.').filter { it.isDigit() || it == '.' }.take(8) }, singleLine = true,
                         label = { Text(stringResource(R.string.wish_alarm_target, settings.currency)) },
                         keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal))
-                    Text(stringResource(R.string.wish_alarm_note), fontSize = 11.sp, color = LocalNgExtra.current.subtle)
+                    Text(stringResource(R.string.wish_alarm_note), fontSize = NgText.caption, color = LocalNgExtra.current.subtle)
                 }
             }
         },
@@ -503,7 +506,7 @@ private fun WishEditDialog(vm: AppViewModel, w: nl.spoonpaco.ninegrid.data.db.Wi
 @Composable
 private fun CheckRowSimple(label: String, v: Boolean, set: (Boolean) -> Unit) {
     Row(Modifier.fillMaxWidth().clickable { set(!v) }, verticalAlignment = Alignment.CenterVertically) {
-        androidx.compose.material3.Checkbox(checked = v, onCheckedChange = set); Text(label, fontSize = 14.sp)
+        androidx.compose.material3.Checkbox(checked = v, onCheckedChange = set); Text(label, fontSize = NgText.emphasis)
     }
 }
 
@@ -518,10 +521,10 @@ private fun WishPasteDialog(vm: AppViewModel, onDismiss: () -> Unit) {
         title = { Text(stringResource(R.string.wish_paste)) },
         text = {
             Column {
-                Text(stringResource(R.string.wish_paste_hint), fontSize = 12.sp)
+                Text(stringResource(R.string.wish_paste_hint), fontSize = NgText.body)
                 androidx.compose.material3.OutlinedTextField(text, { text = it }, minLines = 4, modifier = Modifier.fillMaxWidth().padding(top = 6.dp))
                 if (busy) LinearProgressIndicator(Modifier.fillMaxWidth().padding(top = 6.dp))
-                result?.let { (ok, bad) -> Text(stringResource(R.string.wish_paste_done, ok) + if (bad > 0) " · " + stringResource(R.string.share_not_found, bad) else "", fontSize = 13.sp) }
+                result?.let { (ok, bad) -> Text(stringResource(R.string.wish_paste_done, ok) + if (bad > 0) " · " + stringResource(R.string.share_not_found, bad) else "", fontSize = NgText.body) }
             }
         },
         confirmButton = {

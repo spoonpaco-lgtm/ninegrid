@@ -1,5 +1,6 @@
 package nl.spoonpaco.ninegrid.ui.screens
 
+import nl.spoonpaco.ninegrid.ui.theme.NgText
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -83,14 +84,14 @@ fun ChangeCommanderDialog(vm: AppViewModel, deck: Deck, start: PickedCommander? 
                 Column {
                     OutlinedTextField(query, { query = it }, singleLine = true, modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.search_card)) })
                     Spacer(Modifier.height(6.dp))
-                    if (candidates.isEmpty()) Text(stringResource(R.string.commander_none_candidates), fontSize = 13.sp, color = extra.subtle)
+                    if (candidates.isEmpty()) Text(stringResource(R.string.commander_none_candidates), fontSize = NgText.body, color = extra.subtle)
                     LazyColumn(Modifier.heightIn(max = 320.dp)) {
                         items(candidates, key = { it.print!!.id }) { c ->
                             Column(Modifier.fillMaxWidth().clickable { picked = PickedCommander(c.entry, c.print!!) }.padding(vertical = 8.dp)) {
                                 Text(c.print!!.name, fontWeight = FontWeight.Bold)
                                 Text(
                                     stringResource(if (c.entry.deckId == deck.id) R.string.commander_in_deck else R.string.commander_in_collection) + " · " + c.print.typeLine,
-                                    fontSize = 12.sp, color = extra.subtle, maxLines = 1,
+                                    fontSize = NgText.body, color = extra.subtle, maxLines = 1,
                                 )
                             }
                         }
@@ -117,27 +118,27 @@ fun ChangeCommanderDialog(vm: AppViewModel, deck: Deck, start: PickedCommander? 
         title = { Text(p.print.name) },
         text = {
             Column {
-                if (!allowed) Text(stringResource(R.string.commander_not_allowed), color = nl.spoonpaco.ninegrid.ui.theme.NgColors.Amber, fontSize = 13.sp)
+                if (!allowed) Text(stringResource(R.string.commander_not_allowed), color = nl.spoonpaco.ninegrid.ui.theme.NgColors.Amber, fontSize = NgText.body)
                 if (commanders.isNotEmpty()) {
                     val names = commanders.joinToString(" + ") { it.print!!.name }
                     Row(Modifier.fillMaxWidth().clickable { replace = true }, verticalAlignment = Alignment.CenterVertically) {
-                        RadioButton(selected = replace, onClick = { replace = true }); Text(stringResource(R.string.commander_replace, names), fontSize = 14.sp)
+                        RadioButton(selected = replace, onClick = { replace = true }); Text(stringResource(R.string.commander_replace, names), fontSize = NgText.emphasis)
                     }
                     if (canSecond) Row(Modifier.fillMaxWidth().clickable { replace = false }, verticalAlignment = Alignment.CenterVertically) {
-                        RadioButton(selected = !replace, onClick = { replace = false }); Text(stringResource(R.string.commander_add_second), fontSize = 14.sp)
-                    } else Text(stringResource(R.string.commander_no_pair), fontSize = 12.sp, color = extra.subtle, modifier = Modifier.padding(start = 12.dp))
+                        RadioButton(selected = !replace, onClick = { replace = false }); Text(stringResource(R.string.commander_add_second), fontSize = NgText.emphasis)
+                    } else Text(stringResource(R.string.commander_no_pair), fontSize = NgText.body, color = extra.subtle, modifier = Modifier.padding(start = 12.dp))
                     if (replace) {
                         Spacer(Modifier.height(8.dp))
-                        Text(stringResource(R.string.commander_old_title), fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                        Text(stringResource(R.string.commander_old_title), fontWeight = FontWeight.Bold, fontSize = NgText.body)
                         Row(Modifier.fillMaxWidth().clickable { old = Repository.OldCommander.TO_DECK }, verticalAlignment = Alignment.CenterVertically) {
-                            RadioButton(selected = old == Repository.OldCommander.TO_DECK, onClick = { old = Repository.OldCommander.TO_DECK }); Text(stringResource(R.string.commander_old_to_deck), fontSize = 14.sp)
+                            RadioButton(selected = old == Repository.OldCommander.TO_DECK, onClick = { old = Repository.OldCommander.TO_DECK }); Text(stringResource(R.string.commander_old_to_deck), fontSize = NgText.emphasis)
                         }
                         Row(Modifier.fillMaxWidth().clickable { old = Repository.OldCommander.TO_COLLECTION }, verticalAlignment = Alignment.CenterVertically) {
-                            RadioButton(selected = old == Repository.OldCommander.TO_COLLECTION, onClick = { old = Repository.OldCommander.TO_COLLECTION }); Text(stringResource(R.string.commander_old_to_collection), fontSize = 14.sp)
+                            RadioButton(selected = old == Repository.OldCommander.TO_COLLECTION, onClick = { old = Repository.OldCommander.TO_COLLECTION }); Text(stringResource(R.string.commander_old_to_collection), fontSize = NgText.emphasis)
                         }
                     }
                 }
-                if (p.entry == null) Text(stringResource(R.string.commander_new_card), fontSize = 12.sp, color = extra.subtle, modifier = Modifier.padding(top = 8.dp))
+                if (p.entry == null) Text(stringResource(R.string.commander_new_card), fontSize = NgText.body, color = extra.subtle, modifier = Modifier.padding(top = 8.dp))
             }
         },
         confirmButton = {

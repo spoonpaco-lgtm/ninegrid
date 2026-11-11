@@ -1,5 +1,7 @@
 package nl.spoonpaco.ninegrid.ui.components
 
+import nl.spoonpaco.ninegrid.ui.theme.NgText
+import nl.spoonpaco.ninegrid.ui.theme.NgShape
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -66,8 +68,8 @@ fun ManaCost(cost: String, size: Int = 15) {
 /** Een klein label, bijv. GC (Game Changer). */
 @Composable
 fun MiniTag(text: String, bg: Color, fg: Color) {
-    Text(text, color = fg, fontSize = 9.sp, fontWeight = FontWeight.Bold,
-        modifier = Modifier.padding(start = 4.dp).clip(RoundedCornerShape(5.dp)).background(bg).padding(horizontal = 5.dp))
+    Text(text, color = fg, fontSize = NgText.caption, fontWeight = FontWeight.Bold,
+        modifier = Modifier.padding(start = 4.dp).clip(NgShape.Small).background(bg).padding(horizontal = 5.dp))
 }
 
 /** Compacte regel voor een deck: klein plaatje, naam met manakosten, set en labels klein, prijs rechts. */
@@ -75,11 +77,11 @@ fun MiniTag(text: String, bg: Color, fg: Color) {
 fun DeckCardRow(entry: Entry, print: CardPrint?, settings: AppSettings, images: Images, onClick: () -> Unit) {
     val extra = LocalNgExtra.current
     Row(
-        Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 2.dp).clip(RoundedCornerShape(10.dp)).background(extra.cardSurface)
+        Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 2.dp).clip(NgShape.Normal).background(extra.cardSurface)
             .clickable(onClick = onClick).padding(horizontal = 8.dp, vertical = 5.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(Modifier.width(4.dp).height(28.dp).clip(RoundedCornerShape(2.dp)).background(NgColors.rarity(print?.rarity)))
+        Box(Modifier.width(4.dp).height(28.dp).clip(NgShape.Small).background(NgColors.rarity(print?.rarity)))
         Spacer(Modifier.width(7.dp))
         if (settings.imageMode != ImageMode.OFF) { CardThumb(print, images, settings, 22, foil = entry.finish != Finish.NONFOIL); Spacer(Modifier.width(7.dp)) }
         Column(Modifier.weight(1f)) {
@@ -93,7 +95,7 @@ fun DeckCardRow(entry: Entry, print: CardPrint?, settings: AppSettings, images: 
                 )
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("${print?.setCode ?: ""} ${print?.collectorNumber ?: ""} · ${print?.rarity ?: ""}", fontSize = 11.sp, color = extra.subtle, maxLines = 1)
+                Text("${print?.setCode ?: ""} ${print?.collectorNumber ?: ""} · ${print?.rarity ?: ""}", fontSize = NgText.caption, color = extra.subtle, maxLines = 1)
                 if (print?.gameChanger == true) MiniTag("GC", NgColors.Amber, NgColors.KaartBruin)
                 if (entry.finish != Finish.NONFOIL) MiniTag(if (entry.finish == Finish.ETCHED) stringResource(R.string.etched).uppercase() else "FOIL", Color(0xFFC79BFF), NgColors.KaartBruin)
                 if (entry.proxy) MiniTag(stringResource(R.string.proxy).uppercase(), NgColors.Proxy, Color.White)
@@ -103,7 +105,7 @@ fun DeckCardRow(entry: Entry, print: CardPrint?, settings: AppSettings, images: 
         // Manakosten rechts, vlak vóór de prijs (lands: de kleuren die ze maken).
         RowManaCost(print, size = 14)
         Spacer(Modifier.width(7.dp))
-        Text(money(Money.total(entry, print, settings.currency), settings.currency), color = extra.price, fontWeight = FontWeight.Bold, fontSize = 13.sp,
+        Text(money(Money.total(entry, print, settings.currency), settings.currency), color = extra.price, fontWeight = FontWeight.Bold, fontSize = NgText.body,
             maxLines = 1, textAlign = androidx.compose.ui.text.style.TextAlign.End, modifier = Modifier.widthIn(min = 52.dp).then(privacyMask()))
     }
 }

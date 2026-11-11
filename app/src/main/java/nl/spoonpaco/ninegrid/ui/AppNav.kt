@@ -1,5 +1,6 @@
 package nl.spoonpaco.ninegrid.ui
 
+import nl.spoonpaco.ninegrid.ui.theme.NgText
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -308,9 +309,9 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
                 Column {
                     Text(stringResource(if (offer == AppViewModel.OfflineOffer.IMPORT) R.string.offline_offer_import else R.string.offline_offer_throttled))
                     Spacer(Modifier.height(8.dp))
-                    Text(stringResource(R.string.offline_pros), fontSize = 13.sp)
+                    Text(stringResource(R.string.offline_pros), fontSize = NgText.body)
                     Spacer(Modifier.height(6.dp))
-                    Text(stringResource(R.string.offline_cons), fontSize = 13.sp)
+                    Text(stringResource(R.string.offline_cons), fontSize = NgText.body)
                 }
             },
             confirmButton = { TextButton(onClick = { vm.answerOfflineOffer(true) }) {
@@ -329,12 +330,12 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
             title = { Text(stringResource(R.string.update_title_x, u.title.removePrefix("NineGrid ").ifBlank { "v" + u.version })) },
             text = {
                 androidx.compose.foundation.layout.Column(androidx.compose.ui.Modifier.heightIn(max = 380.dp).verticalScroll(androidx.compose.foundation.rememberScrollState())) {
-                    if (u.notes.isNotBlank()) Text(u.notes.take(2500), fontSize = 13.sp)
+                    if (u.notes.isNotBlank()) Text(u.notes.take(2500), fontSize = NgText.body)
                     else Text(stringResource(R.string.update_body, u.version))
-                    if (u.apkSize > 0) Text(stringResource(R.string.update_size, u.apkSize / (1024 * 1024)), fontSize = 12.sp, modifier = androidx.compose.ui.Modifier.padding(top = 8.dp))
+                    if (u.apkSize > 0) Text(stringResource(R.string.update_size, u.apkSize / (1024 * 1024)), fontSize = NgText.body, modifier = androidx.compose.ui.Modifier.padding(top = 8.dp))
                     vm.updateProgress?.let { p ->
                         androidx.compose.material3.LinearProgressIndicator(progress = { p }, modifier = androidx.compose.ui.Modifier.fillMaxWidth().padding(top = 10.dp))
-                        Text(stringResource(R.string.update_downloading, (p * 100).toInt()), fontSize = 12.sp)
+                        Text(stringResource(R.string.update_downloading, (p * 100).toInt()), fontSize = NgText.body)
                     }
                 }
             },

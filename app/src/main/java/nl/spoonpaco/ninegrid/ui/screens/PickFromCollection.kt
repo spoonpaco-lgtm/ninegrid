@@ -1,5 +1,6 @@
 package nl.spoonpaco.ninegrid.ui.screens
 
+import nl.spoonpaco.ninegrid.ui.theme.NgText
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -70,7 +71,7 @@ fun PickFromCollectionDialog(vm: AppViewModel, deck: Deck, onDismiss: () -> Unit
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Scaffold(topBar = {
             TopAppBar(
-                title = { Column { Text(stringResource(R.string.pick_from_collection)); Text(deck.name, fontSize = 12.sp, color = LocalNgExtra.current.subtle) } },
+                title = { Column { Text(stringResource(R.string.pick_from_collection)); Text(deck.name, fontSize = NgText.body, color = LocalNgExtra.current.subtle) } },
                 navigationIcon = { IconButton(onClick = onDismiss) { Icon(Icons.Filled.Close, stringResource(R.string.back)) } },
             )
         }) { pad ->
@@ -82,7 +83,7 @@ fun PickFromCollectionDialog(vm: AppViewModel, deck: Deck, onDismiss: () -> Unit
                     groups = setOf(nl.spoonpaco.ninegrid.ui.components.FilterGroup.RARITY, nl.spoonpaco.ninegrid.ui.components.FilterGroup.COLOR,
                         nl.spoonpaco.ninegrid.ui.components.FilterGroup.TYPE, nl.spoonpaco.ninegrid.ui.components.FilterGroup.FOIL, nl.spoonpaco.ninegrid.ui.components.FilterGroup.TEXT),
                 )
-                Text(stringResource(R.string.pick_explain), fontSize = 12.sp, color = LocalNgExtra.current.subtle, modifier = Modifier.padding(horizontal = 16.dp))
+                Text(stringResource(R.string.pick_explain), fontSize = NgText.body, color = LocalNgExtra.current.subtle, modifier = Modifier.padding(horizontal = 16.dp))
                 if (list.isEmpty()) {
                     EmptyState(stringResource(R.string.pick_empty_title), stringResource(R.string.pick_empty_body))
                 } else {
@@ -105,7 +106,7 @@ fun PickFromCollectionDialog(vm: AppViewModel, deck: Deck, onDismiss: () -> Unit
             title = { Text(e.print?.name ?: "") },
             text = {
                 Column {
-                    Text(stringResource(R.string.pick_available, e.entry.quantity), fontSize = 13.sp)
+                    Text(stringResource(R.string.pick_available, e.entry.quantity), fontSize = NgText.body)
                     Spacer(Modifier.height(8.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(stringResource(R.string.quantity), modifier = Modifier.weight(1f))

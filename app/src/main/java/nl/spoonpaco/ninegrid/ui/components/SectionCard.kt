@@ -1,5 +1,6 @@
 package nl.spoonpaco.ninegrid.ui.components
 
+import nl.spoonpaco.ninegrid.ui.theme.NgText
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -41,7 +42,7 @@ fun SectionCard(
     Card(colors = CardDefaults.cardColors(containerColor = extra.cardSurface), modifier = modifier.fillMaxWidth()) {
         Column(Modifier.padding(14.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(title, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text(title, fontWeight = FontWeight.Bold, fontSize = NgText.heading)
                 if (info != null) IconButton(onClick = { open = true }, modifier = Modifier.size(30.dp)) {
                     Icon(Icons.Outlined.Info, null, modifier = Modifier.size(18.dp), tint = extra.subtle)
                 }

@@ -1,5 +1,7 @@
 package nl.spoonpaco.ninegrid.ui.screens
 
+import nl.spoonpaco.ninegrid.ui.theme.NgText
+import nl.spoonpaco.ninegrid.ui.theme.NgShape
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -108,8 +110,8 @@ fun ReviewScreen(vm: AppViewModel, onBack: () -> Unit, onSaved: (Long?) -> Unit)
         },
         bottomBar = {
             Column(Modifier.navigationBarsPadding().padding(12.dp)) {
-                if (missing > 0) Text(pluralStringResource(R.plurals.review_missing, missing, missing), color = NgColors.Error, fontSize = 13.sp)
-                if (noCommanderChosen) Text(stringResource(R.string.review_pick_commander), color = NgColors.Error, fontSize = 13.sp)
+                if (missing > 0) Text(pluralStringResource(R.plurals.review_missing, missing, missing), color = NgColors.Error, fontSize = NgText.body)
+                if (noCommanderChosen) Text(stringResource(R.string.review_pick_commander), color = NgColors.Error, fontSize = NgText.body)
                 Button(
                     onClick = { save() },
                     enabled = found > 0 && !vm.busy && (vm.destination != Destination.EXISTING_DECK || vm.targetDeckId != null),
@@ -147,9 +149,9 @@ fun ReviewScreen(vm: AppViewModel, onBack: () -> Unit, onSaved: (Long?) -> Unit)
                         Destination.NEW_DECK -> {
                             OutlinedTextField(vm.newDeckName, { vm.newDeckName = it }, label = { Text(stringResource(R.string.deck_name)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                             Spacer(Modifier.height(6.dp))
-                            Text(stringResource(R.string.format_suggested), fontSize = 13.sp, color = extra.subtle)
+                            Text(stringResource(R.string.format_suggested), fontSize = NgText.body, color = extra.subtle)
                             ChoiceRow(stringResource(R.string.format), DeckFormat.all, vm.newDeckFormat, { formatLabelPlain(it) }) { vm.newDeckFormat = it }
-                            if (isCommander) Text(stringResource(R.string.review_commander_hint), fontSize = 13.sp, color = extra.subtle)
+                            if (isCommander) Text(stringResource(R.string.review_commander_hint), fontSize = NgText.body, color = extra.subtle)
                         }
                         Destination.EXISTING_DECK -> {
                             decks.forEach { d -> DestinationOption(vm.targetDeckId == d.id, d.name) { vm.targetDeckId = d.id } }
@@ -178,7 +180,7 @@ fun ReviewScreen(vm: AppViewModel, onBack: () -> Unit, onSaved: (Long?) -> Unit)
             if (vm.unreadableLines.isNotEmpty()) item {
                 Text(
                     stringResource(R.string.review_unreadable, vm.unreadableLines.joinToString("\n")),
-                    color = NgColors.Error, fontSize = 13.sp, modifier = Modifier.padding(horizontal = 16.dp),
+                    color = NgColors.Error, fontSize = NgText.body, modifier = Modifier.padding(horizontal = 16.dp),
                 )
             }
             items(items, key = { it.key }) { item ->
@@ -245,11 +247,11 @@ private fun PendingRow(
             confirmButton = { TextButton(onClick = { compare = false }) { Text(stringResource(R.string.back)) } },
             text = {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    vm.crops[item.key]?.let { androidx.compose.foundation.Image(it, null, Modifier.weight(1f).aspectRatio(0.716f).clip(RoundedCornerShape(8.dp)), contentScale = androidx.compose.ui.layout.ContentScale.Crop) }
+                    vm.crops[item.key]?.let { androidx.compose.foundation.Image(it, null, Modifier.weight(1f).aspectRatio(0.716f).clip(NgShape.Normal), contentScale = androidx.compose.ui.layout.ContentScale.Crop) }
                     Box(Modifier.weight(1f).aspectRatio(0.716f)) {
                         coil.compose.AsyncImage(
                             model = vm.images.request(vm.images.urlFor(p, large = true), settings), imageLoader = vm.images.loader,
-                            contentDescription = p?.name, modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(8.dp)),
+                            contentDescription = p?.name, modifier = Modifier.fillMaxSize().clip(NgShape.Normal),
                         )
                     }
                 }
@@ -258,7 +260,7 @@ private fun PendingRow(
     }
     Card(
         colors = CardDefaults.cardColors(containerColor = extra.cardSurface),
-        shape = RoundedCornerShape(12.dp),
+        shape = NgShape.Normal,
         modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 3.dp),
     ) {
         Column(Modifier.padding(8.dp)) {
@@ -269,7 +271,7 @@ private fun PendingRow(
                 vm.crops[item.key]?.let { crop ->
                     androidx.compose.foundation.Image(
                         crop, contentDescription = null,
-                        modifier = Modifier.width(36.dp).height(50.dp).clip(RoundedCornerShape(4.dp)).clickable { compare = true },
+                        modifier = Modifier.width(36.dp).height(50.dp).clip(NgShape.Small).clickable { compare = true },
                         contentScale = androidx.compose.ui.layout.ContentScale.Crop,
                     )
                     Spacer(Modifier.width(4.dp))
@@ -290,7 +292,7 @@ private fun PendingRow(
                     Text(
                         if (p != null) "${p.setCode} ${p.collectorNumber} · ${p.rarity.replaceFirstChar { it.uppercase() }}" + (if (showSection) " · " + sectionLabelPlain(item.section) else "")
                         else item.label,
-                        fontSize = 12.sp, color = extra.subtle, maxLines = 2,
+                        fontSize = NgText.body, color = extra.subtle, maxLines = 2,
                     )
                     // Wat de AI met dit vak deed.
                     vm.aiMarks[item.key]?.let { m ->
@@ -299,7 +301,7 @@ private fun PendingRow(
                             AppViewModel.AiState.BUSY -> stringResource(R.string.ai_mark_busy)
                             AppViewModel.AiState.FAILED -> m.reason ?: ""
                         }
-                        Text("AI · $t", fontSize = 11.sp, maxLines = 3, color = if (m.state == AppViewModel.AiState.DONE) NgColors.Synced else NgColors.Amber)
+                        Text("AI · $t", fontSize = NgText.caption, maxLines = 3, color = if (m.state == AppViewModel.AiState.DONE) NgColors.Synced else NgColors.Amber)
                     }
                 }
                 if (item.status == ItemStatus.NOT_FOUND || expanded) {
@@ -318,13 +320,13 @@ private fun PendingRow(
                         Column {
                             Text(
                                 stringResource(R.string.review_take, have) + if (item.fromCollection && item.quantity > have) " · " + stringResource(R.string.review_shortage, item.quantity - have) else "",
-                                fontSize = 12.sp,
+                                fontSize = NgText.body,
                             )
                             // Komt er een andere print uit je collectie dan in de lijst staat? Dan zie je welke; vinkje uit = nieuw toevoegen.
-                            if (others.isNotEmpty()) Text(stringResource(R.string.review_other_print, others), fontSize = 11.sp, color = NgColors.Amber)
+                            if (others.isNotEmpty()) Text(stringResource(R.string.review_other_print, others), fontSize = NgText.caption, color = NgColors.Amber)
                         }
                     } else {
-                        Text(stringResource(R.string.review_not_owned), fontSize = 12.sp, color = extra.subtle, modifier = Modifier.padding(start = 8.dp, top = 2.dp, bottom = 2.dp))
+                        Text(stringResource(R.string.review_not_owned), fontSize = NgText.body, color = extra.subtle, modifier = Modifier.padding(start = 8.dp, top = 2.dp, bottom = 2.dp))
                     }
                 }
             }
@@ -349,7 +351,7 @@ private fun PendingRow(
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Checkbox(checked = item.proxy, onCheckedChange = { vm.updatePending(item.copy(proxy = it)) })
-                        Text(stringResource(R.string.proxy_explain), fontSize = 13.sp)
+                        Text(stringResource(R.string.proxy_explain), fontSize = NgText.body)
                     }
                     OutlinedButton(onClick = onSearch) { Text(stringResource(R.string.choose_other_print)) }
                 }

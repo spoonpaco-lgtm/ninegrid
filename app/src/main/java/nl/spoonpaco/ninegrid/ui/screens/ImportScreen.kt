@@ -1,5 +1,6 @@
 package nl.spoonpaco.ninegrid.ui.screens
 
+import nl.spoonpaco.ninegrid.ui.theme.NgText
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -88,12 +89,12 @@ fun ImportScreen(vm: AppViewModel, onBack: () -> Unit, onDone: () -> Unit) {
                 ImportStep.IDLE, ImportStep.FAILED -> {
                     Text(stringResource(R.string.import_explain))
                     Spacer(Modifier.height(10.dp))
-                    Text(stringResource(R.string.import_how), fontSize = 13.sp, color = extra.subtle)
+                    Text(stringResource(R.string.import_how), fontSize = NgText.body, color = extra.subtle)
                     Spacer(Modifier.height(16.dp))
                     Button(onClick = { drivePicker.launch(arrayOf("application/vnd.google-apps.spreadsheet")) }, modifier = Modifier.fillMaxWidth()) {
                         Icon(Icons.Filled.FileOpen, null); Spacer(Modifier.padding(4.dp)); Text(stringResource(R.string.import_from_drive))
                     }
-                    Text(stringResource(R.string.import_from_drive_hint), fontSize = 12.sp, color = extra.subtle)
+                    Text(stringResource(R.string.import_from_drive_hint), fontSize = NgText.body, color = extra.subtle)
                     Spacer(Modifier.height(8.dp))
                     OutlinedButton(onClick = { picker.launch(mimeTypes) }, modifier = Modifier.fillMaxWidth()) {
                         Text(stringResource(R.string.import_choose))
@@ -109,7 +110,7 @@ fun ImportScreen(vm: AppViewModel, onBack: () -> Unit, onDone: () -> Unit) {
                 ImportStep.MAPPING -> {
                     val d = vm.importData ?: return@Column
                     Text(stringResource(R.string.import_mapping_title), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
-                    Text(stringResource(R.string.import_mapping_explain), fontSize = 13.sp, color = extra.subtle)
+                    Text(stringResource(R.string.import_mapping_explain), fontSize = NgText.body, color = extra.subtle)
                     Spacer(Modifier.height(8.dp))
                     val roleLabels = nl.spoonpaco.ninegrid.domain.SheetImport.Role.entries.associate { it.name to roleLabel(it.name) }
                     d.headers.forEachIndexed { i, head ->
@@ -127,21 +128,21 @@ fun ImportScreen(vm: AppViewModel, onBack: () -> Unit, onDone: () -> Unit) {
                         OutlinedButton(onClick = { vm.cancelImport() }) { Text(stringResource(R.string.cancel)) }
                         Button(onClick = { vm.applyMapping() }, enabled = ok, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.next)) }
                     }
-                    if (!ok) Text(stringResource(R.string.import_mapping_need_name), fontSize = 12.sp, color = extra.subtle)
+                    if (!ok) Text(stringResource(R.string.import_mapping_need_name), fontSize = NgText.body, color = extra.subtle)
                 }
                 ImportStep.READY -> {
                     val d = vm.importData ?: return@Column
                     Text(stringResource(R.string.import_found), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
-                    if (d.format.isNotBlank()) Text(stringResource(R.string.import_format, d.format), fontSize = 13.sp, color = MaterialTheme.colorScheme.primary)
+                    if (d.format.isNotBlank()) Text(stringResource(R.string.import_format, d.format), fontSize = NgText.body, color = MaterialTheme.colorScheme.primary)
                     Spacer(Modifier.height(8.dp))
                     Line(stringResource(R.string.import_sheets), d.sheetsRead.joinToString(", "))
                     Line(stringResource(R.string.collection), pluralStringResource(R.plurals.n_cards, d.collectionCount, d.collectionCount))
                     Line(stringResource(R.string.decks), stringResource(R.string.import_decks_line, d.decks.size, d.deckCount))
-                    d.decks.forEach { Text("· ${it.name} (${it.cards.sumOf { c -> c.quantity }})", fontSize = 13.sp, color = extra.subtle, modifier = Modifier.padding(start = 12.dp)) }
+                    d.decks.forEach { Text("· ${it.name} (${it.cards.sumOf { c -> c.quantity }})", fontSize = NgText.body, color = extra.subtle, modifier = Modifier.padding(start = 12.dp)) }
                     if (d.history.isNotEmpty()) Line(stringResource(R.string.import_history), stringResource(R.string.import_history_line, d.history.size))
                     val proxies = (d.collection + d.decks.flatMap { it.cards }).filter { it.proxy }.sumOf { it.quantity }
                     if (proxies > 0) Line(stringResource(R.string.proxy), proxies.toString())
-                    if (d.skippedRows > 0) Text(stringResource(R.string.import_skipped, d.skippedRows), fontSize = 12.sp, color = extra.subtle)
+                    if (d.skippedRows > 0) Text(stringResource(R.string.import_skipped, d.skippedRows), fontSize = NgText.body, color = extra.subtle)
                     Spacer(Modifier.height(12.dp))
                     if (entries.isNotEmpty()) {
                         Text(stringResource(R.string.import_existing), fontWeight = FontWeight.Bold)
@@ -165,7 +166,7 @@ fun ImportScreen(vm: AppViewModel, onBack: () -> Unit, onDone: () -> Unit) {
                         if (asDeck) androidx.compose.material3.OutlinedTextField(deckName, { deckName = it }, singleLine = true, label = { Text(stringResource(R.string.deck_name)) }, modifier = Modifier.fillMaxWidth())
                         Spacer(Modifier.height(8.dp))
                     }
-                    Text(stringResource(R.string.import_time_hint), fontSize = 12.sp, color = extra.subtle)
+                    Text(stringResource(R.string.import_time_hint), fontSize = NgText.body, color = extra.subtle)
                     Spacer(Modifier.height(12.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         OutlinedButton(onClick = { vm.cancelImport() }) { Text(stringResource(R.string.cancel)) }
@@ -185,33 +186,33 @@ fun ImportScreen(vm: AppViewModel, onBack: () -> Unit, onDone: () -> Unit) {
                         Text(stringResource(R.string.import_waiting, left / 60, left % 60), color = NgColors.Pending, fontWeight = FontWeight.Bold)
                     }
                     Spacer(Modifier.height(10.dp))
-                    Text(stringResource(R.string.import_background_hint), fontSize = 12.sp, color = extra.subtle)
+                    Text(stringResource(R.string.import_background_hint), fontSize = NgText.body, color = extra.subtle)
                     Spacer(Modifier.height(10.dp))
                     OutlinedButton(onClick = { vm.stopImport() }) { Text(stringResource(R.string.import_stop)) }
                 }
                 ImportStep.DONE -> {
                     Text(vm.importResult, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
                     Spacer(Modifier.height(6.dp))
-                    Text(stringResource(R.string.import_undo_hint), fontSize = 13.sp, color = extra.subtle)
+                    Text(stringResource(R.string.import_undo_hint), fontSize = NgText.body, color = extra.subtle)
                     if (vm.importNotFound.isNotEmpty()) {
                         Spacer(Modifier.height(12.dp))
                         Text(stringResource(R.string.import_not_found_title), fontWeight = FontWeight.Bold, color = NgColors.Error)
                         vm.importNotFound.take(60).forEach {
-                            Text("${it.quantity} ${it.name} (${it.setCode}) ${it.number}", fontSize = 13.sp)
+                            Text("${it.quantity} ${it.name} (${it.setCode}) ${it.number}", fontSize = NgText.body)
                         }
-                        if (vm.importNotFound.size > 60) Text("…", fontSize = 13.sp)
+                        if (vm.importNotFound.size > 60) Text("…", fontSize = NgText.body)
                         Spacer(Modifier.height(8.dp))
                         OutlinedButton(onClick = { clipboard.setText(AnnotatedString(vm.notFoundAsList())); vm.message = vm.getApplication<android.app.Application>().getString(R.string.copied) }) {
                             Text(stringResource(R.string.import_copy_not_found))
                         }
-                        Text(stringResource(R.string.import_not_found_hint), fontSize = 12.sp, color = extra.subtle)
+                        Text(stringResource(R.string.import_not_found_hint), fontSize = NgText.body, color = extra.subtle)
                     }
                     if (vm.importWrongNumber.isNotEmpty()) {
                         Spacer(Modifier.height(12.dp))
                         Text(stringResource(R.string.import_wrong_number_title), fontWeight = FontWeight.Bold, color = NgColors.Amber)
-                        Text(stringResource(R.string.import_wrong_number_hint), fontSize = 12.sp, color = extra.subtle)
-                        vm.importWrongNumber.take(60).forEach { Text("${it.name} (${it.setCode}) ${it.number}", fontSize = 13.sp) }
-                        if (vm.importWrongNumber.size > 60) Text("…", fontSize = 13.sp)
+                        Text(stringResource(R.string.import_wrong_number_hint), fontSize = NgText.body, color = extra.subtle)
+                        vm.importWrongNumber.take(60).forEach { Text("${it.name} (${it.setCode}) ${it.number}", fontSize = NgText.body) }
+                        if (vm.importWrongNumber.size > 60) Text("…", fontSize = NgText.body)
                     }
                     Spacer(Modifier.height(16.dp))
                     Button(onClick = { vm.cancelImport(); onDone() }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.import_to_collection)) }
