@@ -73,7 +73,7 @@ Gebouwd en getest met unittests; dit kan alleen op een echte telefoon gecontrole
 | 0.9.8 ✔ | Kaito (uitgebracht) | 27 Ontwikkelaar-menu met scanrapport, 26 vegen, 16 NIEUW, 19 commander wijzigen, 2 fabrieksinstellingen, 30 melding bij lamp die niet aangaat, 31 kaartjes bij combo's |
 | 0.9.8.1 | Kaito | 32 opgegeven set is een grens (oranje met andere set) |
 | 0.9.8.2 | Kaito | 29 Vormgeving gelijk trekken (alleen opmaak) |
-| 0.9.9 | nog kiezen | 4 scannen naar een deck (pas als de bladscan weer goed leest), 28 deckimport: één keuze voor uit de collectie halen |
+| 0.9.9 | nog kiezen | 4 scannen naar een deck (pas als de bladscan weer goed leest), 28 deckimport: één keuze voor uit de collectie halen, 33 filter- en sorteerknoppen bij alle kaartenlijsten |
 | 0.9.10 | nog kiezen | 8 print kiezen, in twee stappen: eerst 8a–e (printlijst), daarna 8f–l (exemplaren wijzigen en splitsen) |
 | 0.9.11 | nog kiezen | 3 exporteren (sites nog te kiezen; eerst de actuele importformaten nakijken) |
 | 1.0 | — | Fase 2 |
@@ -181,6 +181,14 @@ De nummers hieronder zijn die van de lijst zoals Mick ze kent.
    c. Alleen gelezen of van het blad afgeleide set: buiten de set zoeken mag nog, maar zo'n kaart is altijd oranje met de gevonden set
    d. Meerdere prints met dezelfde naam in de set (gewoon, borderless, showcase) en geen nummer gelezen: niet de eerste gewone print nemen maar oranje met de kaartfoto-vergelijking
    e. Test: forced set + kaart die er niet in staat geeft nooit een stille print uit een andere set
+
+33. Filter- en sorteerknoppen bij alle lijsten met kaarten (nieuw, 0.9.9; voorstel Mick, 11 nov):
+   a. Nu al op de gedeelde zoekbalk (FilterSearchBar): Collectie (filter + sorteren), Alle kaarten (filter), Decks en Sets (sorteren), Kies uit collectie (filter), Setscherm (alleen filter op rarity)
+   b. Erbij: kaartenscherm van een vriend (Delen), met dezelfde filters als de collectie en sorteren op set, naam, prijs
+   c. Erbij: setscherm krijgt sorteren (nummer, naam, prijs, rarity)
+   d. Erbij: deck-detail krijgt filteren (kleur, type, rarity) naast het bestaande sorteren
+   e. Bewust niet: kaartzoeker in dialogen (Kaart zoeken, Commander kiezen; zoekopdracht bij Scryfall, max tien treffers), setkiezer bij vrienden en lijnenkiezer in de grafiek (korte keuzelijsten)
+   f. Zelfde bouwsteen, andere opties; filterkeuze per scherm onthouden zoals nu bij Collectie
 
 ## Fase 2 (wacht op startsein) → wordt 1.0
 - Sheet-koppeling (deel 2 punt 2, optie A: nieuwe Sheet via drive.file; Google Cloud-project + privacypagina nodig)
