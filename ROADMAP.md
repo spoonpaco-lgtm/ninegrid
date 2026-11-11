@@ -30,6 +30,7 @@ Dit is "de lijst": wat Mick wil dat NineGrid nog krijgt. Een nieuw gesprek begin
 | 0.9.5 | Narset | Fix: filters Alle kaarten, "vanaf"-prijzen verlanglijst |
 | 0.9.6 | Chandra | Lamp, lege vakken, oranje alleen voor controleren, manakosten, verlanglijst-indeling |
 | 0.9.7 | Teyo | Bugfixes, verbeteringen en QOL: punten 12, 13, 14, 15, 17, 18, 20, 21, 22, 23, 24, 25 (zie RELEASE_NOTES.md) |
+| 0.9.7.1 | Teyo | Scannerreparatie: kale setcode, lege vakken, melding "X van 9 gelezen" bij een heel blad |
 
 ### 0.9.7 – nog na te kijken op Micks telefoon
 
@@ -41,6 +42,11 @@ Gebouwd en getest met unittests; dit kan alleen op een echte telefoon gecontrole
 - **Icoon (20)**: past het logo in het rondje?
 - **Deckimport (22)**: lijst met verschillende Island-prints importeren terwijl er andere Islands in de collectie liggen.
 - **Back-up (14)**: back-up maken, samenvatting lezen, terugzetten met alles en met losse delen.
+
+### 0.9.7.1 – nog open na de reparatie
+
+- **Bladscan leest minder dan in 0.9.6** bij een heel blad in beeld: oorzaak nog niet zeker. Verdachten uit 0.9.7: onderste strook 3× vergroot, contrastpoging, gedeelde tekstherkenner. Nodig: een voorbeeldfoto van zo'n blad met de vakken die ontbreken. Als de 0.9.7.1-reparatie niet genoeg blijkt, die punten terugdraaien naar 0.9.6.
+- **Lamp (zaklamp-knop) gaat niet aan**: het icoon verandert wel, maar de lamp brandt niet. Code is sinds 0.9.6 niet veranderd. Mick: laat maar. Opties als hij het weer wil: zaklampfunctie van Android zelf (CameraManager.setTorchMode), of flits als vaste stand bij de foto.
 
 ### Wat anders uitpakte dan op de lijst stond
 
@@ -109,6 +115,12 @@ De nummers hieronder zijn die van de lijst zoals Mick ze kent.
    d. Twee commanders waar dat mag (Partner, Friends forever, Choose a Background, Doctor's companion): tweede commander toevoegen of vervangen
    e. Na het wisselen: kleuren van het deck opnieuw bepaald, kaarten buiten de nieuwe kleuren oranje, bracket en deckregels opnieuw berekend; is er een tribe ingesteld, dan vraagt de app of die mee moet veranderen
    f. Ongedaan maken werkt zoals altijd
+
+26. Vegen op het kaartscherm (nieuw, 0.9.8):
+   a. Op het kaartscherm links/rechts vegen naar de volgende/vorige kaart
+   b. Volgorde = de lijst waaruit je kwam: collectie of Alle kaarten (met filter en sortering), setscherm (binnen Ontbreekt of Heb ik), deck, verlanglijst, vriend; bij zoeken en scannen geen lijst, dus geen vegen
+   c. Boven in beeld de plek, bijvoorbeeld "12 van 280"; aan begin of einde gebeurt niets
+   d. Past op bestaande horizontale gebaren op het kaartscherm (afbeelding, printlijst); testen op de telefoon
 
 ## Fase 2 (wacht op startsein) → wordt 1.0
 - Sheet-koppeling (deel 2 punt 2, optie A: nieuwe Sheet via drive.file; Google Cloud-project + privacypagina nodig)
