@@ -8,7 +8,8 @@ Dit is "de lijst": wat Mick wil dat NineGrid nog krijgt. Een nieuw gesprek begin
 - **Niets bouwen zonder startsein.** Voorstellen gaan eerst op de lijst; bouwen pas als Mick "start" of "begin maar" zegt.
 - Denk mee en spreek tegen als iets beter kan; geen ja-knikker.
 - Elke versie krijgt een passende planeswalker-naam. 0.x zijn testversies; 1.0 = fase 2. **Saheeli** is gereserveerd.
-- Bouwen gebeurt alleen in GitHub Actions. Een release ontstaat als `versionNameValue` in `app/build.gradle.kts` verandert.
+- Bouwen gebeurt alleen in GitHub Actions. Een release ontstaat als `versionNameValue` in `app/build.gradle.kts` verandert op `main`.
+- Testen zonder release: werk op een branch en start de workflow Build met de hand op die branch (`workflow_dispatch`); pas als die slaagt naar `main`.
 - Keystore, wachtwoorden en de AI-sleutel blijven buiten de repo (GitHub secrets / alleen op de telefoon).
 - Bij elke versie: handleiding (NL/EN), Wat is nieuw, FEATURES.md en FEATURES.nl.md, RELEASE_NOTES.md bijwerken.
 - Tellen op afbeeldingen: vak voor vak / kwadrant voor kwadrant.
@@ -28,10 +29,36 @@ Dit is "de lijst": wat Mick wil dat NineGrid nog krijgt. Een nieuw gesprek begin
 | 0.9.4 | Ajani | Fix: privacystijlen compleated en zegel, glinstering |
 | 0.9.5 | Narset | Fix: filters Alle kaarten, "vanaf"-prijzen verlanglijst |
 | 0.9.6 | Chandra | Lamp, lege vakken, oranje alleen voor controleren, manakosten, verlanglijst-indeling |
+| 0.9.7 | Teyo | Bugfixes, verbeteringen en QOL: punten 12, 13, 14, 15, 17, 18, 20, 21, 22, 23, 24, 25 (zie RELEASE_NOTES.md) |
 
-## Volgende versie (naam nog kiezen)
+### 0.9.7 – nog na te kijken op Micks telefoon
 
-Nieuwe functies 2, 3, 4 en 8, plus verbeteringen 12, 13 en 14. De nummers zijn die van de lijst zoals Mick ze kent.
+Gebouwd en getest met unittests; dit kan alleen op een echte telefoon gecontroleerd worden:
+
+- **Scanner (25)**: een paar bladen scannen, ook een met foils. Leest ML Kit de ster ★ echt? (De hint werkt alleen als de tekstherkenning het teken ★ teruggeeft; zo niet, dan verandert er niets en moet er een andere aanpak komen, bijvoorbeeld op beeld.)
+- **Bladweergave (21)**: past het blad zonder scrollen, met gebaren én met drie knoppen?
+- **Melding (23)**: staat Ongedaan maken overal boven de navigatiebalk?
+- **Icoon (20)**: past het logo in het rondje?
+- **Deckimport (22)**: lijst met verschillende Island-prints importeren terwijl er andere Islands in de collectie liggen.
+- **Back-up (14)**: back-up maken, samenvatting lezen, terugzetten met alles en met losse delen.
+
+### Wat anders uitpakte dan op de lijst stond
+
+- **15b/c Prijsbeweging** bestond al als de knop "Koers" (dagstanden bewaren het koersverschil sinds 0.8.9). De knop heet nu Prijsbeweging; er is niets nieuws voor gebouwd.
+- **17b Filter Game Changers**: de offline database kent geen Game Changers. In de collectie en op de verlanglijst werkt het filter met wat er per kaart bewaard is; bij Alle kaarten zoekt het bij Scryfall (internet nodig).
+- **13d Manakosten in het setscherm**: bij kaarten die je niet hebt pas zichtbaar nadat de setlijst is ververst.
+- **14j Decks na terugzetten** (staat bij Later): in de code worden decks wel teruggezet. Er is nu een test dat een back-upbestand met decks heel terugkomt uit het bestand. Wat er bij Mick misging is nog niet gevonden; daarvoor is zijn back-upbestand nodig.
+
+## Versieplan
+
+| Versie | Naam | Inhoud |
+|---|---|---|
+| 0.9.8 | nog kiezen (voorstel: Kaito) | Nieuwe features: 2, 3, 4, 8, 16, 19 (eventueel 3 en 8 naar 0.9.9) |
+| 1.0 | — | Fase 2 |
+
+De nummers hieronder zijn die van de lijst zoals Mick ze kent.
+
+## 0.9.8 – Nieuwe features
 
 2. Fabrieksinstellingen (Instellingen → Wissen):
    a. Eigen rode knop "Alles wissen (fabrieksinstellingen)", onder het bestaande Wissen
@@ -55,6 +82,7 @@ Nieuwe functies 2, 3, 4 en 8, plus verbeteringen 12, 13 en 14. De nummers zijn d
    e. Kaarten buiten de kleuren van de commander of banned meteen oranje in het controlescherm
    f. Na opslaan terug naar het deck; de scanner vergeet het deck, zodat de volgende gewone scan weer naar de collectie gaat
    g. Ongedaan maken werkt zoals altijd; verplaatste kaarten gaan terug naar hun oude plek
+   h. Gebruikt de regels van 0.9.7 (domain/DeckTake): basic lands alleen precies dezelfde print
 8. Print kiezen:
    a. Verlanglijst → Bewerken: onder "precies deze print" een regel "SLD 1798 · Secret Lair Drop ›"; tik = lijst met alle prints van die kaart
    b. Per print: klein plaatje, set, nummer en jaar, normale en foilprijs, "goedkoopst" bij de goedkoopste, ✓ bij de huidige
@@ -68,34 +96,26 @@ Nieuwe functies 2, 3, 4 en 8, plus verbeteringen 12, 13 en 14. De nummers zijn d
    j. "+ Exemplaar toevoegen" altijd zichtbaar op het kaartscherm, met keuze Normaal | Foil | Etched (alleen wat voor die print bestaat) en meteen de plek; een foil krijgt een eigen regel met de foilprijs
    k. Afwerking voor een deel van een stapel wijzigen: ✎ → Foil bij ×3 vraagt hoeveel (bijv. 1 foil, 2 blijven normaal, elk een eigen regel)
    l. In de printlijst per print welke versies er zijn (normaal, foil, etched) met hun prijzen
-12. Manakosten rechts, vlak vóór de prijs (collectie én decks):
-   a. Rechts uitgelijnd, zodat alle symbolen een nette kolom vormen
-   b. Altijd dezelfde grootte (niet meer verkleinen bij lange namen); de naam krijgt de ruimte links
-   c. Lands houden hun kleurbolletjes op dezelfde plek
-13. Setscherm in de stijl van de andere schermen (schets docs/schetsen/setscherm.png):
-   a. Kopkaart: "130 van 254 · 51%" groot met voortgangsbalk, de vier raritybalken, "Ontbrekend samen € …", Completionist met ⓘ; klapt bij scrollen in tot één regel ("▾ details")
-   b. Afgerond zoekveld met filter ernaast, zoals Collectie
-   c. Eén schakelaar "Ontbreekt (n) | Heb ik (n)" plus vinkje "Varianten meetellen", i.p.v. de drie losse blauwe knoppen
-   d. Rijen in collectiestijl: raritystreep, plaatje (gedimd bij kaarten die je niet hebt), naam, nummer · rarity, manakosten en prijs rechts (zoals punt 12)
-   e. Ontbreekt: rechts ♡ (verlanglijst) en + (toevoegen) klein onder elkaar, zodat lange namen passen
-   f. Heb ik: per kaart aantal, foil en plek ("×2 · commons, blad 2" of "in deck Krenko")
-14. Back-up compleet maken:
-   a. Erbij: alle instellingen (thema, gildekleur, privacy, valuta, scaninstellingen, datumnotatie …)
-   b. Erbij: deckregels (tribe, hoogste bracket, soort deck, eigen doelen per rol, zelf aangevinkte rolkaarten) en open/dicht + sortering van de groepen per deck
-   c. Erbij: vrienden met hun gedeelde collecties (ruilmatches blijven)
-   d. Erbij: je eigen deelcode, zodat vrienden je na terugzetten niet als nieuw persoon zien
-   e. Erbij: het wijzigingslog, recente zoekopdrachten, laatste boosterprijs
-   f. Bewust niet: de AI-sleutel (alleen op de telefoon), de offline kaartdatabase en de plaatjes (opnieuw te downloaden)
-   g. Samenvatting na het maken en vóór het terugzetten: "1.069 kaarten · 6 decks · 1.243 prijspunten · 3 vrienden · instellingen"
-   h. Terugzetten met keuze: alles (standaard) of losse delen (bijv. alleen decks, of zonder instellingen)
-   i. Oudere back-ups blijven werken; wat er niet in staat, blijft zoals het op de telefoon is
-   j. Decks na terugzetten (Mick: decks kwamen terug niet mee): uitzoeken met zijn back-upbestand; unittest die een back-up met decks maakt en terugzet
+16. Label NIEUW voor toegevoegde kaarten:
+   a. Nieuw toegevoegde kaarten krijgen een klein label NIEUW in de collectie, in de bladweergave en op het kaartscherm
+   b. Instellingen: hoelang het label blijft: 1 dag, 3 dagen, 7 dagen (standaard), 14 dagen, 30 dagen of uit
+   c. Filter "Nieuw" en sortering "Nieuwste eerst"
+   d. Wel nieuw: scannen, handmatig toevoegen, een lijst of Sheet importeren, en een extra exemplaar van een kaart die je al had (alleen dat exemplaar krijgt het label)
+   e. Niet nieuw: een kaart van de collectie naar een deck verplaatsen (of terug), en een back-up terugzetten
+19. Commander wijzigen in een Commander-deck:
+   a. In het deck: ⋮ → "Commander wijzigen", en op het kaartscherm van een kaart in het deck "Maak commander"
+   b. Nieuwe commander kiezen uit de kaarten in het deck, uit je collectie of via zoeken/scannen; alleen kaarten die commander mogen zijn
+   c. Wat met de oude commander: keuze "Naar het deck" (standaard) of "Terug naar collectie" (naar zijn oude plek)
+   d. Twee commanders waar dat mag (Partner, Friends forever, Choose a Background, Doctor's companion): tweede commander toevoegen of vervangen
+   e. Na het wisselen: kleuren van het deck opnieuw bepaald, kaarten buiten de nieuwe kleuren oranje, bracket en deckregels opnieuw berekend; is er een tribe ingesteld, dan vraagt de app of die mee moet veranderen
+   f. Ongedaan maken werkt zoals altijd
 
 ## Fase 2 (wacht op startsein) → wordt 1.0
 - Sheet-koppeling (deel 2 punt 2, optie A: nieuwe Sheet via drive.file; Google Cloud-project + privacypagina nodig)
 - Route D: deck delen via QR-code (scherm scannen → decklijst)
 
 ## Later (idee, geen versie)
+- Decks na terugzetten van een back-up (was 14j; Mick: decks kwamen niet mee terug): uitzoeken als er meer informatie is, met zijn back-upbestand
 - Verkoopalarm voor kaarten die je hebt: "meld als Ragavan boven € 60 komt" (omgekeerde prijsalarm, lijkt op Breakout)
 - Jaaroverzicht in december: "Jouw jaar in Magic" (kaarten toegevoegd, duurste vondst, meest gescande set, groei in waarde, beste ruil), te delen als afbeelding, privacymodus respecteren
 - Widget op het startscherm: waarde collectie en Winner of the Week in logostijl; bedekt als de privacymodus aan staat
