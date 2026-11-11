@@ -71,7 +71,8 @@ Gebouwd en getest met unittests; dit kan alleen op een echte telefoon gecontrole
 | Versie | Naam | Inhoud |
 |---|---|---|
 | 0.9.8 ✔ | Kaito (uitgebracht) | 27 Ontwikkelaar-menu met scanrapport, 26 vegen, 16 NIEUW, 19 commander wijzigen, 2 fabrieksinstellingen, 30 melding bij lamp die niet aangaat, 31 kaartjes bij combo's |
-| 0.9.8.1 | nog kiezen (patchnaam) | 32 opgegeven set is een grens (oranje met andere set), 29 Vormgeving gelijk trekken (alleen opmaak, geen nieuwe functies) |
+| 0.9.8.1 | Kaito | 32 opgegeven set is een grens (oranje met andere set) |
+| 0.9.8.2 | Kaito | 29 Vormgeving gelijk trekken (alleen opmaak) |
 | 0.9.9 | nog kiezen | 4 scannen naar een deck (pas als de bladscan weer goed leest), 28 deckimport: één keuze voor uit de collectie halen |
 | 0.9.10 | nog kiezen | 8 print kiezen, in twee stappen: eerst 8a–e (printlijst), daarna 8f–l (exemplaren wijzigen en splitsen) |
 | 0.9.11 | nog kiezen | 3 exporteren (sites nog te kiezen; eerst de actuele importformaten nakijken) |
