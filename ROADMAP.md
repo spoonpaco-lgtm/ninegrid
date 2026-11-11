@@ -103,7 +103,7 @@ Gebouwd en getest met unittests; dit kan alleen op een echte telefoon gecontrole
 | 0.9.8 ✔ | Kaito (uitgebracht) | 27 Ontwikkelaar-menu met scanrapport, 26 vegen, 16 NIEUW, 19 commander wijzigen, 2 fabrieksinstellingen, 30 melding bij lamp die niet aangaat, 31 kaartjes bij combo's |
 | 0.9.8.1 | Kaito | 32 opgegeven set is een grens (oranje met andere set) |
 | 0.9.8.2 | Kaito | 29 Vormgeving gelijk trekken (alleen opmaak) |
-| 0.9.9 | nog kiezen | 4 scannen naar een deck (pas als de bladscan weer goed leest), 28 deckimport: één keuze voor uit de collectie halen, 33 filter- en sorteerknoppen bij alle kaartenlijsten, 34 kaartjes bij suggesties en tikken op elke combokaart |
+| 0.9.9 | nog kiezen | 4 scannen naar een deck (pas als de bladscan weer goed leest), 28 deckimport: één keuze voor uit de collectie halen, 33 filter- en sorteerknoppen bij alle kaartenlijsten, 34 kaartjes bij suggesties en tikken op elke combokaart, 35 inklapbare blokken bij combo's |
 | 0.9.10 | nog kiezen | 8 print kiezen, in twee stappen: eerst 8a–e (printlijst), daarna 8f–l (exemplaren wijzigen en splitsen) |
 | 0.9.11 | nog kiezen | 3 exporteren (sites nog te kiezen; eerst de actuele importformaten nakijken) |
 | 1.0 | — | Fase 2 |
@@ -226,6 +226,12 @@ De nummers hieronder zijn die van de lijst zoals Mick ze kent.
    c. Combo's: nu opent tikken alleen een kaart die je zelf hebt (deck of collectie); een kaart die je niet hebt (de ontbrekende) doet niets. Dat moet ook werken: kaartscherm via Scryfall op naam, zoals bij zoeken
    d. Keuze Kaartjes | Namen geldt ook voor suggesties (dezelfde onthouden instelling)
    e. Plaatjes lui laden, kleine afmeting, bestaande cache; dubbelzijdige kaarten tonen de voorkant
+
+35. Inklapbare blokken op het Combo's-tabblad (nieuw, 0.9.9; Mick, 11 nov):
+   a. "Combo's in dit deck" en "Bijna" (almost) krijgen een kopje dat in- en uitklapt, zoals de blokken bij Suggesties al doen (TabCard met `closed`/`onToggle`)
+   b. De aantallen blijven in het kopje zichtbaar als het blok dicht is
+   c. Onthouden per deck, zoals bij Suggesties; standaard open
+   d. Hoort bij 34: dezelfde kaartjes en hetzelfde gedrag op beide tabbladen
 
 ## Fase 2 (wacht op startsein) → wordt 1.0
 - Sheet-koppeling (deel 2 punt 2, optie A: nieuwe Sheet via drive.file; Google Cloud-project + privacypagina nodig)
