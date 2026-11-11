@@ -1034,4 +1034,6 @@
     <string name="torch_failed_saver">The lamp would not turn on. Battery saver is on; many phones block the flash then.</string>
     <string name="combos_view_cards">Cards</string>
     <string name="combos_view_names">Names</string>
+    <string name="scan_other_set">not in %1$s, found in %2$s</string>
+    <string name="scan_ambiguous_print">several prints, check which one</string>
 </resources>

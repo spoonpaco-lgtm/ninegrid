@@ -1,3 +1,13 @@
+NineGrid 0.9.8.1 – Kaito (reparatie)
+
+Scanner: een set is nu een grens.
+
+Opgelost
+- Heb je op het scanscherm een set ingevuld (of is de set gelezen), en staat de kaart niet in die set, dan kwam er stil een print uit een andere set. Nu staat zo'n kaart oranje met erbij "niet in MH2, wel in MH1".
+- Is er geen nummer gelezen en bestaan er meerdere prints met die naam in de set (gewoon, borderless, showcase), dan is de gekozen print een gok. Zo'n kaart staat nu oranje ("meerdere prints, kijk welke het is") in plaats van groen.
+
+---
+
 NineGrid 0.9.8 – Kaito
 
 Kaito, de schaduwwandelaar: komt en gaat ongezien. Deze versie maakt het kaartscherm en de decks handiger en geeft je gereedschap om een slechte scan uit te zoeken.

@@ -1033,4 +1033,6 @@
     <string name="torch_failed_saver">De lamp ging niet aan. Batterijbesparing staat aan; veel telefoons blokkeren dan de flits.</string>
     <string name="combos_view_cards">Kaartjes</string>
     <string name="combos_view_names">Namen</string>
+    <string name="scan_other_set">niet in %1$s, wel in %2$s</string>
+    <string name="scan_ambiguous_print">meerdere prints, kijk welke het is</string>
 </resources>

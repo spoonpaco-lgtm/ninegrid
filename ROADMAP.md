@@ -174,7 +174,7 @@ De nummers hieronder zijn die van de lijst zoals Mick ze kent.
    e. Bovenaan het tabblad keuze Kaartjes | Namen, onthouden; standaard Kaartjes
    f. Plaatjes: Spellbook geeft alleen namen. Kaarten in het deck gebruiken Micks print; de ontbrekende kaart wordt via Scryfall opgezocht. Pas laden als ze in beeld komen, kleine afmeting, bestaande plaatjescache; dubbelzijdige kaarten tonen de voorkant
 
-32. Opgegeven set is een grens, geen voorkeur (nieuw, 0.9.8.1; keuze Mick: oranje met de andere set):
+32. Opgegeven set is een grens, geen voorkeur (gebouwd in 0.9.8.1; vereenvoudigd: de zoekroute blijft, maar elke kaart uit een andere set of zonder nummer met meerdere prints is oranje; keuze Mick: oranje met de andere set):
    a. Heeft Mick op het scanscherm een set ingevuld, dan zoekt de app alleen in die set: `cardByName` valt niet meer terug op een zoekopdracht zonder set, en `betterPrint` neemt geen print met hetzelfde nummer uit een andere set
    b. Staat de kaart niet in die set, maar wel in een andere, dan komt hij binnen als oranje met de andere set erbij ("niet in MH2, wel in MH1"); Mick kan de set accepteren of de kaart zelf zoeken
    c. Alleen gelezen of van het blad afgeleide set: buiten de set zoeken mag nog, maar zo'n kaart is altijd oranje met de gevonden set

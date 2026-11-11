@@ -418,10 +418,17 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                 if (idx >= 0) {
                     val card = found[i]
                     val q = item.query
+                    // Een opgegeven of gelezen set is een grens: staat de kaart in een andere set, dan altijd oranje, met de gevonden set erbij.
+                    val otherSet = scan && card != null && nl.spoonpaco.ninegrid.domain.SetCheck.otherSet(q.setCode, card.set)
+                    // Geen nummer gelezen en meerdere prints met die naam in de set (gewoon, borderless, showcase): dat is gokken, dus controleren.
+                    val ambiguous = scan && card != null && nl.spoonpaco.ninegrid.domain.SetCheck.ambiguous(q.collectorNumber != null, repo.printCandidates(card.name, q.setCode ?: card.set).size)
                     val confident = card != null && printedOk[item.key] != false && (q.name != null || q.collectorNumber != null) &&
                         (q.name == null || repo.namesLookAlike(q.name, card.name)) &&
-                        (q.collectorNumber == null || card.collectorNumber.equals(q.collectorNumber, true))
+                        (q.collectorNumber == null || card.collectorNumber.equals(q.collectorNumber, true)) &&
+                        !otherSet && !ambiguous
                     pending[idx] = pending[idx].copy(
+                        label = if (otherSet) pending[idx].label + " · " + str(R.string.scan_other_set, q.setCode!!.uppercase(), card!!.set.uppercase())
+                            else if (ambiguous) pending[idx].label + " · " + str(R.string.scan_ambiguous_print) else pending[idx].label,
                         print = card?.toPrint(),
                         status = if (card != null) ItemStatus.FOUND else ItemStatus.NOT_FOUND,
                         confident = confident || q.id != null,

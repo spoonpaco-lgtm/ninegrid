@@ -852,4 +852,15 @@ class ParserTest {
         assertFalse(old.hasSettings)
         assertEquals("Krenko", old.decks.single().name)
     }
+
+    /** Een opgegeven set is een grens: een kaart uit een andere set is altijd oranje; zonder nummer en met meer prints is het een gok. */
+    @Test
+    fun givenSetIsALimit() {
+        assertTrue(nl.spoonpaco.ninegrid.domain.SetCheck.otherSet("MH2", "mh1"))
+        assertFalse(nl.spoonpaco.ninegrid.domain.SetCheck.otherSet("MH2", "mh2"))
+        assertFalse(nl.spoonpaco.ninegrid.domain.SetCheck.otherSet(null, "mh1"))
+        assertTrue(nl.spoonpaco.ninegrid.domain.SetCheck.ambiguous(false, 3))
+        assertFalse(nl.spoonpaco.ninegrid.domain.SetCheck.ambiguous(true, 3))
+        assertFalse(nl.spoonpaco.ninegrid.domain.SetCheck.ambiguous(false, 1))
+    }
 }
