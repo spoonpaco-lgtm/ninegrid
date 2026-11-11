@@ -246,6 +246,7 @@ De nummers hieronder zijn die van de lijst zoals Mick ze kent.
    d. **Set van het blad wint niet van een verlezen set**: Infested Fleshcutter las TOK op een ONE-blad. Oplossing: komt de gelezen set niet overeen met de overheersende set van het blad en klopt naam + nummer in de overheersende set, dan die set
    e. **Lege vakken herkend als kaart** (rij 3 en rij 1 met gestreepte, glimmende hoesjes): de drempel van `EmptySlots` ligt te laag voor dit patroon. Oplossing: drempel per foto uit het verschil tussen vakken met leesbare kaart en de rest
    f. Hoe de kaarten uit de rapporten er nu voor staan: foto 1 (0.9.8) 6 van 9 goed, foto 3 6 van 8, foto 4 5 van 8 goed (+3 oranje), foto 2 (rij leeg) 3 van 4 goed maar in de verkeerde vakken
+   g0. Mick vult bij het scannen meestal geen set in (11 nov): de app moet de overheersende set van het blad zelf gebruiken (d); een ingevulde set blijft altijd leidend. Tot de reparatie: set invullen helpt tegen verlezen sets, maar niet tegen de verzonnen taalcode (b); galerijfoto's van een blad met een lege rij of kolom geven vakken in de verkeerde rij (a), dus die liever met de camera scannen
    g. Na de reparatie dezelfde vier foto's als test: de regels als unittests met de gelezen regels uit de rapporten (zonder telefoon te draaien)
 
 ## Fase 2 (wacht op startsein) → wordt 1.0
