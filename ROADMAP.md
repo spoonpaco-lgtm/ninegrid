@@ -62,6 +62,20 @@ Dit is "de lijst": wat Mick wil dat NineGrid nog krijgt. Een nieuw gesprek begin
 | 0.9.7 | Teyo | Bugfixes, verbeteringen en QOL: punten 12, 13, 14, 15, 17, 18, 20, 21, 22, 23, 24, 25 (zie RELEASE_NOTES.md) |
 | 0.9.7.1 | Teyo | Scannerreparatie: kale setcode, lege vakken, melding "X van 9 gelezen" bij een heel blad |
 | 0.9.8 | Kaito | 27 Ontwikkelaar-menu met scanrapport, 26 vegen, 16 label NIEUW, 19 commander wijzigen, 2 fabrieksinstellingen, 30 lampmelding, 31 combokaartjes |
+| 0.9.8.1 | Kaito | 32 opgegeven set is een grens (oranje met andere set) |
+| 0.9.8.2 | Kaito | 29 vormgeving gelijk getrokken (alleen opmaak) |
+| 0.9.9 | Vivien | 37 scanner repareren, 38 foil-twijfel blauw ★, 39 kaart voor kaart stroomlijnen, 4 scannen naar een deck, 28 één keuze uit de collectie halen, 33–36 filters/sorteren, thumbnails bij suggesties, inklapbare combo-blokken, segmentbalk Thumbnails \| Namen |
+
+### 0.9.9 – nog na te kijken op Micks telefoon
+
+- Bladscan: een lege rij of kolom schuift de rest niet meer op (maten TEXT_COLS 2.35, TEXT_ROWS 2.86 en grenzen 1.4/2.1 zijn geschat).
+- Lege hoesjes met glans: grenzen 0.35 en 0.7 in `EmptySlots.decide` zijn geschat.
+- Verzonnen setcode of taal valt weg; jaartal telt niet als kaartnummer; de set van het blad wint van één verlezen set.
+- Foil-twijfel is blauw ★ (chips "★ Foil" en "Geen foil"); geeft ML Kit ★ op echte foils?
+- Kaart voor kaart: chips met +1 en kruisje, Opslaan als alles zeker is, Foil als sessiestand.
+- Scannen vanuit een deck (menu Toevoegen → Scannen) en de keuze "uit de collectie halen" (alles / exact dezelfde / niets).
+- Filters en sorteren bij deck, vriend en set; thumbnails bij suggesties; combo-blokken inklappen; segmentbalk Thumbnails | Namen.
+- Nog niet gebouwd: 39a (set van de vorige kaart als aanname), 39c (groene kaarten overslaan, wacht op test), 4e (kleuren/banned meteen oranje), één Deck/Sideboard/Commander-keuze voor alle kaarten.
 
 ### 0.9.8 – nog na te kijken op Micks telefoon
 
@@ -101,9 +115,8 @@ Gebouwd en getest met unittests; dit kan alleen op een echte telefoon gecontrole
 | Versie | Naam | Inhoud |
 |---|---|---|
 | 0.9.8 ✔ | Kaito (uitgebracht) | 27 Ontwikkelaar-menu met scanrapport, 26 vegen, 16 NIEUW, 19 commander wijzigen, 2 fabrieksinstellingen, 30 melding bij lamp die niet aangaat, 31 kaartjes bij combo's |
-| 0.9.8.1 | Kaito | 32 opgegeven set is een grens (oranje met andere set) |
-| 0.9.8.2 | Kaito | 29 Vormgeving gelijk trekken (alleen opmaak) |
-| 0.9.9 | Vivien | Volgorde: 37 scanner repareren, 38 foil-twijfel blauw ★, 39 kaart voor kaart scannen stroomlijnen (39c pas na 37), daarna 4 scannen naar een deck (pas als de bladscan weer goed leest), 28 deckimport: één keuze voor uit de collectie halen, 33 filter- en sorteerknoppen bij alle kaartenlijsten, 34 thumbnails bij suggesties en tikken op elke combokaart, 35 inklapbare blokken bij combo's, 36 weergavekeuze Thumbnails | Namen als segmentbalk. Zet Mick 0.9.9 uiteen in stappen (bv. 0.9.9.1), dan houdt elke stap de naam Vivien |
+| 0.9.8.1 ✔ / 0.9.8.2 ✔ | Kaito (uitgebracht) | 32 opgegeven set is een grens, 29 vormgeving gelijk trekken |
+| 0.9.9 ✔ | Vivien (uitgebracht) | Gebouwd: 37, 38, 39 (op 39a, 39c na), 4 (op 4e na), 28, 33–36. Oorspronkelijke volgorde: 37 scanner repareren, 38 foil-twijfel blauw ★, 39 kaart voor kaart scannen stroomlijnen (39c pas na 37), daarna 4 scannen naar een deck (pas als de bladscan weer goed leest), 28 deckimport: één keuze voor uit de collectie halen, 33 filter- en sorteerknoppen bij alle kaartenlijsten, 34 thumbnails bij suggesties en tikken op elke combokaart, 35 inklapbare blokken bij combo's, 36 weergavekeuze Thumbnails | Namen als segmentbalk. Zet Mick 0.9.9 uiteen in stappen (bv. 0.9.9.1), dan houdt elke stap de naam Vivien |
 | 0.9.10 | nog kiezen | 8 print kiezen, in twee stappen: eerst 8a–e (printlijst), daarna 8f–l (exemplaren wijzigen en splitsen) |
 | 0.9.11 | nog kiezen | 3 exporteren (sites nog te kiezen; eerst de actuele importformaten nakijken) |
 | 1.0 | — | Fase 2 |
