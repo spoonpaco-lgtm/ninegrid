@@ -1507,6 +1507,9 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun setSuggCollapsed(deckId: Long, v: Set<String>) = deckUiPrefs.edit().putStringSet("sugg_closed_$deckId", v).apply()
     fun deckSort(deckId: Long): String = deckUiPrefs.getString("sort_$deckId", "mana") ?: "mana"
     /** Combo's als kaartjes (standaard) of als namen; één keuze voor alle decks. */
+    /** Onthouden sortering per scherm (setscherm, kaarten van een vriend). */
+    fun screenSort(screen: String, default: String): String = deckUiPrefs.getString("sort_screen_$screen", default) ?: default
+    fun setScreenSort(screen: String, v: String) = deckUiPrefs.edit().putString("sort_screen_$screen", v).apply()
     fun comboCollapsed(deckId: Long): Set<String> = deckUiPrefs.getStringSet("combo_closed_$deckId", emptySet()).orEmpty().toSet()
     fun setComboCollapsed(deckId: Long, v: Set<String>) = deckUiPrefs.edit().putStringSet("combo_closed_$deckId", v).apply()
     /** Kaartscherm van een kaart die je niet hebt: zoek hem op naam bij Scryfall en geef het id door. */

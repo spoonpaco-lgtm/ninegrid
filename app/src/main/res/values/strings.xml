@@ -1049,4 +1049,6 @@
     <string name="take_mode_exact">Exact same print</string>
     <string name="take_mode_none">Nothing</string>
     <string name="take_summary">%1$d from your collection · %2$d other print · %3$d new</string>
+    <string name="sort_number">Number</string>
+    <string name="sort_rarity">Rarity</string>
 </resources>

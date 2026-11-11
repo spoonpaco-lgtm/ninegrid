@@ -1048,4 +1048,6 @@
     <string name="take_mode_exact">Exact dezelfde print</string>
     <string name="take_mode_none">Niets</string>
     <string name="take_summary">%1$d uit je collectie · %2$d andere print · %3$d nieuw</string>
+    <string name="sort_number">Nummer</string>
+    <string name="sort_rarity">Rarity</string>
 </resources>

@@ -21,7 +21,7 @@ object ImageMode {
 
 
 /** Schermen die een eigen filter onthouden. Elk scherm dat een filter opslaat via setFilter, moet hier staan (de unittest controleert dat). */
-val FILTER_SCREENS = listOf("collection", "pick", "set", "allcards")
+val FILTER_SCREENS = listOf("collection", "pick", "set", "allcards", "deck", "friend")
 
 data class AppSettings(
     val theme: String = "system",

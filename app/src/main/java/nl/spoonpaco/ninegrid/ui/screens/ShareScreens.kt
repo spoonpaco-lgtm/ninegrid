@@ -385,8 +385,15 @@ fun FriendScreen(vm: AppViewModel, friendId: String, onBack: () -> Unit, onCard:
             if (tab == 0) {
                 val ids = (if (only != null) setOf(only!!) else packs.filter { it.kind != ShareKind.WISH }.map { it.id }.toSet())
                 val list = remember(ids, allCards) { vm.friendEntries(ids) }
-                val shown = list.filter { query.isBlank() || it.print?.name?.contains(query, true) == true }
-                    .sortedByDescending { Money.total(it.entry, it.print, settings.currency) }
+                val friendFilter = remember(settings.filters["friend"]) { nl.spoonpaco.ninegrid.ui.components.CardFilter.fromJson(settings.filters["friend"]) }
+                var friendSort by remember { mutableStateOf(vm.screenSort("friend", "price")) }
+                val shown = list.filter { friendFilter.copy(decks = true).matches(it, query) }.let { l ->
+                    when (friendSort) {
+                        "name" -> l.sortedBy { it.print?.name?.lowercase() ?: "" }
+                        "set" -> l.sortedWith(compareBy({ it.print?.setCode ?: "" }, { it.print?.collectorNumber?.toIntOrNull() ?: 0 }))
+                        else -> l.sortedByDescending { Money.total(it.entry, it.print, settings.currency) }
+                    }
+                }
                 LazyColumn(contentPadding = PaddingValues(bottom = 32.dp)) {
                     item {
                         FlowRow(Modifier.padding(horizontal = 12.dp, vertical = 6.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -396,8 +403,13 @@ fun FriendScreen(vm: AppViewModel, friendId: String, onBack: () -> Unit, onCard:
                                     trailingIcon = if (only == p.id) ({ Icon(Icons.Filled.Delete, stringResource(R.string.share_delete_package), Modifier.size(16.dp).clickable { deletePack = p }) }) else null)
                             }
                         }
-                        OutlinedTextField(query, { query = it }, singleLine = true, placeholder = { Text(stringResource(R.string.search_card)) },
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = NgSpace.screen))
+                        nl.spoonpaco.ninegrid.ui.components.FilterSearchBar(
+                            query = query, onQuery = { query = it }, placeholder = stringResource(R.string.search_card),
+                            filter = friendFilter, onFilter = { vm.setFilter("friend", it) },
+                            groups = setOf(nl.spoonpaco.ninegrid.ui.components.FilterGroup.RARITY, nl.spoonpaco.ninegrid.ui.components.FilterGroup.COLOR, nl.spoonpaco.ninegrid.ui.components.FilterGroup.TYPE, nl.spoonpaco.ninegrid.ui.components.FilterGroup.FOIL),
+                            sortOptions = listOf("price" to stringResource(R.string.sort_price), "set" to stringResource(R.string.sort_set), "name" to stringResource(R.string.sort_name)),
+                            sort = friendSort, onSort = { friendSort = it; vm.setScreenSort("friend", it) },
+                        )
                         Text(
                             stringResource(R.string.share_cards_value, list.sumOf { it.entry.quantity }, Money.format(list.sumOf { Money.total(it.entry, it.print, settings.currency) }, settings.currency)),
                             fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),

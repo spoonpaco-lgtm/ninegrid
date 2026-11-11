@@ -211,6 +211,7 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
     var tab by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(0) }
     var cardQuery by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf("") }
     var cardSort by remember(deckId) { mutableStateOf(vm.deckSort(deckId)) }
+    val deckFilter = remember(settings.filters["deck"]) { nl.spoonpaco.ninegrid.ui.components.CardFilter.fromJson(settings.filters["deck"]) }
     var collapsed by remember(deckId) { mutableStateOf(vm.deckCollapsed(deckId)) }
     val d = deck
     val text = Export.deckText(list, d?.format == DeckFormat.COMMANDER)
@@ -348,14 +349,14 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
             if (tab == 3) item { SuggestionsPanel(vm, d, list, onFriend, onCard) }
             // Tabblad Kaarten: zoeken en toevoegen op één regel, dan de kaarten per type.
             if (tab == 0) item(key = "tools") {
-                Row(Modifier.padding(horizontal = 12.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    OutlinedTextField(
-                        cardQuery, { cardQuery = it }, singleLine = true, placeholder = { Text(stringResource(R.string.deck_search)) },
-                        leadingIcon = { Icon(Icons.Filled.Search, null) }, shape = RoundedCornerShape(24.dp),
-                        trailingIcon = { if (cardQuery.isNotEmpty()) IconButton(onClick = { cardQuery = "" }) { Icon(Icons.Filled.Close, null) } },
-                        modifier = Modifier.weight(1f),
-                    )
-                    Spacer(Modifier.width(8.dp))
+                // Zoeken en filteren (kleur, type, rarity) zoals in de collectie; de filterkeuze wordt onthouden.
+                Column(Modifier.padding(top = 8.dp)) {
+                nl.spoonpaco.ninegrid.ui.components.FilterSearchBar(
+                    query = cardQuery, onQuery = { cardQuery = it }, placeholder = stringResource(R.string.deck_search),
+                    filter = deckFilter, onFilter = { vm.setFilter("deck", it) },
+                    groups = setOf(nl.spoonpaco.ninegrid.ui.components.FilterGroup.COLOR, nl.spoonpaco.ninegrid.ui.components.FilterGroup.TYPE, nl.spoonpaco.ninegrid.ui.components.FilterGroup.RARITY),
+                )
+                Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.End) {
                     Box {
                         var addMenu by remember { mutableStateOf(false) }
                         androidx.compose.material3.Button(onClick = { addMenu = true }) { Icon(Icons.Filled.Add, null); Spacer(Modifier.width(2.dp)); Text(stringResource(R.string.deck_add) + " ▾") }
@@ -365,6 +366,7 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
                             DropdownMenuItem(text = { Text(stringResource(R.string.deck_add_scan)) }, onClick = { addMenu = false; vm.scanIntoDeck(deckId); onScan() })
                         }
                     }
+                }
                 }
                 Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text(stringResource(R.string.deck_by_type), fontSize = NgText.body, color = extra.subtle, modifier = Modifier.weight(1f))
@@ -383,7 +385,8 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
                 val q = cardQuery.trim()
                 val visible = list.filter { e ->
                     val sec = e.entry.section ?: Section.MAIN
-                    !(hasBanner && sec == Section.COMMANDER) && (q.isEmpty() || e.print?.name?.contains(q, true) == true || e.print?.typeLine?.contains(q, true) == true)
+                    !(hasBanner && sec == Section.COMMANDER) && deckFilter.copy(decks = true).matches(e, "") &&
+                        (q.isEmpty() || e.print?.name?.contains(q, true) == true || e.print?.typeLine?.contains(q, true) == true)
                 }
                 fun sorted(l: List<nl.spoonpaco.ninegrid.data.db.EntryWithPrint>) = when (cardSort) {
                     "name" -> l.sortedBy { it.print?.name ?: "" }
@@ -399,7 +402,7 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
                     }
                     visible.filter { it.entry.section == Section.SIDEBOARD }.takeIf { it.isNotEmpty() }?.let { add("sideboard" to it) }
                 }
-                if (groups.isEmpty() && q.isNotEmpty()) item { Text(stringResource(R.string.sugg_none), color = extra.subtle, modifier = Modifier.padding(16.dp)) }
+                if (groups.isEmpty() && (q.isNotEmpty() || deckFilter.count > 0)) item { Text(stringResource(R.string.sugg_none), color = extra.subtle, modifier = Modifier.padding(16.dp)) }
                 // Het kaartscherm veegt door de kaarten in de volgorde van dit scherm (gesloten groepen tellen niet mee).
                 val deckPrintIds = groups.filter { q.isNotEmpty() || it.first !in collapsed }.flatMap { (_, part) -> sorted(part) }.mapNotNull { it.print?.id }
                 groups.forEach { (g, part) ->

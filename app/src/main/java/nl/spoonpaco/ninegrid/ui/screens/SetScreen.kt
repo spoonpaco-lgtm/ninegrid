@@ -102,9 +102,18 @@ fun SetScreen(vm: AppViewModel, code: String, onBack: () -> Unit, onReview: () -
     val have = remember(cards, owned) { cards.filter { it.number.lowercase() in owned } }
     val missing = remember(cards, owned) { cards.filter { it.number.lowercase() !in owned } }
     // Zoeken en filteren gelden voor de lijst, niet voor de telling van hoe compleet je bent.
-    val shown = remember(have, missing, showMissing, query, filter) {
+    var setSort by remember { mutableStateOf(vm.screenSort("set", "number")) }
+    val shown = remember(have, missing, showMissing, query, filter, setSort, settings.currency) {
         (if (showMissing) missing else have).filter { c ->
             (query.isBlank() || c.name.contains(query.trim(), true) || c.number.equals(query.trim(), true)) && (filter.rarities.isEmpty() || c.rarity in filter.rarities)
+        }.let { l ->
+            val rank = mapOf("mythic" to 0, "rare" to 1, "uncommon" to 2, "common" to 3)
+            when (setSort) {
+                "name" -> l.sortedBy { it.name.lowercase() }
+                "price" -> l.sortedByDescending { (if (settings.currency == "USD") it.usd else it.eur) ?: -1.0 }
+                "rarity" -> l.sortedBy { rank[it.rarity] ?: 4 }
+                else -> l
+            }
         }
     }
     val wishIds = remember(wishes) { wishes.map { it.item.printId }.toSet() }
@@ -184,6 +193,9 @@ fun SetScreen(vm: AppViewModel, code: String, onBack: () -> Unit, onReview: () -
                 query = query, onQuery = { query = it }, placeholder = stringResource(R.string.sets_search_card),
                 filter = filter, onFilter = { vm.setFilter("set", it) },
                 groups = setOf(nl.spoonpaco.ninegrid.ui.components.FilterGroup.RARITY),
+                sortOptions = listOf("number" to stringResource(R.string.sort_number), "name" to stringResource(R.string.sort_name),
+                    "price" to stringResource(R.string.sort_price), "rarity" to stringResource(R.string.sort_rarity)),
+                sort = setSort, onSort = { setSort = it; vm.setScreenSort("set", it) },
             )
             // Eén schakelaar: wat ontbreekt of wat je hebt, met de aantallen.
             SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp)) {
