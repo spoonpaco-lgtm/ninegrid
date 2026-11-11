@@ -238,6 +238,16 @@ De nummers hieronder zijn die van de lijst zoals Mick ze kent.
    b. Het woord is "Thumbnails" (Mick, 11 nov), in NL en EN, en overal in de app waar nu "kaartjes" staat voor de kleine plaatjes (combo's, suggesties, handleiding, Wat is nieuw)
    c. Bovenaan het tabblad, op dezelfde plek en met dezelfde marge en afronding op Combo's én Suggesties; de keuze wordt onthouden (nu al: `combo_cards` in deck_ui)
 
+37. Scanner repareren na vier scanrapporten van 11 nov (nieuw, 0.9.9.0 of eigen patch; voorrang boven 4 en 28):
+   Gevonden in de rapporten (SM-A165F, galerijfoto's 1530x2040, ONE en WOT):
+   a. **Raster uit de tekst (galerijfoto's)**: zonder kader maakt `ScanParser.frameOf` het raster van de omhullende van alle gelezen tekst. Is een rij of kolom leeg, dan wordt het raster uitgerekt en komen de naam en de voet van één kaart in verschillende vakken terecht (foto met één kaart in rij 1 en drie in rij 2: namen in vak 4-6, rest in vak 7-9). Oplossing: raster uit de kaartmaten (kolomafstand × 1,4 voor de rijafstand, verankerd op de voetregels "###/### R" die elke kaart heeft), niet uit de tekstrand
+   b. **Verzonnen setcode en taal uit de voetregel**: "ONE•EN" wordt gelezen als EATUR ES, EXCE PT, INSE TW, CAK ES, MOTEN. Een taalcode die niet EN is stuurt de kaart het buitenlandse pad in (set + nummer + gedrukte naam), en dat mislukt altijd: Kinzu, Bilious Skulldweller, Mondrak en Raid Bombardment kwamen daardoor "niet gevonden" terwijl de Engelse naam goed gelezen was. Oplossing: setcode alleen accepteren als hij in de setlijst staat (`vm.setInfo`); taal alleen als de gelezen naam geen exacte Engelse kaartnaam is; zonder gedrukte naam altijd Engels
+   c. **Jaartal als nummer**: "© 2023 Wizards" levert nummer 2023 (Polluted Bonds, Stab Wound → RVR 93). Oplossing: 2019 t/m 2026 vlak bij ©/Wizards negeren, en een nummer dat niet in de setlijst voorkomt behandelen als niet gelezen (dan beslist de naam)
+   d. **Set van het blad wint niet van een verlezen set**: Infested Fleshcutter las TOK op een ONE-blad. Oplossing: komt de gelezen set niet overeen met de overheersende set van het blad en klopt naam + nummer in de overheersende set, dan die set
+   e. **Lege vakken herkend als kaart** (rij 3 en rij 1 met gestreepte, glimmende hoesjes): de drempel van `EmptySlots` ligt te laag voor dit patroon. Oplossing: drempel per foto uit het verschil tussen vakken met leesbare kaart en de rest
+   f. Hoe de kaarten uit de rapporten er nu voor staan: foto 1 (0.9.8) 6 van 9 goed, foto 3 6 van 8, foto 4 5 van 8 goed (+3 oranje), foto 2 (rij leeg) 3 van 4 goed maar in de verkeerde vakken
+   g. Na de reparatie dezelfde vier foto's als test: de regels als unittests met de gelezen regels uit de rapporten (zonder telefoon te draaien)
+
 ## Fase 2 (wacht op startsein) → wordt 1.0
 - Sheet-koppeling (deel 2 punt 2, optie A: nieuwe Sheet via drive.file; Google Cloud-project + privacypagina nodig)
 - Route D: deck delen via QR-code (scherm scannen → decklijst)
