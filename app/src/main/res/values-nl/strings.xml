@@ -1035,4 +1035,10 @@
     <string name="combos_view_names">Namen</string>
     <string name="scan_other_set">niet in %1$s, wel in %2$s</string>
     <string name="scan_ambiguous_print">meerdere prints, kijk welke het is</string>
+    <string name="review_group_check">Controleer (%1$d)</string>
+    <string name="review_group_foil">Foil checken (%1$d)</string>
+    <string name="review_group_ok">Zeker (%1$d)</string>
+    <string name="scan_foil_check_n">%1$d foil?</string>
+    <string name="foil_confirm">Foil</string>
+    <string name="foil_not">Geen foil</string>
 </resources>

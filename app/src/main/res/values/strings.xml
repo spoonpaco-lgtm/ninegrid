@@ -1036,4 +1036,10 @@
     <string name="combos_view_names">Names</string>
     <string name="scan_other_set">not in %1$s, found in %2$s</string>
     <string name="scan_ambiguous_print">several prints, check which one</string>
+    <string name="review_group_check">Check (%1$d)</string>
+    <string name="review_group_foil">Check foil (%1$d)</string>
+    <string name="review_group_ok">Sure (%1$d)</string>
+    <string name="scan_foil_check_n">%1$d foil?</string>
+    <string name="foil_confirm">Foil</string>
+    <string name="foil_not">Not foil</string>
 </resources>

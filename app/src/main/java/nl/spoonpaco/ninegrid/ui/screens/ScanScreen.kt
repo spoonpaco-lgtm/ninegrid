@@ -882,6 +882,11 @@ private fun ScanSummaryBar(
                         Text("● ", color = NgColors.Amber, fontSize = 14.sp)
                         Text(stringResource(R.string.scan_check_n, sum.doubtful), color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                     }
+                    // Blauw: de kaart is zeker, alleen de foil nog niet.
+                    if (sum.foilCheck > 0) Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("★ ", color = NgColors.FoilBlue, fontSize = 14.sp)
+                        Text(stringResource(R.string.scan_foil_check_n, sum.foilCheck), color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                    }
                     if (sum.empty > 0) Text(pluralStringResource(R.plurals.scan_empty_slots, sum.empty, sum.empty), color = Color.White.copy(alpha = 0.7f), fontSize = 11.sp)
                 }
             }
@@ -930,7 +935,12 @@ private fun ScanSummaryBar(
             } else if (sum.allGood) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Button(onClick = onSave) { Text(stringResource(R.string.save)) }
-                    TextButton(onClick = onReview) { Text(stringResource(R.string.review_short), color = Color.White, fontSize = 12.sp) }
+                    TextButton(onClick = onReview) {
+                        Text(
+                            if (sum.foilCheck > 0) stringResource(R.string.review_group_foil, sum.foilCheck) else stringResource(R.string.review_short),
+                            color = if (sum.foilCheck > 0) NgColors.FoilBlue else Color.White, fontSize = 12.sp,
+                        )
+                    }
                 }
             } else if (sum.doubtful > 0) {
                 // Er is iets te controleren: dat is de volgende stap, dus een gevulde knop met het aantal.
@@ -1001,6 +1011,7 @@ private fun FoilGrid(vm: AppViewModel, cellWidth: Int, interactive: Boolean, onL
                     item.empty -> Color.White.copy(alpha = 0.25f)
                     item.status == nl.spoonpaco.ninegrid.ui.ItemStatus.NOT_FOUND -> NgColors.Error
                     item.needsCheck -> NgColors.Amber
+                    item.foilCheck -> NgColors.FoilBlue
                     else -> NgColors.Synced
                 }
                 val mod = Modifier.width(cellWidth.dp).height((cellWidth * 1.4f).dp)
@@ -1010,7 +1021,7 @@ private fun FoilGrid(vm: AppViewModel, cellWidth: Int, interactive: Boolean, onL
                 Box(mod) {
                     if (crop != null) androidx.compose.foundation.Image(crop, null, contentScale = androidx.compose.ui.layout.ContentScale.Crop, modifier = Modifier.matchParentSize())
                     if (interactive || foil) Text(
-                        "✦", color = if (foil) NgColors.Amber else Color.White.copy(alpha = 0.4f), fontSize = if (interactive) 16.sp else 8.sp,
+                        "✦", color = if (foil && item?.foilCheck == true) NgColors.FoilBlue else if (foil) NgColors.Amber else Color.White.copy(alpha = 0.4f), fontSize = if (interactive) 16.sp else 8.sp,
                         modifier = Modifier.align(Alignment.TopEnd).padding(end = 2.dp),
                     )
                     if (ai != null) {

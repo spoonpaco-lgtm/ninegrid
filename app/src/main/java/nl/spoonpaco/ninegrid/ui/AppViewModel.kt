@@ -63,8 +63,12 @@ data class PendingItem(
     /** De scanner las een ster (★) in de verzamelregel en zette de kaart daarom op foil: even controleren. */
     val foilHint: Boolean = false,
 ) {
-    /** Oranje in de scanner: gevonden, maar nog even naar kijken. */
-    val needsCheck get() = !confident || foilHint
+    /** Oranje in de scanner: gevonden, maar naam, set of print is niet zeker. */
+    val needsCheck get() = !confident
+    /** Oranje op het controlescherm: nog te controleren kaart (gevonden maar onzeker, of niet gevonden). Leeg vak telt niet. */
+    val cardCheck get() = !empty && (status == ItemStatus.NOT_FOUND || (status == ItemStatus.FOUND && needsCheck))
+    /** Blauw: de kaart is zeker, alleen de foil (★ gelezen) is nog niet bevestigd. */
+    val foilCheck get() = status == ItemStatus.FOUND && confident && foilHint
 }
 
 enum class ImportSource { SCAN, PASTE, SEARCH }
@@ -285,7 +289,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     private fun android.graphics.Bitmap.asImageBitmapSafe() = this.asImageBitmap()
 
     /** Stand van de laatste scan, voor de balk op het camerascherm. */
-    data class ScanSummary(val busy: Boolean, val found: Int, val empty: Int, val doubtful: Int, val waiting: Int, val total: Int) {
+    data class ScanSummary(val busy: Boolean, val found: Int, val empty: Int, val doubtful: Int, val waiting: Int, val total: Int, val foilCheck: Int = 0) {
         val allGood get() = !busy && doubtful == 0 && waiting == 0 && found > 0
     }
 
@@ -300,6 +304,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                 doubtful = pending.count { (it.status == ItemStatus.FOUND && it.needsCheck) || it.status == ItemStatus.NOT_FOUND } - emptySlots,
                 waiting = pending.count { it.status == ItemStatus.WAITING },
                 total = pending.size,
+                foilCheck = pending.count { it.foilCheck },
             )
         }
 

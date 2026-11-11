@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -183,7 +184,12 @@ fun ReviewScreen(vm: AppViewModel, onBack: () -> Unit, onSaved: (Long?) -> Unit)
                     color = NgColors.Error, fontSize = NgText.body, modifier = Modifier.padding(horizontal = 16.dp),
                 )
             }
-            items(items, key = { it.key }) { item ->
+            // Bij een scan in groepen: eerst wat echt gecontroleerd moet worden (oranje), dan alleen nog de foil (blauw), dan de rest.
+            val grouped = vm.importSource == ImportSource.SCAN && items.any { it.cardCheck || it.foilCheck }
+            val check = if (grouped) items.filter { it.cardCheck } else emptyList()
+            val foilCheck = if (grouped) items.filter { it.foilCheck && !it.cardCheck } else emptyList()
+            val rest = if (grouped) items.filter { !it.cardCheck && !it.foilCheck } else items.toList()
+            fun LazyListScope.rows(list: List<PendingItem>) = items(list, key = { it.key }) { item ->
                 PendingRow(
                     item, vm, settings, expanded == item.key,
                     showSection = vm.destination != Destination.COLLECTION,
@@ -192,6 +198,10 @@ fun ReviewScreen(vm: AppViewModel, onBack: () -> Unit, onSaved: (Long?) -> Unit)
                     onSearch = { searchFor = item },
                 )
             }
+            if (check.isNotEmpty()) { item(key = "h_check") { GroupHeader("● ", NgColors.Amber, stringResource(R.string.review_group_check, check.size)) }; rows(check) }
+            if (foilCheck.isNotEmpty()) { item(key = "h_foil") { GroupHeader("★ ", NgColors.FoilBlue, stringResource(R.string.review_group_foil, foilCheck.size)) }; rows(foilCheck) }
+            if (grouped && rest.isNotEmpty()) item(key = "h_ok") { GroupHeader("● ", NgColors.Synced, stringResource(R.string.review_group_ok, rest.size)) }
+            rows(rest)
         }
     }
 
@@ -216,6 +226,14 @@ fun ReviewScreen(vm: AppViewModel, onBack: () -> Unit, onSaved: (Long?) -> Unit)
 fun formatLabelPlain(f: String) = when (f) {
     DeckFormat.COMMANDER -> "Commander"; DeckFormat.MODERN -> "Modern"; DeckFormat.PIONEER -> "Pioneer"
     DeckFormat.STANDARD -> "Standard"; DeckFormat.LEGACY -> "Legacy"; DeckFormat.PAUPER -> "Pauper"; else -> "Casual"
+}
+
+@Composable
+private fun GroupHeader(mark: String, color: androidx.compose.ui.graphics.Color, text: String) {
+    Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 2.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(mark, color = color, fontWeight = FontWeight.Bold)
+        Text(text, fontWeight = FontWeight.Bold)
+    }
 }
 
 @Composable
@@ -261,6 +279,11 @@ private fun PendingRow(
     Card(
         colors = CardDefaults.cardColors(containerColor = extra.cardSurface),
         shape = NgShape.Normal,
+        border = when {
+            item.cardCheck -> androidx.compose.foundation.BorderStroke(1.5.dp, NgColors.Amber)
+            item.foilCheck -> androidx.compose.foundation.BorderStroke(1.5.dp, NgColors.FoilBlue)
+            else -> null
+        },
         modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 3.dp),
     ) {
         Column(Modifier.padding(8.dp)) {
@@ -331,8 +354,16 @@ private fun PendingRow(
                 }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(start = 48.dp)) {
-                FilterChip(selected = item.finish == Finish.FOIL, onClick = {
-                    vm.updatePending(item.copy(finish = if (item.finish == Finish.FOIL) Finish.NONFOIL else Finish.FOIL))
+                if (item.foilCheck) {
+                    // De kaart is zeker, alleen de foil nog niet: één tik bevestigt of haalt hem weg, daarna is het blauw weg.
+                    FilterChip(
+                        selected = true, onClick = { vm.updatePending(item.copy(foilHint = false)) },
+                        label = { Text("★ " + stringResource(R.string.foil_confirm)) },
+                        colors = androidx.compose.material3.FilterChipDefaults.filterChipColors(selectedContainerColor = NgColors.FoilBlue.copy(alpha = 0.35f)),
+                    )
+                    FilterChip(selected = false, onClick = { vm.updatePending(item.copy(finish = Finish.NONFOIL, foilHint = false)) }, label = { Text(stringResource(R.string.foil_not)) })
+                } else FilterChip(selected = item.finish == Finish.FOIL, onClick = {
+                    vm.updatePending(item.copy(finish = if (item.finish == Finish.FOIL) Finish.NONFOIL else Finish.FOIL, foilHint = false))
                 }, label = { Text(stringResource(R.string.foil)) })
                 if (isCommanderDeck && showSection) {
                     FilterChip(selected = item.section == Section.COMMANDER, onClick = {

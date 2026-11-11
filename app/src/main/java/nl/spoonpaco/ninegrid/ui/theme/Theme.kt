@@ -18,6 +18,8 @@ object NgColors {
     val Perkament = Color(0xFFF1E4C6)
     val PerkamentDonker = Color(0xFFE3CFA3)
     val Amber = Color(0xFFE58A1F)
+    /** Foil-twijfel bij het scannen: de kaart zelf is zeker, alleen of het een foil is niet. */
+    val FoilBlue = Color(0xFF4FA3E0)
     val DonkerAmber = Color(0xFFB5650F)
     val DiepBlauw = Color(0xFF1F4F8C)
 
