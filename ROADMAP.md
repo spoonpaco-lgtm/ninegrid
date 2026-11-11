@@ -60,6 +60,7 @@ Gebouwd en getest met unittests; dit kan alleen op een echte telefoon gecontrole
 | Versie | Naam | Inhoud |
 |---|---|---|
 | 0.9.8 | nog kiezen (voorstel: Kaito) | 27 Ontwikkelaar-menu met scanrapport, 26 vegen, 16 NIEUW, 19 commander wijzigen, 2 fabrieksinstellingen |
+| 0.9.8.1 | nog kiezen (patchnaam) | 29 Vormgeving gelijk trekken (alleen opmaak, geen nieuwe functies) |
 | 0.9.9 | nog kiezen | 4 scannen naar een deck (pas als de bladscan weer goed leest), 28 deckimport: één keuze voor uit de collectie halen |
 | 0.9.10 | nog kiezen | 8 print kiezen, in twee stappen: eerst 8a–e (printlijst), daarna 8f–l (exemplaren wijzigen en splitsen) |
 | 0.9.11 | nog kiezen | 3 exporteren (sites nog te kiezen; eerst de actuele importformaten nakijken) |
@@ -138,6 +139,14 @@ De nummers hieronder zijn die van de lijst zoals Mick ze kent.
    c. Het vinkje per kaart blijft bestaan voor uitzonderingen
    d. Niet gekozen (kan later): filter op uitzonderingen (Andere print, Tekort, Niet gevonden); standaard voor "andere print" instelbaar en onthouden
    e. Past op hetzelfde scherm als 4 (scannen naar een deck), vandaar dezelfde versie
+
+29. Vormgeving gelijk trekken over de hele app (nieuw, eigen opmaakversie na 0.9.8):
+   a. Gevonden in de code (nov 2026): titelbalk vet op 7 schermen en gewoon op 6 (Controleren, Importeren, Plakken, Kaart kiezen, Boosters, Sets, Kaartscherm); 13 verschillende hoekafrondingen (2–24 dp); lettergroottes los ingesteld (9–30 sp, vooral 12 en 13); kaartvlakken deels met de eigen kaartkleur (cardSurface: SectionCard, Boosters, Delen) en deels de themastandaard; schermmarge 16 dp op 12 schermen, 12 dp op 5; onderruimte van lijsten 16, 24, 32, 40 of 96 dp
+   b. Doel: overal titel vet (naam van set of deck als tweede regel), vier hoekmaten (klein 6, normaal 12, groot 16, rond voor knoppen en labels), vijf lettermaten (11 bijschrift, 13 tekst, 14 benadrukt, 16 kop, 24 groot), één kaartkleur, één schermmarge (16 dp)
+   c. Eerst de maten als vaste bouwstenen in het thema vastleggen, dan de schermen omzetten
+   d. Niet aanpassen: bladweergave en scanner (eigen maten door de rasters)
+   e. Alleen opmaak; testen met een testbuild die Mick op zijn telefoon bekijkt, per scherm, vóór de release
+   f. Het controle- en deckimportscherm (28) wordt in 0.9.9 al in de nieuwe stijl gebouwd
 
 ## Fase 2 (wacht op startsein) → wordt 1.0
 - Sheet-koppeling (deel 2 punt 2, optie A: nieuwe Sheet via drive.file; Google Cloud-project + privacypagina nodig)
