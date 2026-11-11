@@ -732,5 +732,20 @@ class ParserTest {
         val again = ScanParser.enrich(missing, emptyList(), listOf("MH1 ★ EN"))
         assertEquals("MH1", again.setCode); assertTrue(again.foilStar)
     }
-}
 
+    /** De as van de grafiek volgt de waarden: een verandering van een paar euro op duizenden is zichtbaar. */
+    @Test
+    fun chartAxisFollowsTheValues() {
+        val (lo, hi) = nl.spoonpaco.ninegrid.ui.overview.fitAxis(listOf(2000.0, 2004.0, 2012.0))
+        assertTrue(lo > 1990 && lo < 2000)
+        assertTrue(hi > 2012 && hi < 2020)
+        // Alles gelijk: toch een band, en nooit onder nul bij positieve waarden.
+        val (a, b) = nl.spoonpaco.ninegrid.ui.overview.fitAxis(listOf(5.0, 5.0))
+        assertTrue(a < 5.0 && b > 5.0 && a >= 0.0)
+        val (c, _) = nl.spoonpaco.ninegrid.ui.overview.fitAxis(listOf(0.0, 100.0))
+        assertEquals(0.0, c, 0.0)
+        // Prijsbeweging kan onder nul komen.
+        val (d, e) = nl.spoonpaco.ninegrid.ui.overview.fitAxis(listOf(-3.0, 2.0))
+        assertTrue(d < -3.0 && e > 2.0)
+    }
+}

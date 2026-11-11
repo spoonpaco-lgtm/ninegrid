@@ -37,6 +37,8 @@ data class AppSettings(
     val chartLines: List<String> = listOf("total"),
     val chartMetric: String = "value",
     val chartRange: String = "3M",
+    /** Grafiek: bij Waarde ook het aantal kaarten als tweede lijn (met een eigen as rechts). */
+    val chartCount: Boolean = true,
     /** Scannen: een blad van 9 ("page") of losse kaarten ("single"). */
     val scanMode: String = "page",
     /** Al een keer gevraagd om een back-upmap. */
@@ -130,6 +132,7 @@ class SettingsStore(private val context: Context) {
         val chartLines = stringPreferencesKey("chart_lines")
         val chartMetric = stringPreferencesKey("chart_metric")
         val chartRange = stringPreferencesKey("chart_range")
+        val chartCount = booleanPreferencesKey("chart_count")
         val scanMode = stringPreferencesKey("scan_mode")
         val backupAsked = booleanPreferencesKey("backup_asked")
         val showTiming = booleanPreferencesKey("show_timing")
@@ -194,6 +197,7 @@ class SettingsStore(private val context: Context) {
         chartLines = this[K.chartLines]?.split(",")?.filter { it.isNotBlank() } ?: listOf("total"),
         chartMetric = this[K.chartMetric] ?: "value",
         chartRange = this[K.chartRange] ?: "3M",
+        chartCount = this[K.chartCount] ?: true,
         scanMode = this[K.scanMode] ?: "page",
         backupAsked = this[K.backupAsked] ?: false,
         // Nieuwe installaties: standaard uit. Wie al bezig was (en nooit koos), houdt ze aan zoals voorheen.
@@ -255,6 +259,7 @@ class SettingsStore(private val context: Context) {
     suspend fun setChartLines(v: List<String>) = context.dataStore.edit { it[K.chartLines] = v.joinToString(",") }
     suspend fun setChartMetric(v: String) = context.dataStore.edit { it[K.chartMetric] = v }
     suspend fun setChartRange(v: String) = context.dataStore.edit { it[K.chartRange] = v }
+    suspend fun setChartCount(v: Boolean) = context.dataStore.edit { it[K.chartCount] = v }
     suspend fun setScanMode(v: String) = context.dataStore.edit { it[K.scanMode] = v }
     suspend fun setBackupAsked(v: Boolean) = context.dataStore.edit { it[K.backupAsked] = v }
     suspend fun setShowTiming(v: Boolean) = context.dataStore.edit { it[K.showTiming] = v }

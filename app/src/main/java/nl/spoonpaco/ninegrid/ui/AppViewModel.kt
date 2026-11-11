@@ -693,6 +693,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun setChartLines(v: List<String>) = viewModelScope.launch { settingsStore.setChartLines(v) }
     fun setChartMetric(v: String) = viewModelScope.launch { settingsStore.setChartMetric(v) }
     fun setChartRange(v: String) = viewModelScope.launch { settingsStore.setChartRange(v) }
+    fun setChartCount(v: Boolean) = viewModelScope.launch { settingsStore.setChartCount(v) }
     fun setScanMode(v: String) = viewModelScope.launch { settingsStore.setScanMode(v) }
     fun setBackupAsked() = viewModelScope.launch { settingsStore.setBackupAsked(true) }
     fun setShowTiming(v: Boolean) = viewModelScope.launch { settingsStore.setShowTiming(v) }

@@ -436,7 +436,7 @@
     <string name="import_choose">Bestand kiezen (.xlsx of .csv)</string>
     <string name="sugg_failed">Suggesties konden niet worden berekend.</string>
     <string name="sugg_retry">Opnieuw proberen</string>
-    <string name="chart_gain">Koers</string>
+    <string name="chart_gain">Prijsbeweging</string>
     <string name="chart_gain_empty">De koerslijn begint vandaag: vanaf morgen zie je hoe prijzen je collectie laten bewegen.</string>
     <string name="chart_gain_explain">Alleen prijsveranderingen. Kaarten toevoegen of weghalen telt niet; een kaart telt mee vanaf de dag dat je hem toevoegt.</string>
     <string name="chart_sheet_note">Lichter deel: historie uit je Sheet. Gestippeld: dagen zonder prijzen.</string>
@@ -964,4 +964,5 @@
     <string name="sugg_lands_explain">Lands uit je collectie die twee of meer kleuren van dit deck maken. Bij Wisselen gaat de land het deck in, en gaat een basic land in een passende kleur terug naar je collectie.</string>
     <string name="sugg_cuts_explain">Kaarten in dit deck die het minst bijdragen. Ze vullen geen rol en passen niet bij het thema, kosten 6 of meer mana, gaan boven je bracket of zijn geen creature van je tribe. Bij Wisselen kies je wat ervoor in de plaats komt, en gaat deze kaart terug naar je collectie.</string>
     <string name="scan_foil_star">★ gelezen: foil?</string>
+    <string name="chart_count_line">Aantal kaarten</string>
 </resources>

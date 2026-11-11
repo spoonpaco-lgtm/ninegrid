@@ -281,6 +281,20 @@ fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}, onSets: () ->
                     } else daily
                     Series(key, labelOf(key, latestLabel[key]), LINE_COLORS[i % LINE_COLORS.size], pts.filter { it.first >= from }.sortedBy { it.first }, sheetUntil)
                 } }
+                // Bij Waarde: het aantal kaarten als tweede lijn, met een eigen as rechts (van de eerste lijn in de grafiek).
+                val countLabel = stringResource(R.string.chart_count_line)
+                val countSeries = remember(snaps, moments, lines, settings.chartMetric, settings.chartRange, settings.chartCount, countLabel) {
+                    if (!byValue || byGain || !settings.chartCount) null else {
+                        val key = lines.first()
+                        val daily = snaps.filter { it.key == key }.map { noon(it.day) to it.count.toDouble() }
+                        val pts = if (intraday) {
+                            val ms = moments.filter { it.key == key }.map { it.ts to it.count.toDouble() }
+                            val momentDays = ms.map { java.time.Instant.ofEpochMilli(it.first).atZone(zone).toLocalDate().toString() }.toSet()
+                            ms + snaps.filter { it.key == key && it.day !in momentDays }.map { noon(it.day) to it.count.toDouble() }
+                        } else daily
+                        Series("count", countLabel, COUNT_LINE_COLOR, pts.filter { it.first >= from }.sortedBy { it.first })
+                    }
+                }
                 Panel {
                     Text(stringResource(R.string.chart_title), fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(6.dp))
@@ -292,7 +306,10 @@ fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}, onSets: () ->
                     val hideMoney = nl.spoonpaco.ninegrid.ui.components.LocalPrivacy.current.hidden
                     HistoryChart(
                         series = series, fromDay = from, toDay = maxOf(now, from + 60_000), showTime = days in 1..7,
-                        formatY = { v -> if (hideMoney && byValue) "••••" else if (byGain) (if (v > 0.005) "+" else if (v < -0.005) "−" else "") + compactMoney(kotlin.math.abs(v), cur) else if (byValue) compactMoney(v, cur) else v.toInt().toString() },
+                        // In het kader het precieze bedrag; langs de as zoveel decimalen als de stap tussen de lijnen vraagt.
+                        formatY = { v -> if (hideMoney && byValue) "••••" else if (byGain) (if (v > 0.005) "+" else if (v < -0.005) "−" else "") + Money.format(kotlin.math.abs(v), cur) else if (byValue) Money.format(v, cur) else v.toInt().toString() },
+                        formatAxis = { v, step -> if (hideMoney && byValue) "••••" else if (byGain) (if (v > 0.005) "+" else if (v < -0.005) "−" else "") + axisMoney(kotlin.math.abs(v), step, cur) else if (byValue) axisMoney(v, step, cur) else v.toInt().toString() },
+                        secondary = countSeries,
                         gapMs = 36L * 3600 * 1000,
                         formatX = { ms, withTime -> if (withTime) nl.spoonpaco.ninegrid.domain.Dates.dateTime(ms, settings.dateStyle) else nl.spoonpaco.ninegrid.domain.Dates.date(ms, settings.dateStyle) },
                         axisColor = MaterialTheme.colorScheme.onSurface, textColor = extra.subtle,
@@ -321,6 +338,12 @@ fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}, onSets: () ->
                                 trailingIcon = { Icon(Icons.Filled.Close, null, Modifier.size(14.dp)) },
                             )
                         }
+                        // Het aantal kaarten als tweede lijn: tik om hem aan of uit te zetten.
+                        if (byValue && !byGain) FilterChip(
+                            selected = settings.chartCount, onClick = { vm.setChartCount(!settings.chartCount) },
+                            label = { Text(stringResource(R.string.chart_count_line), maxLines = 1) },
+                            leadingIcon = { Box(Modifier.size(10.dp).clip(CircleShape).background(COUNT_LINE_COLOR)) },
+                        )
                         TextButton(onClick = { choosing = true }) { Text(stringResource(R.string.chart_choose_lines)) }
                     }
                 }
@@ -412,12 +435,18 @@ private fun rangeLabel(k: String) = when (k) {
     "1Y" -> stringResource(R.string.range_1y); else -> stringResource(R.string.range_all)
 }
 
-private fun compactMoney(v: Double, cur: String): String {
+/** Kleur van de lijn met het aantal kaarten (rechter as): licht en koel, zodat hij niet op een waardelijn lijkt. */
+private val COUNT_LINE_COLOR = Color(0xFF8FB8DE)
+
+/** Bedrag langs de as: zoveel decimalen als de stap tussen twee hulplijnen nodig heeft. */
+private fun axisMoney(v: Double, step: Double, cur: String): String {
     val sym = if (cur == "USD") "$" else "€"
     return when {
-        v >= 10_000 -> "$sym${Math.round(v / 1000)}k"
-        v >= 1_000 -> "$sym" + String.format(java.util.Locale.US, "%.1fk", v / 1000)
-        else -> "$sym${Math.round(v)}"
+        step >= 500 && v >= 10_000 -> "$sym${Math.round(v / 1000)}k"
+        step >= 50 && v >= 1_000 -> "$sym" + String.format(java.util.Locale.US, "%.1fk", v / 1000)
+        step >= 5 -> "$sym${Math.round(v)}"
+        step >= 0.5 -> "$sym" + String.format(java.util.Locale.US, "%.1f", v)
+        else -> "$sym" + String.format(java.util.Locale.US, "%.2f", v)
     }
 }
 

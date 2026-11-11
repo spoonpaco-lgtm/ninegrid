@@ -437,7 +437,7 @@
     <string name="import_choose">Choose a file (.xlsx or .csv)</string>
     <string name="sugg_failed">Suggestions could not be calculated.</string>
     <string name="sugg_retry">Try again</string>
-    <string name="chart_gain">Market</string>
+    <string name="chart_gain">Price movement</string>
     <string name="chart_gain_empty">The market line starts today: from tomorrow you will see how prices move your collection.</string>
     <string name="chart_gain_explain">Only price changes. Adding or removing cards does not count; a card counts from the day you add it.</string>
     <string name="chart_sheet_note">Lighter part: history from your Sheet. Dotted: days without prices.</string>
@@ -965,4 +965,5 @@
     <string name="sugg_lands_explain">Lands from your collection that make two or more colours of this deck. With Swap the land goes into the deck, and a basic land in a matching colour goes back to your collection.</string>
     <string name="sugg_cuts_explain">Cards in this deck that contribute the least. They fill no role and don\'t fit the theme, cost 6 or more mana, go above your bracket or aren\'t a creature of your tribe. With Swap you choose what comes in instead, and this card goes back to your collection.</string>
     <string name="scan_foil_star">★ read: foil?</string>
+    <string name="chart_count_line">Number of cards</string>
 </resources>
