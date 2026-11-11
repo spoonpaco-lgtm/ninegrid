@@ -103,7 +103,7 @@ Gebouwd en getest met unittests; dit kan alleen op een echte telefoon gecontrole
 | 0.9.8 ✔ | Kaito (uitgebracht) | 27 Ontwikkelaar-menu met scanrapport, 26 vegen, 16 NIEUW, 19 commander wijzigen, 2 fabrieksinstellingen, 30 melding bij lamp die niet aangaat, 31 kaartjes bij combo's |
 | 0.9.8.1 | Kaito | 32 opgegeven set is een grens (oranje met andere set) |
 | 0.9.8.2 | Kaito | 29 Vormgeving gelijk trekken (alleen opmaak) |
-| 0.9.9 | nog kiezen | 4 scannen naar een deck (pas als de bladscan weer goed leest), 28 deckimport: één keuze voor uit de collectie halen, 33 filter- en sorteerknoppen bij alle kaartenlijsten, 34 kaartjes bij suggesties en tikken op elke combokaart, 35 inklapbare blokken bij combo's, 36 weergavekeuze Thumbnails | Namen als segmentbalk |
+| 0.9.9 | Vivien | Volgorde: 37 scanner repareren, 38 foil-twijfel blauw ★, 39 kaart voor kaart scannen stroomlijnen (39c pas na 37), daarna 4 scannen naar een deck (pas als de bladscan weer goed leest), 28 deckimport: één keuze voor uit de collectie halen, 33 filter- en sorteerknoppen bij alle kaartenlijsten, 34 thumbnails bij suggesties en tikken op elke combokaart, 35 inklapbare blokken bij combo's, 36 weergavekeuze Thumbnails | Namen als segmentbalk. Zet Mick 0.9.9 uiteen in stappen (bv. 0.9.9.1), dan houdt elke stap de naam Vivien |
 | 0.9.10 | nog kiezen | 8 print kiezen, in twee stappen: eerst 8a–e (printlijst), daarna 8f–l (exemplaren wijzigen en splitsen) |
 | 0.9.11 | nog kiezen | 3 exporteren (sites nog te kiezen; eerst de actuele importformaten nakijken) |
 | 1.0 | — | Fase 2 |
@@ -238,7 +238,7 @@ De nummers hieronder zijn die van de lijst zoals Mick ze kent.
    b. Het woord is "Thumbnails" (Mick, 11 nov), in NL en EN, en overal in de app waar nu "kaartjes" staat voor de kleine plaatjes (combo's, suggesties, handleiding, Wat is nieuw)
    c. Bovenaan het tabblad, op dezelfde plek en met dezelfde marge en afronding op Combo's én Suggesties; de keuze wordt onthouden (nu al: `combo_cards` in deck_ui)
 
-37. Scanner repareren na vier scanrapporten van 11 nov (nieuw, 0.9.9.0 of eigen patch; voorrang boven 4 en 28):
+37. Scanner repareren na vier scanrapporten van 11 nov (nieuw, 0.9.9 Vivien, als eerste; voorrang boven 4 en 28):
    Gevonden in de rapporten (SM-A165F, galerijfoto's 1530x2040, ONE en WOT):
    a. **Raster uit de tekst (galerijfoto's)**: zonder kader maakt `ScanParser.frameOf` het raster van de omhullende van alle gelezen tekst. Is een rij of kolom leeg, dan wordt het raster uitgerekt en komen de naam en de voet van één kaart in verschillende vakken terecht (foto met één kaart in rij 1 en drie in rij 2: namen in vak 4-6, rest in vak 7-9). Oplossing: raster uit de kaartmaten (kolomafstand × 1,4 voor de rijafstand, verankerd op de voetregels "###/### R" die elke kaart heeft), niet uit de tekstrand
    b. **Verzonnen setcode en taal uit de voetregel**: "ONE•EN" wordt gelezen als EATUR ES, EXCE PT, INSE TW, CAK ES, MOTEN. Een taalcode die niet EN is stuurt de kaart het buitenlandse pad in (set + nummer + gedrukte naam), en dat mislukt altijd: Kinzu, Bilious Skulldweller, Mondrak en Raid Bombardment kwamen daardoor "niet gevonden" terwijl de Engelse naam goed gelezen was. Oplossing: setcode alleen accepteren als hij in de setlijst staat (`vm.setInfo`); taal alleen als de gelezen naam geen exacte Engelse kaartnaam is; zonder gedrukte naam altijd Engels
@@ -249,14 +249,14 @@ De nummers hieronder zijn die van de lijst zoals Mick ze kent.
    g0. Mick vult bij het scannen meestal geen set in (11 nov): de app moet de overheersende set van het blad zelf gebruiken (d); een ingevulde set blijft altijd leidend. Tot de reparatie: set invullen helpt tegen verlezen sets, maar niet tegen de verzonnen taalcode (b); galerijfoto's van een blad met een lege rij of kolom geven vakken in de verkeerde rij (a), dus die liever met de camera scannen
    g. Na de reparatie dezelfde vier foto's als test: de regels als unittests met de gelezen regels uit de rapporten (zonder telefoon te draaien)
 
-38. Foil-twijfel krijgt een eigen kleur: blauw ★ (nieuw, na 37; Mick, 11 nov):
+38. Foil-twijfel krijgt een eigen kleur: blauw ★ (nieuw, 0.9.9 Vivien, na 37; Mick, 11 nov):
    a. Oranje is alleen nog voor een echte kaartcheck (naam, set, print onzeker). Foil-twijfel wordt **blauw met ★ en het woord "Foil?"**, zodat het niet alleen op kleur steunt
    b. Een blauwe kaart is verder zeker: naam en print kloppen, alleen foil niet. Hij wordt opgeslagen met "foil?" in de foilkolom (zoals in de Sheet-afspraken)
    c. Heeft een kaart zowel een kaartcheck als foil-twijfel, dan blijft hij oranje; eerst de kaart, dan pas de foil
    d. Op het controlescherm twee aparte groepen: "Controleer (n)" en "Foil checken (n)". Eén tik op het blauwe chipje wisselt normaal/foil, daarna verdwijnt het blauw
    e. Hoort bij 39c: de oranje groep is dan echt "kijk goed", en foil wordt een snelle ronde op het eind
 
-39. Kaart voor kaart scannen stroomlijnen (nieuw, na 37 en 38; Mick, 11 nov; volgorde en keuze nog te bepalen met Mick):
+39. Kaart voor kaart scannen stroomlijnen (nieuw, 0.9.9 Vivien, na 37 en 38; Mick, 11 nov; volgorde en keuze nog te bepalen met Mick):
    a. **Eén keer instellen per sessie**: kies één keer waar de kaarten heen gaan (map en blad, of deck) en de set (standaard: de set van de vorige kaart); dat blijft staan tot je het wijzigt
    b. **Kaart blijft in beeld na de foto**: na elke automatische foto een chipje onderin ("Mondrak ✓ ONE 21"); tik om te corrigeren, +1 voor een tweede exemplaar (nu moet je de kaart weghalen en terugleggen)
    c. **Controleren alleen waar het nodig is**: controlescherm toont alleen de oranje (en blauwe, zie 38) kaarten, bv. "Controleer 3 van 40"; groene gaan rechtstreeks de lijst in, met Ongedaan maken. **Pas bouwen als de herkenning betrouwbaar is (na 37)**, anders slaan fouten als Apostle of Invasion stil op
