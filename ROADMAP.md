@@ -103,7 +103,7 @@ Gebouwd en getest met unittests; dit kan alleen op een echte telefoon gecontrole
 | 0.9.8 ✔ | Kaito (uitgebracht) | 27 Ontwikkelaar-menu met scanrapport, 26 vegen, 16 NIEUW, 19 commander wijzigen, 2 fabrieksinstellingen, 30 melding bij lamp die niet aangaat, 31 kaartjes bij combo's |
 | 0.9.8.1 | Kaito | 32 opgegeven set is een grens (oranje met andere set) |
 | 0.9.8.2 | Kaito | 29 Vormgeving gelijk trekken (alleen opmaak) |
-| 0.9.9 | nog kiezen | 4 scannen naar een deck (pas als de bladscan weer goed leest), 28 deckimport: één keuze voor uit de collectie halen, 33 filter- en sorteerknoppen bij alle kaartenlijsten |
+| 0.9.9 | nog kiezen | 4 scannen naar een deck (pas als de bladscan weer goed leest), 28 deckimport: één keuze voor uit de collectie halen, 33 filter- en sorteerknoppen bij alle kaartenlijsten, 34 kaartjes bij suggesties en tikken op elke combokaart |
 | 0.9.10 | nog kiezen | 8 print kiezen, in twee stappen: eerst 8a–e (printlijst), daarna 8f–l (exemplaren wijzigen en splitsen) |
 | 0.9.11 | nog kiezen | 3 exporteren (sites nog te kiezen; eerst de actuele importformaten nakijken) |
 | 1.0 | — | Fase 2 |
@@ -219,6 +219,13 @@ De nummers hieronder zijn die van de lijst zoals Mick ze kent.
    d. Erbij: deck-detail krijgt filteren (kleur, type, rarity) naast het bestaande sorteren
    e. Bewust niet: kaartzoeker in dialogen (Kaart zoeken, Commander kiezen; zoekopdracht bij Scryfall, max tien treffers), setkiezer bij vrienden en lijnenkiezer in de grafiek (korte keuzelijsten)
    f. Zelfde bouwsteen, andere opties; filterkeuze per scherm onthouden zoals nu bij Collectie
+
+34. Kaartjes bij suggesties, en combo's gelijk trekken (nieuw, 0.9.9; Mick, 11 nov):
+   a. Deck → tabblad Suggesties (toevoegen, landen, schrappen, vrienden): per kaart een klein kaartplaatje, zoals de combo-kaartjes
+   b. Tik op het plaatje opent het kaartscherm; vasthouden toont de kaart groot. Dezelfde bouwsteen als bij combo's (ComboRow/comboImageUrl in DecksScreen), zodat het overal hetzelfde werkt
+   c. Combo's: nu opent tikken alleen een kaart die je zelf hebt (deck of collectie); een kaart die je niet hebt (de ontbrekende) doet niets. Dat moet ook werken: kaartscherm via Scryfall op naam, zoals bij zoeken
+   d. Keuze Kaartjes | Namen geldt ook voor suggesties (dezelfde onthouden instelling)
+   e. Plaatjes lui laden, kleine afmeting, bestaande cache; dubbelzijdige kaarten tonen de voorkant
 
 ## Fase 2 (wacht op startsein) → wordt 1.0
 - Sheet-koppeling (deel 2 punt 2, optie A: nieuwe Sheet via drive.file; Google Cloud-project + privacypagina nodig)
