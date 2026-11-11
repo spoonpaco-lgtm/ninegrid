@@ -249,6 +249,19 @@ De nummers hieronder zijn die van de lijst zoals Mick ze kent.
    g0. Mick vult bij het scannen meestal geen set in (11 nov): de app moet de overheersende set van het blad zelf gebruiken (d); een ingevulde set blijft altijd leidend. Tot de reparatie: set invullen helpt tegen verlezen sets, maar niet tegen de verzonnen taalcode (b); galerijfoto's van een blad met een lege rij of kolom geven vakken in de verkeerde rij (a), dus die liever met de camera scannen
    g. Na de reparatie dezelfde vier foto's als test: de regels als unittests met de gelezen regels uit de rapporten (zonder telefoon te draaien)
 
+38. Foil-twijfel krijgt een eigen kleur: blauw ★ (nieuw, na 37; Mick, 11 nov):
+   a. Oranje is alleen nog voor een echte kaartcheck (naam, set, print onzeker). Foil-twijfel wordt **blauw met ★ en het woord "Foil?"**, zodat het niet alleen op kleur steunt
+   b. Een blauwe kaart is verder zeker: naam en print kloppen, alleen foil niet. Hij wordt opgeslagen met "foil?" in de foilkolom (zoals in de Sheet-afspraken)
+   c. Heeft een kaart zowel een kaartcheck als foil-twijfel, dan blijft hij oranje; eerst de kaart, dan pas de foil
+   d. Op het controlescherm twee aparte groepen: "Controleer (n)" en "Foil checken (n)". Eén tik op het blauwe chipje wisselt normaal/foil, daarna verdwijnt het blauw
+   e. Hoort bij 39c: de oranje groep is dan echt "kijk goed", en foil wordt een snelle ronde op het eind
+
+39. Kaart voor kaart scannen stroomlijnen (nieuw, na 37 en 38; Mick, 11 nov; volgorde en keuze nog te bepalen met Mick):
+   a. **Eén keer instellen per sessie**: kies één keer waar de kaarten heen gaan (map en blad, of deck) en de set (standaard: de set van de vorige kaart); dat blijft staan tot je het wijzigt
+   b. **Kaart blijft in beeld na de foto**: na elke automatische foto een chipje onderin ("Mondrak ✓ ONE 21"); tik om te corrigeren, +1 voor een tweede exemplaar (nu moet je de kaart weghalen en terugleggen)
+   c. **Controleren alleen waar het nodig is**: controlescherm toont alleen de oranje (en blauwe, zie 38) kaarten, bv. "Controleer 3 van 40"; groene gaan rechtstreeks de lijst in, met Ongedaan maken. **Pas bouwen als de herkenning betrouwbaar is (na 37)**, anders slaan fouten als Apostle of Invasion stil op
+   d. **Foil als sessiestand** met duidelijke kleur, plus één tik op het chipje onderweg (sluit aan op 38)
+
 ## Fase 2 (wacht op startsein) → wordt 1.0
 - Sheet-koppeling (deel 2 punt 2, optie A: nieuwe Sheet via drive.file; Google Cloud-project + privacypagina nodig)
 - Route D: deck delen via QR-code (scherm scannen → decklijst)
