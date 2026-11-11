@@ -53,7 +53,7 @@ Gebouwd en getest met unittests; dit kan alleen op een echte telefoon gecontrole
 - **15b/c Prijsbeweging** bestond al als de knop "Koers" (dagstanden bewaren het koersverschil sinds 0.8.9). De knop heet nu Prijsbeweging; er is niets nieuws voor gebouwd.
 - **17b Filter Game Changers**: de offline database kent geen Game Changers. In de collectie en op de verlanglijst werkt het filter met wat er per kaart bewaard is; bij Alle kaarten zoekt het bij Scryfall (internet nodig).
 - **13d Manakosten in het setscherm**: bij kaarten die je niet hebt pas zichtbaar nadat de setlijst is ververst.
-- **14j Decks na terugzetten** (staat bij Later): in de code worden decks wel teruggezet. Er is nu een test dat een back-upbestand met decks heel terugkomt uit het bestand. Wat er bij Mick misging is nog niet gevonden; daarvoor is zijn back-upbestand nodig.
+- **14j Decks na terugzetten**: opgelost volgens Mick (decks komen terug met de nieuwe back-up uit 0.9.7). Wat er eerder misging is nooit gevonden; er is wel een test dat een back-upbestand met decks heel terugkomt.
 
 ## Versieplan
 
@@ -160,7 +160,6 @@ De nummers hieronder zijn die van de lijst zoals Mick ze kent.
 - Route D: deck delen via QR-code (scherm scannen → decklijst)
 
 ## Later (idee, geen versie)
-- Decks na terugzetten van een back-up (was 14j; Mick: decks kwamen niet mee terug): uitzoeken als er meer informatie is, met zijn back-upbestand
 - Verkoopalarm voor kaarten die je hebt: "meld als Ragavan boven € 60 komt" (omgekeerde prijsalarm, lijkt op Breakout)
 - Jaaroverzicht in december: "Jouw jaar in Magic" (kaarten toegevoegd, duurste vondst, meest gescande set, groei in waarde, beste ruil), te delen als afbeelding, privacymodus respecteren
 - Widget op het startscherm: waarde collectie en Winner of the Week in logostijl; bedekt als de privacymodus aan staat
