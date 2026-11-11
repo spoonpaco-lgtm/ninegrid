@@ -12,7 +12,7 @@ Gratis Android-app (8.0+) voor je Magic: The Gathering-collectie en decks.
 - Share your collection with friends and find trades
 - English and Dutch, day and night theme
 
-**What makes it different, all features and what is planned: [FEATURES.md](FEATURES.md) · Nederlands: [FEATURES.nl.md](FEATURES.nl.md)**
+**What makes it different, all features and what is planned: [FEATURES.md](FEATURES.md) · Nederlands: [FEATURES.nl.md](FEATURES.nl.md)** · Roadmap: [ROADMAP.md](ROADMAP.md)
 
 ## Versions
 0.x: test versions. 1.0 arrives with Google Sheet sync and sharing a deck by QR code. Every version is named after a planeswalker.
