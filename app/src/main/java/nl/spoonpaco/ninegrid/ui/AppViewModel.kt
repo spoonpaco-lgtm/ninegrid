@@ -603,6 +603,17 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         snapshot()
     }
 
+    /** Wisselt de commander van een deck (of voegt een tweede toe); de kleuren, bracket en regels volgen vanzelf uit de kaarten. */
+    fun changeCommander(deck: Deck, newEntry: Entry?, newPrint: CardPrint?, replace: Boolean, old: nl.spoonpaco.ninegrid.data.Repository.OldCommander) = viewModelScope.launch {
+        val current = entries.value.filter { it.entry.deckId == deck.id && it.entry.section == Section.COMMANDER }.map { it.entry.id }
+        val name = newPrint?.name ?: entries.value.firstOrNull { it.entry.id == newEntry?.id }?.print?.name ?: ""
+        repo.changeCommander(deck.id, newEntry?.id, newPrint, if (replace) current else emptyList(), old, str(R.string.log_commander_changed, deck.name, name))
+        val tribe = deckRules(deck.id).tribe
+        message = str(R.string.msg_commander_changed, name) + if (tribe.isNotBlank()) " " + str(R.string.msg_commander_tribe, tribe) else ""
+        messageUndo = true
+        snapshot()
+    }
+
     fun updateDeck(deck: Deck) = viewModelScope.launch { repo.updateDeck(deck, str(R.string.log_deck_edited, deck.name)) }
 
     fun deleteDeck(deck: Deck, keepCards: Boolean) = viewModelScope.launch {

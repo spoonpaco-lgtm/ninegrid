@@ -383,6 +383,31 @@ class Repository(
         }
     }
 
+    /** Wat er met de oude commander gebeurt als er een nieuwe komt. */
+    enum class OldCommander { TO_DECK, TO_COLLECTION }
+
+    /**
+     * Wisselt de commander van een deck als één wijziging (één keer ongedaan maken).
+     * De nieuwe is een bestaand exemplaar ([newEntryId], uit het deck of de collectie) of een nieuwe kaart ([newPrint]).
+     * [replaceIds]: de commander(s) die vervangen worden; leeg bij een tweede commander (Partner e.d.).
+     */
+    suspend fun changeCommander(deckId: Long, newEntryId: Long?, newPrint: CardPrint?, replaceIds: List<Long>, old: OldCommander, summary: String) {
+        db.withTransaction {
+            val restore = LinkedHashMap<Long, Entry>(); val created = mutableListOf<Long>()
+            replaceIds.forEach { id ->
+                val e = db.entries().get(id) ?: return@forEach
+                if (old == OldCommander.TO_DECK) moveInto(id, e.quantity, deckId, nl.spoonpaco.ninegrid.data.db.Section.MAIN, null, null, null, restore, created)
+                else moveInto(id, e.quantity, null, null, null, null, null, restore, created)
+            }
+            if (newEntryId != null) moveInto(newEntryId, 1, deckId, nl.spoonpaco.ninegrid.data.db.Section.COMMANDER, null, null, null, restore, created)
+            else if (newPrint != null) {
+                db.prints().upsert(listOf(newPrint))
+                created += db.entries().insert(Entry(printId = newPrint.id, deckId = deckId, section = nl.spoonpaco.ninegrid.data.db.Section.COMMANDER))
+            }
+            log(summary, UndoData(restoreEntries = restore.values.toList(), deleteEntryIds = created))
+        }
+    }
+
     /** Verplaatst binnen een lopende transactie en onthoudt de eerste stand van alles wat het aanraakt. */
     private suspend fun moveInto(
         entryId: Long, quantity: Int, toDeckId: Long?, section: String?, binder: String?, page: Int?, slot: Int?,

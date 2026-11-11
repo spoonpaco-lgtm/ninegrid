@@ -1004,4 +1004,22 @@
     <string name="new_days_unit">d</string>
     <string name="new_label_explain">Kaarten die je toevoegt door te scannen, met de hand of via importeren krijgen een label NIEUW. Alleen losse kaarten; kaarten in een deck nooit.</string>
     <string name="new_all_seen">Alles gezien</string>
+    <string name="log_commander_changed">Commander van %1$s gewijzigd naar %2$s</string>
+    <string name="msg_commander_changed">Commander is nu %1$s.</string>
+    <string name="msg_commander_tribe">Het creaturetype in de deckregels staat nog op %1$s; pas dat daar aan als het anders moet.</string>
+    <string name="commander_change">Commander wijzigen</string>
+    <string name="commander_none_candidates">Geen kaart gevonden die commander kan zijn. Zoek er hieronder een.</string>
+    <string name="commander_in_deck">In dit deck</string>
+    <string name="commander_in_collection">In je collectie</string>
+    <string name="commander_search_new">Kaart zoeken</string>
+    <string name="commander_not_allowed">Deze kaart lijkt geen commander te kunnen zijn. Je kunt hem toch kiezen.</string>
+    <string name="commander_replace">Vervang %1$s</string>
+    <string name="commander_add_second">Als tweede commander erbij</string>
+    <string name="commander_no_pair">Deze twee kunnen niet samen commander zijn.</string>
+    <string name="commander_old_title">Wat gebeurt er met de oude commander</string>
+    <string name="commander_old_to_deck">Naar het deck</string>
+    <string name="commander_old_to_collection">Terug naar de collectie (los)</string>
+    <string name="commander_new_card">Deze kaart is nieuw: hij komt direct in het deck.</string>
+    <string name="commander_apply">Wijzigen</string>
+    <string name="make_commander">Maak commander</string>
 </resources>

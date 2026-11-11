@@ -87,6 +87,7 @@ fun CardDetailScreen(vm: AppViewModel, printId: String, onBack: () -> Unit, onFr
     val print by vm.repo.print(printId).collectAsState(initial = null)
     val copies by vm.repo.entriesForPrint(printId).collectAsState(initial = emptyList())
     val decks by vm.decks.collectAsState()
+    var makeCommander by remember { mutableStateOf<Pair<nl.spoonpaco.ninegrid.data.db.Deck, nl.spoonpaco.ninegrid.data.db.EntryWithPrint>?>(null) }
     val uri = LocalUriHandler.current
     var editing by remember { mutableStateOf<Entry?>(null) }
     var moving by remember { mutableStateOf<Entry?>(null) }
@@ -250,6 +251,10 @@ fun CardDetailScreen(vm: AppViewModel, printId: String, onBack: () -> Unit, onFr
                             Text("${e.quantity}", fontWeight = FontWeight.Bold)
                             IconButton(onClick = { vm.updateEntry(e.copy(quantity = e.quantity + 1)) }) { Icon(Icons.Filled.Add, stringResource(R.string.more_one)) }
                             Spacer(Modifier.weight(1f))
+                            val cmdDeck = decks.firstOrNull { it.id == e.deckId && it.format == nl.spoonpaco.ninegrid.data.db.DeckFormat.COMMANDER }
+                            if (cmdDeck != null && e.section != nl.spoonpaco.ninegrid.data.db.Section.COMMANDER && nl.spoonpaco.ninegrid.domain.CommanderRules.canBeCommander(p.typeLine, p.oracleText)) {
+                                TextButton(onClick = { makeCommander = cmdDeck to cp }, contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 8.dp)) { Text(stringResource(R.string.make_commander), fontSize = 12.sp) }
+                            }
                             IconButton(onClick = { moving = e }) { Icon(Icons.Filled.SwapHoriz, stringResource(R.string.move)) }
                             IconButton(onClick = { editing = e }) { Icon(Icons.Filled.Edit, stringResource(R.string.edit)) }
                             IconButton(onClick = { deleting = e }) { Icon(Icons.Filled.Delete, stringResource(R.string.delete)) }
@@ -263,6 +268,7 @@ fun CardDetailScreen(vm: AppViewModel, printId: String, onBack: () -> Unit, onFr
     }
 
     editing?.let { e -> EditEntryDialog(e, onDismiss = { editing = null }) { vm.updateEntry(it); editing = null } }
+    makeCommander?.let { (dk, cp) -> ChangeCommanderDialog(vm, dk, start = PickedCommander(cp.entry, cp.print!!), onDismiss = { makeCommander = null }) }
     moving?.let { e -> MoveDialog(e, decks, vm.binders.collectAsState().value, onDismiss = { moving = null }) { q, d, s, b, pg, sl -> vm.moveEntry(e, q, d, s, b, pg, sl); moving = null } }
     exiling?.let { e -> nl.spoonpaco.ninegrid.ui.components.ExileSwirl { vm.deleteEntry(e); exiling = null } }
     deleting?.let { e ->

@@ -1005,4 +1005,22 @@
     <string name="new_days_unit">d</string>
     <string name="new_label_explain">Cards you add by scanning, by hand or by import get a NEW label. Loose cards only; cards in a deck never do.</string>
     <string name="new_all_seen">Mark all as seen</string>
+    <string name="log_commander_changed">Changed commander of %1$s to %2$s</string>
+    <string name="msg_commander_changed">Commander is now %1$s.</string>
+    <string name="msg_commander_tribe">The creature type in the deck rules is still %1$s; change it there if needed.</string>
+    <string name="commander_change">Change commander</string>
+    <string name="commander_none_candidates">No card found that can be a commander. Search for one below.</string>
+    <string name="commander_in_deck">In this deck</string>
+    <string name="commander_in_collection">In your collection</string>
+    <string name="commander_search_new">Search a card</string>
+    <string name="commander_not_allowed">This card does not look like it can be a commander. You can still choose it.</string>
+    <string name="commander_replace">Replace %1$s</string>
+    <string name="commander_add_second">Add as second commander</string>
+    <string name="commander_no_pair">These two cannot be commanders together.</string>
+    <string name="commander_old_title">What happens to the old commander</string>
+    <string name="commander_old_to_deck">Into the deck</string>
+    <string name="commander_old_to_collection">Back to the collection (loose)</string>
+    <string name="commander_new_card">This card is new: it is added straight to the deck.</string>
+    <string name="commander_apply">Change</string>
+    <string name="make_commander">Make commander</string>
 </resources>

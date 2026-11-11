@@ -786,6 +786,24 @@ class ParserTest {
         assertTrue(isNew(1, seenDaysAgo = 2))       // toegevoegd erna
     }
 
+    /** Wie commander mag zijn en welke twee samen mogen. */
+    @Test
+    fun commanderRules() {
+        val cr = nl.spoonpaco.ninegrid.domain.CommanderRules
+        assertTrue(cr.canBeCommander("Legendary Creature — Elf Druid", ""))
+        assertFalse(cr.canBeCommander("Creature — Elf Druid", ""))
+        assertFalse(cr.canBeCommander("Legendary Artifact", ""))
+        assertTrue(cr.canBeCommander("Legendary Planeswalker — Teferi", "Teferi can be your commander."))
+        assertTrue(cr.canBeCommander("Legendary Enchantment — Background", "Commander creatures you own have ..."))
+        assertTrue(cr.canPair("A", "Legendary Creature — Human", "Partner", "B", "Legendary Creature — Elf", "Partner"))
+        assertFalse(cr.canPair("A", "Legendary Creature — Human", "Partner", "B", "Legendary Creature — Elf", ""))
+        assertTrue(cr.canPair("Pir, Imaginary Friend", "Legendary Creature — Human", "Partner with Toothy, Imaginary Friend (When this...)", "Toothy, Imaginary Friend", "Legendary Creature — Illusion", "Partner with Pir, Imaginary Friend"))
+        assertFalse(cr.canPair("Pir", "Legendary Creature — Human", "Partner with Toothy, Imaginary Friend", "Other", "Legendary Creature — Elf", "Partner"))
+        assertTrue(cr.canPair("Wilson", "Legendary Creature — Human", "Choose a Background", "Raised by Giants", "Legendary Enchantment — Background", "Commander creatures you own..."))
+        assertTrue(cr.canPair("Ten", "Legendary Creature — Time Lord Doctor", "", "Rose", "Legendary Creature — Human", "Doctor's companion"))
+        assertTrue(cr.canPair("F1", "Legendary Creature — A", "Friends forever", "F2", "Legendary Creature — B", "Friends forever"))
+    }
+
     /** De as van de grafiek volgt de waarden: een verandering van een paar euro op duizenden is zichtbaar. */
     @Test
     fun chartAxisFollowsTheValues() {

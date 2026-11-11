@@ -201,6 +201,7 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
     var menu by remember { mutableStateOf(false) }
     var renaming by remember { mutableStateOf(false) }
     var formatPicker by remember { mutableStateOf(false) }
+    var commanderDialog by remember { mutableStateOf(false) }
     var deleting by remember { mutableStateOf(false) }
     var picking by remember { mutableStateOf(false) }
     var tab by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(0) }
@@ -232,6 +233,7 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
                     DropdownMenuItem(text = { Text(stringResource(R.string.paste_list)) }, onClick = { menu = false; onAddCards(deckId) })
                     DropdownMenuItem(text = { Text(stringResource(R.string.rename)) }, leadingIcon = { Icon(Icons.Filled.Edit, null) }, onClick = { menu = false; renaming = true })
                     DropdownMenuItem(text = { Text(stringResource(R.string.change_format)) }, onClick = { menu = false; formatPicker = true })
+                    if (d?.format == DeckFormat.COMMANDER) DropdownMenuItem(text = { Text(stringResource(R.string.commander_change)) }, onClick = { menu = false; commanderDialog = true })
                     DropdownMenuItem(text = { Text(stringResource(R.string.export_text)) }, leadingIcon = { Icon(Icons.Filled.FileDownload, null) }, onClick = { menu = false; saveLauncher.launch("${d?.name ?: "deck"}.txt") })
                     DropdownMenuItem(text = { Text(stringResource(R.string.delete_deck)) }, leadingIcon = { Icon(Icons.Filled.Delete, null) }, onClick = { menu = false; deleting = true })
                 }
@@ -432,6 +434,7 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
             dismissButton = { TextButton(onClick = { renaming = false }) { Text(stringResource(R.string.cancel)) } },
         )
     }
+    if (commanderDialog && d != null) ChangeCommanderDialog(vm, d, onDismiss = { commanderDialog = false })
     if (formatPicker && d != null) {
         AlertDialog(
             onDismissRequest = { formatPicker = false },
