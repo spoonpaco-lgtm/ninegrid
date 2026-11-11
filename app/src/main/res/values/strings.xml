@@ -982,4 +982,10 @@
     <string name="restore_part_friends">Friends and their shared collections</string>
     <string name="restore_part_settings">Settings</string>
     <string name="restore_partial_note">Restoring only the collection or only the decks empties the change log: undo is then no longer possible for earlier changes.</string>
+    <string name="set_details">details</string>
+    <string name="set_missing_total">Missing cards together:</string>
+    <string name="set_tab_missing">Missing (%1$d)</string>
+    <string name="set_tab_have">I have (%1$d)</string>
+    <string name="set_n_foil">%1$d foil</string>
+    <string name="set_to_wishlist">Add to wishlist</string>
 </resources>

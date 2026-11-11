@@ -981,4 +981,10 @@
     <string name="restore_part_friends">Vrienden en hun gedeelde collecties</string>
     <string name="restore_part_settings">Instellingen</string>
     <string name="restore_partial_note">Zet je alleen de collectie of alleen de decks terug, dan wordt het wijzigingslog leeg: eerdere wijzigingen zijn daarna niet meer ongedaan te maken.</string>
+    <string name="set_details">details</string>
+    <string name="set_missing_total">Ontbrekend samen:</string>
+    <string name="set_tab_missing">Ontbreekt (%1$d)</string>
+    <string name="set_tab_have">Heb ik (%1$d)</string>
+    <string name="set_n_foil">%1$d foil</string>
+    <string name="set_to_wishlist">Op de verlanglijst</string>
 </resources>

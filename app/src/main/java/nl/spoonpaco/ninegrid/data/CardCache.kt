@@ -25,6 +25,8 @@ data class SetCard(
     val image: String? = null,
     /** Hoort bij de gewone setlijst (geen borderless, showcase, extended art of promo). */
     val regular: Boolean = true,
+    /** Manakosten zoals op de kaart ("{2}{W}"); leeg bij lands en in setlijsten van vóór 0.9.7 (tot ze verversen). */
+    val mana: String = "",
 )
 
 @Serializable
@@ -65,7 +67,7 @@ class CardCache(private val context: Context, private val scryfall: ScryfallClie
             code = info.code.uppercase(), name = info.name, printedSize = printed, fetchedAt = System.currentTimeMillis(),
             cards = cards.map { c ->
                 val p = c.toPrint()
-                SetCard(c.id, c.name, c.collectorNumber, c.rarity, p.eur, p.usd, p.imageSmall, isRegular(c, printed))
+                SetCard(c.id, c.name, c.collectorNumber, c.rarity, p.eur, p.usd, p.imageSmall, isRegular(c, printed), p.manaCost)
             },
         )
         withContext(Dispatchers.IO) { runCatching { file.writeText(json.encodeToString(SetList.serializer(), list)) } }

@@ -204,7 +204,7 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
             }
             composable("sets") { nl.spoonpaco.ninegrid.ui.screens.SetsScreen(vm, onBack = { nav.popBackStack() }, onSet = { nav.navigate("set/$it") }) }
             composable("set/{code}", arguments = listOf(navArgument("code") { type = NavType.StringType })) {
-                nl.spoonpaco.ninegrid.ui.screens.SetScreen(vm, it.arguments?.getString("code") ?: "", onBack = { nav.popBackStack() }, onReview = { nav.navigate("review") })
+                nl.spoonpaco.ninegrid.ui.screens.SetScreen(vm, it.arguments?.getString("code") ?: "", onBack = { nav.popBackStack() }, onReview = { nav.navigate("review") }, onCard = { id -> nav.navigate("card/$id") })
             }
             composable("more") {
                 MoreScreen(

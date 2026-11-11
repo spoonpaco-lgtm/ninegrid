@@ -1301,6 +1301,21 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         busy = false
     }
 
+    /** Een kaart uit een setlijst op de verlanglijst zetten: precies deze print. */
+    fun wishSetCard(id: String) = viewModelScope.launch {
+        runCatching { repo.scryfall.cardById(id) }.onSuccess { card ->
+            if (card != null) { repo.addWish(card.toPrint(), anyPrint = false); message = str(R.string.wish_added, card.name) }
+            else message = str(R.string.msg_network_error)
+        }.onFailure { message = errorText(it) }
+    }
+
+    /** Een kaart uit een setlijst openen in het kaartscherm (eerst opzoeken en bewaren, want je hebt hem nog niet). */
+    fun openSetCard(id: String, then: (String) -> Unit) = viewModelScope.launch {
+        runCatching { repo.scryfall.cardById(id) }.onSuccess { card ->
+            if (card != null) { repo.rememberPrint(card.toPrint()); then(card.id) }
+        }.onFailure { message = errorText(it) }
+    }
+
     // ---------- Combo's (Commander Spellbook) ----------
     var comboReport by mutableStateOf<nl.spoonpaco.ninegrid.data.ComboReport?>(null)
     var comboDeckId by mutableStateOf<Long?>(null)
