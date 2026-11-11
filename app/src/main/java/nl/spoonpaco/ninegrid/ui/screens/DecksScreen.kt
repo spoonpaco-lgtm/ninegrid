@@ -62,6 +62,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.border
