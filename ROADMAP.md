@@ -14,6 +14,36 @@ Dit is "de lijst": wat Mick wil dat NineGrid nog krijgt. Een nieuw gesprek begin
 - Bij elke versie: handleiding (NL/EN), Wat is nieuw, FEATURES.md en FEATURES.nl.md, RELEASE_NOTES.md bijwerken.
 - Tellen op afbeeldingen: vak voor vak / kwadrant voor kwadrant.
 
+## Hoe te werken (technisch, voor een nieuw gesprek)
+
+**Repo en bouwen**
+- Repo: `spoonpaco-lgtm/ninegrid`. Haal hem binnen met `add_repo` (toegang: push) en kloon hem; registreer de map met `register_repo_root`.
+- Lokaal kan niets compileren (geen toegang tot Maven/Google). Alles wordt gebouwd in GitHub Actions (`.github/workflows/build.yml`: `testReleaseUnitTest assembleRelease`).
+- Werkwijze per versie: nieuwe branch, wijzigen, committen, pushen, workflow met de hand starten op die branch (`gh workflow run build.yml --ref <branch>`), wachten met `gh run watch <id> --exit-status`, fouten lezen met `gh run view <id> --log-failed`. Pas als dat groen is naar `main` mergen. Een release ontstaat vanzelf als `versionNameValue` in `app/build.gradle.kts` op `main` nieuw is; daarna met `gh api repos/spoonpaco-lgtm/ninegrid/releases/tags/vX.Y.Z` controleren of de APK erbij staat.
+- `gh` GraphQL is geblokkeerd: gebruik `gh api repos/...`, `gh run list/view/watch`; `gh release view` werkt dus niet.
+- Opmaakwijzigingen (zoals 0.9.8.2) eerst als testbuild naar Mick, pas na zijn "merge" naar main.
+- Commit-afsluiting: `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>` en de `Claude-Session`-regel van het gesprek.
+
+**Elke versie**
+- `versionNameValue` (en `versionCodenameValue` bij een nieuwe naam), RELEASE_NOTES.md, handleiding (`ui/guide/GuideContent.kt`, NL en EN), Wat is nieuw (`ui/guide/WhatsNew.kt`, NL en EN), FEATURES.md en FEATURES.nl.md, ROADMAP.md (naar Uitgebracht).
+- Teksten staan in `res/values/strings.xml` (EN) en `res/values-nl/strings.xml`; elke nieuwe string in beide.
+- Regex-literals: geen losse `{` of `}` (de test `regexesAreAndroidSafe` slaat anders alarm).
+- Nieuwe logica in `domain/` met een unittest in `app/src/test/.../ParserTest.kt`; dat is de enige controle die vóór de build kan.
+
+**Dit document bijwerken**
+- Eerst `project_read` op `claude/NineGrid-roadmap.md`, anders weigert `project_write`. Daarna bewerken in `ROADMAP.md` in de repo en terugschrijven met `project_write(path="claude/NineGrid-roadmap.md", local_path=".../ROADMAP.md")`.
+
+**Scanner: hoe het werkt (stand 0.9.8.2)**
+- `domain/ScanParser.kt` leest per vak de bovenkant (naam) en een onderste strook (3× vergroot sinds 0.9.7: nummer, set, taal, ★). Een vak is compleet met setcode én nummer; anders volgt een tweede leespoging met meer contrast (`reread`, met bekende setcodes erbij).
+- `Repository.preResolve` verbetert namen en controleert tegen de setlijst op de telefoon (nummer + naam kloppen samen = zeker; alleen de naam = print met die naam, liefst met het gelezen nummer). `Repository.resolve` vraagt dan Scryfall (set+nummer, daarna alternatieve cijfers, daarna op naam in de set).
+- Een kaart is alleen groen als naam, set en nummer samen kloppen. Sinds 0.9.8.1 is een kaart uit een andere set dan gevraagd, of zonder nummer met meerdere prints van die naam, altijd oranje.
+- Leeg vak: `EmptySlots.decide`, alleen leeg als er geen tekst in dat vak is en weinig structuur.
+- Scanrapport (Meer → Instellingen → Ontwikkelaar, op het controlescherm "Scan delen"): foto en per vak wat gelezen is; vraag Mick om dat bij een slechte scan.
+
+**Bekende open vragen**
+- Een heel blad leest minder dan in 0.9.6. Verdachten uit 0.9.7: onderste strook 3×, contrastpoging, gedeelde tekstherkenner. Nodig: scanrapport of voorbeeldfoto. Zo nodig die punten terugdraaien.
+- Geeft ML Kit de ster ★ op echte foils terug? Alleen op de telefoon te zien.
+
 ## Uitgebracht
 
 | Versie | Naam | Belangrijkste |
