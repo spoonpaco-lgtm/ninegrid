@@ -83,7 +83,7 @@ Dit is "de lijst": wat Mick wil dat NineGrid nog krijgt. Een nieuw gesprek begin
 - Label NIEUW: alleen losse kaarten; ook als een stapel groter wordt.
 - Commander wijzigen: de oude commander die terug naar de collectie gaat wordt los (oude plek niet bewaard); creature-type als deckregel verandert niet vanzelf (alleen een melding).
 - ✓ Fabrieksinstellingen: nagekeken door Mick, werkt (app start daarna opnieuw bij de introductie; terugzetten via Meer → Back-up, niet in de introductie zelf).
-- Combokaartjes: plaatjes van kaarten die je niet hebt komen via Scryfall op naam.
+- ✓ Combokaartjes: nagekeken door Mick, werkt (plaatjes van kaarten die je niet hebt komen via Scryfall op naam).
 - Lampmelding en scanrapport (Ontwikkelaar-menu).
 - Nog open: foil-ster ★ bij echte foils; bladscan met 0.9.7.1; bladscan leest minder dan 0.9.6 (voorbeeldfoto/scanrapport nodig).
 
