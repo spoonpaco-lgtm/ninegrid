@@ -728,7 +728,15 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
                     label = { Text(stringResource(if (autoPaused) R.string.scan_auto_paused else R.string.scan_auto)) }, colors = colors,
                 )
                 // Bij een blad zit foil in het voorbeeld (het raster); bij één kaart blijft de knop hier.
-                FilterChip(selected = vm.scanFoil, onClick = { vm.setPageFoil(!vm.scanFoil) }, label = { Text(stringResource(R.string.scan_foil_card)) }, colors = colors)
+                // Foil als stand voor de hele sessie: blauw zolang hij aan staat, tot je hem uitzet.
+                FilterChip(
+                    selected = vm.scanFoil, onClick = { vm.setPageFoil(!vm.scanFoil) },
+                    label = { Text("★ " + stringResource(R.string.scan_foil_card), fontWeight = if (vm.scanFoil) FontWeight.Bold else FontWeight.Normal) },
+                    colors = FilterChipDefaults.filterChipColors(
+                        containerColor = Color.Transparent, labelColor = Color.White,
+                        selectedContainerColor = NgColors.FoilBlue, selectedLabelColor = Color.White,
+                    ),
+                )
             }
             // De uitslag heeft altijd dezelfde hoogte, ook vóór de eerste foto: zo blijft het kader op zijn plek.
             Box(Modifier.fillMaxWidth().height(76.dp).padding(horizontal = 8.dp, vertical = 2.dp), contentAlignment = Alignment.Center) {
@@ -892,11 +900,20 @@ private fun ScanSummaryBar(
             }
             // Losse kaarten: de laatste drie, met een kruisje om een vergissing weg te halen.
             if (single) Row(Modifier.horizontalScroll(androidx.compose.foundation.rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                // Elk chipje toont wat er is gevonden en hoe zeker (groen, oranje, blauw ★ voor foil). Tik = nog een exemplaar erbij (+1), kruisje = weghalen.
                 vm.pending.takeLast(3).reversed().forEach { p ->
+                    val mark = when {
+                        p.cardCheck -> NgColors.Amber
+                        p.foilCheck -> NgColors.FoilBlue
+                        p.status == nl.spoonpaco.ninegrid.ui.ItemStatus.FOUND -> NgColors.Synced
+                        else -> Color.White.copy(alpha = 0.5f)
+                    }
+                    val shown = p.print?.let { it.name + " " + it.setCode.uppercase() + " " + it.collectorNumber } ?: (p.query.name ?: "?")
                     androidx.compose.material3.InputChip(
-                        selected = false, onClick = { vm.removePending(p.key) },
-                        label = { Text((p.print?.name ?: p.query.name ?: "?") + if (p.quantity > 1) " ×${p.quantity}" else "", fontSize = 11.sp, color = Color.White, maxLines = 1) },
-                        trailingIcon = { Icon(Icons.Filled.Close, stringResource(R.string.undo), tint = Color.White, modifier = Modifier.size(14.dp)) },
+                        selected = false, onClick = { vm.updatePending(p.copy(quantity = p.quantity + 1)) },
+                        label = { Text(shown + if (p.quantity > 1) " ×${p.quantity}" else "", fontSize = 11.sp, color = Color.White, maxLines = 1) },
+                        leadingIcon = { Text(if (p.foilCheck || p.finish != nl.spoonpaco.ninegrid.data.db.Finish.NONFOIL) "★" else "●", color = mark, fontSize = 11.sp) },
+                        trailingIcon = { Icon(Icons.Filled.Close, stringResource(R.string.undo), tint = Color.White, modifier = Modifier.size(14.dp).clickable { vm.removePending(p.key) }) },
                         modifier = Modifier.heightIn(min = 26.dp),
                     )
                 }
@@ -930,7 +947,20 @@ private fun ScanSummaryBar(
             }
         }
         if (!sum.busy || single) {
-            if (single) {
+            if (single && sum.allGood) {
+                // Alles zeker (groen of alleen nog een foil-vraag): direct opslaan, controleren hoeft niet.
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Button(onClick = onSave) { Text(stringResource(R.string.save)) }
+                    TextButton(onClick = onReview) {
+                        Text(
+                            if (sum.foilCheck > 0) stringResource(R.string.review_group_foil, sum.foilCheck) else stringResource(R.string.review_short),
+                            color = if (sum.foilCheck > 0) NgColors.FoilBlue else Color.White, fontSize = 12.sp,
+                        )
+                    }
+                }
+            } else if (single && sum.doubtful > 0) {
+                Button(onClick = onReview) { Text(stringResource(R.string.scan_check_button, sum.doubtful)) }
+            } else if (single) {
                 Button(onClick = onReview) { Text(stringResource(R.string.done)) }
             } else if (sum.allGood) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
