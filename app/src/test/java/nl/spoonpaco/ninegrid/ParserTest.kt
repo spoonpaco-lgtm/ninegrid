@@ -863,4 +863,90 @@ class ParserTest {
         assertFalse(nl.spoonpaco.ninegrid.domain.SetCheck.ambiguous(true, 3))
         assertFalse(nl.spoonpaco.ninegrid.domain.SetCheck.ambiguous(false, 1))
     }
+
+    // ---- 37: galerijfoto's (zonder kader), jaartal, verzonnen set/taal, set van het blad, lege hoesjes ----
+    private fun galleryLines(slots: List<Int>) = slots.flatMap { slot ->
+        val r = (slot - 1) / 3; val c = (slot - 1) % 3
+        val left = 52f + c * 475f + 20f; val top = 22f + r * 665f + 10f; val w = 435f; val h = 610f
+        listOf(
+            OcrLine("Kaart$slot", left + w * 0.4f, top + h * 0.07f),
+            OcrLine("Creature — Elf", left + w * 0.4f, top + h * 0.55f),
+            OcrLine("Tekst van de kaart", left + w * 0.5f, top + h * 0.65f),
+            OcrLine("229/254 R", left + w * 0.2f, top + h * 0.93f),
+            OcrLine("ONE • EN", left + w * 0.18f, top + h * 0.96f),
+        )
+    }
+
+    private fun assertGallery(filled: List<Int>) {
+        val got = ScanParser.parse(galleryLines(filled), 1530, 2040, null).associate { it.slot to it.lines }
+        for (slot in 1..9) {
+            if (slot in filled) assertTrue("vak $slot mist Kaart$slot: ${got[slot]}", got[slot].orEmpty().any { it == "Kaart$slot" })
+            else assertTrue("vak $slot hoort leeg te zijn: ${got[slot]}", got[slot].orEmpty().isEmpty())
+        }
+    }
+
+    @Test fun galleryFullSheet() = assertGallery((1..9).toList())
+    @Test fun galleryOneCardRowOneThreeInRowTwo() = assertGallery(listOf(2, 4, 5, 6))
+    @Test fun galleryBottomRowEmpty() = assertGallery(listOf(1, 2, 3, 4, 5, 6))
+    @Test fun galleryTopRowEmpty() = assertGallery(listOf(4, 5, 6, 7, 8, 9))
+    @Test fun galleryLeftColumnEmpty() = assertGallery(listOf(2, 3, 5, 6, 8, 9))
+    @Test fun galleryRightColumnEmpty() = assertGallery(listOf(1, 2, 4, 5, 7, 8))
+    @Test fun galleryCornersAndMiddle() = assertGallery(listOf(1, 3, 5, 7, 9))
+
+    /** Een jaartal uit de copyrightregel is geen kaartnummer; een echt nummer met totaal of rarity blijft werken. */
+    @Test
+    fun copyrightYearIsNotACollectorNumber() {
+        assertNull(single("2023", "© WIZARDS OF THE COAST").collectorNumber)
+        assertEquals("229", single("229/254 M", "2023").collectorNumber)
+        assertEquals("374", single("374 R").collectorNumber)
+        assertTrue(ScanParser.isCopyrightYear("2023"))
+        assertFalse(ScanParser.isCopyrightYear("374"))
+    }
+
+    @Test
+    fun madeUpSetAndLanguageAreDropped() {
+        val known = setOf("ONE", "WOT", "MH2")
+        val bogus = nl.spoonpaco.ninegrid.domain.SlotRead(1, "EATUR", "21", "ES", listOf("x"), name = "Mondrak, Glory Dominus")
+        val fixed = ScanParser.sanitize(bogus, known, nameIsEnglish = true)
+        assertNull(fixed.setCode); assertNull(fixed.language); assertEquals("21", fixed.collectorNumber)
+        // Bestaande set, maar de naam is een Engelse kaartnaam: Engels, ook al las de OCR "ES".
+        val spanish = nl.spoonpaco.ninegrid.domain.SlotRead(1, "ONE", "21", "ES", listOf("x"), name = "Mondrak, Glory Dominus")
+        val e = ScanParser.sanitize(spanish, known, nameIsEnglish = true)
+        assertEquals("ONE", e.setCode); assertNull(e.language)
+        // Echt Spaans: de naam is geen Engelse naam.
+        val real = nl.spoonpaco.ninegrid.domain.SlotRead(1, "ONE", "21", "ES", listOf("x"), name = "Mondrak, Gloria Dominus")
+        assertEquals("ES", ScanParser.sanitize(real, known, nameIsEnglish = false).language)
+        // Zonder setlijst blijft de set zoals hij was.
+        assertEquals("EATUR", ScanParser.sanitize(bogus, emptySet(), nameIsEnglish = false).setCode)
+    }
+
+    @Test
+    fun pageSetBeatsAMisreadSet() {
+        val reads = listOf(
+            nl.spoonpaco.ninegrid.domain.SlotRead(1, "ONE", "21", null, listOf("x"), name = "A"),
+            nl.spoonpaco.ninegrid.domain.SlotRead(2, "ONE", "22", null, listOf("x"), name = "B"),
+            nl.spoonpaco.ninegrid.domain.SlotRead(3, "ONE", "23", null, listOf("x"), name = "C"),
+            nl.spoonpaco.ninegrid.domain.SlotRead(4, "TOK", "5", null, listOf("x"), name = "Infested Fleshcutter"),
+        )
+        val fixed = ScanParser.alignToPage(reads, null) { set, r -> set == "ONE" && r.name == "Infested Fleshcutter" }
+        assertEquals("ONE", fixed[3].setCode)
+        // Past de naam niet in de overheersende set, dan blijft de gelezen set staan.
+        assertEquals("TOK", ScanParser.alignToPage(reads, null) { _, _ -> false }[3].setCode)
+        // Een ingevulde set is leidend: er wordt niets aangepast.
+        assertEquals("TOK", ScanParser.alignToPage(reads, "MH2") { _, _ -> true }[3].setCode)
+    }
+
+    @Test
+    fun texturedEmptySleevesAreEmptyWhenNoTextWasRead() {
+        // Kaarten met tekst: structuur rond 20. Een leeg hoesje met glans of strepen: 13 (boven 35%, onder 70%).
+        val e = mapOf(1 to 20.0, 2 to 22.0, 3 to 21.0, 4 to 13.0, 5 to 19.0, 6 to 13.0)
+        val hasText = setOf(1, 2, 3, 5)
+        // Zonder extra bewijs blijven ze kaarten (zoals voorheen).
+        assertEquals(emptySet<Int>(), nl.spoonpaco.ninegrid.domain.EmptySlots.decide(e, hasText))
+        // Is er in die vakken helemaal geen tekst gelezen, dan zijn het lege hoesjes.
+        assertEquals(setOf(4, 6), nl.spoonpaco.ninegrid.domain.EmptySlots.decide(e, hasText, noLines = setOf(4, 6)))
+        // Een vak zonder tekst met bijna dezelfde structuur als de kaarten blijft een kaart.
+        val sharp = e + (6 to 18.0)
+        assertEquals(setOf(4), nl.spoonpaco.ninegrid.domain.EmptySlots.decide(sharp, hasText, noLines = setOf(4, 6)))
+    }
 }

@@ -66,9 +66,15 @@ object ScanParser {
         fun real(v: String?) = v?.takeIf { x -> x.any { it.isDigit() } }
         val raw = numberSlash.findAll(t).firstNotNullOfOrNull { m -> real(m.groupValues[1])?.takeIf { real(m.groupValues[2]) != null } }
             ?: numberLetterFirst.findAll(t).firstNotNullOfOrNull { real(it.groupValues[2]) }
-            ?: (if (bottom) real((numberAlone.find(t) ?: numberThenRarity.find(t))?.groupValues?.get(1)) else null)
-        return raw?.let(::normalizeNumber)
+        if (raw != null) return normalizeNumber(raw)
+        if (!bottom) return null
+        // Een los nummer. Een jaartal ("2023" uit "© 2023 Wizards of the Coast") is geen verzamelnummer.
+        val alone = real((numberAlone.find(t) ?: numberThenRarity.find(t))?.groupValues?.get(1)) ?: return null
+        return normalizeNumber(alone).takeUnless { isCopyrightYear(it) }
     }
+
+    /** Een jaartal van de copyrightregel: vier cijfers tussen 2000 en 2030. */
+    fun isCopyrightYear(n: String) = n.length == 4 && n.all { it.isDigit() } && n.toInt() in 2000..2030
 
     /** Setcode zonder taal ("MH2" alleen op een regel), of null. */
     private fun bareSetIn(t: String): String? = bareSet.matchEntire(t)?.groupValues?.get(1)?.takeIf { it !in notASet }?.let(::fixSetCode)
@@ -92,7 +98,7 @@ object ScanParser {
     }
 
     /** Het kader van het blad: de uiterste tekst op de foto, iets ruimer genomen. Valt terug op de hele foto. */
-    private data class Frame(val left: Float, val top: Float, val right: Float, val bottom: Float)
+    internal data class Frame(val left: Float, val top: Float, val right: Float, val bottom: Float)
 
     /**
      * Het raster van het blad. Met een kader (de hoekjes in de camera) is dat kader het raster; de tekst mag het
@@ -115,7 +121,46 @@ object ScanParser {
             return if (coversAll) f else full
         }
         // Zonder kader: te klein (bijvoorbeeld maar één rij kaarten tekst gevonden)? Dan de hele foto.
-        return if (fw < bw * 0.4f || fh < bh * 0.4f) full else f
+        if (fw < bw * 0.4f || fh < bh * 0.4f) return full
+        return fixStretch(f, maxX - minX, maxY - minY, full)
+    }
+
+    // Kaartmaten (63 x 88 mm): een rij is ongeveer 1,4 keer zo hoog als een kolom breed is.
+    private const val CARD_RATIO = 1.4f
+    // Een volledig blad: de tekst beslaat in de breedte ongeveer 2,35 kolommen (van het begin van de voetregel links
+    // tot het midden van de tekst rechts) en in de hoogte ongeveer 2,86 rijen (van de naam boven tot de voetregel onder).
+    private const val TEXT_COLS = 2.35f
+    private const val TEXT_ROWS = 2.86f
+
+    /**
+     * Een foto zonder kader: is een rij of kolom leeg, dan is de omhullende van de tekst te klein en worden de
+     * andere vakken uitgerekt (de naam en de voetregel van één kaart komen dan in verschillende vakken terecht).
+     * De verhouding hoogte/breedte van de tekst verraadt dat: bij een volledig blad is die ongeveer 1,7.
+     * Onder 1,4 ontbreken rijen, boven 2,1 ontbreken kolommen. Dan kloppen de kaartmaten in de andere richting,
+     * en de ontbrekende richting volgt daaruit (3 rijen = 3 x 1,4 kolommen); vult dat de foto, dan de hele foto.
+     */
+    internal fun fixStretch(f: Frame, textW: Float, textH: Float, full: Frame): Frame {
+        if (textW <= 0f || textH <= 0f) return f
+        val ratio = textH / textW
+        return when {
+            ratio < 1.4f -> {
+                val (top, bottom) = spanOf(3f * CARD_RATIO * (textW / TEXT_COLS), full.top, full.bottom)
+                Frame(f.left, top, f.right, bottom)
+            }
+            ratio > 2.1f -> {
+                val (left, right) = spanOf(3f * (textH / TEXT_ROWS) / CARD_RATIO, full.left, full.right)
+                Frame(left, f.top, right, f.bottom)
+            }
+            else -> f
+        }
+    }
+
+    /** Het blad beslaat [span] van het stuk [lo]..[hi]: vult dat (bijna) alles, dan alles; anders in het midden. */
+    private fun spanOf(span: Float, lo: Float, hi: Float): Pair<Float, Float> {
+        val size = hi - lo
+        if (span >= size * 0.8f) return lo to hi
+        val mid = (lo + hi) / 2f
+        return (mid - span / 2f) to (mid + span / 2f)
     }
 
     private fun slotIn(f: Frame, x: Float, y: Float): Int {
@@ -243,6 +288,36 @@ object ScanParser {
         return r.copy(collectorNumber = number, setCode = set, language = lang, name = name, lines = r.lines + top + bottom, foilStar = r.foilStar || bottom.any { hasStar(it) })
     }
 
+    /**
+     * Haalt verzonnen set en taal uit een vak. De voetregel is klein en wordt vaak verkeerd gelezen ("ONE•EN" als
+     * "EATUR ES"): een setcode die niet bestaat is er dan geen, en de taal die ermee werd gelezen ook niet.
+     * Een niet-Engelse taal telt alleen als de gelezen naam geen Engelse kaartnaam is ([nameIsEnglish]), en zonder
+     * naam alleen bij een volledige set + nummer. Zonder setlijst ([knownSets] leeg) blijft de set zoals hij is.
+     */
+    fun sanitize(r: SlotRead, knownSets: Set<String>, nameIsEnglish: Boolean): SlotRead {
+        var set = r.setCode; var lang = r.language
+        if (knownSets.isNotEmpty() && set != null && set !in knownSets) { set = null; lang = null }
+        if (!lang.isNullOrEmpty()) {
+            if (nameIsEnglish) lang = null
+            else if (r.name == null && !(set != null && r.collectorNumber != null)) lang = null
+        }
+        return if (set == r.setCode && lang == r.language) r else r.copy(setCode = set, language = lang)
+    }
+
+    /**
+     * De set die op het blad overheerst wint van één verlezen set: past de naam (en het nummer, als dat gelezen is)
+     * in de overheersende set, dan hoort de kaart daar. [fits] zegt of de naam/het nummer van dat vak in die set bestaat.
+     */
+    fun alignToPage(reads: List<SlotRead>, forcedSet: String?, fits: (set: String, read: SlotRead) -> Boolean): List<SlotRead> {
+        if (forcedSet != null) return reads
+        val page = dominantSet(reads) ?: return reads
+        return reads.map { r ->
+            if (r.setCode == null || r.setCode == page || r.name == null && r.collectorNumber == null) r
+            else if (fits(page, r)) r.copy(setCode = page, language = if (r.language.isNullOrEmpty()) r.language else null)
+            else r
+        }
+    }
+
     /** Eén losse kaart in het kader: alle tekst hoort bij die kaart. */
     fun analyzeSingle(all: List<OcrLine>, width: Int, height: Int, crop: Area?): ScanResult {
         val lines = if (crop != null) all.filter { crop.contains(it.centerX, it.centerY) } else all
@@ -303,11 +378,16 @@ object EmptySlots {
 
     /**
      * Welke vakken leeg zijn. Vergelijkt met de vakken waar wel tekst is gelezen (die bevatten zeker een kaart):
-     * leeg = minder dan 35% van hun structuur, of in elk geval minder dan [floor]. Zonder vakken met tekst alleen de vaste grens.
+     * leeg = minder dan 35% van hun structuur, of in elk geval minder dan [floor]. Een vak waar helemaal
+     * geen tekst is gelezen ([noLines]) mag wat hoger liggen (70%): lege hoesjes met glans of een streeppatroon
+     * hebben veel structuur, maar een kaart geeft bijna altijd wel een regel tekst. Zonder vakken met tekst alleen de vaste grens.
      */
-    fun decide(energies: Map<Int, Double>, hasText: Set<Int>, floor: Double = 3.0): Set<Int> {
+    fun decide(energies: Map<Int, Double>, hasText: Set<Int>, floor: Double = 3.0, noLines: Set<Int> = emptySet()): Set<Int> {
         val ref = energies.filterKeys { it in hasText }.values.sorted().let { if (it.size >= 2) it[it.size / 2] else null }
-        val limit = if (ref != null) maxOf(floor, ref * 0.35) else floor * 1.5
-        return energies.filter { (slot, e) -> slot !in hasText && e < limit }.keys
+        return energies.filter { (slot, e) ->
+            if (slot in hasText) return@filter false
+            val limit = if (ref != null) maxOf(floor, ref * (if (slot in noLines) 0.7 else 0.35)) else floor * 1.5
+            e < limit
+        }.keys
     }
 }

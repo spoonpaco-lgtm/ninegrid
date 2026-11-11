@@ -546,6 +546,22 @@ class Repository(
         return out
     }
 
+    /** Is dit letterlijk een Engelse kaartnaam? Dan is de kaart Engels, wat de voetregel ook lijkt te zeggen. */
+    suspend fun isEnglishName(name: String): Boolean {
+        val c = cache ?: return false
+        runCatching { c.ensureNames() }
+        return c.namesLoaded && c.isExactName(name)
+    }
+
+    /** Staat een kaart met deze naam (en dit nummer, als dat bekend is) in de setlijst? Voor de set van een blad. */
+    suspend fun fitsSet(set: String, name: String?, number: String?): Boolean {
+        val c = cache ?: return false
+        val list = runCatching { c.setList(set) }.getOrNull() ?: c.cachedSetList(set) ?: return false
+        return list.cards.any { card ->
+            (name == null || namesLookAlike(name, card.name)) && (number == null || card.number.equals(number, true)) && (name != null || number != null)
+        }
+    }
+
     suspend fun resolve(queries: List<CardQuery>, onProgress: ((Int, Int) -> Unit)? = null): List<SfCard?> {
         val first = scryfall.collection(queries).toMutableList()
         // Past de gelezen naam niet bij wat set en nummer opleveren, dan was set of nummer verkeerd gelezen.

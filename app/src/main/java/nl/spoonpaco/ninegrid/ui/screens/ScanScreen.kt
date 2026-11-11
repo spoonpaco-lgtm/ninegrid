@@ -283,7 +283,8 @@ private fun markEmpty(bmp: Bitmap, result: ScanResult): ScanResult {
     }
     // Alleen een naam of nummer met set bewijst een kaart. Losse tekens (reflectie, rand van het hoesje) niet.
     val hasCard = result.slots.filter { it.complete || it.name != null }.map { it.slot }.toSet()
-    val empty = nl.spoonpaco.ninegrid.domain.EmptySlots.decide(energies, hasCard)
+    val noLines = result.slots.filter { it.lines.isEmpty() }.map { it.slot }.toSet()
+    val empty = nl.spoonpaco.ninegrid.domain.EmptySlots.decide(energies, hasCard, noLines = noLines)
     return result.copy(slots = result.slots.map { if (it.slot in empty && it.name == null && !it.complete) it.copy(looksEmpty = true) else it })
 }
 
@@ -438,13 +439,35 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
         }
     }
 
+    /** Ruimt wat de voetregel verkeerd gaf op, zie ScanParser.sanitize en ScanParser.alignToPage. */
+    suspend fun tidy(result: ScanResult, single: Boolean): ScanResult {
+        val known = vm.setInfo.keys.map { it.uppercase() }.toSet()
+        val english = result.slots.associate { r -> r.slot to (r.name?.let { n -> runCatching { vm.repo.isEnglishName(n) }.getOrDefault(false) } ?: false) }
+        var slots = result.slots.map { ScanParser.sanitize(it, known, english[it.slot] == true) }
+        if (!single) {
+            val forced = vm.scanSet.trim().uppercase().ifBlank { null }
+            val page = ScanParser.dominantSet(slots)
+            if (forced == null && page != null) {
+                val fits = HashMap<Int, Boolean>()
+                for (r in slots) {
+                    if (r.setCode == null || r.setCode == page) continue
+                    fits[r.slot] = runCatching { vm.repo.fitsSet(page, r.name, r.collectorNumber) }.getOrDefault(false)
+                }
+                slots = ScanParser.alignToPage(slots, forced) { _, r -> fits[r.slot] == true }
+            }
+        }
+        return result.copy(slots = slots)
+    }
+
     fun process(bmp: Bitmap, crop: Area?, fromCamera: Boolean) {
         scope.launch {
             runCatching {
                 val t0 = System.currentTimeMillis()
                 val sharp = withContext(Dispatchers.Default) { runCatching { sharpness(bmp, crop) }.getOrDefault(100.0) }
                 val first = readImage(bmp, crop, single)
-                val (r0, reread) = reread(bmp, first, single, vm.setInfo.keys)
+                val (r00, reread) = reread(bmp, first, single, vm.setInfo.keys)
+                // Verzonnen setcodes en talen eruit, en de set van het blad boven een verlezen set.
+                val r0 = tidy(r00, single)
                 // Vakken zonder tekst: is er echt niets, of een kaart die we niet konden lezen?
                 val r = if (single) r0 else withContext(Dispatchers.Default) { runCatching { markEmpty(bmp, r0) }.getOrDefault(r0) }
                 vm.lastReadMs = System.currentTimeMillis() - t0
