@@ -2,7 +2,7 @@
 
 *Nederlands: [FEATURES.nl.md](FEATURES.nl.md)*
 
-Current version: **0.9.6 – Chandra**. Every version is named after a planeswalker.
+Current version: **0.9.7 – Teyo**. Every version is named after a planeswalker.
 
 ## What makes NineGrid different
 
@@ -23,7 +23,7 @@ Current version: **0.9.6 – Chandra**. Every version is named after a planeswal
 - **Scan a binder page of 9 cards** in one photo, or **one card at a time** with automatic capture. Text recognition runs on your phone.
 - Reads name, set and collector number, including **foreign-language cards** (the printed name is checked, the English print supplies the price).
 - **Set field**: fill in the set of a page for much more reliable recognition; remembered for the next scan.
-- **Foil per slot**: tap the small grid of the last photo (with ✦), then tap a slot (or All foil).
+- **Foil per slot**: tap the small grid of the last photo (with ✦), then tap a slot (or All foil). If the scanner reads the **foil star ★**, the card is already set to foil (orange: one tap confirms).
 - **Steady frame**: the frame doesn't move after a photo; discard a failed scan with 🗑 (with Restore).
 - Result in colour (● found, ● to check), with a **Check** button showing how many need a look.
 - **Review screen**: your photo next to the found card, search a card yourself, quantity, foil, language, condition, proxy.
@@ -33,14 +33,14 @@ Current version: **0.9.6 – Chandra**. Every version is named after a planeswal
 
 ## Collection
 - Switch **My collection | All cards | Wishlist**.
-- Search, **filter** (rarity, colour, type, foil, binder, also in decks, rules text) and **sort** (set, name, price, by binder); filters are remembered.
+- Search, **filter** (rarity, colour, type, foil, Game Changers, binder, also in decks, rules text) and **sort** (set, name, price, by binder); filters are remembered.
 - **All cards**: search every Magic card (offline database or Scryfall), with a label for what you already have and the filter "Only what I don't have".
-- **Wishlist**: any or an exact print, foil only, quantity; ticked off when you scan; Bought in one tap; paste a list.
+- **Wishlist**: any or an exact print, foil only, quantity; ticked off when you scan; tap = card screen, ✎ = edit, Bought in one tap; paste a list.
 - **Price alert** on the wishlist: target ready at −10%, one notification a day, the cheapest print when any print will do.
-- **Page view** per binder: 3×3 with foil, stacks and empty slots; all pages on one screen; long press to move.
+- **Page view** per binder: 3×3 that always fits on one screen, with foil, stacks and empty slots; all pages on one screen; long press to move.
 - **Card screen**: the card large (full screen with one tap, foil shine when tilting), normal and foil price, legality per format, which friends have it, links to Scryfall and Cardmarket / TCGplayer.
 - **Locations**: binder, page and slot per card.
-- **Sets screen**: completeness per set and per rarity, a Complete stamp, missing cards, variants; **Completionist** (checkbox with ⓘ) counts only cards in binders, not in decks.
+- **Sets screen**: completeness per set and per rarity, a Complete stamp, missing cards, variants; **Completionist** (checkbox with ⓘ) counts only cards in binders, not in decks. Set screen with a header card, a Missing | I have switch, and per card ♡ and + or where it is.
 
 ## Decks
 - Decks per format (Commander, Modern, Pioneer, Standard, Legacy, Pauper, Casual) with **legality check**.
@@ -48,13 +48,13 @@ Current version: **0.9.6 – Chandra**. Every version is named after a planeswal
 - **Commander bracket estimate**: game changers, mass land denial, extra turns, tutors and two-card combos.
 - **Statistics**: mana curve with a verdict per deck type and **land advice** (Frank Karsten's formula), colours in costs versus lands, odds of 2–4 lands with **Draw 7** (sample hand with mulligan), card types.
 - **Combos** via Commander Spellbook: combos in the deck, influence on the bracket, almost-combos with an action per status (In deck, Trade match, On wishlist). Shows when the deck changed since the last search.
-- **Suggestions** from your own collection: roles as bars with targets per deck type (automatic, or your choice), tick cards for a role yourself, what to add, better lands, what to cut, and **At friends**. Review every swap before it happens.
+- **Suggestions** from your own collection: roles as bars with targets per deck type (automatic, or your choice), tick cards for a role yourself, what to add, better lands, what to cut, and **At friends**. Review every swap before it happens. The blocks fold and unfold and explain what they are.
 - **Legal** or **Banned** stamp.
 - Fill a deck from your collection; cards move, nothing is counted twice.
 
 ## Overview and prices
 - Prices from **Cardmarket (EUR)** or **TCGplayer (USD)** via Scryfall, refreshed daily in the background.
-- **Value over time** from day one, per line: total, sets, decks, a single deck or set; also the **price movement** without additions and removals.
+- **Value over time** from day one, per line: total, sets, decks, a single deck or set; also the **price movement** without additions and removals. The axis follows the values (small changes show) and the number of cards runs along as a second line.
 - **Winner of the Week**: the card that gained you the most.
 - **Breakout** alert: a card you own rises at least €3 and 25% in a day.
 - Price movements as loyalty shields (▲ +6 / ▼ −3).
@@ -74,11 +74,11 @@ Current version: **0.9.6 – Chandra**. Every version is named after a planeswal
 
 ## Safety and comfort
 - **Change log with undo**: every change, also a whole import or a whole deck, can be undone.
-- **Backup** by hand or weekly to a folder of your choice; restore on a new phone; CSV export.
+- **Backup** by hand or weekly to a folder of your choice; restore on a new phone, everything or separate parts, with a summary of what is inside; CSV export.
 - **Update from the app**: daily check, background download (wifi by default), one tap to install.
 - **Privacy mode**: all amounts hidden except in the trade match; turning off, peeking, backup and export only with your fingerprint; styles compleated, seal, shadow and dots.
 - Settings in eight groups; date and time format of your choice; day and night (sun and moon); **guild colours**; Magic effects (foil shine when tilting, exile, stamps) can be turned off; English and Dutch.
-- Backup also includes the wishlist, boosters and price alerts.
+- The backup is complete: cards, decks and deck rules, history, wishlist and price alerts, boosters, friends, change log and settings (not: AI key, offline database, images).
 - **Guide** in the app with search, a ? on every screen, and **What's new** after an update.
 
 ## Planned

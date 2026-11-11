@@ -28,17 +28,25 @@ object WhatsNew {
     fun items(dutch: Boolean): List<Item> = if (dutch) NL else EN
 
     private val NL = listOf(
-        Item("Scannen: het kader is het raster, dus lege vakken schuiven de andere kaarten niet meer op. Een leeg vak staat grijs als Leeg vak.", "add"),
-        Item("De lamp in de scanner blijft aan na een foto.", "add"),
-        Item("In de scanner betekent oranje alleen nog controleren: witte hoekjes, en ✓ bij een ingevulde set.", "add"),
-        Item("Manakosten naast de naam in je collectie, en een overzichtelijkere verlanglijst (tik = bewerken, ✓ = gekocht).", "collection"),
+        Item("Deck importeren met verschillende landjes: je krijgt nu precies de prints uit je lijst. Basic lands komen alleen nog uit je collectie als het dezelfde print is; bij andere kaarten zie je welke print er uit je collectie komt.", "decks"),
+        Item("De bladweergave past altijd op één scherm, het app-icoon past in het rondje, en de melding met Ongedaan maken staat boven de navigatiebalk van Android.", "binders"),
+        Item("Scanner: leest nummers beter (O/0 en I/1 hersteld), herkent de ster ★ van foils en zet die kaart alvast op foil (oranje: even controleren), en leest sneller.", "add"),
+        Item("Grafiek: de as volgt de waarden, zodat je ook kleine veranderingen ziet. Het aantal kaarten loopt mee als tweede lijn, en Koers heet nu Prijsbeweging.", "overview"),
+        Item("Back-up compleet: ook instellingen, deckregels, vrienden en het wijzigingslog. Je ziet wat erin zit en kiest bij terugzetten wat je terugzet.", "backup"),
+        Item("Setscherm vernieuwd: kopkaart met voortgang, schakelaar Ontbreekt | Heb ik, en per kaart ♡ en + of waar hij ligt.", "collection"),
+        Item("Manakosten staan nu rechts, vlak vóór de prijs, altijd even groot. Nieuw filter Game Changers. Verlanglijst: tik = kaartscherm, ✎ = bewerken.", "collection"),
+        Item("Suggesties bij een deck: de blokken klappen in en uit en leggen uit wat ze zijn.", "decks"),
     )
 
     private val EN = listOf(
-        Item("Scanning: the frame is the grid, so empty slots no longer shift the other cards. An empty slot shows in grey as Empty slot.", "add"),
-        Item("The scanner light stays on after a photo.", "add"),
-        Item("In the scanner, orange now only means check: white corners, and ✓ for a filled-in set.", "add"),
-        Item("Mana costs next to the name in your collection, and a clearer wishlist (tap = edit, ✓ = bought).", "collection"),
+        Item("Importing a deck with different lands: you now get exactly the prints from your list. Basic lands only come out of your collection when it is the same print; for other cards you see which print comes out of your collection.", "decks"),
+        Item("The page view always fits on one screen, the app icon fits in the circle, and the message with Undo sits above Android's navigation bar.", "binders"),
+        Item("Scanner: reads numbers better (O/0 and I/1 repaired), recognises the foil star ★ and already sets that card to foil (orange: have a look), and reads faster.", "add"),
+        Item("Chart: the axis follows the values, so small changes show too. The number of cards runs along as a second line, and Market is now called Price movement.", "overview"),
+        Item("Complete backup: settings, deck rules, friends and the change log too. You see what is in it and choose what to restore.", "backup"),
+        Item("New set screen: header card with progress, a Missing | I have switch, and per card ♡ and + or where it is.", "collection"),
+        Item("Mana costs are now on the right, just before the price, always the same size. New Game Changers filter. Wishlist: tap = card screen, ✎ = edit.", "collection"),
+        Item("Deck suggestions: the blocks fold and unfold and explain what they are.", "decks"),
     )
 }
 
