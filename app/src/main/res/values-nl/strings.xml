@@ -996,4 +996,12 @@
     <string name="dev_scan_report_explain">Na een scan deelt de knop de foto en per vak wat er gelezen is en wat de app ervan maakte. Jij kiest waar het heen gaat.</string>
     <string name="scan_share_report">Scan delen (foto en rapport)</string>
     <string name="card_position">%1$d van %2$d</string>
+    <string name="badge_new">NIEUW</string>
+    <string name="filter_new">Nieuw</string>
+    <string name="sort_newest">Nieuwste eerst</string>
+    <string name="new_label_title">Label NIEUW</string>
+    <string name="new_label_howlong">Hoelang een kaart NIEUW blijft</string>
+    <string name="new_days_unit">d</string>
+    <string name="new_label_explain">Kaarten die je toevoegt door te scannen, met de hand of via importeren krijgen een label NIEUW. Alleen losse kaarten; kaarten in een deck nooit.</string>
+    <string name="new_all_seen">Alles gezien</string>
 </resources>

@@ -395,6 +395,15 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit, onGuide: () -> Unit = {
                         keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal))
                     Text(stringResource(R.string.booster_bulk_explain), fontSize = 12.sp, color = LocalNgExtra.current.subtle)
                     Spacer(Modifier.height(16.dp))
+                    // Label NIEUW: hoelang het blijft staan.
+                    Text(stringResource(R.string.new_label_title), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                    val newOff = stringResource(R.string.off)
+                    val dayWord = stringResource(R.string.new_days_unit)
+                    ChoiceRow(stringResource(R.string.new_label_howlong), nl.spoonpaco.ninegrid.domain.NewLabel.CHOICES.map { it.toString() }, settings.newDays.toString(),
+                        { if (it == "0") newOff else "$it $dayWord" }) { vm.setNewDays(it.toInt()) }
+                    Text(stringResource(R.string.new_label_explain), fontSize = 12.sp, color = LocalNgExtra.current.subtle)
+                    OutlinedButton(onClick = { vm.markNewSeen() }) { Text(stringResource(R.string.new_all_seen)) }
+                    Spacer(Modifier.height(16.dp))
                     Text(stringResource(R.string.completionist), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(stringResource(R.string.completionist_explain), fontSize = 13.sp, modifier = Modifier.weight(1f))

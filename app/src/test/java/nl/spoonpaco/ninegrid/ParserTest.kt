@@ -771,6 +771,21 @@ class ParserTest {
         assertTrue(text.contains("1 van 2"))
     }
 
+    /** Label NIEUW: alleen losse kaarten, binnen het aantal dagen, en niet als alles als gezien is gemarkeerd. */
+    @Test
+    fun newLabelRules() {
+        val day = nl.spoonpaco.ninegrid.domain.NewLabel.DAY
+        val now = 100 * day
+        fun isNew(addedDaysAgo: Int, deck: Long? = null, days: Int = 7, seenDaysAgo: Int? = null) =
+            nl.spoonpaco.ninegrid.domain.NewLabel.isNew(now - addedDaysAgo * day, deck, now, days, if (seenDaysAgo == null) 0L else now - seenDaysAgo * day)
+        assertTrue(isNew(0)); assertTrue(isNew(6)); assertFalse(isNew(7))
+        assertFalse(isNew(1, deck = 5L))            // in een deck: nooit nieuw
+        assertFalse(isNew(0, days = 0))             // label uit
+        assertTrue(isNew(10, days = 30)); assertFalse(isNew(10, days = 3))
+        assertFalse(isNew(2, seenDaysAgo = 1))      // toegevoegd vóór Alles gezien
+        assertTrue(isNew(1, seenDaysAgo = 2))       // toegevoegd erna
+    }
+
     /** De as van de grafiek volgt de waarden: een verandering van een paar euro op duizenden is zichtbaar. */
     @Test
     fun chartAxisFollowsTheValues() {

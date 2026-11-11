@@ -721,6 +721,8 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun setScanMode(v: String) = viewModelScope.launch { settingsStore.setScanMode(v) }
     fun setBackupAsked() = viewModelScope.launch { settingsStore.setBackupAsked(true) }
     fun setShowTiming(v: Boolean) = viewModelScope.launch { settingsStore.setShowTiming(v) }
+    fun setNewDays(v: Int) = viewModelScope.launch { settingsStore.setNewDays(v) }
+    fun markNewSeen() = viewModelScope.launch { settingsStore.markNewSeen() }
     fun setDevScanReport(v: Boolean) = viewModelScope.launch { settingsStore.setDevScanReport(v) }
 
     // Ontwikkelaar: de laatste scan, voor het scanrapport.

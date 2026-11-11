@@ -70,6 +70,7 @@ import nl.spoonpaco.ninegrid.data.db.EntryWithPrint
 import nl.spoonpaco.ninegrid.data.db.Finish
 import nl.spoonpaco.ninegrid.domain.Money
 import nl.spoonpaco.ninegrid.ui.AppViewModel
+import nl.spoonpaco.ninegrid.ui.components.isNew
 import nl.spoonpaco.ninegrid.ui.theme.LocalNgExtra
 import nl.spoonpaco.ninegrid.ui.theme.NgColors
 
@@ -250,6 +251,9 @@ private fun SlotCard(
             Text("${p?.setCode} ${p?.collectorNumber}", fontSize = 10.sp, color = LocalNgExtra.current.subtle)
         }
         if (foil) Text("✦", color = NgColors.Amber, fontSize = 14.sp, modifier = Modifier.align(Alignment.TopStart).padding(4.dp))
+        // Label NIEUW: een kaart die je net hebt toegevoegd.
+        if (here.any { it.entry.isNew(settings) }) Text(stringResource(R.string.badge_new), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 9.sp,
+            modifier = Modifier.align(Alignment.TopCenter).padding(top = 4.dp).background(NgColors.Synced, RoundedCornerShape(6.dp)).padding(horizontal = 4.dp))
         if (qty > 1 && prints == 1) Text("×$qty", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 11.sp,
             modifier = Modifier.align(Alignment.BottomStart).padding(4.dp).background(NgColors.Amber, RoundedCornerShape(8.dp)).padding(horizontal = 5.dp))
         if (prints > 1) Text(stringResource(R.string.binder_n_cards, prints), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 10.sp,

@@ -67,6 +67,7 @@ import nl.spoonpaco.ninegrid.domain.Money
 import nl.spoonpaco.ninegrid.ui.AppViewModel
 import nl.spoonpaco.ninegrid.ui.components.CardFilter
 import nl.spoonpaco.ninegrid.ui.components.CardRow
+import nl.spoonpaco.ninegrid.ui.components.isNew
 import nl.spoonpaco.ninegrid.ui.components.CardSearchDialog
 import nl.spoonpaco.ninegrid.ui.components.EmptyState
 import nl.spoonpaco.ninegrid.ui.components.FilterGroup
@@ -122,7 +123,7 @@ fun CollectionScreen(
     val binderList = remember(all) { all.filter { it.entry.deckId == null }.mapNotNull { it.entry.binder?.takeIf { b -> b.isNotBlank() } }.distinct().sortedBy { it.lowercase() } }
 
     // Alleen opnieuw uitrekenen als de kaarten of de filters echt veranderen (scheelt veel bij duizenden kaarten).
-    val filtered = remember(all, query, filter) { all.filter { filter.matches(it, query) } }
+    val filtered = remember(all, query, filter, settings.newDays, settings.newSeenAt) { all.filter { filter.matches(it, query) { e -> e.isNew(settings) } } }
     val count = remember(filtered) { filtered.sumOf { it.entry.quantity } }
     val value = remember(filtered, settings.currency) { filtered.sumOf { Money.total(it.entry, it.print, settings.currency) } }
     data class Group(val key: String, val title: String, val count: Int, val value: Double, val cards: List<nl.spoonpaco.ninegrid.data.db.EntryWithPrint>, val binder: String? = null)
@@ -151,6 +152,7 @@ fun CollectionScreen(
         when (sort) {
             "price" -> filtered.sortedByDescending { Money.total(it.entry, it.print, settings.currency) }
             "name" -> filtered.sortedBy { it.print?.name ?: "" }
+            "new" -> filtered.sortedByDescending { it.entry.addedAt }
             else -> emptyList()
         }
     }
@@ -222,8 +224,8 @@ fun CollectionScreen(
                     FilterSearchBar(
                         query = query, onQuery = { query = it }, placeholder = stringResource(R.string.search_hint),
                         filter = filter, onFilter = { vm.setFilter("collection", it) },
-                        groups = setOf(FilterGroup.RARITY, FilterGroup.COLOR, FilterGroup.TYPE, FilterGroup.FOIL, FilterGroup.DECKS, FilterGroup.TEXT, FilterGroup.BINDER, FilterGroup.GAME_CHANGER),
-                        sortOptions = listOf("set" to stringResource(R.string.sort_set), "binder" to stringResource(R.string.sort_binder), "price" to stringResource(R.string.sort_price), "name" to stringResource(R.string.sort_name)),
+                        groups = setOf(FilterGroup.RARITY, FilterGroup.COLOR, FilterGroup.TYPE, FilterGroup.FOIL, FilterGroup.DECKS, FilterGroup.TEXT, FilterGroup.BINDER, FilterGroup.NEW, FilterGroup.GAME_CHANGER),
+                        sortOptions = listOf("set" to stringResource(R.string.sort_set), "binder" to stringResource(R.string.sort_binder), "price" to stringResource(R.string.sort_price), "name" to stringResource(R.string.sort_name), "new" to stringResource(R.string.sort_newest)),
                         sort = sort, onSort = { vm.setCollectionSort(it) },
                         binderOptions = binderList,
                     )

@@ -194,7 +194,8 @@ class Repository(
                 val match = existing.firstOrNull { sameStack(it, e) }
                 if (match != null) {
                     if (changed.none { it.id == match.id } && match.id !in created) changed += match
-                    val updated = match.copy(quantity = match.quantity + e.quantity)
+                    // Een extra exemplaar in de collectie telt als nieuw toegevoegd; in een deck blijft de oude datum.
+                    val updated = match.copy(quantity = match.quantity + e.quantity, addedAt = if (match.deckId == null) System.currentTimeMillis() else match.addedAt)
                     db.entries().upsert(listOf(updated))
                     existing[existing.indexOf(match)] = updated
                 } else {

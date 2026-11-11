@@ -45,6 +45,10 @@ data class AppSettings(
     val backupAsked: Boolean = false,
     /** Na elke scan tonen hoe lang de herkenning duurde. */
     val showTiming: Boolean = false,
+    /** Hoelang het label NIEUW blijft, in dagen; 0 = uit. */
+    val newDays: Int = 7,
+    /** Alles wat vóór dit moment is toegevoegd telt als gezien (knop Alles gezien). */
+    val newSeenAt: Long = 0L,
     /** Ontwikkelaar: knop Scan delen op het controlescherm (foto en per vak wat gelezen is). */
     val devScanReport: Boolean = true,
     /** Trillen als de foto genomen is. */
@@ -124,7 +128,7 @@ class SettingsStore(private val context: Context) {
     private val NOT_IN_BACKUP = setOf(
         "backup_folder", "last_backup", "backup_asked", "onboarding_done", "last_update_check", "last_price_update",
         "offline_db_updated", "offline_db_count", "offline_db_offered", "last_breakout_day", "last_seen_version",
-        "ai_count_day", "ai_count",
+        "ai_count_day", "ai_count", "new_seen_at",
     )
 
     private object K {
@@ -144,6 +148,8 @@ class SettingsStore(private val context: Context) {
         val scanMode = stringPreferencesKey("scan_mode")
         val backupAsked = booleanPreferencesKey("backup_asked")
         val showTiming = booleanPreferencesKey("show_timing")
+        val newDays = androidx.datastore.preferences.core.intPreferencesKey("new_days")
+        val newSeenAt = longPreferencesKey("new_seen_at")
         val devScanReport = booleanPreferencesKey("dev_scan_report")
         val haptics = booleanPreferencesKey("haptics")
         val shutterSound = booleanPreferencesKey("shutter_sound")
@@ -238,6 +244,8 @@ class SettingsStore(private val context: Context) {
         backupAsked = this[K.backupAsked] ?: false,
         // Nieuwe installaties: standaard uit. Wie al bezig was (en nooit koos), houdt ze aan zoals voorheen.
         showTiming = this[K.showTiming] ?: (this[K.onboarding] == true),
+        newDays = this[K.newDays] ?: 7,
+        newSeenAt = this[K.newSeenAt] ?: 0L,
         devScanReport = this[K.devScanReport] ?: true,
         haptics = this[K.haptics] ?: true,
         shutterSound = this[K.shutterSound] ?: false,
@@ -300,6 +308,8 @@ class SettingsStore(private val context: Context) {
     suspend fun setScanMode(v: String) = context.dataStore.edit { it[K.scanMode] = v }
     suspend fun setBackupAsked(v: Boolean) = context.dataStore.edit { it[K.backupAsked] = v }
     suspend fun setShowTiming(v: Boolean) = context.dataStore.edit { it[K.showTiming] = v }
+    suspend fun setNewDays(v: Int) = context.dataStore.edit { it[K.newDays] = v }
+    suspend fun markNewSeen() = context.dataStore.edit { it[K.newSeenAt] = System.currentTimeMillis() }
     suspend fun setDevScanReport(v: Boolean) = context.dataStore.edit { it[K.devScanReport] = v }
     suspend fun setHaptics(v: Boolean) = context.dataStore.edit { it[K.haptics] = v }
     suspend fun setShutterSound(v: Boolean) = context.dataStore.edit { it[K.shutterSound] = v }

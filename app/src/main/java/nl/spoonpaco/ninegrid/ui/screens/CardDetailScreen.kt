@@ -71,6 +71,7 @@ import nl.spoonpaco.ninegrid.domain.Formats
 import nl.spoonpaco.ninegrid.domain.Money
 import nl.spoonpaco.ninegrid.ui.AppViewModel
 import nl.spoonpaco.ninegrid.ui.components.FoilBadge
+import nl.spoonpaco.ninegrid.ui.components.isNew
 import nl.spoonpaco.ninegrid.ui.components.ManaPips
 import nl.spoonpaco.ninegrid.ui.components.SmallTag
 import nl.spoonpaco.ninegrid.ui.theme.LocalNgExtra
@@ -239,6 +240,7 @@ fun CardDetailScreen(vm: AppViewModel, printId: String, onBack: () -> Unit, onFr
                                 modifier = Modifier.weight(1f).let { m -> if (e.deckId == null && !e.binder.isNullOrBlank()) m.clickable { onBinder(e.binder!!, e.page, e.slot) } else m },
                             )
                             FoilBadge(e.finish)
+                            if (e.isNew(settings)) nl.spoonpaco.ninegrid.ui.components.NewBadge()
                             if (e.language.isNotBlank()) SmallTag(e.language)
                             SmallTag(e.condition)
                             if (e.proxy) SmallTag(stringResource(R.string.proxy), NgColors.Proxy)

@@ -151,6 +151,14 @@ fun RowManaCost(print: CardPrint?, size: Int = 15) {
 }
 
 /** Eén regel in een lijst: rarity-streep, naam, set, manakosten en prijs. */
+/** Heeft deze kaart het label NIEUW, volgens de instelling voor hoelang het blijft? */
+fun Entry.isNew(settings: AppSettings): Boolean =
+    nl.spoonpaco.ninegrid.domain.NewLabel.isNew(addedAt, deckId, System.currentTimeMillis(), settings.newDays, settings.newSeenAt)
+
+/** Klein label NIEUW naast de naam van een kaart. */
+@Composable
+fun NewBadge() = SmallTag(stringResource(R.string.badge_new), NgColors.Synced)
+
 @Composable
 fun CardRow(
     entry: Entry,
@@ -190,6 +198,7 @@ fun CardRow(
                         modifier = Modifier.weight(1f, fill = false),
                     )
                     FoilBadge(entry.finish)
+                    if (entry.isNew(settings)) NewBadge()
                     if (entry.language.isNotBlank()) SmallTag(entry.language)
                     if (entry.proxy) SmallTag(stringResource(R.string.proxy), NgColors.Proxy)
                     if (entry.condition != "NM") SmallTag(entry.condition)
