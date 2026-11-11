@@ -1507,6 +1507,15 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun setSuggCollapsed(deckId: Long, v: Set<String>) = deckUiPrefs.edit().putStringSet("sugg_closed_$deckId", v).apply()
     fun deckSort(deckId: Long): String = deckUiPrefs.getString("sort_$deckId", "mana") ?: "mana"
     /** Combo's als kaartjes (standaard) of als namen; één keuze voor alle decks. */
+    fun comboCollapsed(deckId: Long): Set<String> = deckUiPrefs.getStringSet("combo_closed_$deckId", emptySet()).orEmpty().toSet()
+    fun setComboCollapsed(deckId: Long, v: Set<String>) = deckUiPrefs.edit().putStringSet("combo_closed_$deckId", v).apply()
+    /** Kaartscherm van een kaart die je niet hebt: zoek hem op naam bij Scryfall en geef het id door. */
+    fun openCardByName(name: String, go: (String) -> Unit) {
+        viewModelScope.launch {
+            val c = runCatching { repo.scryfall.cardByName(name, null) }.getOrNull()
+            if (c != null) go(c.id) else message = str(R.string.not_found)
+        }
+    }
     fun comboCards(): Boolean = (deckUiPrefs.getString("combo_cards", "1") ?: "1") == "1"
     fun setComboCards(v: Boolean) = deckUiPrefs.edit().putString("combo_cards", if (v) "1" else "0").apply()
     fun setDeckSort(deckId: Long, v: String) = deckUiPrefs.edit().putString("sort_$deckId", v).apply()

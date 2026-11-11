@@ -345,7 +345,7 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
             }
             if (tab == 1) item { DeckStatsPanel(vm, d, list, onLands = { tab = 3 }) }
             if (tab == 2) item { CombosPanel(vm, d, report, onFriend, onCard) }
-            if (tab == 3) item { SuggestionsPanel(vm, d, list, onFriend) }
+            if (tab == 3) item { SuggestionsPanel(vm, d, list, onFriend, onCard) }
             // Tabblad Kaarten: zoeken en toevoegen op één regel, dan de kaarten per type.
             if (tab == 0) item(key = "tools") {
                 Row(Modifier.padding(horizontal = 12.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -788,6 +788,9 @@ private fun CombosPanel(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.db.De
     val settings by vm.settings.collectAsState()
     var asCards by remember { mutableStateOf(vm.comboCards()) }
     var big by remember { mutableStateOf<String?>(null) }
+    // De twee blokken klappen in en uit; per deck onthouden, standaard open.
+    var comboClosed by remember(deck.id) { mutableStateOf(vm.comboCollapsed(deck.id)) }
+    fun toggleCombo(k: String) { comboClosed = if (k in comboClosed) comboClosed - k else comboClosed + k; vm.setComboCollapsed(deck.id, comboClosed) }
     Column(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(
@@ -799,10 +802,7 @@ private fun CombosPanel(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.db.De
             }
         }
         if (vm.comboLoading) androidx.compose.material3.LinearProgressIndicator(Modifier.fillMaxWidth().padding(horizontal = 16.dp))
-        if (report != null) Row(Modifier.padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            androidx.compose.material3.FilterChip(selected = asCards, onClick = { asCards = true; vm.setComboCards(true) }, label = { Text(stringResource(R.string.combos_view_cards)) })
-            androidx.compose.material3.FilterChip(selected = !asCards, onClick = { asCards = false; vm.setComboCards(false) }, label = { Text(stringResource(R.string.combos_view_names)) })
-        }
+        if (report != null) ThumbnailSwitch(asCards) { asCards = it; vm.setComboCards(it) }
         if (report == null) {
             Text(stringResource(R.string.combos_explain), fontSize = NgText.body, color = extra.subtle, modifier = Modifier.padding(16.dp))
             return@Column
@@ -821,7 +821,7 @@ private fun CombosPanel(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.db.De
             )
             report.spellbookTag?.let { Text(stringResource(R.string.combos_spellbook_tag, spellbookTagLabel(it)), fontSize = NgText.body, color = extra.subtle) }
         }
-        TabCard(stringResource(R.string.combos_in_deck), trailing = { Text("${report.included.size}", color = extra.subtle) }) {
+        TabCard(stringResource(R.string.combos_in_deck), trailing = { Text("${report.included.size}", color = extra.subtle) }, closed = "in" in comboClosed, onToggle = { toggleCombo("in") }) {
             if (report.included.isEmpty()) Text(stringResource(R.string.combos_none), fontSize = NgText.body, color = extra.subtle)
             report.included.forEachIndexed { i, c ->
                 if (i > 0) androidx.compose.material3.HorizontalDivider(Modifier.padding(vertical = 6.dp))
@@ -837,7 +837,7 @@ private fun CombosPanel(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.db.De
                 }
             }
         }
-        if (report.almost.isNotEmpty()) TabCard(stringResource(R.string.combos_almost_title), trailing = { Text("${report.almost.size}", color = extra.subtle) }) {
+        if (report.almost.isNotEmpty()) TabCard(stringResource(R.string.combos_almost_title), trailing = { Text("${report.almost.size}", color = extra.subtle) }, closed = "almost" in comboClosed, onToggle = { toggleCombo("almost") }) {
             report.almost.forEachIndexed { i, c ->
                 if (i > 0) androidx.compose.material3.HorizontalDivider(Modifier.padding(vertical = 6.dp))
                 val missing = c.missing.first()
@@ -867,13 +867,21 @@ private fun CombosPanel(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.db.De
         }
         Text(stringResource(R.string.combos_credit), fontSize = NgText.caption, color = extra.subtle, modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp))
     }
-    big?.let { url ->
-        androidx.compose.ui.window.Dialog(onDismissRequest = { big = null }) {
-            coil.compose.AsyncImage(
-                model = vm.images.request(url, settings), imageLoader = vm.images.loader, contentDescription = null,
-                modifier = Modifier.fillMaxWidth().clip(NgShape.Large).clickable { big = null },
-            )
-        }
+    BigCardDialog(vm, settings, big) { big = null }
+}
+
+/** Eén segmentbalk Thumbnails | Namen, op Combo's en Suggesties op dezelfde plek. */
+@Composable
+private fun ThumbnailSwitch(asCards: Boolean, onChange: (Boolean) -> Unit) {
+    androidx.compose.material3.SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 2.dp)) {
+        androidx.compose.material3.SegmentedButton(
+            selected = asCards, onClick = { onChange(true) },
+            shape = androidx.compose.material3.SegmentedButtonDefaults.itemShape(0, 2),
+        ) { Text("▦ " + stringResource(R.string.combos_view_cards)) }
+        androidx.compose.material3.SegmentedButton(
+            selected = !asCards, onClick = { onChange(false) },
+            shape = androidx.compose.material3.SegmentedButtonDefaults.itemShape(1, 2),
+        ) { Text("☰ " + stringResource(R.string.combos_view_names)) }
     }
 }
 
@@ -881,6 +889,42 @@ private fun CombosPanel(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.db.De
 private fun comboImageUrl(vm: AppViewModel, name: String, large: Boolean): String {
     val own = vm.entries.value.firstOrNull { it.print?.name?.substringBefore(" // ").equals(name, true) }?.print
     return vm.images.urlFor(own, large) ?: ("https://api.scryfall.com/cards/named?format=image&version=" + (if (large) "normal" else "small") + "&exact=" + java.net.URLEncoder.encode(name, "UTF-8"))
+}
+
+/** Een kleine kaartafbeelding op naam. Tik opent het kaartscherm (ook van een kaart die je niet hebt), vasthouden toont hem groot. */
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+@Composable
+private fun CardThumbByName(
+    vm: AppViewModel, settings: nl.spoonpaco.ninegrid.data.AppSettings, name: String, onCard: (String) -> Unit, onBig: (String) -> Unit,
+    width: Int = 72, dimmed: Boolean = false,
+) {
+    val extra = LocalNgExtra.current
+    val shape = NgShape.Small
+    val ownedId = vm.entries.value.firstOrNull { it.print?.name?.substringBefore(" // ").equals(name, true) }?.print?.id
+    Box(
+        Modifier.width(width.dp).height((width * 1.4f).dp).clip(shape)
+            .let { m -> if (dimmed) m.border(1.5.dp, NgColors.Amber, shape) else m }
+            .background(extra.subtle.copy(alpha = 0.15f))
+            .combinedClickable(onClick = { if (ownedId != null) onCard(ownedId) else vm.openCardByName(name, onCard) }, onLongClick = { onBig(comboImageUrl(vm, name, true)) }),
+    ) {
+        coil.compose.AsyncImage(
+            model = vm.images.request(comboImageUrl(vm, name, false), settings), imageLoader = vm.images.loader, contentDescription = name,
+            contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+            alpha = if (dimmed) 0.45f else 1f, modifier = Modifier.matchParentSize(),
+        )
+    }
+}
+
+/** De grote kaart na lang indrukken. */
+@Composable
+private fun BigCardDialog(vm: AppViewModel, settings: nl.spoonpaco.ninegrid.data.AppSettings, url: String?, onClose: () -> Unit) {
+    if (url == null) return
+    androidx.compose.ui.window.Dialog(onDismissRequest = onClose) {
+        coil.compose.AsyncImage(
+            model = vm.images.request(url, settings), imageLoader = vm.images.loader, contentDescription = null,
+            modifier = Modifier.fillMaxWidth().clip(NgShape.Large).clickable(onClick = onClose),
+        )
+    }
 }
 
 /** Een combo als kaartjes met + ertussen (of als namen). Tik opent de kaart, lang indrukken toont hem groot. */
@@ -895,21 +939,7 @@ private fun ComboRow(
     Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         cards.forEachIndexed { i, n ->
             if (i > 0) Text("+", color = extra.subtle, fontWeight = FontWeight.Bold)
-            val miss = n.equals(missing, true)
-            val shape = NgShape.Small
-            val ownedId = vm.entries.value.firstOrNull { it.print?.name?.substringBefore(" // ").equals(n, true) }?.print?.id
-            Box(
-                Modifier.width(72.dp).height(101.dp).clip(shape)
-                    .let { m -> if (miss) m.border(1.5.dp, NgColors.Amber, shape) else m }
-                    .background(extra.subtle.copy(alpha = 0.15f))
-                    .combinedClickable(onClick = { ownedId?.let(onCard) }, onLongClick = { onBig(comboImageUrl(vm, n, true)) }),
-            ) {
-                coil.compose.AsyncImage(
-                    model = vm.images.request(comboImageUrl(vm, n, false), settings), imageLoader = vm.images.loader, contentDescription = n,
-                    contentScale = androidx.compose.ui.layout.ContentScale.Crop,
-                    alpha = if (miss) 0.45f else 1f, modifier = Modifier.matchParentSize(),
-                )
-            }
+            CardThumbByName(vm, settings, n, onCard, onBig, dimmed = n.equals(missing, true))
         }
         if (twoCard) Pill(stringResource(R.string.combos_two_card), Color(0xFFB7412F), Color.White)
     }
@@ -946,7 +976,7 @@ private fun spellbookTagLabel(t: String) = when (t) {
 
 /** Suggesties: regels, rollen tegenover doelen, wat erin of eruit kan, wat vrienden hebben, en AI onderaan. */
 @Composable
-private fun SuggestionsPanel(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.db.Deck, list: List<nl.spoonpaco.ninegrid.data.db.EntryWithPrint>, onFriend: (String) -> Unit) {
+private fun SuggestionsPanel(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.db.Deck, list: List<nl.spoonpaco.ninegrid.data.db.EntryWithPrint>, onFriend: (String) -> Unit, onCard: (String) -> Unit) {
     val extra = LocalNgExtra.current
     val settings by vm.settings.collectAsState()
     var rules by remember(deck.id) { mutableStateOf(vm.deckRules(deck.id)) }
@@ -954,6 +984,11 @@ private fun SuggestionsPanel(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.
     var swap by remember { mutableStateOf<SwapRequest?>(null) }
     var openRole by remember { mutableStateOf<nl.spoonpaco.ninegrid.domain.Role?>(null) }
     var tickRole by remember { mutableStateOf<nl.spoonpaco.ninegrid.domain.Role?>(null) }
+    // Thumbnails of namen: dezelfde keuze (en dezelfde segmentbalk) als bij Combo's.
+    var asCards by remember { mutableStateOf(vm.comboCards()) }
+    var big by remember { mutableStateOf<String?>(null) }
+    val thumbsOn = asCards && settings.imageMode != nl.spoonpaco.ninegrid.data.ImageMode.OFF
+    fun thumbFor(name: String): (@Composable () -> Unit)? = if (thumbsOn) ({ CardThumbByName(vm, settings, name, onCard, { big = it }, width = 54) }) else null
     androidx.compose.runtime.LaunchedEffect(deck.id, list.size, rules) { vm.computeSuggestions(deck.id); vm.computeFriendOffers(deck.id) }
     val r = vm.suggestions?.takeIf { vm.suggestionsDeckId == deck.id }
     val commander = deck.format == DeckFormat.COMMANDER
@@ -976,6 +1011,7 @@ private fun SuggestionsPanel(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.
             return@Column
         }
         if (r == null) { androidx.compose.material3.LinearProgressIndicator(Modifier.fillMaxWidth().padding(16.dp)); return@Column }
+        ThumbnailSwitch(asCards) { asCards = it; vm.setComboCards(it) }
 
         TabCard(stringResource(R.string.sugg_roles), info = stringResource(R.string.sugg_roles_info)) {
             Row(Modifier.fillMaxWidth().clip(NgShape.Normal).background(extra.subtle.copy(alpha = 0.12f)).clickable { editRules = true }.padding(8.dp)) {
@@ -1003,24 +1039,24 @@ private fun SuggestionsPanel(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.
         TabCard(stringResource(R.string.sugg_adds) + " (${r.adds.size})", closed = "adds" in suggClosed, onToggle = { toggleSugg("adds") }, explain = stringResource(R.string.sugg_adds_explain)) {
             if (r.adds.isEmpty()) Text(stringResource(R.string.sugg_none), fontSize = NgText.body, color = extra.subtle)
             r.adds.forEach { s ->
-                SuggestionRow(s.card.name + (s.card.where?.let { " · $it" } ?: ""), s.reasons.map { reasonText(it) }.joinToString(" · "), stringResource(R.string.swap_action)) {
+                SuggestionRow(s.card.name + (s.card.where?.let { " · $it" } ?: ""), s.reasons.map { reasonText(it) }.joinToString(" · "), stringResource(R.string.swap_action), {
                     swap = SwapRequest(inName = s.card.name, outEntryId = r.cuts.firstOrNull()?.entryKey, land = false)
-                }
+                }, thumbFor(s.card.name))
             }
         }
         if (r.lands.isNotEmpty()) TabCard(stringResource(R.string.sugg_lands) + " (${r.lands.size})", closed = "lands" in suggClosed, onToggle = { toggleSugg("lands") }, explain = stringResource(R.string.sugg_lands_explain)) {
             r.lands.forEach { s ->
-                SuggestionRow(s.card.name + (s.card.where?.let { " · $it" } ?: ""), "", stringResource(R.string.swap_action)) {
+                SuggestionRow(s.card.name + (s.card.where?.let { " · $it" } ?: ""), "", stringResource(R.string.swap_action), {
                     swap = SwapRequest(inName = s.card.name, outEntryId = null, land = true)
-                }
+                }, thumbFor(s.card.name))
             }
         }
         TabCard(stringResource(R.string.sugg_cuts) + " (${r.cuts.size})", closed = "cuts" in suggClosed, onToggle = { toggleSugg("cuts") }, explain = stringResource(R.string.sugg_cuts_explain)) {
             if (r.cuts.isEmpty()) Text(stringResource(R.string.sugg_none), fontSize = NgText.body, color = extra.subtle)
             r.cuts.forEach { c ->
-                SuggestionRow(c.name, c.reasons.map { reasonText(it) }.joinToString(" · "), stringResource(R.string.swap_action)) {
+                SuggestionRow(c.name, c.reasons.map { reasonText(it) }.joinToString(" · "), stringResource(R.string.swap_action), {
                     swap = SwapRequest(inName = r.adds.firstOrNull()?.card?.name, outEntryId = c.entryKey, land = false, fromCut = true)
-                }
+                }, thumbFor(c.name))
             }
         }
         // Bij vrienden: losse kaarten uit gedeelde collecties die dit deck beter maken.
@@ -1030,13 +1066,15 @@ private fun SuggestionsPanel(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.
                 SuggestionRow(
                     o.item.print.name + " · " + o.friend.name + "  ·  " + Money.format(o.item.unit, settings.currency),
                     o.item.reasons.filter { it != "wish" }.map { reasonText(it) }.joinToString(" · "), stringResource(R.string.see_trade),
-                ) { onFriend(o.friend.id) }
+                    { onFriend(o.friend.id) }, thumbFor(o.item.print.name),
+                )
             }
         }
         AiDeckBlock(vm, deck, onSwap = { inName, outId -> swap = SwapRequest(inName = inName, outEntryId = outId, land = false) })
         Text(stringResource(R.string.sugg_note), fontSize = NgText.caption, color = extra.subtle, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
     }
 
+    BigCardDialog(vm, settings, big) { big = null }
     if (editRules) RulesDialog(rules, commander, r, onDismiss = { editRules = false }) { nr -> editRules = false; save(nr) }
     tickRole?.let { role ->
         val counted = r?.roleCards?.get(role).orEmpty().toSet()
@@ -1095,7 +1133,7 @@ private fun AiDeckBlock(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.db.De
         fun outId(name: String?) = name?.let { n -> deckEntries.firstOrNull { it.print?.name == n }?.entry?.id }
         if (r.owned.isEmpty() && r.buy.isEmpty()) Text(stringResource(R.string.sugg_none), fontSize = NgText.body, color = extra.subtle)
         r.owned.forEach { s ->
-            SuggestionRow(s.inName + (s.outName?.let { "  ⇄  $it" } ?: ""), s.reason, stringResource(R.string.swap_action)) { onSwap(s.inName, outId(s.outName)) }
+            SuggestionRow(s.inName + (s.outName?.let { "  ⇄  $it" } ?: ""), s.reason, stringResource(R.string.swap_action), onClick = { onSwap(s.inName, outId(s.outName)) })
         }
         if (r.buy.isNotEmpty()) {
             Text(stringResource(R.string.ai_buy_title), fontWeight = FontWeight.Bold, fontSize = NgText.body, modifier = Modifier.padding(top = 6.dp))
@@ -1103,9 +1141,10 @@ private fun AiDeckBlock(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.db.De
                 val price = Money.unitPrice(nl.spoonpaco.ninegrid.data.db.Entry(printId = b.print.id), b.print, settings.currency)
                 Column(Modifier.padding(vertical = 2.dp)) {
                     SuggestionRow(b.print.name + (b.outName?.let { "  ⇄  $it" } ?: "") + "  ·  " + nl.spoonpaco.ninegrid.ui.components.money(price, settings.currency), b.reason,
-                        if (settings.currency == "USD") "TCGplayer" else "Cardmarket") {
-                        ((if (settings.currency == "USD") b.print.tcgplayerUri else b.print.cardmarketUri) ?: b.print.scryfallUri)?.let { runCatching { uri.openUri(it) } }
-                    }
+                        if (settings.currency == "USD") "TCGplayer" else "Cardmarket",
+                        onClick = {
+                            ((if (settings.currency == "USD") b.print.tcgplayerUri else b.print.cardmarketUri) ?: b.print.scryfallUri)?.let { runCatching { uri.openUri(it) } }
+                        })
                     TextButton(onClick = { vm.addToWishlistByName(b.print.name) }, contentPadding = PaddingValues(horizontal = 4.dp)) { Text("+ " + stringResource(R.string.wish_add_btn), fontSize = NgText.body) }
                 }
             }
@@ -1328,9 +1367,10 @@ private fun SwapOption(label: String, selected: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-private fun SuggestionRow(title: String, why: String, action: String, onClick: () -> Unit) {
-    // De hele regel is tikbaar, niet alleen de knop.
+private fun SuggestionRow(title: String, why: String, action: String, onClick: () -> Unit, thumb: (@Composable () -> Unit)? = null) {
+    // De hele regel is tikbaar, niet alleen de knop. Het plaatje opent de kaart (tik) of toont hem groot (vasthouden).
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 3.dp)) {
+        if (thumb != null) { thumb(); Spacer(Modifier.width(10.dp)) }
         Column(Modifier.weight(1f)) {
             Text(title, fontSize = NgText.body, fontWeight = FontWeight.SemiBold)
             if (why.isNotBlank()) Text(why, fontSize = NgText.caption, color = LocalNgExtra.current.subtle)
