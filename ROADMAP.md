@@ -59,7 +59,7 @@ Gebouwd en getest met unittests; dit kan alleen op een echte telefoon gecontrole
 
 | Versie | Naam | Inhoud |
 |---|---|---|
-| 0.9.8 | nog kiezen (voorstel: Kaito) | 27 Ontwikkelaar-menu met scanrapport, 26 vegen, 16 NIEUW, 19 commander wijzigen, 2 fabrieksinstellingen, 30 melding bij lamp die niet aangaat |
+| 0.9.8 | nog kiezen (voorstel: Kaito) | 27 Ontwikkelaar-menu met scanrapport, 26 vegen, 16 NIEUW, 19 commander wijzigen, 2 fabrieksinstellingen, 30 melding bij lamp die niet aangaat, 31 kaartjes bij combo's |
 | 0.9.8.1 | nog kiezen (patchnaam) | 29 Vormgeving gelijk trekken (alleen opmaak, geen nieuwe functies) |
 | 0.9.9 | nog kiezen | 4 scannen naar een deck (pas als de bladscan weer goed leest), 28 deckimport: één keuze voor uit de collectie halen |
 | 0.9.10 | nog kiezen | 8 print kiezen, in twee stappen: eerst 8a–e (printlijst), daarna 8f–l (exemplaren wijzigen en splitsen) |
@@ -154,6 +154,14 @@ De nummers hieronder zijn die van de lijst zoals Mick ze kent.
    c. Het icoon springt terug naar uit als de lamp niet aan wil
    d. Bij het openen van de scanner met lage batterij kan de knop alvast een waarschuwingskleur krijgen (nog te beslissen)
    e. De drempel per telefoon verschilt en is niet op te vragen; de melding rekent daarom op wat de camera meldt, niet op een vast percentage
+
+31. Kaartjes bij combo's (nieuw, 0.9.8):
+   a. Deck → tabblad Combo's: per combo een rij kleine kaartplaatjes met een + ertussen, in plaats van alleen namen in vakjes
+   b. Tik = kaartscherm, vasthouden = kaart groot; wat de combo oplevert (blauwe labels) en de uitklapbare voorwaarden blijven eronder
+   c. Bijna-combo's: de ontbrekende kaart gedimd met een amberkleurige gestippelde rand; de knoppen (In collectie, Bij vriend, Op verlanglijst) blijven
+   d. Twee kaarten passen naast elkaar; bij drie of meer schuift de rij zijwaarts zodat de plaatjes niet te klein worden
+   e. Bovenaan het tabblad keuze Kaartjes | Namen, onthouden; standaard Kaartjes
+   f. Plaatjes: Spellbook geeft alleen namen. Kaarten in het deck gebruiken Micks print; de ontbrekende kaart wordt via Scryfall opgezocht. Pas laden als ze in beeld komen, kleine afmeting, bestaande plaatjescache; dubbelzijdige kaarten tonen de voorkant
 
 ## Fase 2 (wacht op startsein) → wordt 1.0
 - Sheet-koppeling (deel 2 punt 2, optie A: nieuwe Sheet via drive.file; Google Cloud-project + privacypagina nodig)
