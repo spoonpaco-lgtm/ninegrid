@@ -707,6 +707,10 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
         ) {
             // Stand: één schakelaar, precies in het midden. Bij één kaart de extra knoppen op een eigen regel.
             val colors = FilterChipDefaults.filterChipColors(labelColor = Color.White, selectedContainerColor = MaterialTheme.colorScheme.primary, selectedLabelColor = Color.Black)
+            vm.scanDeckId?.let { id ->
+                val deckName = vm.decks.collectAsState().value.firstOrNull { it.id == id }?.name ?: ""
+                Text(stringResource(R.string.scan_to_deck, deckName), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp, modifier = Modifier.padding(top = 4.dp))
+            }
             androidx.compose.material3.SingleChoiceSegmentedButtonRow(Modifier.padding(top = 6.dp)) {
                 val segColors = androidx.compose.material3.SegmentedButtonDefaults.colors(
                     activeContainerColor = MaterialTheme.colorScheme.primary, activeContentColor = Color.Black,

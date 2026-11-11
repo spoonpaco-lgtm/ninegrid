@@ -196,7 +196,7 @@ private fun DeckRowCard(d: nl.spoonpaco.ninegrid.data.db.Deck, count: Int, value
 
 @OptIn(ExperimentalMaterial3Api::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
-fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard: (String) -> Unit, onAddCards: (Long) -> Unit, onFriend: (String) -> Unit = {}) {
+fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard: (String) -> Unit, onAddCards: (Long) -> Unit, onFriend: (String) -> Unit = {}, onScan: () -> Unit = {}) {
     val deck by vm.repo.deck(deckId).collectAsState(initial = null)
     val list by vm.repo.entriesForDeck(deckId).collectAsState(initial = emptyList())
     val settings by vm.settings.collectAsState()
@@ -362,6 +362,7 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
                         DropdownMenu(expanded = addMenu, onDismissRequest = { addMenu = false }) {
                             DropdownMenuItem(text = { Text(stringResource(R.string.pick_from_collection)) }, onClick = { addMenu = false; picking = true })
                             DropdownMenuItem(text = { Text(stringResource(R.string.paste_list)) }, onClick = { addMenu = false; onAddCards(deckId) })
+                            DropdownMenuItem(text = { Text(stringResource(R.string.deck_add_scan)) }, onClick = { addMenu = false; vm.scanIntoDeck(deckId); onScan() })
                         }
                     }
                 }

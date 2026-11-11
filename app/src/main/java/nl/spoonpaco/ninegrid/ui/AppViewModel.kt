@@ -158,6 +158,8 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     var newDeckName by mutableStateOf("")
     var newDeckFormat by mutableStateOf(DeckFormat.CASUAL)
     var targetDeckId by mutableStateOf<Long?>(null)
+    /** Scannen vanuit een deck: de kaarten gaan na het controlescherm naar dit deck. Null = naar de collectie. */
+    var scanDeckId by mutableStateOf<Long?>(null)
     var unreadableLines by mutableStateOf<List<String>>(emptyList())
     private var scanSetState by mutableStateOf("")
     /** De set die je in de scanner opgeeft; wordt onthouden voor de volgende keer. */
@@ -239,7 +241,9 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         if (!append) { pending.clear(); crops.clear(); aiMarks.clear() }
         importSource = ImportSource.SCAN
         unreadableLines = emptyList()
-        destination = Destination.COLLECTION
+        // Vanuit een deck gescand: de bestemming is dat deck; anders de collectie.
+        destination = if (scanDeckId != null) Destination.EXISTING_DECK else Destination.COLLECTION
+        targetDeckId = scanDeckId
         val forcedSet = scanSet.trim().uppercase().ifBlank { null }
         // Komen de meeste kaarten uit één set, dan is dat de set voor de twijfelgevallen op dit blad.
         val pageSet = if (single) forcedSet else forcedSet ?: nl.spoonpaco.ninegrid.domain.ScanParser.dominantSet(reads)
@@ -307,6 +311,9 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                 foilCheck = pending.count { it.foilCheck },
             )
         }
+
+    /** Scannen met dit deck als bestemming (vanuit het deck). */
+    fun scanIntoDeck(deckId: Long) { scanDeckId = deckId; targetDeckId = deckId }
 
     fun clearPending() { pending.clear(); crops.clear(); aiMarks.clear(); clearSavedPending() }
 
@@ -488,6 +495,40 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun inCollection(print: CardPrint?, finish: String = Finish.NONFOIL): Int {
         if (print == null) return 0
         return takeCandidates(print, finish).sumOf { it.quantity }
+    }
+
+    /** Hoeveel losse exemplaren van precies deze print en afwerking in de collectie liggen. */
+    fun exactInCollection(print: CardPrint?, finish: String): Int {
+        if (print == null) return 0
+        return entries.value.map { it.entry }.filter { it.deckId == null && !it.proxy && it.printId == print.id && it.finish == finish }.sumOf { it.quantity }
+    }
+
+    /** Eén keuze voor alle kaarten: 0 = alles wat je hebt (ook andere prints), 1 = alleen exact dezelfde print, 2 = niets uit de collectie. */
+    fun setTakeMode(mode: Int) {
+        pending.indices.forEach { i ->
+            val p = pending[i]
+            val print = p.print ?: return@forEach
+            pending[i] = p.copy(fromCollection = when (mode) {
+                0 -> true
+                1 -> exactInCollection(print, p.finish) > 0
+                else -> false
+            })
+        }
+    }
+
+    /** Voor de samenvatting boven het controlescherm: kaarten uit de collectie (zelfde print), andere print, en nieuwe. */
+    fun takeSummary(): Triple<Int, Int, Int> {
+        var same = 0; var other = 0; var fresh = 0
+        for (p in pending) {
+            val print = p.print ?: continue
+            if (!p.include || p.proxy) continue
+            val plan = if (p.fromCollection) nl.spoonpaco.ninegrid.domain.DeckTake.plan(takeCandidates(print, p.finish), p.quantity) else emptyList()
+            val taken = plan.sumOf { it.second }
+            same += plan.filter { it.first.printId == print.id }.sumOf { it.second }
+            other += plan.filter { it.first.printId != print.id }.sumOf { it.second }
+            fresh += p.quantity - taken
+        }
+        return Triple(same, other, fresh)
     }
 
     /** Andere prints die bij [quantity] stuks uit de collectie gepakt worden, als tekst ("5ED 430 ×2"); leeg als het dezelfde print is. */

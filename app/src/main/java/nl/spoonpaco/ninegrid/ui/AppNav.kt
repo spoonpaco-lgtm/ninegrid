@@ -178,6 +178,7 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
                     onShare = { nav.navigate("share") },
                     onBinder = { b -> nav.navigate("binder/" + android.net.Uri.encode(b)) },
                     onFriend = { id -> nav.navigate("friend/$id") },
+                    onScan = { nav.navigate("scan") },
                 )
             }
             composable(
@@ -197,7 +198,7 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
             composable("decks") {
                 DecksScreen(vm, onDeck = { nav.navigate("deck/$it") }, onNewDeck = { nav.navigate("paste?asNewDeck=true") })
             }
-            composable("scan") { ScanScreen(vm, onBack = { if (!nav.popBackStack()) tab("collection") }, onResult = { nav.navigate("review") }) }
+            composable("scan") { ScanScreen(vm, onBack = { vm.scanDeckId = null; if (!nav.popBackStack()) tab("collection") }, onResult = { nav.navigate("review") }) }
             composable("overview") {
                 OverviewScreen(
                     vm, onSet = { nav.navigate("set/$it") }, onSets = { nav.navigate("sets") }, onDecks = { tab("decks") },
@@ -251,6 +252,8 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
             composable("review") {
                 ReviewScreen(vm, onBack = { nav.popBackStack() }, onSaved = { deckId ->
                     if (deckId != null) {
+                        // De scanner vergeet het deck; de volgende gewone scan gaat weer naar de collectie.
+                        vm.scanDeckId = null
                         nav.navigate("deck/$deckId") { popUpTo(nav.graph.findStartDestination().id) }
                     } else if (vm.importSource == ImportSource.SCAN) {
                         nav.popBackStack("scan", inclusive = false)

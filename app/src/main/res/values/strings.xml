@@ -1042,4 +1042,11 @@
     <string name="scan_foil_check_n">%1$d foil?</string>
     <string name="foil_confirm">Foil</string>
     <string name="foil_not">Not foil</string>
+    <string name="scan_to_deck">To deck: %1$s</string>
+    <string name="deck_add_scan">Scan</string>
+    <string name="take_title">Take from collection</string>
+    <string name="take_mode_all">Everything I have</string>
+    <string name="take_mode_exact">Exact same print</string>
+    <string name="take_mode_none">Nothing</string>
+    <string name="take_summary">%1$d from your collection · %2$d other print · %3$d new</string>
 </resources>

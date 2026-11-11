@@ -127,6 +127,11 @@ fun ReviewScreen(vm: AppViewModel, onBack: () -> Unit, onSaved: (Long?) -> Unit)
                 Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
                     Text(stringResource(R.string.destination), fontWeight = FontWeight.Bold)
                     DestinationOption(vm.destination == Destination.COLLECTION, stringResource(R.string.collection)) { vm.destination = Destination.COLLECTION }
+                    // Gescand vanuit een deck: dat deck is de bestemming, de collectie blijft een keuze.
+                    if (vm.importSource == ImportSource.SCAN && vm.scanDeckId != null) {
+                        val dn = decks.firstOrNull { it.id == vm.scanDeckId }?.name ?: ""
+                        DestinationOption(vm.destination == Destination.EXISTING_DECK, dn) { vm.destination = Destination.EXISTING_DECK; vm.targetDeckId = vm.scanDeckId }
+                    }
                     if (vm.importSource != ImportSource.SCAN) {
                         DestinationOption(vm.destination == Destination.NEW_DECK, stringResource(R.string.new_deck)) { vm.destination = Destination.NEW_DECK }
                         if (decks.isNotEmpty()) DestinationOption(vm.destination == Destination.EXISTING_DECK, stringResource(R.string.existing_deck)) { vm.destination = Destination.EXISTING_DECK }
@@ -161,6 +166,20 @@ fun ReviewScreen(vm: AppViewModel, onBack: () -> Unit, onSaved: (Long?) -> Unit)
                 }
             }
             if (vm.destination == Destination.COLLECTION) item { BoosterReviewBlock(vm) }
+            // Deck: één keuze voor "uit de collectie halen" voor alle kaarten, met een samenvatting; het vinkje per kaart blijft voor uitzonderingen.
+            if (vm.destination != Destination.COLLECTION && items.any { it.print != null }) item(key = "take_mode") {
+                var mode by remember { mutableStateOf(0) }
+                val (same, other, fresh) = vm.takeSummary()
+                Column(Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
+                    Text(stringResource(R.string.take_title), fontWeight = FontWeight.Bold)
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        listOf(R.string.take_mode_all, R.string.take_mode_exact, R.string.take_mode_none).forEachIndexed { i, label ->
+                            FilterChip(selected = mode == i, onClick = { mode = i; vm.setTakeMode(i) }, label = { Text(stringResource(label), maxLines = 1, fontSize = NgText.body) })
+                        }
+                    }
+                    Text(stringResource(R.string.take_summary, same, other, fresh), fontSize = NgText.body, color = extra.subtle)
+                }
+            }
             // Ontwikkelaar: foto en per vak wat gelezen is, te delen om een scanfout te laten nakijken.
             if (settings.devScanReport && vm.importSource == ImportSource.SCAN && vm.hasScanReport) item {
                 val context = androidx.compose.ui.platform.LocalContext.current

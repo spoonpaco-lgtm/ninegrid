@@ -1041,4 +1041,11 @@
     <string name="scan_foil_check_n">%1$d foil?</string>
     <string name="foil_confirm">Foil</string>
     <string name="foil_not">Geen foil</string>
+    <string name="scan_to_deck">Naar deck: %1$s</string>
+    <string name="deck_add_scan">Scannen</string>
+    <string name="take_title">Uit collectie halen</string>
+    <string name="take_mode_all">Alles wat ik heb</string>
+    <string name="take_mode_exact">Exact dezelfde print</string>
+    <string name="take_mode_none">Niets</string>
+    <string name="take_summary">%1$d uit je collectie · %2$d andere print · %3$d nieuw</string>
 </resources>
