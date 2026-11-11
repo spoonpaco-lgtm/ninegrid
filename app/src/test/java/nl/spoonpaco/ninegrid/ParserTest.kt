@@ -758,8 +758,8 @@ class ParserTest {
     @Test
     fun scanReportListsEverySlot() {
         val reads = listOf(
-            SlotRead(1, "MH2", "229", "EN", listOf("Fire // Ice", "229/254 M"), "Fire // Ice"),
-            SlotRead(2, null, null, null, listOf("xq"), null, looksEmpty = true),
+            nl.spoonpaco.ninegrid.domain.SlotRead(1, "MH2", "229", "EN", listOf("Fire // Ice", "229/254 M"), "Fire // Ice"),
+            nl.spoonpaco.ninegrid.domain.SlotRead(2, null, null, null, listOf("xq"), null, looksEmpty = true),
         )
         val meta = nl.spoonpaco.ninegrid.domain.ScanMeta("0.9.8", false, true, 41.2, 0.62f, 3100, 2, 4000, 3000, "Test Toestel")
         val text = nl.spoonpaco.ninegrid.domain.ScanReport.build(meta, reads, mapOf(1 to "gevonden: Fire // Ice (MH2 229)", 2 to "leeg vak"))
