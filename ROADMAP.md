@@ -103,7 +103,7 @@ Gebouwd en getest met unittests; dit kan alleen op een echte telefoon gecontrole
 | 0.9.8 ✔ | Kaito (uitgebracht) | 27 Ontwikkelaar-menu met scanrapport, 26 vegen, 16 NIEUW, 19 commander wijzigen, 2 fabrieksinstellingen, 30 melding bij lamp die niet aangaat, 31 kaartjes bij combo's |
 | 0.9.8.1 | Kaito | 32 opgegeven set is een grens (oranje met andere set) |
 | 0.9.8.2 | Kaito | 29 Vormgeving gelijk trekken (alleen opmaak) |
-| 0.9.9 | nog kiezen | 4 scannen naar een deck (pas als de bladscan weer goed leest), 28 deckimport: één keuze voor uit de collectie halen, 33 filter- en sorteerknoppen bij alle kaartenlijsten, 34 kaartjes bij suggesties en tikken op elke combokaart, 35 inklapbare blokken bij combo's |
+| 0.9.9 | nog kiezen | 4 scannen naar een deck (pas als de bladscan weer goed leest), 28 deckimport: één keuze voor uit de collectie halen, 33 filter- en sorteerknoppen bij alle kaartenlijsten, 34 kaartjes bij suggesties en tikken op elke combokaart, 35 inklapbare blokken bij combo's, 36 weergavekeuze Thumbnails | Namen als segmentbalk |
 | 0.9.10 | nog kiezen | 8 print kiezen, in twee stappen: eerst 8a–e (printlijst), daarna 8f–l (exemplaren wijzigen en splitsen) |
 | 0.9.11 | nog kiezen | 3 exporteren (sites nog te kiezen; eerst de actuele importformaten nakijken) |
 | 1.0 | — | Fase 2 |
@@ -232,6 +232,11 @@ De nummers hieronder zijn die van de lijst zoals Mick ze kent.
    b. De aantallen blijven in het kopje zichtbaar als het blok dicht is
    c. Onthouden per deck, zoals bij Suggesties; standaard open
    d. Hoort bij 34: dezelfde kaartjes en hetzelfde gedrag op beide tabbladen
+
+36. Weergavekeuze bij Combo's en Suggesties: één segmentbalk (nieuw, 0.9.9; Mick, 11 nov; voorstel A):
+   a. De twee losse chips Cards | Names worden één afgeronde segmentbalk over de volle breedte, zoals Collectie | Alle kaarten | Verlanglijst: **▦ Thumbnails | ☰ Namen**
+   b. Het woord is "Thumbnails" (Mick, 11 nov), in NL en EN, en overal in de app waar nu "kaartjes" staat voor de kleine plaatjes (combo's, suggesties, handleiding, Wat is nieuw)
+   c. Bovenaan het tabblad, op dezelfde plek en met dezelfde marge en afronding op Combo's én Suggesties; de keuze wordt onthouden (nu al: `combo_cards` in deck_ui)
 
 ## Fase 2 (wacht op startsein) → wordt 1.0
 - Sheet-koppeling (deel 2 punt 2, optie A: nieuwe Sheet via drive.file; Google Cloud-project + privacypagina nodig)
