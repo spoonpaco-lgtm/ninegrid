@@ -71,7 +71,7 @@ Gebouwd en getest met unittests; dit kan alleen op een echte telefoon gecontrole
 | Versie | Naam | Inhoud |
 |---|---|---|
 | 0.9.8 ✔ | Kaito (uitgebracht) | 27 Ontwikkelaar-menu met scanrapport, 26 vegen, 16 NIEUW, 19 commander wijzigen, 2 fabrieksinstellingen, 30 melding bij lamp die niet aangaat, 31 kaartjes bij combo's |
-| 0.9.8.1 | nog kiezen (patchnaam) | 29 Vormgeving gelijk trekken (alleen opmaak, geen nieuwe functies) |
+| 0.9.8.1 | nog kiezen (patchnaam) | 32 opgegeven set is een grens (oranje met andere set), 29 Vormgeving gelijk trekken (alleen opmaak, geen nieuwe functies) |
 | 0.9.9 | nog kiezen | 4 scannen naar een deck (pas als de bladscan weer goed leest), 28 deckimport: één keuze voor uit de collectie halen |
 | 0.9.10 | nog kiezen | 8 print kiezen, in twee stappen: eerst 8a–e (printlijst), daarna 8f–l (exemplaren wijzigen en splitsen) |
 | 0.9.11 | nog kiezen | 3 exporteren (sites nog te kiezen; eerst de actuele importformaten nakijken) |
@@ -173,6 +173,13 @@ De nummers hieronder zijn die van de lijst zoals Mick ze kent.
    d. Twee kaarten passen naast elkaar; bij drie of meer schuift de rij zijwaarts zodat de plaatjes niet te klein worden
    e. Bovenaan het tabblad keuze Kaartjes | Namen, onthouden; standaard Kaartjes
    f. Plaatjes: Spellbook geeft alleen namen. Kaarten in het deck gebruiken Micks print; de ontbrekende kaart wordt via Scryfall opgezocht. Pas laden als ze in beeld komen, kleine afmeting, bestaande plaatjescache; dubbelzijdige kaarten tonen de voorkant
+
+32. Opgegeven set is een grens, geen voorkeur (nieuw, 0.9.8.1; keuze Mick: oranje met de andere set):
+   a. Heeft Mick op het scanscherm een set ingevuld, dan zoekt de app alleen in die set: `cardByName` valt niet meer terug op een zoekopdracht zonder set, en `betterPrint` neemt geen print met hetzelfde nummer uit een andere set
+   b. Staat de kaart niet in die set, maar wel in een andere, dan komt hij binnen als oranje met de andere set erbij ("niet in MH2, wel in MH1"); Mick kan de set accepteren of de kaart zelf zoeken
+   c. Alleen gelezen of van het blad afgeleide set: buiten de set zoeken mag nog, maar zo'n kaart is altijd oranje met de gevonden set
+   d. Meerdere prints met dezelfde naam in de set (gewoon, borderless, showcase) en geen nummer gelezen: niet de eerste gewone print nemen maar oranje met de kaartfoto-vergelijking
+   e. Test: forced set + kaart die er niet in staat geeft nooit een stille print uit een andere set
 
 ## Fase 2 (wacht op startsein) → wordt 1.0
 - Sheet-koppeling (deel 2 punt 2, optie A: nieuwe Sheet via drive.file; Google Cloud-project + privacypagina nodig)
