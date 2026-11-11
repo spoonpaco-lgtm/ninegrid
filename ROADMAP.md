@@ -41,7 +41,7 @@ Gebouwd en getest met unittests; dit kan alleen op een echte telefoon gecontrole
 - ✓ **Melding (23)**: nagekeken door Mick, klaar (Ongedaan maken staat overal boven de navigatiebalk).
 - ✓ **Icoon (20)**: nagekeken door Mick, klaar (het logo past in het rondje).
 - ✓ **Deckimport (22)**: nagekeken door Mick, werkt (verschillende Island-prints komen goed binnen).
-- **Back-up (14)**: back-up maken, samenvatting lezen, terugzetten met alles en met losse delen.
+- ✓ **Back-up (14)**: nagekeken door Mick, klaar (volledige back-up maken en terugzetten werkt).
 
 ### 0.9.7.1 – nog open na de reparatie
 
