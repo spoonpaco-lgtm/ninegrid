@@ -1,3 +1,31 @@
+NineGrid 0.9.9 – Vivien
+
+Vivien, de jager die sporen volgt: een versie vol scannen, herkennen en kaartjes. Gebouwd op papier getest (unittests met de gelezen regels uit de vier scanrapporten); de scanner is nog niet op een echte telefoon geprobeerd.
+
+Scanner (reparaties na vier scanrapporten)
+- Galerijfoto's zonder kader: het raster komt uit de kaartmaten. Een lege rij of kolom schuift de andere kaarten niet meer een vak op.
+- Een setcode die niet bestaat is er niet. "ONE•EN" las de OCR soms als "EATUR ES"; daarmee kwam er een verzonnen taal bij en werd de kaart niet gevonden. Een niet-Engelse taal telt nu alleen als de gelezen naam geen Engelse kaartnaam is.
+- Een jaartal uit de copyrightregel (© 2023 Wizards) is geen kaartnummer meer.
+- De set die op het blad overheerst wint van één verlezen set, als de naam (en het nummer) daar bestaan. Een zelf ingevulde set blijft leidend.
+- Lege hoesjes met glans of strepen worden vaker als leeg herkend, als er in dat vak ook geen tekst is gelezen.
+
+Nieuw
+- Foil-twijfel heeft een eigen kleur: blauw met ★ en "Foil?". Oranje is nu alleen nog voor een echte kaartcheck. Op het controlescherm staan de kaarten in groepen (Controleer, Foil checken, Zeker); bij een blauwe kaart bevestig je de foil of kies je Geen foil.
+- Kaart voor kaart scannen: onderin staan de laatste drie kaarten met wat er gevonden is (groen, oranje, blauw ★). Tik op een kaart voor een exemplaar erbij (+1), kruisje om hem weg te halen. Is alles zeker, dan staat er direct Opslaan; anders Controleer (n). Foil is een stand voor de hele sessie en blauw zolang hij aan staat.
+- Scannen naar een deck: in een deck onder Toevoegen kies je Scannen. De scanner toont "Naar deck: ..."; op het controlescherm staat het deck als bestemming, met de regels van uit de collectie halen. Na opslaan ben je terug in het deck.
+- Deckimport en scannen naar een deck: boven de kaarten één keuze voor uit de collectie halen: Alles wat ik heb, Exact dezelfde print of Niets, met een samenvatting ("62 uit je collectie · 9 andere print · 29 nieuw"). Het vinkje per kaart blijft voor uitzonderingen.
+- Filter- en sorteerknoppen: kaarten van een vriend (filter + sorteren op prijs, set, naam), setscherm sorteren (nummer, naam, prijs, rarity), deck filteren (kleur, type, rarity).
+- Thumbnails bij Suggesties, zoals bij Combo's: tik opent de kaart (ook een kaart die je niet hebt, via Scryfall), vasthouden toont hem groot. Combo's: tikken werkt nu ook op een kaart die je niet hebt.
+- Combo's: de blokken Combo's in dit deck en Bijna klappen in en uit, per deck onthouden.
+- Weergavekeuze bij Combo's en Suggesties is één segmentbalk: ▦ Thumbnails | ☰ Namen.
+
+Nog niet gedaan
+- De set van de vorige kaart als aanname bij kaart voor kaart scannen.
+- Kaarten buiten de kleuren van de commander meteen oranje bij scannen naar een deck.
+- Kiezen of alles naar Deck, Sideboard of Commander gaat in één keer (per kaart kan het al).
+
+---
+
 NineGrid 0.9.8.2 – Kaito (opmaak)
 
 Alleen opmaak, geen nieuwe functies. Bladweergave en scanner zijn bewust niet aangepast.

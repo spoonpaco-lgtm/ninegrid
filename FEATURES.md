@@ -2,7 +2,7 @@
 
 *Nederlands: [FEATURES.nl.md](FEATURES.nl.md)*
 
-Current version: **0.9.8 – Kaito**. Every version is named after a planeswalker.
+Current version: **0.9.9 – Vivien**. Every version is named after a planeswalker.
 
 ## What makes NineGrid different
 
@@ -23,7 +23,9 @@ Current version: **0.9.8 – Kaito**. Every version is named after a planeswalke
 - **Scan a binder page of 9 cards** in one photo, or **one card at a time** with automatic capture. Text recognition runs on your phone.
 - Reads name, set and collector number, including **foreign-language cards** (the printed name is checked, the English print supplies the price).
 - **Set field**: fill in the set of a page for much more reliable recognition; remembered for the next scan.
-- **Foil per slot**: tap the small grid of the last photo (with ✦), then tap a slot (or All foil). If the scanner reads the **foil star ★**, the card is already set to foil (orange: one tap confirms).
+- **Foil doubt in blue**: a card that is sure but may be a foil (star ★ read) is blue, so orange stays for real card checks. Single-card scanning shows the last three cards with a +1 tap and saves straight away when all are sure.
+- **Scan into a deck** from the deck screen (Add → Scan), with one choice for taking cards from your collection.
+- **Foil per slot**: tap the small grid of the last photo (with ✦), then tap a slot (or All foil). If the scanner reads the **foil star ★**, the card is already set to foil (blue: one tap confirms).
 - **Steady frame**: the frame doesn't move after a photo; discard a failed scan with 🗑 (with Restore).
 - Result in colour (● found, ● to check), with a **Check** button showing how many need a look.
 - **Review screen**: your photo next to the found card, search a card yourself, quantity, foil, language, condition, proxy.

@@ -2,7 +2,7 @@
 
 *English: [FEATURES.md](FEATURES.md)*
 
-Huidige versie: **0.9.8 – Kaito**. Elke versie heeft de naam van een planeswalker.
+Huidige versie: **0.9.9 – Vivien**. Elke versie heeft de naam van een planeswalker.
 
 ## Wat NineGrid anders maakt
 
@@ -23,7 +23,9 @@ Huidige versie: **0.9.8 – Kaito**. Elke versie heeft de naam van een planeswal
 - **Scan een verzamelblad met 9 kaarten** in één foto, of **één kaart tegelijk** met automatisch fotograferen. De tekstherkenning draait op je telefoon.
 - Leest naam, set en nummer, ook van **kaarten in andere talen** (de gedrukte naam wordt gecontroleerd, de Engelse print levert de prijs).
 - **Setveld**: vul de set van een blad in voor veel betrouwbaarder herkennen; wordt onthouden voor de volgende scan.
-- **Foil per vak**: tik op het kleine raster van de laatste foto (met ✦) en dan op een vak (of Alles foil). Leest de scanner de **ster ★ van een foil**, dan staat de kaart alvast op foil (oranje: één tik bevestigt).
+- **Foil-twijfel in blauw**: een kaart die zeker is maar misschien foil (ster ★ gelezen), is blauw, zodat oranje voor echte kaartchecks blijft. Bij één kaart zie je de laatste drie kaarten met +1 en kun je meteen opslaan als alles zeker is.
+- **Scannen naar een deck** vanuit het deck (Toevoegen → Scannen), met één keuze voor uit de collectie halen.
+- **Foil per vak**: tik op het kleine raster van de laatste foto (met ✦) en dan op een vak (of Alles foil). Leest de scanner de **ster ★ van een foil**, dan staat de kaart alvast op foil (blauw: één tik bevestigt).
 - **Vast kader**: het kader verschuift niet na een foto; een mislukte scan gooi je weg met 🗑 (met Terugzetten).
 - Uitslag in kleur (● gevonden, ● controleren), met een knop **Controleer** met het aantal.
 - **Controlescherm**: je foto naast de gevonden kaart, zelf een kaart zoeken, aantal, foil, taal, conditie, proxy.
