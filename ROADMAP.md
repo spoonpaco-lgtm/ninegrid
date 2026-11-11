@@ -60,7 +60,7 @@ Gebouwd en getest met unittests; dit kan alleen op een echte telefoon gecontrole
 | Versie | Naam | Inhoud |
 |---|---|---|
 | 0.9.8 | nog kiezen (voorstel: Kaito) | 27 Ontwikkelaar-menu met scanrapport, 26 vegen, 16 NIEUW, 19 commander wijzigen, 2 fabrieksinstellingen |
-| 0.9.9 | nog kiezen | 4 scannen naar een deck (pas als de bladscan weer goed leest) |
+| 0.9.9 | nog kiezen | 4 scannen naar een deck (pas als de bladscan weer goed leest), 28 deckimport: één keuze voor uit de collectie halen |
 | 0.9.10 | nog kiezen | 8 print kiezen, in twee stappen: eerst 8a–e (printlijst), daarna 8f–l (exemplaren wijzigen en splitsen) |
 | 0.9.11 | nog kiezen | 3 exporteren (sites nog te kiezen; eerst de actuele importformaten nakijken) |
 | 1.0 | — | Fase 2 |
@@ -131,6 +131,13 @@ De nummers hieronder zijn die van de lijst zoals Mick ze kent.
    a. Onderaan Instellingen een onderdeel "Ontwikkelaar"; de bestaande instelling "Duur van de herkenning tonen" verhuist erheen
    b. Scanrapport: na een scan (op het controlescherm) een knop "Scan delen" met de foto en per vak wat gelezen is (setcode, nummer, taal, naam, losse regels, leeg ja/nee, welke leesronde), zodat fouten zonder rondvragen te vinden zijn
    c. Delen via het deelmenu van Android; geen automatisch versturen
+
+28. Deckimport: één keuze voor "uit de collectie halen" (nieuw, 0.9.9; gekozen door Mick: voorstel 1):
+   a. Alleen bij een deck, bovenaan het controlescherm, een rij met drie knoppen: "Alles wat ik heb" (standaard, zoals nu), "Alleen exact dezelfde print" en "Niets"
+   b. Eén tik zet alle vinkjes "Uit collectie halen" tegelijk; daaronder een samenvatting, bijvoorbeeld "62 uit je collectie · 9 andere print · 29 nieuw"
+   c. Het vinkje per kaart blijft bestaan voor uitzonderingen
+   d. Niet gekozen (kan later): filter op uitzonderingen (Andere print, Tekort, Niet gevonden); standaard voor "andere print" instelbaar en onthouden
+   e. Past op hetzelfde scherm als 4 (scannen naar een deck), vandaar dezelfde versie
 
 ## Fase 2 (wacht op startsein) → wordt 1.0
 - Sheet-koppeling (deel 2 punt 2, optie A: nieuwe Sheet via drive.file; Google Cloud-project + privacypagina nodig)
