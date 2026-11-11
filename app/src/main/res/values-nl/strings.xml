@@ -406,8 +406,8 @@
     <string name="sugg_other_decks">Ook kaarten uit andere decks</string>
     <string name="sugg_apply">Toepassen</string>
     <string name="sugg_roles">Rollen in het deck (heb / streef)</string>
-    <string name="sugg_adds">Erin uit je collectie</string>
-    <string name="sugg_lands">Betere lands in plaats van een basic land</string>
+    <string name="sugg_adds">Kan erin – uit je collectie</string>
+    <string name="sugg_lands">Betere lands</string>
     <string name="sugg_land_swap">Maakt twee of meer van je kleuren; een passend basic land gaat terug naar je collectie</string>
     <string name="sugg_swap">Wisselen</string>
     <string name="sugg_cuts">Kan eruit</string>
@@ -423,13 +423,13 @@
     <string name="role_tokens">Tokens</string>
     <string name="role_recursion">Terughalen uit graveyard</string>
     <string name="why_tribe">is een %1$s</string>
-    <string name="why_tribe_text">helpt %1$s</string>
-    <string name="why_not_tribe">geen %1$s</string>
-    <string name="why_role">vult een gat: %1$s</string>
-    <string name="why_theme">past bij thema: %1$s</string>
-    <string name="why_cheap">goedkoop, je deck is zwaar</string>
-    <string name="why_expensive">duur (6+)</string>
-    <string name="why_no_role">geen duidelijke rol of thema in dit deck</string>
+    <string name="why_tribe_text">helpt je %1$s-kaarten</string>
+    <string name="why_not_tribe">geen %1$s (je tribe)</string>
+    <string name="why_role">je deck heeft te weinig: %1$s</string>
+    <string name="why_theme">past bij je thema: %1$s</string>
+    <string name="why_cheap">kost weinig mana; je deck is zwaar</string>
+    <string name="why_expensive">kost 6+ mana</string>
+    <string name="why_no_role">vult geen rol in dit deck</string>
     <string name="why_over_bracket">boven je gekozen bracket</string>
     <string name="import_from_drive">Sheet kiezen in Google Drive</string>
     <string name="import_from_drive_hint">Kies je MTG Collection Sheet rechtstreeks in Drive; Android levert hem aan als Excel. Je hoeft niets te downloaden.</string>
@@ -959,4 +959,8 @@
         <item quantity="other">%d alarmen</item>
     </plurals>
     <string name="review_other_print">Andere print uit je collectie: %1$s</string>
+    <string name="filter_game_changers">Game Changers</string>
+    <string name="sugg_adds_explain">Kaarten die los in je collectie liggen en bij dit deck passen: de juiste kleuren, binnen je bracket en je eigen regels. Ze helpen bij rollen die je deck nog tekortkomt, of bij je thema. Bij Wisselen verhuist de kaart van je collectie naar het deck, en kies je wat eruit gaat.</string>
+    <string name="sugg_lands_explain">Lands uit je collectie die twee of meer kleuren van dit deck maken. Bij Wisselen gaat de land het deck in, en gaat een basic land in een passende kleur terug naar je collectie.</string>
+    <string name="sugg_cuts_explain">Kaarten in dit deck die het minst bijdragen. Ze vullen geen rol en passen niet bij het thema, kosten 6 of meer mana, gaan boven je bracket of zijn geen creature van je tribe. Bij Wisselen kies je wat ervoor in de plaats komt, en gaat deze kaart terug naar je collectie.</string>
 </resources>

@@ -535,7 +535,14 @@ private fun bracketReasonLabel(code: String) = when (code) {
 
 /** Een kaart in een decktabblad: titel met ⓘ (uitleg in een venster) en de inhoud. */
 @Composable
-private fun TabCard(title: String, info: String? = null, trailing: (@Composable () -> Unit)? = null, accent: Boolean = false, content: @Composable () -> Unit) {
+private fun TabCard(
+    title: String, info: String? = null, trailing: (@Composable () -> Unit)? = null, accent: Boolean = false,
+    /** Inklapbaar blok: null = altijd open; anders dicht of open, met [onToggle] bij een tik op de kop. */
+    closed: Boolean? = null, onToggle: () -> Unit = {},
+    /** Korte uitleg onder de titel (alleen als het blok open is). */
+    explain: String? = null,
+    content: @Composable () -> Unit,
+) {
     var open by remember { mutableStateOf(false) }
     val extra = LocalNgExtra.current
     androidx.compose.material3.Card(
@@ -544,16 +551,23 @@ private fun TabCard(title: String, info: String? = null, trailing: (@Composable 
         modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 5.dp),
     ) {
         Column(Modifier.padding(14.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = if (closed != null) Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).clickable(onClick = onToggle) else Modifier,
+            ) {
                 Text(title, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 if (info != null) androidx.compose.material3.IconButton(onClick = { open = true }, modifier = Modifier.size(30.dp)) {
                     Icon(Icons.Outlined.Info, null, modifier = Modifier.size(18.dp), tint = extra.subtle)
                 }
                 Spacer(Modifier.weight(1f))
                 trailing?.invoke()
+                if (closed != null) Text(if (closed) "▸" else "▾", fontSize = 16.sp, color = extra.subtle, modifier = Modifier.padding(start = 8.dp))
             }
-            Spacer(Modifier.height(6.dp))
-            content()
+            if (closed != true) {
+                if (explain != null) Text(explain, fontSize = 12.sp, lineHeight = 16.sp, color = extra.subtle, modifier = Modifier.padding(top = 2.dp))
+                Spacer(Modifier.height(6.dp))
+                content()
+            }
         }
     }
     if (open && info != null) AlertDialog(
@@ -921,7 +935,10 @@ private fun SuggestionsPanel(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.
             }
         }
 
-        TabCard(stringResource(R.string.sugg_adds)) {
+        // De drie blokken klappen in en uit; per deck onthouden.
+        var suggClosed by remember(deck.id) { mutableStateOf(vm.suggCollapsed(deck.id)) }
+        fun toggleSugg(k: String) { suggClosed = if (k in suggClosed) suggClosed - k else suggClosed + k; vm.setSuggCollapsed(deck.id, suggClosed) }
+        TabCard(stringResource(R.string.sugg_adds) + " (${r.adds.size})", closed = "adds" in suggClosed, onToggle = { toggleSugg("adds") }, explain = stringResource(R.string.sugg_adds_explain)) {
             if (r.adds.isEmpty()) Text(stringResource(R.string.sugg_none), fontSize = 12.sp, color = extra.subtle)
             r.adds.forEach { s ->
                 SuggestionRow(s.card.name + (s.card.where?.let { " · $it" } ?: ""), s.reasons.map { reasonText(it) }.joinToString(" · "), stringResource(R.string.swap_action)) {
@@ -929,14 +946,14 @@ private fun SuggestionsPanel(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.
                 }
             }
         }
-        if (r.lands.isNotEmpty()) TabCard(stringResource(R.string.sugg_lands)) {
+        if (r.lands.isNotEmpty()) TabCard(stringResource(R.string.sugg_lands) + " (${r.lands.size})", closed = "lands" in suggClosed, onToggle = { toggleSugg("lands") }, explain = stringResource(R.string.sugg_lands_explain)) {
             r.lands.forEach { s ->
-                SuggestionRow(s.card.name + (s.card.where?.let { " · $it" } ?: ""), stringResource(R.string.sugg_land_swap), stringResource(R.string.swap_action)) {
+                SuggestionRow(s.card.name + (s.card.where?.let { " · $it" } ?: ""), "", stringResource(R.string.swap_action)) {
                     swap = SwapRequest(inName = s.card.name, outEntryId = null, land = true)
                 }
             }
         }
-        TabCard(stringResource(R.string.sugg_cuts)) {
+        TabCard(stringResource(R.string.sugg_cuts) + " (${r.cuts.size})", closed = "cuts" in suggClosed, onToggle = { toggleSugg("cuts") }, explain = stringResource(R.string.sugg_cuts_explain)) {
             if (r.cuts.isEmpty()) Text(stringResource(R.string.sugg_none), fontSize = 12.sp, color = extra.subtle)
             r.cuts.forEach { c ->
                 SuggestionRow(c.name, c.reasons.map { reasonText(it) }.joinToString(" · "), stringResource(R.string.swap_action)) {

@@ -407,8 +407,8 @@
     <string name="sugg_other_decks">Also cards from other decks</string>
     <string name="sugg_apply">Apply</string>
     <string name="sugg_roles">Roles in the deck (have / target)</string>
-    <string name="sugg_adds">In from your collection</string>
-    <string name="sugg_lands">Better lands instead of a basic land</string>
+    <string name="sugg_adds">Could go in – from your collection</string>
+    <string name="sugg_lands">Better lands</string>
     <string name="sugg_land_swap">Makes two or more of your colours; a matching basic land goes back to your collection</string>
     <string name="sugg_swap">Swap</string>
     <string name="sugg_cuts">Could go out</string>
@@ -424,13 +424,13 @@
     <string name="role_tokens">Tokens</string>
     <string name="role_recursion">Recursion</string>
     <string name="why_tribe">is a %1$s</string>
-    <string name="why_tribe_text">supports %1$s</string>
-    <string name="why_not_tribe">not a %1$s</string>
-    <string name="why_role">fills a gap: %1$s</string>
-    <string name="why_theme">fits theme: %1$s</string>
-    <string name="why_cheap">cheap, your deck is heavy</string>
-    <string name="why_expensive">expensive (6+)</string>
-    <string name="why_no_role">no clear role or theme in this deck</string>
+    <string name="why_tribe_text">supports your %1$s cards</string>
+    <string name="why_not_tribe">not a %1$s (your tribe)</string>
+    <string name="why_role">your deck is short on: %1$s</string>
+    <string name="why_theme">fits your theme: %1$s</string>
+    <string name="why_cheap">cheap to cast; your deck is heavy</string>
+    <string name="why_expensive">costs 6+ mana</string>
+    <string name="why_no_role">fills no role in this deck</string>
     <string name="why_over_bracket">above your chosen bracket</string>
     <string name="import_from_drive">Choose Sheet in Google Drive</string>
     <string name="import_from_drive_hint">Pick your MTG Collection Sheet directly in Drive; Android delivers it as Excel. No download needed.</string>
@@ -960,4 +960,8 @@
         <item quantity="other">%d alarms</item>
     </plurals>
     <string name="review_other_print">Other print from your collection: %1$s</string>
+    <string name="filter_game_changers">Game Changers</string>
+    <string name="sugg_adds_explain">Cards lying loose in your collection that fit this deck: the right colours, within your bracket and your own rules. They help with roles your deck is still short on, or with your theme. With Swap the card moves from your collection into the deck, and you choose what goes out.</string>
+    <string name="sugg_lands_explain">Lands from your collection that make two or more colours of this deck. With Swap the land goes into the deck, and a basic land in a matching colour goes back to your collection.</string>
+    <string name="sugg_cuts_explain">Cards in this deck that contribute the least. They fill no role and don\'t fit the theme, cost 6 or more mana, go above your bracket or aren\'t a creature of your tribe. With Swap you choose what comes in instead, and this card goes back to your collection.</string>
 </resources>

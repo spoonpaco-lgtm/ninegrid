@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -136,7 +137,20 @@ fun ImageIssueMark(issue: Images.Issue, small: Boolean) {
     }
 }
 
-/** Eén regel in een lijst: rarity-streep, naam, set, manabolletjes en prijs. */
+/** Manakosten (of bij een land de kleuren die het maakt) voor rechts in een regel, vlak vóór de prijs. Altijd dezelfde grootte. */
+@Composable
+fun RowManaCost(print: CardPrint?, size: Int = 15) {
+    if (print == null) return
+    if (print.manaCost.isNotBlank()) {
+        Spacer(Modifier.width(6.dp))
+        ManaCost(print.manaCost, size = size)
+    } else if (print.typeLine.contains("Land")) {
+        Spacer(Modifier.width(6.dp))
+        ManaPips(print.producedMana.filter { it in "WUBRGC" }.ifEmpty { "C" }, size = size)
+    }
+}
+
+/** Eén regel in een lijst: rarity-streep, naam, set, manakosten en prijs. */
 @Composable
 fun CardRow(
     entry: Entry,
@@ -175,14 +189,6 @@ fun CardRow(
                         color = if (entry.proxy) NgColors.Proxy else MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.weight(1f, fill = false),
                     )
-                    // Manakosten zoals op de kaart; bij een lange naam of veel symbolen eerst de symbolen kleiner.
-                    val cost = print?.manaCost.orEmpty()
-                    if (cost.isNotBlank()) {
-                        val symbols = Regex("""\{[^}]+\}""").findAll(cost.substringBefore(" // ")).count()
-                        val tight = (print?.name?.length ?: 0) + symbols * 2 > 24
-                        Spacer(Modifier.width(5.dp))
-                        ManaCost(cost, size = if (tight) 12 else 15)
-                    }
                     FoilBadge(entry.finish)
                     if (entry.language.isNotBlank()) SmallTag(entry.language)
                     if (entry.proxy) SmallTag(stringResource(R.string.proxy), NgColors.Proxy)
@@ -194,14 +200,12 @@ fun CardRow(
                 )
                 if (tag != null) Text(tag, color = NgColors.Synced, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
-            // Lands hebben geen manakosten: die tonen de kleuren die ze maken.
-            if (print != null && print.manaCost.isBlank() && print.typeLine.contains("Land")) {
-                Spacer(Modifier.width(6.dp))
-                ManaPips(print.producedMana.filter { it in "WUBRGC" }.ifEmpty { "C" }, size = 16)
-            }
+            // Manakosten rechts, vlak vóór de prijs: altijd even groot en rechts uitgelijnd, zodat ze een kolom vormen.
+            // Lands hebben geen manakosten: die tonen op dezelfde plek de kleuren die ze maken.
+            RowManaCost(print)
             Spacer(Modifier.width(8.dp))
-            Column(horizontalAlignment = Alignment.End) {
-                Text(priceText ?: nl.spoonpaco.ninegrid.ui.components.money(Money.total(entry, print, settings.currency), settings.currency), color = extra.price, fontWeight = FontWeight.Bold, fontSize = 14.sp, modifier = Modifier.then(nl.spoonpaco.ninegrid.ui.components.privacyMask()))
+            Column(horizontalAlignment = Alignment.End, modifier = Modifier.widthIn(min = 56.dp)) {
+                Text(priceText ?: nl.spoonpaco.ninegrid.ui.components.money(Money.total(entry, print, settings.currency), settings.currency), color = extra.price, fontWeight = FontWeight.Bold, fontSize = 14.sp, maxLines = 1, modifier = Modifier.then(nl.spoonpaco.ninegrid.ui.components.privacyMask()))
                 if (entry.quantity > 1) Text("${entry.quantity}×", color = extra.subtle, fontSize = 12.sp)
             }
             trailing?.let { Spacer(Modifier.width(6.dp)); it() }

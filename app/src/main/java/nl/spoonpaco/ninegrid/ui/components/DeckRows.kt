@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -90,8 +91,6 @@ fun DeckCardRow(entry: Entry, print: CardPrint?, settings: AppSettings, images: 
                     color = if (entry.proxy) NgColors.Proxy else MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f, fill = false),
                 )
-                Spacer(Modifier.width(5.dp))
-                ManaCost(print?.manaCost ?: "")
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("${print?.setCode ?: ""} ${print?.collectorNumber ?: ""} · ${print?.rarity ?: ""}", fontSize = 11.sp, color = extra.subtle, maxLines = 1)
@@ -101,8 +100,11 @@ fun DeckCardRow(entry: Entry, print: CardPrint?, settings: AppSettings, images: 
                 if (entry.language.isNotBlank()) MiniTag(entry.language, extra.subtle.copy(alpha = 0.3f), MaterialTheme.colorScheme.onSurface)
             }
         }
+        // Manakosten rechts, vlak vóór de prijs (lands: de kleuren die ze maken).
+        RowManaCost(print, size = 14)
+        Spacer(Modifier.width(7.dp))
         Text(money(Money.total(entry, print, settings.currency), settings.currency), color = extra.price, fontWeight = FontWeight.Bold, fontSize = 13.sp,
-            modifier = privacyMask())
+            maxLines = 1, textAlign = androidx.compose.ui.text.style.TextAlign.End, modifier = Modifier.widthIn(min = 52.dp).then(privacyMask()))
     }
 }
 

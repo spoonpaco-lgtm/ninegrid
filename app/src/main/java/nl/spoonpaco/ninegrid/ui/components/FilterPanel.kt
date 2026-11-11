@@ -62,8 +62,10 @@ data class CardFilter(
     val binders: Set<String> = emptySet(),
     /** Alleen bij Alle kaarten: alleen wat ik niet heb. */
     val notOwned: Boolean = false,
+    /** Alleen Game Changers (de lijst van Wizards voor Commander-brackets). */
+    val gameChangers: Boolean = false,
 ) {
-    val count get() = rarities.size + colors.size + types.size + binders.size + (if (foil) 1 else 0) + (if (decks) 1 else 0) + (if (inText) 1 else 0) + (if (notOwned) 1 else 0)
+    val count get() = rarities.size + colors.size + types.size + binders.size + (if (foil) 1 else 0) + (if (decks) 1 else 0) + (if (inText) 1 else 0) + (if (notOwned) 1 else 0) + (if (gameChangers) 1 else 0)
 
     fun matches(e: EntryWithPrint, query: String): Boolean {
         val p = e.print
@@ -77,6 +79,7 @@ data class CardFilter(
         if (rarities.isNotEmpty() && (p?.rarity ?: "") !in rarities) return false
         if (binders.isNotEmpty() && (e.entry.binder?.takeIf { it.isNotBlank() } ?: "") !in binders) return false
         if (foil && e.entry.finish == Finish.NONFOIL) return false
+        if (gameChangers && p?.gameChanger != true) return false
         if (colors.isNotEmpty()) {
             val c = p?.colors ?: ""
             if (colors.none { k -> if (k == "C") c.isEmpty() else c.contains(k) }) return false
@@ -105,13 +108,14 @@ data class CardFilter(
             if (f.rarities.isNotEmpty()) parts += or(f.rarities.map { "r:$it" })
             if (f.colors.isNotEmpty()) parts += or(f.colors.map { if (it == "C") "c:c" else "c:${it.lowercase()}" })
             if (f.types.isNotEmpty()) parts += or(f.types.map { "t:${it.lowercase()}" })
+            if (f.gameChangers) parts += "is:gamechanger"
             // Alleen "alleen wat ik niet heb": Scryfall wil een zoekopdracht, dus alle papieren kaarten.
             return parts.joinToString(" ").ifBlank { "game:paper" }
         }
     }
 }
 
-enum class FilterGroup { RARITY, COLOR, TYPE, FOIL, DECKS, TEXT, BINDER, NOT_OWNED }
+enum class FilterGroup { RARITY, COLOR, TYPE, FOIL, DECKS, TEXT, BINDER, NOT_OWNED, GAME_CHANGER }
 
 /**
  * Zoekbalk met één knop Filter (met het aantal actieve filters) en eventueel een knop Sorteren.
@@ -177,6 +181,7 @@ fun FilterSearchBar(
             if (filter.inText) ActiveChip(stringResource(R.string.search_in_text)) { onFilter(filter.copy(inText = false)) }
             filter.binders.forEach { b -> ActiveChip(b.ifBlank { stringResource(R.string.no_binder) }) { onFilter(filter.copy(binders = filter.binders - b)) } }
             if (filter.notOwned) ActiveChip(stringResource(R.string.only_not_owned)) { onFilter(filter.copy(notOwned = false)) }
+            if (filter.gameChangers) ActiveChip(stringResource(R.string.filter_game_changers)) { onFilter(filter.copy(gameChangers = false)) }
             TextButton(onClick = { onFilter(CardFilter()) }) { Text(stringResource(R.string.clear_filters)) }
         }
     }
@@ -205,6 +210,7 @@ fun FilterSearchBar(
             }
             val more = listOfNotNull(
                 (FilterGroup.NOT_OWNED in groups).takeIf { it }?.let { Triple(stringResource(R.string.only_not_owned), filter.notOwned) { onFilter(filter.copy(notOwned = !filter.notOwned)) } },
+                (FilterGroup.GAME_CHANGER in groups).takeIf { it }?.let { Triple(stringResource(R.string.filter_game_changers), filter.gameChangers) { onFilter(filter.copy(gameChangers = !filter.gameChangers)) } },
                 (FilterGroup.FOIL in groups).takeIf { it }?.let { Triple(stringResource(R.string.foil), filter.foil) { onFilter(filter.copy(foil = !filter.foil)) } },
                 (FilterGroup.DECKS in groups).takeIf { it }?.let { Triple(stringResource(R.string.include_decks), filter.decks) { onFilter(filter.copy(decks = !filter.decks)) } },
                 (FilterGroup.TEXT in groups).takeIf { it }?.let { Triple(stringResource(R.string.search_in_text), filter.inText) { onFilter(filter.copy(inText = !filter.inText)) } },

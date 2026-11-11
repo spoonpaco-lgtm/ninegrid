@@ -9,6 +9,7 @@ import androidx.compose.foundation.background
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -217,7 +218,7 @@ fun CollectionScreen(
                     FilterSearchBar(
                         query = query, onQuery = { query = it }, placeholder = stringResource(R.string.search_hint),
                         filter = filter, onFilter = { vm.setFilter("collection", it) },
-                        groups = setOf(FilterGroup.RARITY, FilterGroup.COLOR, FilterGroup.TYPE, FilterGroup.FOIL, FilterGroup.DECKS, FilterGroup.TEXT, FilterGroup.BINDER),
+                        groups = setOf(FilterGroup.RARITY, FilterGroup.COLOR, FilterGroup.TYPE, FilterGroup.FOIL, FilterGroup.DECKS, FilterGroup.TEXT, FilterGroup.BINDER, FilterGroup.GAME_CHANGER),
                         sortOptions = listOf("set" to stringResource(R.string.sort_set), "binder" to stringResource(R.string.sort_binder), "price" to stringResource(R.string.sort_price), "name" to stringResource(R.string.sort_name)),
                         sort = sort, onSort = { vm.setCollectionSort(it) },
                         binderOptions = binderList,
@@ -289,7 +290,7 @@ private fun AllCardsPanel(vm: AppViewModel, query: String, onQuery: (String) -> 
         FilterSearchBar(
             query = query, onQuery = onQuery, placeholder = stringResource(R.string.all_cards_hint),
             filter = filter, onFilter = { vm.setFilter("allcards", it) },
-            groups = setOf(FilterGroup.RARITY, FilterGroup.COLOR, FilterGroup.TYPE, FilterGroup.TEXT, FilterGroup.NOT_OWNED),
+            groups = setOf(FilterGroup.RARITY, FilterGroup.COLOR, FilterGroup.TYPE, FilterGroup.TEXT, FilterGroup.NOT_OWNED, FilterGroup.GAME_CHANGER),
             accent = true,
         )
         Text(
@@ -297,7 +298,7 @@ private fun AllCardsPanel(vm: AppViewModel, query: String, onQuery: (String) -> 
             fontSize = 11.sp, color = extra.subtle, modifier = Modifier.padding(horizontal = 16.dp),
         )
         if (vm.allLoading) LinearProgressIndicator(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp))
-        val hasFilter = filter.rarities.isNotEmpty() || filter.colors.isNotEmpty() || filter.types.isNotEmpty() || filter.notOwned
+        val hasFilter = filter.rarities.isNotEmpty() || filter.colors.isNotEmpty() || filter.types.isNotEmpty() || filter.notOwned || filter.gameChangers
         if (query.trim().length < 2 && !hasFilter) {
             Text(stringResource(R.string.all_cards_min), fontSize = 13.sp, color = extra.subtle, modifier = Modifier.padding(16.dp))
             // Recente zoekopdrachten.
@@ -330,20 +331,20 @@ private fun AllCardsPanel(vm: AppViewModel, query: String, onQuery: (String) -> 
 
 /** De verlanglijst: wat je zoekt, met "Gekocht", aanpassen en prijsalarm. */
 /**
- * Eén regel op de verlanglijst: tik = bewerken, ✓ = gekocht. De tweede regel zegt wat er speelt:
+ * Eén regel op de verlanglijst: tik = het kaartscherm, ✎ = bewerken, ✓ = gekocht. De tweede regel zegt wat er speelt:
  * het prijsalarm, hoeveel je er nog zoekt, welke vriend hem heeft, en of het om een precieze print gaat.
  */
 @Composable
 private fun WishRow(
     vm: AppViewModel, w: nl.spoonpaco.ninegrid.data.db.WishWithPrint, unit: Double?, priceText: String,
-    onEdit: () -> Unit, onBought: () -> Unit, onFriend: (String) -> Unit,
+    onOpen: () -> Unit, onEdit: () -> Unit, onBought: () -> Unit, onFriend: (String) -> Unit,
 ) {
     val settings by vm.settings.collectAsState()
     val extra = LocalNgExtra.current
     val p = w.print
     val i = w.item
     androidx.compose.material3.Card(
-        onClick = onEdit,
+        onClick = onOpen,
         colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = extra.cardSurface),
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 3.dp),
@@ -356,12 +357,6 @@ private fun WishRow(
             Column(Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(i.name, fontWeight = FontWeight.Bold, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
-                    val cost = p?.manaCost.orEmpty()
-                    if (cost.isNotBlank()) {
-                        val symbols = Regex("""\{[^}]+\}""").findAll(cost.substringBefore(" // ")).count()
-                        Spacer(Modifier.width(5.dp))
-                        nl.spoonpaco.ninegrid.ui.components.ManaCost(cost, size = if (i.name.length + symbols * 2 > 22) 12 else 15)
-                    }
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     val parts = mutableListOf<@Composable () -> Unit>()
@@ -387,6 +382,7 @@ private fun WishRow(
                     parts.forEachIndexed { k, part -> if (k > 0) Text(" · ", fontSize = 12.sp, color = extra.subtle); part() }
                 }
             }
+            nl.spoonpaco.ninegrid.ui.components.RowManaCost(p)
             Spacer(Modifier.width(6.dp))
             Column(horizontalAlignment = Alignment.End) {
                 if (i.anyPrint && unit != null) Text(stringResource(R.string.wish_from_label), fontSize = 10.sp, color = extra.subtle)
@@ -394,9 +390,14 @@ private fun WishRow(
                     color = extra.price, fontWeight = FontWeight.Bold, fontSize = 14.sp, modifier = nl.spoonpaco.ninegrid.ui.components.privacyMask())
             }
             Spacer(Modifier.width(6.dp))
-            // Gekocht: klein, zodat de naam ruimte houdt.
-            androidx.compose.material3.FilledTonalIconButton(onClick = onBought, modifier = Modifier.size(32.dp)) {
-                Icon(Icons.Filled.Check, stringResource(R.string.wish_bought_btn), modifier = Modifier.size(18.dp))
+            // Bewerken en Gekocht: klein en onder elkaar, zodat de naam ruimte houdt.
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                androidx.compose.material3.FilledTonalIconButton(onClick = onEdit, modifier = Modifier.size(28.dp)) {
+                    Icon(Icons.Filled.Edit, stringResource(R.string.edit), modifier = Modifier.size(16.dp))
+                }
+                androidx.compose.material3.FilledTonalIconButton(onClick = onBought, modifier = Modifier.size(28.dp)) {
+                    Icon(Icons.Filled.Check, stringResource(R.string.wish_bought_btn), modifier = Modifier.size(16.dp))
+                }
             }
         }
     }
@@ -419,8 +420,17 @@ private fun WishlistPanel(vm: AppViewModel, onCard: (String) -> Unit, onPaste: (
         return
     }
     LaunchedEffect(wishes.map { it.item.id to it.item.anyPrint }, settings.currency) { vm.loadCheapest() }
+    // Filter: alleen Game Changers (een knop, zoals de andere filters).
+    var gcOnly by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
+    val shownWishes = if (gcOnly) wishes.filter { it.print?.gameChanger == true } else wishes
     LazyColumn(contentPadding = PaddingValues(bottom = 96.dp)) {
-        items(wishes, key = { it.item.id }) { w ->
+        item(key = "filters") {
+            Row(Modifier.padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                androidx.compose.material3.FilterChip(selected = gcOnly, onClick = { gcOnly = !gcOnly }, label = { Text(stringResource(R.string.filter_game_changers)) })
+                if (gcOnly && shownWishes.isEmpty()) Text(stringResource(R.string.guide_search_none), fontSize = 12.sp, color = extra.subtle, modifier = Modifier.padding(start = 10.dp))
+            }
+        }
+        items(shownWishes, key = { it.item.id }) { w ->
             val unitPrice = vm.wishUnitPrice(w, settings.currency)
             val priceText = when {
                 unitPrice == null -> "–"
@@ -428,7 +438,7 @@ private fun WishlistPanel(vm: AppViewModel, onCard: (String) -> Unit, onPaste: (
                 else -> nl.spoonpaco.ninegrid.ui.components.money(unitPrice, settings.currency)
             }
             val p = w.print
-            WishRow(vm, w, unitPrice, priceText, onEdit = { edit = w }, onBought = { vm.boughtWish(w) }, onFriend = onFriend)
+            WishRow(vm, w, unitPrice, priceText, onOpen = { if (p != null) vm.openPrint(p, then = onCard) else edit = w }, onEdit = { edit = w }, onBought = { vm.boughtWish(w) }, onFriend = onFriend)
         }
         item { Text(stringResource(R.string.wish_alarm_note), fontSize = 11.sp, color = extra.subtle, modifier = Modifier.padding(16.dp)) }
     }

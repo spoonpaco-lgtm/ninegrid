@@ -1313,6 +1313,9 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     private val deckUiPrefs get() = getApplication<Application>().getSharedPreferences("deck_ui", android.content.Context.MODE_PRIVATE)
     fun deckCollapsed(deckId: Long): Set<String> = deckUiPrefs.getStringSet("collapsed_$deckId", emptySet()).orEmpty().toSet()
     fun setDeckCollapsed(deckId: Long, v: Set<String>) = deckUiPrefs.edit().putStringSet("collapsed_$deckId", v).apply()
+    /** Welke blokken op het tabblad Suggesties dicht staan (per deck). */
+    fun suggCollapsed(deckId: Long): Set<String> = deckUiPrefs.getStringSet("sugg_closed_$deckId", emptySet()).orEmpty().toSet()
+    fun setSuggCollapsed(deckId: Long, v: Set<String>) = deckUiPrefs.edit().putStringSet("sugg_closed_$deckId", v).apply()
     fun deckSort(deckId: Long): String = deckUiPrefs.getString("sort_$deckId", "mana") ?: "mana"
     fun setDeckSort(deckId: Long, v: String) = deckUiPrefs.edit().putString("sort_$deckId", v).apply()
     private val rulesJson = kotlinx.serialization.json.Json { ignoreUnknownKeys = true; encodeDefaults = true }
@@ -1842,7 +1845,8 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     private var allKey = ""
 
     /** Gebruikt Alle kaarten de offline database? (Regeltekst zit daar niet in: dan online.) */
-    fun allCardsOffline(f: nl.spoonpaco.ninegrid.ui.components.CardFilter) = c.offline.usable() && !f.inText
+    // De offline database kent geen Game Changers: met dat filter zoekt Alle kaarten bij Scryfall.
+    fun allCardsOffline(f: nl.spoonpaco.ninegrid.ui.components.CardFilter) = c.offline.usable() && !f.inText && !f.gameChangers
 
     /**
      * Zoeken: minstens 2 letters of één filter. Online pas een halve seconde na de laatste letter,
@@ -1850,7 +1854,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
      */
     fun searchAll(text: String, f: nl.spoonpaco.ninegrid.ui.components.CardFilter) {
         val t = text.trim()
-        val hasFilter = f.rarities.isNotEmpty() || f.colors.isNotEmpty() || f.types.isNotEmpty() || f.notOwned
+        val hasFilter = f.rarities.isNotEmpty() || f.colors.isNotEmpty() || f.types.isNotEmpty() || f.notOwned || f.gameChangers
         val key = t + "|" + f.toJson()
         if (key == allKey) return
         allKey = key
