@@ -25,6 +25,8 @@ data class SlotRead(
     val altNames: List<String> = emptyList(),
     /** Op de foto ziet het vak er leeg uit (geen kaart: weinig randen en structuur). */
     val looksEmpty: Boolean = false,
+    /** Tussen set en taal staat een ster (★) in plaats van een punt: zo drukt Wizards foils. Een hint, geen zekerheid. */
+    val foilStar: Boolean = false,
 ) {
     val complete get() = setCode != null && collectorNumber != null
 }
@@ -34,18 +36,44 @@ data class SlotRead(
  * de regel onderaan de kaart: nummer ("229/254 M" of "M 0074") en set met taal ("MH1 • EN").
  */
 object ScanParser {
+    // ML Kit leest kleine cijfers geregeld als O, I of l. Die drie tekens zijn op een kaartnummer
+    // geen letters; een eventuele echte letter komt pas achter de cijfers (bijv. 123a).
+    // Een nummer telt pas als er minstens één echt cijfer in staat (zie numberIn): een losse "I" of "LL" is ruis.
+    private const val collectorDigits = "[0-9OIL]{1,4}"
+    // Rarity-letters (C U R M S L T P) worden bewust uitgesloten: in "374 R" of "374M" hoort de letter niet bij het nummer.
+    private const val collectorSuffix = "[ABDEFGHJKNQVWXYZ]?"
+    private val collectorToken = "$collectorDigits$collectorSuffix"
     // "229/254 M", "0074/281 R", "250/271 R"
-    // Het totaal heeft minstens 2 cijfers, zodat kracht/weerstand ("2/2") niet als nummer telt.
-    private val numberSlash = Regex("""(?<![A-Z0-9])(\d{1,4})\s*/\s*(\d{2,4})(?:\s*[CURMSLTP])?(?![0-9])""")
-    // Nieuwe kaarten (2023+): "M 0074", "U 0859", "R 0049"
-    private val numberLetterFirst = Regex("""(?<![A-Z0-9])([CURMSLTP])\s+(\d{3,4})(?![0-9])""")
-    // "MH1 • EN", "WOT · EN", "CMM - EN", "LTC * EN"
+    // Het totaal heeft minstens 2 tekens, zodat kracht/weerstand ("2/2") niet als nummer telt.
+    private val numberSlash = Regex("""(?<![A-Z0-9])($collectorToken)\s*/\s*([0-9OIL]{2,4})(?:\s*[CURMSLTP])?(?![0-9])""")
+    // Nieuwe kaarten (2023+): "M 0074", "U 0859", "R 0049". Altijd drie of vier cijfers.
+    private val numberLetterFirst = Regex("""(?<![A-Z0-9])([CURMSLTP])\s+([0-9OIL]{3,4}$collectorSuffix)(?![0-9])""")
+    // "MH1 • EN", "WOT · EN", "CMM - EN", "LTC * EN"; bij foils staat er een ster: "MH1 ★ EN".
     // Het scheidingsteken leest de OCR vaak niet, dus dat is optioneel.
-    private val setLang = Regex("""(?<![A-Z0-9])([A-Z0-9]{3,5})\s*[•·*.\-+°,]?\s*(EN|DE|FR|IT|ES|PT|JA|JP|KO|RU|ZH|CS|CT|PH)(?![A-Z])""")
+    private val setLang = Regex("""(?<![A-Z0-9])([A-Z0-9]{3,5})\s*([•·*.\-+°,★☆✩✭])?\s*(EN|DE|FR|IT|ES|PT|JA|JP|KO|RU|ZH|CS|CT|PH)(?![A-Z])""")
+    private const val STARS = "★☆✩✭"
 
-    // Extended art, borderless en showcase: alleen een nummer, zonder "/totaal" ("374 R", "374").
-    private val numberAlone = Regex("""^\s*(\d{1,4})\s*([CURMSLTP])?\s*$""")
-    private val numberThenRarity = Regex("""^\s*(\d{1,4})\s+[CURMSLTP](?![A-Z])""")
+    // Extended art, borderless en showcase: alleen een nummer, zonder "/totaal" ("374 R", "374", "374M").
+    private val numberAlone = Regex("""^\s*($collectorToken)\s*([CURMSLTP])?\s*$""")
+    private val numberThenRarity = Regex("""^\s*($collectorToken)\s+[CURMSLTP](?![A-Z])""")
+    // Op veel oudere kaarten staat de setcode zonder taalcode. We gebruiken hem pas als het vak ook
+    // een verzamelnummer heeft, zodat bijvoorbeeld een stuk illustratorsnaam geen set wordt.
+    private val bareSet = Regex("""^\s*([A-Z0-9]{3,5})\s*[•·*.\-+°,★☆✩✭]?\s*$""")
+    private val notASet = setOf("ILLUS", "WOTC", "TM", "THE", "AND")
+
+    /** Het kaartnummer in een (opgeschoonde, hoofdletter-)regel, of null. Een los nummer telt alleen onderaan de kaart. */
+    private fun numberIn(t: String, bottom: Boolean): String? {
+        fun real(v: String?) = v?.takeIf { x -> x.any { it.isDigit() } }
+        val raw = numberSlash.findAll(t).firstNotNullOfOrNull { m -> real(m.groupValues[1])?.takeIf { real(m.groupValues[2]) != null } }
+            ?: numberLetterFirst.findAll(t).firstNotNullOfOrNull { real(it.groupValues[2]) }
+            ?: (if (bottom) real((numberAlone.find(t) ?: numberThenRarity.find(t))?.groupValues?.get(1)) else null)
+        return raw?.let(::normalizeNumber)
+    }
+
+    /** Setcode zonder taal ("MH2" alleen op een regel), of null. */
+    private fun bareSetIn(t: String): String? = bareSet.matchEntire(t)?.groupValues?.get(1)?.takeIf { it !in notASet }?.let(::fixSetCode)
+
+    private fun hasStar(text: String) = text.any { it in STARS }
 
     /** Van de code achter de setcode (FR, JP, CN ...) naar de taalcode van Scryfall; null = Engels. */
     fun scryfallLang(code: String?): String? = when (code?.uppercase()) {
@@ -98,7 +126,8 @@ object ScanParser {
 
     /** Ziet eruit als een kaartnaam: vooral letters, geen verzamelregel. */
     private fun nameCandidate(raw: String): String? {
-        val t = raw.replace(Regex("""[^\p{L} ,'\-]"""), " ").replace(Regex("""\s+"""), " ").trim()
+        // Behoud //: Scryfall gebruikt dit voor split- en dubbelzijdige kaarten.
+        val t = raw.replace(Regex("""[^\p{L} ,'/\-]"""), " ").replace(Regex("""\s+"""), " ").trim()
         if (t.length < 3 || t.length > 45) return null
         val letters = t.count { it.isLetter() }
         if (letters < 3 || letters < raw.length * 0.6) return null
@@ -126,7 +155,7 @@ object ScanParser {
     }
 
     private fun looseName(raw: String): String? {
-        val t = raw.replace(Regex("""[^\p{L} ,'\-]"""), " ").replace(Regex("""\s+"""), " ").trim()
+        val t = raw.replace(Regex("""[^\p{L} ,'/\-]"""), " ").replace(Regex("""\s+"""), " ").trim()
         if (t.length < 4 || t.length > 45) return null
         return if (t.count { it.isLetter() } >= raw.length * 0.5) t else null
     }
@@ -158,23 +187,24 @@ object ScanParser {
         var number: String? = null
         var set: String? = null
         var lang: String? = null
+        var setWithoutLanguage: String? = null
+        var star = false
         // Onderste regels eerst: de verzamelregel staat onderaan de kaart.
         for (l in ls.sortedByDescending { it.centerY }) {
             val t = cleanup(l.text)
             val inBottom = l.centerY > regionTop + regionH * 0.78f
-            if (number == null) {
-                numberSlash.find(t)?.let { number = it.groupValues[1].trimStart('0').ifEmpty { "0" } }
-                    ?: numberLetterFirst.find(t)?.let { number = it.groupValues[2].trimStart('0').ifEmpty { "0" } }
-                    // Een los nummer alleen onderaan de kaart, zodat getallen uit de regeltekst niet meetellen.
-                    ?: (if (inBottom) (numberAlone.find(t) ?: numberThenRarity.find(t)) else null)?.let { number = it.groupValues[1].trimStart('0').ifEmpty { "0" } }
-            }
+            if (number == null) number = numberIn(t, inBottom)
             if (set == null) {
                 setLang.find(t)?.let {
                     set = fixSetCode(it.groupValues[1])
-                    lang = langMap[it.groupValues[2]] ?: it.groupValues[2]
+                    lang = langMap[it.groupValues[3]] ?: it.groupValues[3]
                 }
+                if (inBottom && set == null && setWithoutLanguage == null) setWithoutLanguage = bareSetIn(t)
             }
+            // De ster van een foil staat in de verzamelregel, onderaan de kaart.
+            if (inBottom && hasStar(l.text)) star = true
         }
+        if (set == null && number != null) set = setWithoutLanguage
         // De naam staat bovenaan de kaart: de bovenste regel in het bovenste deel die op een naam lijkt.
         val top = ls.filter { it.centerY < regionTop + regionH * 0.35f }.sortedBy { it.centerY }
         val names = top.mapNotNull { nameCandidate(it.text) }.distinct()
@@ -183,7 +213,7 @@ object ScanParser {
             .mapNotNull { looseName(it.text) }.filter { it !in names }.distinct()
         val name = names.firstOrNull()
         val alt = (names.drop(1) + loose).take(4)
-        return SlotRead(slot, set, number, lang, ls.sortedBy { it.centerY }.map { it.text }, name, alt)
+        return SlotRead(slot, set, number, lang, ls.sortedBy { it.centerY }.map { it.text }, name, alt, foilStar = star)
     }
 
     /** Mist dit vak naam, set of nummer? Dan loont opnieuw lezen van uitvergrote stroken. */
@@ -195,16 +225,18 @@ object ScanParser {
      */
     fun enrich(r: SlotRead, top: List<String>, bottom: List<String>): SlotRead {
         var number = r.collectorNumber; var set = r.setCode; var lang = r.language
+        var setWithoutLanguage: String? = null
         for (raw in bottom) {
             val t = cleanup(raw)
-            if (number == null) {
-                number = (numberSlash.find(t)?.groupValues?.get(1) ?: numberLetterFirst.find(t)?.groupValues?.get(2)
-                    ?: (numberAlone.find(t) ?: numberThenRarity.find(t))?.groupValues?.get(1))?.trimStart('0')?.ifEmpty { "0" }
+            if (number == null) number = numberIn(t, bottom = true)
+            if (set == null) {
+                setLang.find(t)?.let { set = fixSetCode(it.groupValues[1]); lang = langMap[it.groupValues[3]] ?: it.groupValues[3] }
+                if (set == null && setWithoutLanguage == null) setWithoutLanguage = bareSetIn(t)
             }
-            if (set == null) setLang.find(t)?.let { set = fixSetCode(it.groupValues[1]); lang = langMap[it.groupValues[2]] ?: it.groupValues[2] }
         }
+        if (set == null && number != null) set = setWithoutLanguage
         val name = r.name ?: top.firstNotNullOfOrNull { nameCandidate(it) }
-        return r.copy(collectorNumber = number, setCode = set, language = lang, name = name, lines = r.lines + top + bottom)
+        return r.copy(collectorNumber = number, setCode = set, language = lang, name = name, lines = r.lines + top + bottom, foilStar = r.foilStar || bottom.any { hasStar(it) })
     }
 
     /** Eén losse kaart in het kader: alle tekst hoort bij die kaart. */
@@ -224,6 +256,15 @@ object ScanParser {
     private fun cleanup(s: String): String = s.uppercase()
         .replace('•', '•')
         .replace(Regex("""\s+"""), " ")
+
+    /** Normaliseert alleen cijfers in een OCR-gelezen verzamelnummer. */
+    private fun normalizeNumber(raw: String): String = raw.uppercase().map {
+        when (it) {
+            'O' -> '0'
+            'I', 'L' -> '1'
+            else -> it
+        }
+    }.joinToString("").trimStart('0').ifEmpty { "0" }
 
     /** Setcodes beginnen meestal met letters; een 0 aan het begin is bijna altijd een O. */
     fun fixSetCode(code: String): String {

@@ -130,6 +130,19 @@ class ParserTest {
     }
 
     @Test
+    fun scanReadsFooterWithoutLanguageAndRepairsOcrDigits() {
+        val lines = listOf(
+            OcrLine("Fire // Ice", 50f, 20f), OcrLine("Instant", 50f, 170f),
+            // l and O are common OCR readings for 1 and 0; the suffix belongs to the collector number.
+            OcrLine("lO3a/280 R", 50f, 290f), OcrLine("MH2", 50f, 296f),
+        )
+        val r = ScanParser.analyzeSingle(lines, 100, 300, null).slots.single()
+        assertEquals("103A", r.collectorNumber)
+        assertEquals("MH2", r.setCode)
+        assertEquals("Fire // Ice", r.name)
+    }
+
+    @Test
     fun importsSheetLayout() {
         val header = listOf("Set", "Nr.", "Kaart", "Rarity", "Foil", "Taal", "Aantal", "Prijs/stuk (€)", "Totaal (€)", "Proxy")
         val mh1 = listOf(header, listOf("MH1", "1", "Morophon", "rare", "", "", "", "", "", ""), listOf("MH1", "2", "Sliver", "rare", "foil", "", "2", "", "", ""))
@@ -663,4 +676,61 @@ class ParserTest {
         assertEquals(listOf(4L), bolt.map { it.id })
         assertEquals(2, T.plan(bolt, 2).sumOf { it.second })
     }
+
+    // ---- Scanner: verzamelregel ----
+    private fun single(vararg bottom: String, name: String = "Seachrome Coast") = ScanParser.analyzeSingle(
+        listOf(OcrLine(name, 50f, 20f), OcrLine("Land", 50f, 170f)) + bottom.mapIndexed { i, t -> OcrLine(t, 50f, 288f + i * 4f) }, 100, 300, null,
+    ).slots.single()
+
+    /** Een losse ruisletter onderaan is geen nummer: dan blijft het vak "nummer mist" en wordt het opnieuw gelezen. */
+    @Test
+    fun scanNoiseLettersAreNotANumber() {
+        for (noise in listOf("I", "O", "LL", "IO", "L")) {
+            val r = single(noise, "MH2 • EN")
+            assertNull("ruis '$noise' gelezen als nummer ${r.collectorNumber}", r.collectorNumber)
+            assertTrue(ScanParser.needsReread(r))
+        }
+        // Met een echt cijfer erbij is het wél een nummer, en worden O, I en l hersteld.
+        assertEquals("100", single("IO0", "MH2 • EN").collectorNumber)
+        assertEquals("103", single("lO3/280 R", "MH2 • EN").collectorNumber)
+        assertEquals("17", single("I7", "MH2 • EN").collectorNumber)
+    }
+
+    /** De M van mythic hoort niet bij het nummer, ook niet als de OCR de spatie mist. */
+    @Test
+    fun scanRarityLetterIsNotPartOfTheNumber() {
+        assertEquals("374", single("374M", "ONE • EN").collectorNumber)
+        assertEquals("374", single("374 M", "ONE • EN").collectorNumber)
+        assertEquals("229", single("229/254 M", "MH1 • EN").collectorNumber)
+        assertEquals("74", single("M 0074", "WOT • EN").collectorNumber)
+        // Een echte letter achter het nummer blijft staan.
+        assertEquals("103A", single("103a/280 R", "MH2 • EN").collectorNumber)
+    }
+
+    /** Kracht/weerstand is geen kaartnummer. */
+    @Test
+    fun scanPowerToughnessIsNotANumber() {
+        val lines = listOf(OcrLine("Grizzly Bears", 50f, 20f), OcrLine("Creature — Bear", 50f, 170f), OcrLine("2/2", 85f, 270f), OcrLine("M10 • EN", 30f, 296f))
+        val r = ScanParser.analyzeSingle(lines, 100, 300, null).slots.single()
+        assertNull(r.collectorNumber)
+        assertEquals("M10", r.setCode)
+    }
+
+    /** Foils hebben een ster tussen set en taal: de set wordt gelezen en het vak krijgt de foil-hint. */
+    @Test
+    fun scanReadsFoilStar() {
+        val foil = single("229/254 M", "MH1 ★ EN")
+        assertEquals("MH1", foil.setCode); assertEquals("", foil.language); assertEquals("229", foil.collectorNumber)
+        assertTrue(foil.foilStar)
+        val german = single("229/254 M", "MH1★DE")
+        assertEquals("MH1", german.setCode); assertEquals("DE", german.language); assertTrue(german.foilStar)
+        val plain = single("229/254 M", "MH1 • EN")
+        assertEquals("MH1", plain.setCode); assertFalse(plain.foilStar)
+        // Bij opnieuw lezen van de onderste strook komt de ster er alsnog bij.
+        val missing = single("229/254 M")
+        assertNull(missing.setCode)
+        val again = ScanParser.enrich(missing, emptyList(), listOf("MH1 ★ EN"))
+        assertEquals("MH1", again.setCode); assertTrue(again.foilStar)
+    }
 }
+

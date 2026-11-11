@@ -60,7 +60,12 @@ data class PendingItem(
     val empty: Boolean = false,
     /** Naam, set en nummer kloppen met elkaar: kan zonder controle worden opgeslagen. */
     val confident: Boolean = false,
-)
+    /** De scanner las een ster (★) in de verzamelregel en zette de kaart daarom op foil: even controleren. */
+    val foilHint: Boolean = false,
+) {
+    /** Oranje in de scanner: gevonden, maar nog even naar kijken. */
+    val needsCheck get() = !confident || foilHint
+}
 
 enum class ImportSource { SCAN, PASTE, SEARCH }
 
@@ -204,7 +209,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     /** Foil voor het hele blad: ook voor wat er al gescand klaarstaat. */
     fun setPageFoil(v: Boolean) {
         if (pending.none { it.slot != null }) scanFoil = v
-        if (importSource == ImportSource.SCAN) pending.indices.forEach { i -> if (pending[i].slot != null) pending[i] = pending[i].copy(finish = if (v) Finish.FOIL else Finish.NONFOIL) }
+        if (importSource == ImportSource.SCAN) pending.indices.forEach { i -> if (pending[i].slot != null) pending[i] = pending[i].copy(finish = if (v) Finish.FOIL else Finish.NONFOIL, foilHint = false) }
     }
 
     /** Eén vak van het blad foil of niet (tikken op het vak in de camera). */
@@ -212,7 +217,8 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         val i = pending.indexOfFirst { it.slot == slot }
         if (i < 0) return
         val p = pending[i]
-        pending[i] = p.copy(finish = if (p.finish == Finish.NONFOIL) Finish.FOIL else Finish.NONFOIL)
+        // Een foil die de scanner zelf aanzette (★ gelezen): de eerste tik bevestigt hem, pas de volgende zet hem uit.
+        pending[i] = if (p.foilHint) p.copy(foilHint = false) else p.copy(finish = if (p.finish == Finish.NONFOIL) Finish.FOIL else Finish.NONFOIL)
     }
 
     /** Eén keer uitleggen dat je per vak foil kunt zetten. */
@@ -248,6 +254,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
             )
             val key = nextKey++
             val emptySlot = !single && r.lines.isEmpty() && r.looksEmpty
+            val starFoil = r.foilStar && !emptySlot
             slotCrops[r.slot]?.let { crops[key] = it.asImageBitmapSafe() }
             pending += PendingItem(
                 key = key,
@@ -256,13 +263,16 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                 include = !emptySlot,
                 label = if (emptySlot) str(R.string.scan_slot_empty)
                     else if (readParts.isEmpty() && r.lines.isEmpty()) str(R.string.scan_nothing_read)
-                    else str(R.string.scan_read_as, (readParts.ifEmpty { r.lines.take(2).map { it.take(22) } }).joinToString(" · ")),
+                    else str(R.string.scan_read_as, (readParts.ifEmpty { r.lines.take(2).map { it.take(22) } }).joinToString(" · ")) +
+                        (if (starFoil) " · " + str(R.string.scan_foil_star) else ""),
                 query = if (lang == null) CardQuery(setCode = set, collectorNumber = r.collectorNumber, name = r.name, altNames = r.altNames)
                     else CardQuery(setCode = set, collectorNumber = r.collectorNumber, lang = lang, printedName = r.name),
                 status = if (canLook) ItemStatus.RESOLVING else ItemStatus.NOT_FOUND,
                 language = r.language ?: "",
                 // Bij een blad begint elk vak gewoon; foil zet je in het voorbeeld. Bij één kaart telt de knop.
-                finish = if (scanFoil && single) Finish.FOIL else Finish.NONFOIL,
+                // Een ster (★) in de verzamelregel betekent foil: alvast aangezet, maar oranje om te controleren.
+                finish = if ((scanFoil && single) || starFoil) Finish.FOIL else Finish.NONFOIL,
+                foilHint = starFoil && !(scanFoil && single),
             )
         }
         viewModelScope.launch {
@@ -287,7 +297,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                 busy = pending.any { it.status == ItemStatus.RESOLVING },
                 found = pending.count { it.status == ItemStatus.FOUND },
                 empty = emptySlots,
-                doubtful = pending.count { (it.status == ItemStatus.FOUND && !it.confident) || it.status == ItemStatus.NOT_FOUND } - emptySlots,
+                doubtful = pending.count { (it.status == ItemStatus.FOUND && it.needsCheck) || it.status == ItemStatus.NOT_FOUND } - emptySlots,
                 waiting = pending.count { it.status == ItemStatus.WAITING },
                 total = pending.size,
             )

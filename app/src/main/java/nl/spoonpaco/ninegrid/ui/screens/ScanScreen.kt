@@ -125,11 +125,16 @@ import nl.spoonpaco.ninegrid.ui.theme.NgColors
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
+/**
+ * Eén tekstherkenner voor alle foto's en stroken. Een blad kan tientallen stroken opnieuw laten lezen;
+ * steeds een nieuwe herkenner maken kost elke keer opstarttijd. Deze blijft bestaan zolang de app draait.
+ */
+private val sharedRecognizer by lazy { TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS) }
+
 private suspend fun recognize(image: InputImage): MlText = suspendCancellableCoroutine { cont ->
-    val client = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
-    client.process(image)
-        .addOnSuccessListener { cont.resume(it); client.close() }
-        .addOnFailureListener { cont.resumeWithException(it); client.close() }
+    sharedRecognizer.process(image)
+        .addOnSuccessListener { cont.resume(it) }
+        .addOnFailureListener { cont.resumeWithException(it) }
 }
 
 /** Leest de foto. Met crop telt alleen tekst binnen het kader. */
@@ -189,13 +194,41 @@ private fun sharpness(bmp: Bitmap, area: Area?): Double {
     return sum2 / n - mean * mean
 }
 
-/** Leest een strook van de foto opnieuw, twee keer vergroot. */
-private suspend fun readStrip(bmp: Bitmap, a: Area): List<String> {
+/** Zet een strook om naar contrastrijk grijs; dit maakt kleine footertekst op donkere of foil-kaarten leesbaarder. */
+private fun contrastForOcr(bmp: Bitmap): Bitmap {
+    val w = bmp.width; val h = bmp.height
+    val pixels = IntArray(w * h)
+    bmp.getPixels(pixels, 0, w, 0, 0, w, h)
+    val histogram = IntArray(256)
+    pixels.forEach { p -> histogram[((p shr 16 and 255) * 30 + (p shr 8 and 255) * 59 + (p and 255) * 11) / 100]++ }
+    val clip = (pixels.size / 100).coerceAtLeast(1)
+    var seen = 0; var low = 0
+    while (low < 255 && seen + histogram[low] < clip) { seen += histogram[low++] }
+    seen = 0
+    var high = 255
+    while (high > low && seen + histogram[high] < clip) { seen += histogram[high--] }
+    val span = (high - low).coerceAtLeast(1)
+    pixels.indices.forEach { i ->
+        val p = pixels[i]
+        val gray = ((p shr 16 and 255) * 30 + (p shr 8 and 255) * 59 + (p and 255) * 11) / 100
+        val v = ((gray - low) * 255 / span).coerceIn(0, 255)
+        pixels[i] = -0x1000000 or (v shl 16) or (v shl 8) or v
+    }
+    return Bitmap.createBitmap(pixels, w, h, Bitmap.Config.ARGB_8888)
+}
+
+/**
+ * Leest een strook van de foto opnieuw, [scale] keer vergroot (met behoud van verhouding, tot een maximum).
+ * [highContrast] is een gerichte tweede kans.
+ */
+private suspend fun readStrip(bmp: Bitmap, a: Area, highContrast: Boolean = false, scale: Int = 2): List<String> {
     val l = a.left.toInt().coerceIn(0, bmp.width - 1); val t = a.top.toInt().coerceIn(0, bmp.height - 1)
     val w = a.width.toInt().coerceIn(1, bmp.width - l); val h = a.height.toInt().coerceIn(1, bmp.height - t)
     val part = Bitmap.createBitmap(bmp, l, t, w, h)
-    val big = Bitmap.createScaledBitmap(part, (w * 2).coerceAtMost(2400), (h * 2).coerceAtMost(1200), true)
-    return recognize(InputImage.fromBitmap(big, 0)).textBlocks.flatMap { it.lines }.map { it.text }
+    val factor = minOf(scale.toFloat(), 3600f / w, 1400f / h).coerceAtLeast(1f)
+    val big = Bitmap.createScaledBitmap(part, (w * factor).toInt().coerceAtLeast(1), (h * factor).toInt().coerceAtLeast(1), true)
+    val input = if (highContrast) contrastForOcr(big) else big
+    return recognize(InputImage.fromBitmap(input, 0)).textBlocks.flatMap { it.lines }.map { it.text }
 }
 
 /** Vakken die iets missen opnieuw lezen: de naamstrook bovenaan en de strook met set en nummer onderaan. */
@@ -210,9 +243,18 @@ private suspend fun reread(bmp: Bitmap, result: ScanResult, single: Boolean): Pa
             Area(f.left + col * cw, f.top + row * ch, f.left + (col + 1) * cw, f.top + (row + 1) * ch)
         }
         count++
-        val top = runCatching { readStrip(bmp, Area(cell.left, cell.top, cell.right, cell.top + cell.height * 0.2f)) }.getOrDefault(emptyList())
-        val bottom = runCatching { readStrip(bmp, Area(cell.left, cell.bottom - cell.height * 0.17f, cell.right, cell.bottom)) }.getOrDefault(emptyList())
-        ScanParser.enrich(r, top, bottom)
+        val topArea = Area(cell.left, cell.top, cell.right, cell.top + cell.height * 0.2f)
+        val bottomArea = Area(cell.left, cell.bottom - cell.height * 0.17f, cell.right, cell.bottom)
+        val top = runCatching { readStrip(bmp, topArea) }.getOrDefault(emptyList())
+        // De regel met nummer en set is de kleinste tekst op de kaart: die strook drie keer vergroot.
+        val bottom = runCatching { readStrip(bmp, bottomArea, scale = 3) }.getOrDefault(emptyList())
+        var enriched = ScanParser.enrich(r, top, bottom)
+        // De extra OCR-poging kost alleen tijd als de gewone uitsnede nog iets mist.
+        if (enriched.name == null) enriched = ScanParser.enrich(enriched, runCatching { readStrip(bmp, topArea, highContrast = true) }.getOrDefault(emptyList()), emptyList())
+        if (enriched.setCode == null || enriched.collectorNumber == null) {
+            enriched = ScanParser.enrich(enriched, emptyList(), runCatching { readStrip(bmp, bottomArea, highContrast = true, scale = 3) }.getOrDefault(emptyList()))
+        }
+        enriched
     }
     return result.copy(slots = slots) to count
 }
@@ -894,7 +936,7 @@ private fun FoilGrid(vm: AppViewModel, cellWidth: Int, interactive: Boolean, onL
                     item == null || item.status == nl.spoonpaco.ninegrid.ui.ItemStatus.RESOLVING || item.status == nl.spoonpaco.ninegrid.ui.ItemStatus.WAITING -> Color.Transparent
                     item.empty -> Color.White.copy(alpha = 0.25f)
                     item.status == nl.spoonpaco.ninegrid.ui.ItemStatus.NOT_FOUND -> NgColors.Error
-                    !item.confident -> NgColors.Amber
+                    item.needsCheck -> NgColors.Amber
                     else -> NgColors.Synced
                 }
                 val mod = Modifier.width(cellWidth.dp).height((cellWidth * 1.4f).dp)

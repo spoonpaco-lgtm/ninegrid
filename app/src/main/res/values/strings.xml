@@ -964,4 +964,5 @@
     <string name="sugg_adds_explain">Cards lying loose in your collection that fit this deck: the right colours, within your bracket and your own rules. They help with roles your deck is still short on, or with your theme. With Swap the card moves from your collection into the deck, and you choose what goes out.</string>
     <string name="sugg_lands_explain">Lands from your collection that make two or more colours of this deck. With Swap the land goes into the deck, and a basic land in a matching colour goes back to your collection.</string>
     <string name="sugg_cuts_explain">Cards in this deck that contribute the least. They fill no role and don\'t fit the theme, cost 6 or more mana, go above your bracket or aren\'t a creature of your tribe. With Swap you choose what comes in instead, and this card goes back to your collection.</string>
+    <string name="scan_foil_star">★ read: foil?</string>
 </resources>

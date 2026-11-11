@@ -963,4 +963,5 @@
     <string name="sugg_adds_explain">Kaarten die los in je collectie liggen en bij dit deck passen: de juiste kleuren, binnen je bracket en je eigen regels. Ze helpen bij rollen die je deck nog tekortkomt, of bij je thema. Bij Wisselen verhuist de kaart van je collectie naar het deck, en kies je wat eruit gaat.</string>
     <string name="sugg_lands_explain">Lands uit je collectie die twee of meer kleuren van dit deck maken. Bij Wisselen gaat de land het deck in, en gaat een basic land in een passende kleur terug naar je collectie.</string>
     <string name="sugg_cuts_explain">Kaarten in dit deck die het minst bijdragen. Ze vullen geen rol en passen niet bij het thema, kosten 6 of meer mana, gaan boven je bracket of zijn geen creature van je tribe. Bij Wisselen kies je wat ervoor in de plaats komt, en gaat deze kaart terug naar je collectie.</string>
+    <string name="scan_foil_star">★ gelezen: foil?</string>
 </resources>
