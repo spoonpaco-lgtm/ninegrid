@@ -39,8 +39,8 @@ Gebouwd en getest met unittests; dit kan alleen op een echte telefoon gecontrole
 - **Scanner (25)**: een paar bladen scannen, ook een met foils. Leest ML Kit de ster ★ echt? (De hint werkt alleen als de tekstherkenning het teken ★ teruggeeft; zo niet, dan verandert er niets en moet er een andere aanpak komen, bijvoorbeeld op beeld.)
 - ✓ **Bladweergave (21)**: nagekeken door Mick, klaar (past zonder scrollen, met gebaren én met drie knoppen).
 - ✓ **Melding (23)**: nagekeken door Mick, klaar (Ongedaan maken staat overal boven de navigatiebalk).
-- **Icoon (20)**: past het logo in het rondje?
-- **Deckimport (22)**: lijst met verschillende Island-prints importeren terwijl er andere Islands in de collectie liggen.
+- ✓ **Icoon (20)**: nagekeken door Mick, klaar (het logo past in het rondje).
+- ✓ **Deckimport (22)**: nagekeken door Mick, werkt (verschillende Island-prints komen goed binnen).
 - **Back-up (14)**: back-up maken, samenvatting lezen, terugzetten met alles en met losse delen.
 
 ### 0.9.7.1 – nog open na de reparatie
