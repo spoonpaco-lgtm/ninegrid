@@ -47,6 +47,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -340,7 +342,7 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
                 }
             }
             if (tab == 1) item { DeckStatsPanel(vm, d, list, onLands = { tab = 3 }) }
-            if (tab == 2) item { CombosPanel(vm, d, report, onFriend) }
+            if (tab == 2) item { CombosPanel(vm, d, report, onFriend, onCard) }
             if (tab == 3) item { SuggestionsPanel(vm, d, list, onFriend) }
             // Tabblad Kaarten: zoeken en toevoegen op één regel, dan de kaarten per type.
             if (tab == 0) item(key = "tools") {
@@ -778,9 +780,11 @@ private fun SampleHandDialog(vm: AppViewModel, list: List<nl.spoonpaco.ninegrid.
 
 /** Combo's in het deck en bijna-combo's (één kaart mist), via Commander Spellbook. */
 @Composable
-private fun CombosPanel(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.db.Deck, report: nl.spoonpaco.ninegrid.data.ComboReport?, onFriend: (String) -> Unit) {
+private fun CombosPanel(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.db.Deck, report: nl.spoonpaco.ninegrid.data.ComboReport?, onFriend: (String) -> Unit, onCard: (String) -> Unit) {
     val extra = LocalNgExtra.current
     val settings by vm.settings.collectAsState()
+    var asCards by remember { mutableStateOf(vm.comboCards()) }
+    var big by remember { mutableStateOf<String?>(null) }
     Column(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(
@@ -792,6 +796,10 @@ private fun CombosPanel(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.db.De
             }
         }
         if (vm.comboLoading) androidx.compose.material3.LinearProgressIndicator(Modifier.fillMaxWidth().padding(horizontal = 16.dp))
+        if (report != null) Row(Modifier.padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            androidx.compose.material3.FilterChip(selected = asCards, onClick = { asCards = true; vm.setComboCards(true) }, label = { Text(stringResource(R.string.combos_view_cards)) })
+            androidx.compose.material3.FilterChip(selected = !asCards, onClick = { asCards = false; vm.setComboCards(false) }, label = { Text(stringResource(R.string.combos_view_names)) })
+        }
         if (report == null) {
             Text(stringResource(R.string.combos_explain), fontSize = 12.sp, color = extra.subtle, modifier = Modifier.padding(16.dp))
             return@Column
@@ -816,7 +824,7 @@ private fun CombosPanel(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.db.De
                 if (i > 0) androidx.compose.material3.HorizontalDivider(Modifier.padding(vertical = 6.dp))
                 var open by remember(c.id) { mutableStateOf(false) }
                 val two = if (report.spellbookTag != null) report.twoCardCombos.any { it.toSet() == c.cards.toSet() } else c.twoCard
-                ComboPills(c.cards, missing = null, twoCard = two)
+                ComboRow(vm, settings, c.cards, missing = null, twoCard = two, asCards = asCards, onCard = onCard, onBig = { big = it })
                 if (c.produces.isNotEmpty()) androidx.compose.foundation.layout.FlowRow(Modifier.padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     c.produces.take(4).forEach { Pill(it, Color(0xFF1D2B38), Color(0xFF9FD3FF)) }
                 }
@@ -830,7 +838,7 @@ private fun CombosPanel(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.db.De
             report.almost.forEachIndexed { i, c ->
                 if (i > 0) androidx.compose.material3.HorizontalDivider(Modifier.padding(vertical = 6.dp))
                 val missing = c.missing.first()
-                ComboPills(c.cards, missing = missing, twoCard = false)
+                ComboRow(vm, settings, c.cards, missing = missing, twoCard = false, asCards = asCards, onCard = onCard, onBig = { big = it })
                 val own = vm.inCollectionByName(missing)
                 val friend = if (own == null) vm.friendsHaving(missing).firstOrNull() else null
                 Row(Modifier.fillMaxWidth().padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -855,6 +863,52 @@ private fun CombosPanel(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.db.De
             }
         }
         Text(stringResource(R.string.combos_credit), fontSize = 10.sp, color = extra.subtle, modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp))
+    }
+    big?.let { url ->
+        androidx.compose.ui.window.Dialog(onDismissRequest = { big = null }) {
+            coil.compose.AsyncImage(
+                model = vm.images.request(url, settings), imageLoader = vm.images.loader, contentDescription = null,
+                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).clickable { big = null },
+            )
+        }
+    }
+}
+
+/** Plaatje van een kaart op naam: uit het deck of de collectie als je hem hebt, anders via Scryfall. */
+private fun comboImageUrl(vm: AppViewModel, name: String, large: Boolean): String {
+    val own = vm.entries.value.firstOrNull { it.print?.name?.substringBefore(" // ").equals(name, true) }?.print
+    return vm.images.urlFor(own, large) ?: ("https://api.scryfall.com/cards/named?format=image&version=" + (if (large) "normal" else "small") + "&exact=" + java.net.URLEncoder.encode(name, "UTF-8"))
+}
+
+/** Een combo als kaartjes met + ertussen (of als namen). Tik opent de kaart, lang indrukken toont hem groot. */
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+@Composable
+private fun ComboRow(
+    vm: AppViewModel, settings: nl.spoonpaco.ninegrid.data.AppSettings, cards: List<String>, missing: String?, twoCard: Boolean,
+    asCards: Boolean, onCard: (String) -> Unit, onBig: (String) -> Unit,
+) {
+    if (!asCards || settings.imageMode == nl.spoonpaco.ninegrid.data.ImageMode.OFF) { ComboPills(cards, missing, twoCard); return }
+    val extra = LocalNgExtra.current
+    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        cards.forEachIndexed { i, n ->
+            if (i > 0) Text("+", color = extra.subtle, fontWeight = FontWeight.Bold)
+            val miss = n.equals(missing, true)
+            val shape = RoundedCornerShape(6.dp)
+            val ownedId = vm.entries.value.firstOrNull { it.print?.name?.substringBefore(" // ").equals(n, true) }?.print?.id
+            Box(
+                Modifier.width(72.dp).height(101.dp).clip(shape)
+                    .let { m -> if (miss) m.border(1.5.dp, NgColors.Amber, shape) else m }
+                    .background(extra.subtle.copy(alpha = 0.15f))
+                    .combinedClickable(onClick = { ownedId?.let(onCard) }, onLongClick = { onBig(comboImageUrl(vm, n, true)) }),
+            ) {
+                coil.compose.AsyncImage(
+                    model = vm.images.request(comboImageUrl(vm, n, false), settings), imageLoader = vm.images.loader, contentDescription = n,
+                    contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                    alpha = if (miss) 0.45f else 1f, modifier = Modifier.matchParentSize(),
+                )
+            }
+        }
+        if (twoCard) Pill(stringResource(R.string.combos_two_card), Color(0xFFB7412F), Color.White)
     }
 }
 

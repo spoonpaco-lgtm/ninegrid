@@ -1453,6 +1453,9 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun suggCollapsed(deckId: Long): Set<String> = deckUiPrefs.getStringSet("sugg_closed_$deckId", emptySet()).orEmpty().toSet()
     fun setSuggCollapsed(deckId: Long, v: Set<String>) = deckUiPrefs.edit().putStringSet("sugg_closed_$deckId", v).apply()
     fun deckSort(deckId: Long): String = deckUiPrefs.getString("sort_$deckId", "mana") ?: "mana"
+    /** Combo's als kaartjes (standaard) of als namen; één keuze voor alle decks. */
+    fun comboCards(): Boolean = (deckUiPrefs.getString("combo_cards", "1") ?: "1") == "1"
+    fun setComboCards(v: Boolean) = deckUiPrefs.edit().putString("combo_cards", if (v) "1" else "0").apply()
     fun setDeckSort(deckId: Long, v: String) = deckUiPrefs.edit().putString("sort_$deckId", v).apply()
     private val rulesJson = kotlinx.serialization.json.Json { ignoreUnknownKeys = true; encodeDefaults = true }
 

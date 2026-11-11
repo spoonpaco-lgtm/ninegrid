@@ -1031,4 +1031,6 @@
     <string name="torch_failed">De lamp ging niet aan. Probeer het nog eens of kijk of je telefoon hem blokkeert.</string>
     <string name="torch_failed_battery">De lamp ging niet aan. Je batterij zit op %1$d%%; veel telefoons blokkeren de flits bij een lage batterij.</string>
     <string name="torch_failed_saver">De lamp ging niet aan. Batterijbesparing staat aan; veel telefoons blokkeren dan de flits.</string>
+    <string name="combos_view_cards">Kaartjes</string>
+    <string name="combos_view_names">Namen</string>
 </resources>

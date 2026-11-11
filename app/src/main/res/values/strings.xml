@@ -1032,4 +1032,6 @@
     <string name="torch_failed">The lamp would not turn on. Try again, or check whether your phone blocks it.</string>
     <string name="torch_failed_battery">The lamp would not turn on. Your battery is at %1$d%%; many phones block the flash when the battery is low.</string>
     <string name="torch_failed_saver">The lamp would not turn on. Battery saver is on; many phones block the flash then.</string>
+    <string name="combos_view_cards">Cards</string>
+    <string name="combos_view_names">Names</string>
 </resources>
