@@ -178,7 +178,6 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
                     onShare = { nav.navigate("share") },
                     onBinder = { b -> nav.navigate("binder/" + android.net.Uri.encode(b)) },
                     onFriend = { id -> nav.navigate("friend/$id") },
-                    onScan = { nav.navigate("scan") },
                 )
             }
             composable(
@@ -237,6 +236,7 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
                     onCard = { id -> nav.navigate("card/$id") },
                     onAddCards = { id -> nav.navigate("paste?intoDeck=$id") },
                     onFriend = { id -> nav.navigate("friend/$id") },
+                    onScan = { nav.navigate("scan") },
                 )
             }
             composable(

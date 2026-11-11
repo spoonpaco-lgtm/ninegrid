@@ -877,13 +877,13 @@ private fun CombosPanel(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.db.De
 @Composable
 private fun ThumbnailSwitch(asCards: Boolean, onChange: (Boolean) -> Unit) {
     androidx.compose.material3.SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 2.dp)) {
-        androidx.compose.material3.SegmentedButton(
+        SegmentedButton(
             selected = asCards, onClick = { onChange(true) },
-            shape = androidx.compose.material3.SegmentedButtonDefaults.itemShape(0, 2),
+            shape = SegmentedButtonDefaults.itemShape(0, 2),
         ) { Text("▦ " + stringResource(R.string.combos_view_cards)) }
-        androidx.compose.material3.SegmentedButton(
+        SegmentedButton(
             selected = !asCards, onClick = { onChange(false) },
-            shape = androidx.compose.material3.SegmentedButtonDefaults.itemShape(1, 2),
+            shape = SegmentedButtonDefaults.itemShape(1, 2),
         ) { Text("☰ " + stringResource(R.string.combos_view_names)) }
     }
 }
@@ -1123,8 +1123,8 @@ private fun AiDeckBlock(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.db.De
     }
     TabCard(stringResource(R.string.ai_deck_title), info = stringResource(R.string.ai_deck_privacy), accent = true) {
         androidx.compose.material3.SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-            SegmentedButton(selected = !outside, onClick = { outside = false }, shape = androidx.compose.material3.SegmentedButtonDefaults.itemShape(0, 2)) { Text(stringResource(R.string.ai_scope_mine), maxLines = 1) }
-            SegmentedButton(selected = outside, onClick = { outside = true }, shape = androidx.compose.material3.SegmentedButtonDefaults.itemShape(1, 2)) { Text(stringResource(R.string.ai_scope_all), maxLines = 1) }
+            SegmentedButton(selected = !outside, onClick = { outside = false }, shape = SegmentedButtonDefaults.itemShape(0, 2)) { Text(stringResource(R.string.ai_scope_mine), maxLines = 1) }
+            SegmentedButton(selected = outside, onClick = { outside = true }, shape = SegmentedButtonDefaults.itemShape(1, 2)) { Text(stringResource(R.string.ai_scope_all), maxLines = 1) }
         }
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
             androidx.compose.material3.Button(onClick = { vm.askAiDeck(deck.id, outside) }, enabled = !vm.aiDeckBusy) { Text(stringResource(R.string.ai_ask)) }
@@ -1213,7 +1213,7 @@ private fun RulesDialog(
                     types.forEachIndexed { i, t ->
                         SegmentedButton(
                             selected = rules.deckType == t, onClick = { rules = rules.copy(deckType = t, targets = emptyMap()) },
-                            shape = androidx.compose.material3.SegmentedButtonDefaults.itemShape(i, types.size),
+                            shape = SegmentedButtonDefaults.itemShape(i, types.size),
                         ) { Text(if (t == "auto") stringResource(R.string.decktype_auto) else deckTypeName(t), fontSize = NgText.caption, maxLines = 1) }
                     }
                 }
