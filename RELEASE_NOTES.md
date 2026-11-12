@@ -1,3 +1,8 @@
+NineGrid 0.9.9.1 – Vivien
+
+Fix
+- Combo's: tikken op een kaart die je niet hebt opende een leeg venster. De kaart wordt nu eerst opgehaald en onthouden, dan opent het kaartscherm.
+
 NineGrid 0.9.9 – Vivien
 
 Vivien, de jager die sporen volgt: een versie vol scannen, herkennen en kaartjes. Gebouwd op papier getest (unittests met de gelezen regels uit de vier scanrapporten); de scanner is nog niet op een echte telefoon geprobeerd.

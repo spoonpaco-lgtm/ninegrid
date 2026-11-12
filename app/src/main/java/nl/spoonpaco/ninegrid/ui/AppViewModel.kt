@@ -1516,7 +1516,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun openCardByName(name: String, go: (String) -> Unit) {
         viewModelScope.launch {
             val c = runCatching { repo.scryfall.cardByName(name, null) }.getOrNull()
-            if (c != null) go(c.id) else message = str(R.string.not_found)
+            if (c != null) { repo.rememberPrint(c.toPrint()); go(c.id) } else message = str(R.string.not_found)
         }
     }
     fun comboCards(): Boolean = (deckUiPrefs.getString("combo_cards", "1") ?: "1") == "1"
