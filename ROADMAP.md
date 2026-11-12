@@ -84,7 +84,7 @@ Dit is "de lijst": wat Mick wil dat NineGrid nog krijgt. Een nieuw gesprek begin
 - ✓ Commander wijzigen: nagekeken door Mick, werkt. De oude commander die terug naar de collectie gaat wordt los (oude plek niet bewaard); creature-type als deckregel verandert niet vanzelf (alleen een melding).
 - ✓ Fabrieksinstellingen: nagekeken door Mick, werkt (app start daarna opnieuw bij de introductie; terugzetten via Meer → Back-up, niet in de introductie zelf).
 - ✓ Combokaartjes: nagekeken door Mick, werkt (plaatjes van kaarten die je niet hebt komen via Scryfall op naam).
-- Lampmelding en scanrapport (Ontwikkelaar-menu).
+- ✓ Ontwikkelaar-menu: nagekeken door Mick, werkt. Lampmelding nog niet nagekeken. Scanrapport: de vier rapporten van 11 nov zijn aangeleverd; een nieuw rapport met 0.9.9 is nodig om de geschatte maten te toetsen.
 - Nog open: foil-ster ★ bij echte foils; bladscan met 0.9.7.1; bladscan leest minder dan 0.9.6 (voorbeeldfoto/scanrapport nodig).
 
 ### 0.9.7 – nog na te kijken op Micks telefoon
