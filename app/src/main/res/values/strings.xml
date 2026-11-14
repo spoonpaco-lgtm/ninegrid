@@ -1051,4 +1051,8 @@
     <string name="take_summary">%1$d from your collection · %2$d other print · %3$d new</string>
     <string name="sort_number">Number</string>
     <string name="sort_rarity">Rarity</string>
+    <string name="chart_group_chosen">Chosen</string>
+    <string name="chart_group_totals">Totals</string>
+    <string name="chart_group_sets">Sets</string>
+    <string name="chart_count_only_value">Only with the Value view</string>
 </resources>

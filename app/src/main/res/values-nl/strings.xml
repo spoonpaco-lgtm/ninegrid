@@ -1050,4 +1050,8 @@
     <string name="take_summary">%1$d uit je collectie · %2$d andere print · %3$d nieuw</string>
     <string name="sort_number">Nummer</string>
     <string name="sort_rarity">Rarity</string>
+    <string name="chart_group_chosen">Gekozen</string>
+    <string name="chart_group_totals">Totaal</string>
+    <string name="chart_group_sets">Sets</string>
+    <string name="chart_count_only_value">Alleen bij de weergave Waarde</string>
 </resources>

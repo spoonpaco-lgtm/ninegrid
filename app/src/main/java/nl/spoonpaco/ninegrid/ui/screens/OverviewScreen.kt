@@ -130,7 +130,11 @@ fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}, onSets: () ->
         else -> key.removePrefix("set:")
     }
     val latestLabel = remember(latest) { latest.associate { it.key to it.label } }
-    val available = (listOf("total", "sets", "decks") + decks.map { "deck:${it.id}" } + sets.map { "set:${it.first}" } + latestLabel.keys).distinct()
+    val available = (listOf("total", "sets", "decks") + decks.map { "deck:${it.id}" } + sets.map { "set:${it.first}" }).distinct()
+    fun setLabel(code: String): String {
+        val n = vm.setInfo[code.lowercase()]?.name ?: vm.setInfo[code]?.name
+        return if (n.isNullOrBlank()) code else "$code · $n"
+    }
 
     Scaffold(topBar = {
         TopAppBar(
@@ -341,12 +345,6 @@ fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}, onSets: () ->
                                 trailingIcon = { Icon(Icons.Filled.Close, null, Modifier.size(14.dp)) },
                             )
                         }
-                        // Het aantal kaarten als tweede lijn: tik om hem aan of uit te zetten.
-                        if (byValue && !byGain) FilterChip(
-                            selected = settings.chartCount, onClick = { vm.setChartCount(!settings.chartCount) },
-                            label = { Text(stringResource(R.string.chart_count_line), maxLines = 1) },
-                            leadingIcon = { Box(Modifier.size(10.dp).clip(CircleShape).background(COUNT_LINE_COLOR)) },
-                        )
                         TextButton(onClick = { choosing = true }) { Text(stringResource(R.string.chart_choose_lines)) }
                     }
                 }
@@ -423,9 +421,13 @@ fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}, onSets: () ->
 
     if (choosing) {
         LineChooser(
-            options = available.map { it to labelOf(it, latestLabel[it]) },
+            totals = listOf("total", "sets", "decks").map { it to labelOf(it, null) },
+            deckOptions = decks.map { "deck:${it.id}" }.map { it to labelOf(it, null) },
+            setOptions = sets.sortedByDescending { it.second.value }.map { "set:${it.first}" to setLabel(it.first) },
             selected = settings.chartLines.filter { it in available }.ifEmpty { listOf("total") },
-            onDone = { vm.setChartLines(it); choosing = false },
+            count = settings.chartCount,
+            countEnabled = settings.chartMetric != "count" && settings.chartMetric != "gain",
+            onDone = { lines, count -> vm.setChartLines(lines); vm.setChartCount(count); choosing = false },
             onDismiss = { choosing = false },
         )
     }
@@ -486,12 +488,51 @@ private fun TwoLineRow(name: String, c: Counts, currency: String, bold: Boolean 
     }
 }
 
-/** Lijnen kiezen voor de grafiek, met zoeken; hoogstens 6 tegelijk. */
+/**
+ * Lijnen kiezen voor de grafiek, met zoeken; hoogstens 6 tegelijk. Bovenin het vakje Aantal kaarten (telt niet mee),
+ * dan wat al gekozen was, dan de groepen Totaal, Decks en Sets (Sets ingeklapt; zoeken klapt alles open).
+ */
 @Composable
-private fun LineChooser(options: List<Pair<String, String>>, selected: List<String>, onDone: (List<String>) -> Unit, onDismiss: () -> Unit) {
+private fun LineChooser(
+    totals: List<Pair<String, String>>, deckOptions: List<Pair<String, String>>, setOptions: List<Pair<String, String>>,
+    selected: List<String>, count: Boolean, countEnabled: Boolean,
+    onDone: (List<String>, Boolean) -> Unit, onDismiss: () -> Unit,
+) {
+    val all = totals + deckOptions + setOptions
+    val labels = all.toMap()
     var chosen by remember { mutableStateOf(selected) }
+    var countOn by remember { mutableStateOf(count) }
+    val first = remember { selected }   // de groep Gekozen blijft staan zoals bij het openen, zodat de lijst niet springt
     var q by remember { mutableStateOf("") }
     var warn by remember { mutableStateOf(false) }
+    var setsOpen by remember { mutableStateOf(false) }
+    var decksOpen by remember { mutableStateOf(true) }
+    val searching = q.isNotBlank()
+    fun match(o: Pair<String, String>) = !searching || o.second.contains(q.trim(), ignoreCase = true)
+    fun toggle(key: String) {
+        if (key in chosen) { chosen = chosen - key; warn = false }
+        else if (chosen.size >= MAX_LINES) warn = true
+        else chosen = chosen + key
+    }
+    @Composable
+    fun LineRow(key: String, label: String) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().clickable { toggle(key) }) {
+            Checkbox(checked = key in chosen, onCheckedChange = null)
+            Spacer(Modifier.width(8.dp))
+            Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
+    }
+    @Composable
+    fun Header(title: String, n: Int, open: Boolean?, onTap: () -> Unit) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().clickable(enabled = open != null, onClick = onTap).padding(top = 10.dp, bottom = 2.dp)) {
+            Text("$title ($n)", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, modifier = Modifier.weight(1f))
+            if (open != null) Text(if (open) "▾" else "▸", color = MaterialTheme.colorScheme.primary)
+        }
+    }
+    val rest = all.filter { it.first !in first }
+    val restTotals = totals.filter { it in rest && match(it) }
+    val restDecks = deckOptions.filter { it in rest && match(it) }
+    val restSets = setOptions.filter { it in rest && match(it) }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.chart_choose_lines)) },
@@ -499,22 +540,40 @@ private fun LineChooser(options: List<Pair<String, String>>, selected: List<Stri
             Column {
                 OutlinedTextField(q, { q = it }, singleLine = true, leadingIcon = { Icon(Icons.Filled.Search, null) }, placeholder = { Text(stringResource(R.string.search_hint)) })
                 if (warn) Text(stringResource(R.string.chart_max_lines, MAX_LINES), color = NgColors.Error, fontSize = NgText.body)
-                LazyColumn(Modifier.height(320.dp)) {
-                    items(options.filter { q.isBlank() || it.second.contains(q.trim(), ignoreCase = true) }, key = { it.first }) { (key, label) ->
-                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().clickable {
-                            if (key in chosen) { chosen = chosen - key; warn = false }
-                            else if (chosen.size >= MAX_LINES) warn = true
-                            else chosen = chosen + key
-                        }) {
-                            Checkbox(checked = key in chosen, onCheckedChange = null)
+                LazyColumn(Modifier.height(360.dp)) {
+                    if (!searching) item(key = "count") {
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().clickable(enabled = countEnabled) { countOn = !countOn }.padding(top = 6.dp)) {
+                            Checkbox(checked = countOn && countEnabled, onCheckedChange = null, enabled = countEnabled)
                             Spacer(Modifier.width(8.dp))
-                            Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Column {
+                                Text(stringResource(R.string.chart_count_line), color = if (countEnabled) MaterialTheme.colorScheme.onSurface else LocalNgExtra.current.subtle)
+                                if (!countEnabled) Text(stringResource(R.string.chart_count_only_value), fontSize = NgText.caption, color = LocalNgExtra.current.subtle)
+                            }
                         }
+                    }
+                    val firstShown = first.mapNotNull { k -> labels[k]?.let { k to it } }.filter { match(it) }
+                    if (firstShown.isNotEmpty()) {
+                        item(key = "h:chosen") { Header(stringResource(R.string.chart_group_chosen), firstShown.size, null) {} }
+                        items(firstShown, key = { "c:" + it.first }) { (k, l) -> LineRow(k, l) }
+                    }
+                    if (restTotals.isNotEmpty()) {
+                        item(key = "h:totals") { Header(stringResource(R.string.chart_group_totals), restTotals.size, null) {} }
+                        items(restTotals, key = { "t:" + it.first }) { (k, l) -> LineRow(k, l) }
+                    }
+                    if (restDecks.isNotEmpty()) {
+                        val open = searching || decksOpen
+                        item(key = "h:decks") { Header(stringResource(R.string.decks), restDecks.size, if (searching) null else open) { decksOpen = !decksOpen } }
+                        if (open) items(restDecks, key = { "d:" + it.first }) { (k, l) -> LineRow(k, l) }
+                    }
+                    if (restSets.isNotEmpty()) {
+                        val open = searching || setsOpen
+                        item(key = "h:sets") { Header(stringResource(R.string.chart_group_sets), restSets.size, if (searching) null else open) { setsOpen = !setsOpen } }
+                        if (open) items(restSets, key = { "s:" + it.first }) { (k, l) -> LineRow(k, l) }
                     }
                 }
             }
         },
-        confirmButton = { TextButton(onClick = { onDone(chosen.ifEmpty { listOf("total") }) }) { Text(stringResource(R.string.save)) } },
+        confirmButton = { TextButton(onClick = { onDone(chosen.ifEmpty { listOf("total") }, countOn) }) { Text(stringResource(R.string.save)) } },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
     )
 }
