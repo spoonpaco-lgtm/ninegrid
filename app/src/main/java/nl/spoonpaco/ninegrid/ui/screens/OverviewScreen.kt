@@ -30,6 +30,10 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
@@ -104,6 +108,8 @@ fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}, onSets: () ->
     val cur = settings.currency
     val extra = LocalNgExtra.current
     var choosing by remember { mutableStateOf(false) }
+    var pieMode by rememberSaveable { mutableStateOf(false) }
+    var pieSplit by rememberSaveable { mutableStateOf("set") }
 
     // Alleen opnieuw uitrekenen als de kaarten, decks of valuta veranderen.
     val sets = remember(all, cur) {
@@ -305,6 +311,41 @@ fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}, onSets: () ->
                 Panel {
                     Text(stringResource(R.string.chart_title), fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(6.dp))
+                    SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                        SegmentedButton(selected = !pieMode, onClick = { pieMode = false }, shape = SegmentedButtonDefaults.itemShape(0, 2)) { Text(stringResource(R.string.chart_mode_line)) }
+                        SegmentedButton(selected = pieMode, onClick = { pieMode = true }, shape = SegmentedButtonDefaults.itemShape(1, 2)) { Text(stringResource(R.string.chart_mode_pie)) }
+                    }
+                    Spacer(Modifier.height(6.dp))
+                    if (pieMode) {
+                        val countMode = settings.chartMetric == "count"
+                        val real = all.filter { !it.entry.proxy }
+                        fun rv(r: String?) = real.filter { if (r == null) it.print?.rarity !in listOf("mythic", "rare", "uncommon", "common") else it.print?.rarity == r }
+                            .sumOf { Money.total(it.entry, it.print, cur) }
+                        val rawSlices: List<Slice> = when (pieSplit) {
+                            "rarity" -> listOf(
+                                Slice("Mythic", if (countMode) grand.m.toDouble() else rv("mythic"), NgColors.Mythic, null),
+                                Slice("Rare", if (countMode) grand.r.toDouble() else rv("rare"), NgColors.Rare, null),
+                                Slice("Uncommon", if (countMode) grand.u.toDouble() else rv("uncommon"), NgColors.Uncommon, null),
+                                Slice("Common", if (countMode) grand.c.toDouble() else rv("common"), NgColors.Common, null),
+                                Slice(stringResource(R.string.pie_other), if (countMode) grand.o.toDouble() else rv(null), NgColors.Special, null),
+                            )
+                            "deck" -> listOf(Slice(stringResource(R.string.pie_loose), if (countMode) setTotal.total.toDouble() else setTotal.value, NgColors.Amber, onSets)) +
+                                deckRows.map { (n, c) -> Slice(n, if (countMode) c.total.toDouble() else c.value, NgColors.Amber, onDecks) }
+                            else -> sets.map { (code, c) -> Slice(setLabel(code), if (countMode) c.total.toDouble() else c.value, NgColors.Amber, { onSet(code) }) }
+                        }
+                        val slices = if (pieSplit == "rarity") rawSlices.filter { it.amount > 0 }
+                            else pieSlices(rawSlices, 6, stringResource(R.string.pie_other), extra.subtle)
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.horizontalScroll(rememberScrollState())) {
+                            listOf("set" to stringResource(R.string.chart_group_sets), "rarity" to stringResource(R.string.pie_split_rarity), "deck" to stringResource(R.string.decks)).forEach { (k, l) ->
+                                FilterChip(selected = pieSplit == k, onClick = { pieSplit = k }, label = { Text(l) })
+                            }
+                            Spacer(Modifier.width(6.dp))
+                            FilterChip(selected = !countMode, onClick = { vm.setChartMetric("value") }, label = { Text(stringResource(R.string.chart_value)) })
+                            FilterChip(selected = countMode, onClick = { vm.setChartMetric("count") }, label = { Text(stringResource(R.string.chart_cards)) })
+                        }
+                        Spacer(Modifier.height(8.dp))
+                        PieBlock(slices, countMode, cur)
+                    } else {
                     if (byGain && series.all { it.points.size < 2 }) {
                         Text(stringResource(R.string.chart_gain_empty), fontSize = NgText.body, color = extra.subtle, modifier = Modifier.padding(vertical = 8.dp))
                     } else if (series.all { it.points.size < 2 }) {
@@ -346,6 +387,7 @@ fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}, onSets: () ->
                             )
                         }
                         TextButton(onClick = { choosing = true }) { Text(stringResource(R.string.chart_choose_lines)) }
+                    }
                     }
                 }
             }
@@ -576,4 +618,54 @@ private fun LineChooser(
         confirmButton = { TextButton(onClick = { onDone(chosen.ifEmpty { listOf("total") }, countOn) }) { Text(stringResource(R.string.save)) } },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
     )
+}
+
+private data class Slice(val label: String, val amount: Double, val color: Color, val onTap: (() -> Unit)?)
+
+/** De [max] grootste plakken, de rest samen als "Overig"; plakken zonder waarde vallen weg. Kleuren van de grote komen uit LINE_COLORS en daarna uit een vaste reeks. */
+private fun pieSlices(all: List<Slice>, max: Int, otherLabel: String, otherColor: Color): List<Slice> {
+    val sorted = all.filter { it.amount > 0 }.sortedByDescending { it.amount }
+    val palette = LINE_COLORS + listOf(Color(0xFF5B8DEF), Color(0xFFE08AB4), Color(0xFF9AA5B1))
+    val top = sorted.take(max).mapIndexed { i, sl -> sl.copy(color = palette[i % palette.size]) }
+    val rest = sorted.drop(max)
+    return if (rest.isEmpty()) top else top + Slice(otherLabel, rest.sumOf { it.amount }, otherColor, null)
+}
+
+/** Taart met legenda: kleurstip, naam, percentage en bedrag (of aantal). Tik op een regel gaat naar die set of dat deck. */
+@Composable
+private fun PieBlock(slices: List<Slice>, byCount: Boolean, currency: String) {
+    val extra = LocalNgExtra.current
+    val sum = slices.sumOf { it.amount }
+    if (sum <= 0) {
+        Text(stringResource(R.string.pie_empty), fontSize = NgText.body, color = extra.subtle, modifier = Modifier.padding(vertical = 8.dp))
+        return
+    }
+    val track = MaterialTheme.colorScheme.surfaceContainerHigh
+    Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+        androidx.compose.foundation.Canvas(Modifier.size(170.dp)) {
+            var start = -90f
+            slices.forEach { sl ->
+                val sweep = (sl.amount / sum * 360.0).toFloat()
+                drawArc(sl.color, start, sweep, useCenter = true)
+                drawArc(track, start, sweep, useCenter = true, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 2.dp.toPx()))
+                start += sweep
+            }
+        }
+    }
+    Spacer(Modifier.height(8.dp))
+    slices.forEach { sl ->
+        val pct = Math.round(sl.amount / sum * 100)
+        Row(
+            Modifier.fillMaxWidth().then(if (sl.onTap != null) Modifier.clickable { sl.onTap?.invoke() } else Modifier).padding(vertical = 5.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(Modifier.size(10.dp).clip(CircleShape).background(sl.color))
+            Spacer(Modifier.width(8.dp))
+            Text(sl.label, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+            Text("$pct%", color = extra.subtle, fontSize = NgText.body)
+            Spacer(Modifier.width(10.dp))
+            if (byCount) Text(sl.amount.toInt().toString(), fontWeight = FontWeight.Bold)
+            else Text(nl.spoonpaco.ninegrid.ui.components.money(sl.amount, currency), fontWeight = FontWeight.Bold, color = extra.price, modifier = Modifier.then(nl.spoonpaco.ninegrid.ui.components.privacyMask()))
+        }
+    }
 }

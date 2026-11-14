@@ -1055,4 +1055,10 @@
     <string name="chart_group_totals">Totals</string>
     <string name="chart_group_sets">Sets</string>
     <string name="chart_count_only_value">Only with the Value view</string>
+    <string name="chart_mode_line">Line</string>
+    <string name="chart_mode_pie">Pie</string>
+    <string name="pie_other">Other</string>
+    <string name="pie_loose">Not in a deck</string>
+    <string name="pie_split_rarity">Rarity</string>
+    <string name="pie_empty">Nothing to show yet</string>
 </resources>
