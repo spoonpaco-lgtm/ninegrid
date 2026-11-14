@@ -4,6 +4,7 @@ Overzicht → grafiek: Lijnen kiezen
 - Aantal kaarten is een vakje bovenin Lijnen kiezen, zoals de andere lijnen (de losse knop bij de grafiek is weg). Het telt niet mee in de 6 lijnen en werkt alleen bij Waarde.
 - De lijst heeft groepen: eerst wat je al gekozen had, dan Totaal, Decks en Sets. Sets staan ingeklapt; zoeken klapt alles open.
 - Alleen sets waar je nu kaarten van hebt, de duurste eerst, met de setnaam erbij ("MH1 · Modern Horizons"). Een set die je helemaal weghaalt verdwijnt uit de lijst en uit de grafiek; zijn geschiedenis blijft bewaard.
+- Overzicht: bij de grafiek een schakelaar Lijn | Taart. De taart toont de verdeling van nu per set, per rarity of per deck, naar Waarde of Kaarten; de zes grootste plakken en de rest samen als Overig. Tik op een regel van de legenda om naar die set of dat deck te gaan.
 
 Fix
 - Combo's: tikken op een kaart die je niet hebt opende een leeg venster. De kaart wordt nu eerst opgehaald en onthouden, dan opent het kaartscherm.
