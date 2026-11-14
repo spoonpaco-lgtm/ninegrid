@@ -470,7 +470,7 @@ private fun PriceHistoryBlock(vm: AppViewModel, printId: String, hasFoilCopy: Bo
                         HistoryChart(
                             series = listOf(Series("price", stringResource(R.string.price_hist_title), NgColors.Amber, pts)),
                             fromDay = pts.first().first, toDay = maxOf(pts.last().first, pts.first().first + 60_000), showTime = false,
-                            formatY = { v -> nl.spoonpaco.ninegrid.ui.components.money(v, cur) },
+                            formatY = { v -> nl.spoonpaco.ninegrid.domain.Money.format(v, cur) },
                             formatX = { ms, _ -> nl.spoonpaco.ninegrid.domain.Dates.date(ms, dateStyle) },
                             gapMs = 36L * 3600 * 1000,
                             axisColor = MaterialTheme.colorScheme.onSurface, textColor = extra.subtle,
