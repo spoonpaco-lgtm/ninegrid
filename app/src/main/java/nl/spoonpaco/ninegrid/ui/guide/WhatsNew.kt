@@ -28,21 +28,17 @@ object WhatsNew {
     fun items(dutch: Boolean): List<Item> = if (dutch) NL else EN
 
     private val NL = listOf(
-        Item("De scanner is gerepareerd na vier scanrapporten: galerijfoto's met een lege rij of kolom komen niet meer in de verkeerde vakken, verzonnen setcodes en talen worden genegeerd, een jaartal is geen kaartnummer meer en de set van het blad wint van één verlezen set.", "add"),
-        Item("Foil-twijfel is blauw met een ★. Oranje is nu alleen nog voor kaarten waarvan de naam, set of print niet zeker is. Op het controlescherm staan de kaarten in groepen.", "add"),
-        Item("Kaart voor kaart scannen: de laatste drie kaarten onderin met +1 en een kruisje; is alles zeker, dan kun je meteen opslaan. Foil is een stand voor de hele sessie.", "add"),
-        Item("Scannen naar een deck: in een deck onder Toevoegen kies je Scannen. Daarbij één keuze voor uit de collectie halen: alles wat je hebt, exact dezelfde print of niets.", "decks"),
-        Item("Suggesties hebben thumbnails zoals Combo's: tik opent de kaart, vasthouden toont hem groot. De weergave kies je met één schakelaar Thumbnails | Namen; de blokken bij Combo's klappen in en uit.", "decks"),
-        Item("Meer filter- en sorteerknoppen: kaarten van een vriend, het setscherm en het deck.", "collection"),
+        Item("Overzicht: Aantal kaarten is nu een vakje in Lijnen kiezen. De lijst heeft groepen (gekozen, totaal, decks, sets), alleen sets waar je kaarten van hebt, de duurste eerst en met de naam erbij.", "overview"),
+        Item("Overzicht: een schakelaar Lijn | Taart bij de grafiek. De taart toont de verdeling van nu per set, rarity of deck, naar waarde of aantal kaarten.", "overview"),
+        Item("Kaartscherm: een inklapbaar blok Prijsverloop met het verloop van de prijs van die kaart en, dichtgeklapt, de verandering van de afgelopen week.", "collection"),
+        Item("Fix: tikken op een ontbrekende kaart bij Combo's opende een leeg venster.", "decks"),
     )
 
     private val EN = listOf(
-        Item("The scanner is repaired after four scan reports: gallery photos with an empty row or column no longer land in the wrong slots, made-up set codes and languages are ignored, a year is no longer a card number and the set of the page beats one misread set.", "add"),
-        Item("Foil doubt is blue with a ★. Orange is now only for cards whose name, set or print is not sure. The review screen groups the cards.", "add"),
-        Item("Scanning card by card: the last three cards at the bottom with +1 and a cross; if everything is sure you can save right away. Foil is a mode for the whole session.", "add"),
-        Item("Scan into a deck: in a deck under Add choose Scan. With one choice for taking cards from your collection: everything you have, exact same print or nothing.", "decks"),
-        Item("Suggestions have thumbnails like Combos: tap opens the card, press and hold shows it large. Choose the view with one switch, Thumbnails | Names; the blocks in Combos fold open and closed.", "decks"),
-        Item("More filter and sort buttons: a friend's cards, the set screen and the deck.", "collection"),
+        Item("Overview: Number of cards is now a box in Choose lines. The list has groups (chosen, totals, decks, sets), only sets you have cards of, most valuable first and with the name added.", "overview"),
+        Item("Overview: a Line | Pie switch at the chart. The pie shows how things are divided right now by set, rarity or deck, by value or number of cards.", "overview"),
+        Item("Card screen: a collapsible Price history block with the price of that card over time and, collapsed, the change over the past week.", "collection"),
+        Item("Fix: tapping a missing card in Combos opened an empty window.", "decks"),
     )
 }
 

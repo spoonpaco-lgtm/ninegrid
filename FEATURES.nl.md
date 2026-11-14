@@ -2,7 +2,7 @@
 
 *English: [FEATURES.md](FEATURES.md)*
 
-Huidige versie: **0.9.9 – Vivien**. Elke versie heeft de naam van een planeswalker.
+Huidige versie: **0.9.9.1 – Vivien**. Elke versie heeft de naam van een planeswalker.
 
 ## Wat NineGrid anders maakt
 
@@ -59,6 +59,7 @@ Huidige versie: **0.9.9 – Vivien**. Elke versie heeft de naam van een planeswa
 ## Overzicht en prijzen
 - Prijzen van **Cardmarket (EUR)** of **TCGplayer (USD)** via Scryfall, elke dag op de achtergrond bijgewerkt.
 - **Waarde over tijd** vanaf dag één, per lijn: totaal, sets, decks, één deck of set; ook de **prijsbeweging** zonder toevoegen en weghalen. De as volgt de waarden (kleine veranderingen zichtbaar) en het aantal kaarten loopt mee als tweede lijn.
+- Bij de grafiek een schakelaar **Lijn | Taart**: de verdeling van nu per set, rarity of deck. Op het kaartscherm een inklapbaar blok **Prijsverloop** per kaart.
 - **Winner of the Week**: de kaart die je het meeste opleverde.
 - **Breakout**-melding: een kaart van jou stijgt op één dag minstens €3 en 25%.
 - Prijsbewegingen als loyalty-schildjes (▲ +6 / ▼ −3).

@@ -2,7 +2,7 @@
 
 *Nederlands: [FEATURES.nl.md](FEATURES.nl.md)*
 
-Current version: **0.9.9 – Vivien**. Every version is named after a planeswalker.
+Current version: **0.9.9.1 – Vivien**. Every version is named after a planeswalker.
 
 ## What makes NineGrid different
 
@@ -59,6 +59,7 @@ Current version: **0.9.9 – Vivien**. Every version is named after a planeswalk
 ## Overview and prices
 - Prices from **Cardmarket (EUR)** or **TCGplayer (USD)** via Scryfall, refreshed daily in the background.
 - **Value over time** from day one, per line: total, sets, decks, a single deck or set; also the **price movement** without additions and removals. The axis follows the values (small changes show) and the number of cards runs along as a second line.
+- A **Line | Pie** switch at the chart: how things are divided right now by set, rarity or deck. On the card screen a collapsible **Price history** block per card.
 - **Winner of the Week**: the card that gained you the most.
 - **Breakout** alert: a card you own rises at least €3 and 25% in a day.
 - Price movements as loyalty shields (▲ +6 / ▼ −3).
