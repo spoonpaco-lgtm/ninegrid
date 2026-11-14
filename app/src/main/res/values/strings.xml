@@ -1061,4 +1061,9 @@
     <string name="pie_loose">Not in a deck</string>
     <string name="pie_split_rarity">Rarity</string>
     <string name="pie_empty">Nothing to show yet</string>
+    <string name="price_hist_title">Price history</string>
+    <string name="price_hist_normal">Normal</string>
+    <string name="price_hist_none">No prices saved for this card yet. The app saves prices of cards you have.</string>
+    <string name="price_hist_few">The app saves the price from %1$s; the history appears after a few days.</string>
+    <string name="price_hist_note">Last month daily, older one reading per month. Same Cardmarket or TCGplayer price as the rest of the app.</string>
 </resources>

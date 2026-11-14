@@ -755,6 +755,7 @@ class Repository(
     suspend fun pricesAsOf(day: String) = db.prices().asOf(day).associateBy { it.printId }
 
     suspend fun firstPriceDay() = db.prices().firstDay()
+    suspend fun priceHistoryFor(printId: String) = db.prices().forPrint(printId)
 
     /** De grootste uitschieter van vandaag tegenover de laatst bekende prijs vóór vandaag (of null). */
     suspend fun breakout(currency: String): nl.spoonpaco.ninegrid.domain.Mover? {

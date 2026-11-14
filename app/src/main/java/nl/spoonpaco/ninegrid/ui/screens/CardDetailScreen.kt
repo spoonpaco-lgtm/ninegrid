@@ -32,6 +32,9 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.runtime.saveable.rememberSaveable
+import nl.spoonpaco.ninegrid.ui.overview.HistoryChart
+import nl.spoonpaco.ninegrid.ui.overview.Series
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -48,6 +51,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -265,6 +269,8 @@ fun CardDetailScreen(vm: AppViewModel, printId: String, onBack: () -> Unit, onFr
                     }
                 }
             }
+            Spacer(Modifier.height(8.dp))
+            PriceHistoryBlock(vm, printId, copies.any { it.entry.finish == Finish.FOIL }, settings.currency, settings.dateStyle)
             Spacer(Modifier.height(24.dp))
             Text(stringResource(R.string.scryfall_credit), fontSize = NgText.caption, color = extra.subtle)
         }
@@ -399,4 +405,80 @@ fun sectionLabel(s: String) = when (s) {
     Section.COMMANDER -> stringResource(R.string.section_commander)
     Section.SIDEBOARD -> stringResource(R.string.section_sideboard)
     else -> stringResource(R.string.section_main)
+}
+
+/**
+ * Prijsverloop van deze print, inklapbaar. Komt uit de dagelijkse prijzen die de app al bewaart (de laatste maand per dag,
+ * daarna één meting per maand), vanaf de dag dat de kaart bij jou is binnengekomen. Dichtgeklapt zie je de huidige prijs
+ * en de verandering van de afgelopen week.
+ */
+@Composable
+private fun PriceHistoryBlock(vm: AppViewModel, printId: String, hasFoilCopy: Boolean, cur: String, dateStyle: nl.spoonpaco.ninegrid.domain.DateStyle) {
+    val extra = LocalNgExtra.current
+    var open by rememberSaveable(printId) { mutableStateOf(false) }
+    var points by remember(printId) { mutableStateOf<List<nl.spoonpaco.ninegrid.data.db.PricePoint>?>(null) }
+    LaunchedEffect(printId) { points = runCatching { vm.repo.priceHistoryFor(printId) }.getOrDefault(emptyList()) }
+    val zone = remember { java.time.ZoneId.systemDefault() }
+    fun value(pt: nl.spoonpaco.ninegrid.data.db.PricePoint, f: String): Double? =
+        if (cur == "USD") when (f) { "foil" -> pt.usdFoil; "etched" -> pt.usdEtched; else -> pt.usd }
+        else when (f) { "foil" -> pt.eurFoil; else -> pt.eur }
+    fun noon(day: String) = java.time.LocalDate.parse(day).atTime(12, 0).atZone(zone).toInstant().toEpochMilli()
+    val all = points.orEmpty()
+    val finishes = listOf("normal", "foil", "etched").filter { f -> all.any { value(it, f) != null } }
+    var finish by rememberSaveable(printId, all.size) { mutableStateOf(if (hasFoilCopy && "foil" in finishes) "foil" else finishes.firstOrNull() ?: "normal") }
+    val pts = all.mapNotNull { pt -> value(pt, finish)?.let { noon(pt.day) to it } }
+    // Verandering over de afgelopen week: nu tegen de laatste meting van minstens 7 dagen eerder.
+    val weekMs = 7L * 24 * 3600 * 1000
+    val last = pts.lastOrNull()
+    val ref = last?.let { l -> pts.lastOrNull { it.first <= l.first - weekMs } }
+    val diff = if (last != null && ref != null) last.second - ref.second else null
+    val pct = if (diff != null && ref != null && ref.second > 0) diff / ref.second * 100 else null
+
+    Card(colors = CardDefaults.cardColors(containerColor = extra.cardSurface), modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+        Column(Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().clickable { open = !open }) {
+                Text(stringResource(R.string.price_hist_title), fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                if (!open && diff != null) {
+                    val up = diff >= 0
+                    val text = (if (up) "+" else "−") + nl.spoonpaco.ninegrid.ui.components.money(kotlin.math.abs(diff), cur) +
+                        (pct?.let { String.format(java.util.Locale.getDefault(), " (%+.1f%%)", it) } ?: "")
+                    if (nl.spoonpaco.ninegrid.ui.components.LocalEffects.current) nl.spoonpaco.ninegrid.ui.components.LoyaltyShield(text, up)
+                    else Text((if (up) "▲ " else "▼ ") + text, fontSize = NgText.body, fontWeight = FontWeight.Bold, color = if (up) NgColors.Synced else NgColors.Error)
+                }
+                Text(if (open) "  ▾" else "  ▸", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+            }
+            if (open) {
+                Spacer(Modifier.height(6.dp))
+                if (finishes.size > 1) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        finishes.forEach { f ->
+                            FilterChip(selected = finish == f, onClick = { finish = f }, label = {
+                                Text(stringResource(when (f) { "foil" -> R.string.foil; "etched" -> R.string.etched; else -> R.string.price_hist_normal }))
+                            })
+                        }
+                    }
+                    Spacer(Modifier.height(6.dp))
+                }
+                when {
+                    points == null -> {}
+                    pts.isEmpty() -> Text(stringResource(R.string.price_hist_none), fontSize = NgText.body, color = extra.subtle)
+                    pts.size < 2 -> Text(
+                        stringResource(R.string.price_hist_few, nl.spoonpaco.ninegrid.domain.Dates.date(pts.first().first, dateStyle)),
+                        fontSize = NgText.body, color = extra.subtle,
+                    )
+                    else -> {
+                        HistoryChart(
+                            series = listOf(Series("price", stringResource(R.string.price_hist_title), NgColors.Amber, pts)),
+                            fromDay = pts.first().first, toDay = maxOf(pts.last().first, pts.first().first + 60_000), showTime = false,
+                            formatY = { v -> nl.spoonpaco.ninegrid.ui.components.money(v, cur) },
+                            formatX = { ms, _ -> nl.spoonpaco.ninegrid.domain.Dates.date(ms, dateStyle) },
+                            gapMs = 36L * 3600 * 1000,
+                            axisColor = MaterialTheme.colorScheme.onSurface, textColor = extra.subtle,
+                        )
+                        Text(stringResource(R.string.price_hist_note), fontSize = NgText.caption, color = extra.subtle)
+                    }
+                }
+            }
+        }
+    }
 }

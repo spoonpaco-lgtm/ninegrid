@@ -5,6 +5,7 @@ Overzicht → grafiek: Lijnen kiezen
 - De lijst heeft groepen: eerst wat je al gekozen had, dan Totaal, Decks en Sets. Sets staan ingeklapt; zoeken klapt alles open.
 - Alleen sets waar je nu kaarten van hebt, de duurste eerst, met de setnaam erbij ("MH1 · Modern Horizons"). Een set die je helemaal weghaalt verdwijnt uit de lijst en uit de grafiek; zijn geschiedenis blijft bewaard.
 - Overzicht: bij de grafiek een schakelaar Lijn | Taart. De taart toont de verdeling van nu per set, per rarity of per deck, naar Waarde of Kaarten; de zes grootste plakken en de rest samen als Overig. Tik op een regel van de legenda om naar die set of dat deck te gaan.
+- Kaartscherm: een inklapbaar blok Prijsverloop met een grafiekje van de prijs van deze print, uit de dagelijkse prijzen die de app al bewaart (de laatste maand per dag, daarna één per maand). Dichtgeklapt zie je de verandering van de afgelopen week als schildje. Bij een kaart met foil kies je Normaal of Foil.
 
 Fix
 - Combo's: tikken op een kaart die je niet hebt opende een leeg venster. De kaart wordt nu eerst opgehaald en onthouden, dan opent het kaartscherm.

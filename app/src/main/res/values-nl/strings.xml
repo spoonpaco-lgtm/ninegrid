@@ -1060,4 +1060,9 @@
     <string name="pie_loose">Niet in een deck</string>
     <string name="pie_split_rarity">Rarity</string>
     <string name="pie_empty">Nog niets om te tonen</string>
+    <string name="price_hist_title">Prijsverloop</string>
+    <string name="price_hist_normal">Normaal</string>
+    <string name="price_hist_none">Voor deze kaart zijn nog geen prijzen bewaard. De app bewaart de prijzen van kaarten die je hebt.</string>
+    <string name="price_hist_few">De app bewaart de prijs vanaf %1$s; het verloop verschijnt na een paar dagen.</string>
+    <string name="price_hist_note">De laatste maand per dag, daarna één meting per maand. Dezelfde Cardmarket- of TCGplayer-prijs als de rest van de app.</string>
 </resources>

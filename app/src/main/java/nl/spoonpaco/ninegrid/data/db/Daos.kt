@@ -249,6 +249,10 @@ interface PriceDao {
     @Query("SELECT * FROM price_history")
     suspend fun all(): List<PricePoint>
 
+    /** Alle bewaarde prijzen van één print, oudste eerst. */
+    @Query("SELECT * FROM price_history WHERE printId = :id ORDER BY day")
+    suspend fun forPrint(id: String): List<PricePoint>
+
     @Query("SELECT DISTINCT printId FROM price_history")
     suspend fun knownPrintIds(): List<String>
 
