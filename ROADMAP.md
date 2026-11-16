@@ -66,6 +66,14 @@ Dit is "de lijst": wat Mick wil dat NineGrid nog krijgt. Een nieuw gesprek begin
 | 0.9.8.2 | Kaito | 29 vormgeving gelijk getrokken (alleen opmaak) |
 | 0.9.9 | Vivien | 37 scanner repareren, 38 foil-twijfel blauw ★, 39 kaart voor kaart stroomlijnen, 4 scannen naar een deck, 28 één keuze uit de collectie halen, 33–36 filters/sorteren, thumbnails bij suggesties, inklapbare combo-blokken, segmentbalk Thumbnails \| Namen |
 | 0.9.9.1 | Vivien | Fix leeg venster bij ontbrekende combokaart; lijnenkiezer (Aantal kaarten als vakje, groepen, alleen sets met kaarten); taartgrafiek Lijn \| Taart; inklapbaar Prijsverloop op het kaartscherm |
+| 0.9.9.2 | Vivien | Scannen van één kaart: fotootje met gekleurde rand onderin; kader past tussen de gemeten balken; Controleer-knop niet meer afgekapt |
+
+### 0.9.9.2 – nog na te kijken op Micks telefoon
+
+- Scannen van één kaart: fotootje (plaatje van de gevonden kaart) met rand groen/oranje/blauw ★; tik = +1, kruisje = weg; bij plaatjes uit blijft het chipje met de naam.
+- Kader past tussen de gemeten balken: geen lijn meer dwars door het kader, bij Blad en bij 1 kaart. Het kader is bij 1 kaart iets kleiner geworden.
+- Controleer-knop onder Opslaan is volledig zichtbaar.
+- Nog te doen: bij Prijsverloop (kaartscherm) dichtgeklapt "Verschijnt na een week"; taartkeuze onthouden.
 
 ### 0.9.9.1 – nog na te kijken op Micks telefoon
 
@@ -127,6 +135,7 @@ Gebouwd en getest met unittests; dit kan alleen op een echte telefoon gecontrole
 | 0.9.8.1 ✔ / 0.9.8.2 ✔ | Kaito (uitgebracht) | 32 opgegeven set is een grens, 29 vormgeving gelijk trekken |
 | 0.9.9 ✔ | Vivien (uitgebracht) | Gebouwd: 37, 38, 39 (op 39a, 39c na), 4 (op 4e na), 28, 33–36. Oorspronkelijke volgorde: 37 scanner repareren, 38 foil-twijfel blauw ★, 39 kaart voor kaart scannen stroomlijnen (39c pas na 37), daarna 4 scannen naar een deck (pas als de bladscan weer goed leest), 28 deckimport: één keuze voor uit de collectie halen, 33 filter- en sorteerknoppen bij alle kaartenlijsten, 34 thumbnails bij suggesties en tikken op elke combokaart, 35 inklapbare blokken bij combo's, 36 weergavekeuze Thumbnails | Namen als segmentbalk. Zet Mick 0.9.9 uiteen in stappen (bv. 0.9.9.1), dan houdt elke stap de naam Vivien |
 | 0.9.9.1 ✔ | Vivien (uitgebracht) | Fix combokaart, lijnenkiezer, taartgrafiek, Prijsverloop op het kaartscherm |
+| 0.9.9.2 ✔ | Vivien (uitgebracht) | Scannen van één kaart: fotootje met gekleurde rand onderin; kader past tussen de gemeten balken; Controleer-knop niet meer afgekapt |
 | 0.9.10 | nog kiezen | 8 print kiezen, in twee stappen: eerst 8a–e (printlijst), daarna 8f–l (exemplaren wijzigen en splitsen) |
 | 0.9.11 | nog kiezen | 3 exporteren (sites nog te kiezen; eerst de actuele importformaten nakijken) |
 | 1.0 | — | Fase 2 |

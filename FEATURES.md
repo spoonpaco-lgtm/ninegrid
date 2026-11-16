@@ -2,7 +2,7 @@
 
 *Nederlands: [FEATURES.nl.md](FEATURES.nl.md)*
 
-Current version: **0.9.9.1 – Vivien**. Every version is named after a planeswalker.
+Current version: **0.9.9.2 – Vivien**. Every version is named after a planeswalker.
 
 ## What makes NineGrid different
 
