@@ -409,7 +409,9 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
     // Ruimte boven en onder die door de balken op het beeld wordt ingenomen; het kader valt daartussen.
     val topBarPx = with(density) { 64.dp.toPx() } + WindowInsets.statusBars.getTop(density)
     val bandDp = 40 + 52 + 96
-    val bottomBarPx = with(density) { (bandDp + 26).dp.toPx() } + WindowInsets.navigationBars.getBottom(density)
+    // De echte hoogte van de onderband (gemeten), zodat het kader er nooit onder schuift; tot de eerste meting een schatting.
+    var bandPx by remember { mutableStateOf(0) }
+    val bottomBarPx = if (bandPx > 0) bandPx.toFloat() else with(density) { (bandDp + 26).dp.toPx() } + WindowInsets.navigationBars.getBottom(density)
 
     fun startScan(reads: List<SlotRead>, crops: Map<Int, Bitmap>) {
         vm.startScan(reads, crops, single = single)
@@ -705,7 +707,7 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
 
         // Onderband: stand (blad of 1 kaart), uitkomst van de laatste scan, en de knoppen.
         Column(
-            Modifier.align(Alignment.BottomCenter).fillMaxWidth().background(Color.Black.copy(alpha = 0.5f)).navigationBarsPadding(),
+            Modifier.align(Alignment.BottomCenter).fillMaxWidth().onSizeChanged { bandPx = it.height }.background(Color.Black.copy(alpha = 0.5f)).navigationBarsPadding(),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             // Stand: één schakelaar, precies in het midden. Bij één kaart de extra knoppen op een eigen regel.
@@ -746,7 +748,7 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
                 )
             }
             // De uitslag heeft altijd dezelfde hoogte, ook vóór de eerste foto: zo blijft het kader op zijn plek.
-            Box(Modifier.fillMaxWidth().height(76.dp).padding(horizontal = 8.dp, vertical = 2.dp), contentAlignment = Alignment.Center) {
+            Box(Modifier.fillMaxWidth().height(if (single) 92.dp else 76.dp).padding(horizontal = 8.dp, vertical = 2.dp), contentAlignment = Alignment.Center) {
                 // AI bezig? Klein bovenin de uitslag, zonder dat de band groeit.
                 if (vm.aiBusyCount > 0) Text(
                     "AI · " + stringResource(R.string.ai_reading_n, vm.aiBusyCount),
@@ -982,7 +984,7 @@ private fun ScanSummaryBar(
                 // Alles zeker (groen of alleen nog een foil-vraag): direct opslaan, controleren hoeft niet.
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Button(onClick = onSave) { Text(stringResource(R.string.save)) }
-                    TextButton(onClick = onReview) {
+                    TextButton(onClick = onReview, modifier = Modifier.height(28.dp), contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 8.dp, vertical = 0.dp)) {
                         Text(
                             if (sum.foilCheck > 0) stringResource(R.string.review_group_foil, sum.foilCheck) else stringResource(R.string.review_short),
                             color = if (sum.foilCheck > 0) NgColors.FoilBlue else Color.White, fontSize = 12.sp,
@@ -996,7 +998,7 @@ private fun ScanSummaryBar(
             } else if (sum.allGood) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Button(onClick = onSave) { Text(stringResource(R.string.save)) }
-                    TextButton(onClick = onReview) {
+                    TextButton(onClick = onReview, modifier = Modifier.height(28.dp), contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 8.dp, vertical = 0.dp)) {
                         Text(
                             if (sum.foilCheck > 0) stringResource(R.string.review_group_foil, sum.foilCheck) else stringResource(R.string.review_short),
                             color = if (sum.foilCheck > 0) NgColors.FoilBlue else Color.White, fontSize = 12.sp,
