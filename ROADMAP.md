@@ -76,6 +76,14 @@ Dit is "de lijst": wat Mick wil dat NineGrid nog krijgt. Een nieuw gesprek begin
 | 0.9.10 | Dovin | 8 print kiezen (printlijst, print van een exemplaar wijzigen en splitsen, + Exemplaar toevoegen, verlanglijst), 40 melding bij ban of reprint, 4e past niet in het deck oranje |
 | 0.9.10.1 | Dovin | Menu opgeruimd: Meer in blokken, Back-up en export eigen scherm, Over op één plek, Lijst plakken in Importeren, Wijzigingslog heet Laatste actie ongedaan maken, Instellingen in 8 andere groepen |
 
+### 0.9.10.1 – nog na te kijken op Micks telefoon
+
+- Meer in blokken: Handleiding + Wat is nieuw bovenaan; Collectie (Importeren, Back-up en export, Delen met vrienden, Laatste actie ongedaan maken); App (Instellingen, Over NineGrid).
+- Lijst plakken zit in Importeren (knop onder Bestand kiezen); Collectie → + en een deck hebben hem nog.
+- Back-up en export is een eigen scherm op Meer (back-up, terugzetten, automatische back-up, CSV; onderaan rood Alles wissen). Wijzigingslog heet Laatste actie ongedaan maken.
+- Over NineGrid (Meer) heeft versie, updates, automatisch bijwerken en Wat is nieuw; de groep Over is uit Instellingen.
+- Instellingen: Weergave, Taal en regio, Privacy, Scannen, Kaartgegevens, Collectie, AI-hulp, Ontwikkelaar. Controleer of de ?-knoppen bij elk scherm naar een passend hoofdstuk gaan.
+
 ### 0.9.10 – nog na te kijken op Micks telefoon
 
 - Kaartscherm: Andere prints › opent de printlijst (plaatje, jaar, prijs per afwerking, goedkoopst, ✓); sorteren Nieuwste | Goedkoopste; tik = nieuw kaartscherm erbovenop, Terug = vorige print.
@@ -155,6 +163,7 @@ Gebouwd en getest met unittests; dit kan alleen op een echte telefoon gecontrole
 | 0.9.9.1 ✔ | Vivien (uitgebracht) | Fix combokaart, lijnenkiezer, taartgrafiek, Prijsverloop op het kaartscherm |
 | 0.9.9.2 ✔ | Vivien (uitgebracht) | Scannen van één kaart: fotootje met gekleurde rand onderin; kader past tussen de gemeten balken; Controleer-knop niet meer afgekapt |
 | 0.9.10 ✔ | Dovin (uitgebracht) | 8 print kiezen (8a–l), 4e kaarten buiten de kleuren of banned meteen oranje bij scannen naar een deck, 40 melding bij ban of reprint. Mick (16 nov): alles in één versie |
+| 0.9.10.1 ✔ | Dovin (uitgebracht) | Menu opgeruimd (zie hieronder) |
 | 0.9.11 | nog kiezen | 3 exporteren (sites nog te kiezen; eerst de actuele importformaten nakijken) |
 | 1.0 | — | Fase 2 |
 
