@@ -730,6 +730,61 @@ class Repository(
 
     suspend fun allPrintsOwned() = db.prints().owned()
 
+    /** Voor bans en reprints (punt 40): alle echte exemplaren (geen proxies) met hun print. */
+    suspend fun ownedForWatch(): List<Pair<Entry, CardPrint>> {
+        val prints = db.prints().all().associateBy { it.id }
+        return db.entries().all().filter { !it.proxy }.mapNotNull { e -> prints[e.printId]?.let { e to it } }
+    }
+
+    suspend fun allDecks() = db.decks().all()
+
+    /**
+     * Print van (een deel van) een stapel wijzigen, en/of afwerking, taal, conditie en proxy (punt 8f–k).
+     * [count] exemplaren krijgen de gegevens van [after] (met eventueel [newPrint]); de rest blijft zoals hij was.
+     * Staat er op dezelfde plek al een gelijke stapel, dan wordt het één stapel. Alles in één wijziging.
+     * Geeft het id van de stapel waar de gewijzigde exemplaren nu in zitten.
+     */
+    suspend fun changeEntry(before: Entry, after: Entry, newPrint: CardPrint?, count: Int, summary: String): Long? {
+        var result: Long? = null
+        db.withTransaction {
+            val cur = db.entries().get(before.id) ?: return@withTransaction
+            newPrint?.let { db.prints().upsert(listOf(it)) }
+            val n = count.coerceIn(1, cur.quantity)
+            val target = after.copy(
+                id = 0, quantity = n, printId = newPrint?.id ?: after.printId,
+                deckId = cur.deckId, section = cur.section, binder = cur.binder, page = cur.page, slot = cur.slot,
+            )
+            val restore = mutableListOf(cur)
+            val created = mutableListOf<Long>()
+            val existing = db.entries().forPrints(listOf(target.printId)).firstOrNull { it.id != cur.id && sameStack(it, target) }
+            if (n >= cur.quantity) {
+                if (existing != null) {
+                    restore += existing
+                    db.entries().upsert(listOf(existing.copy(quantity = existing.quantity + n)))
+                    db.entries().deleteIds(listOf(cur.id))
+                    result = existing.id
+                } else {
+                    db.entries().upsert(listOf(target.copy(id = cur.id, addedAt = cur.addedAt)))
+                    result = cur.id
+                }
+            } else {
+                db.entries().upsert(listOf(cur.copy(quantity = cur.quantity - n)))
+                if (existing != null) {
+                    restore += existing
+                    db.entries().upsert(listOf(existing.copy(quantity = existing.quantity + n)))
+                    result = existing.id
+                } else {
+                    val id = db.entries().insert(target.copy(addedAt = cur.addedAt))
+                    created += id
+                    result = id
+                }
+            }
+            log(summary, UndoData(restoreEntries = restore, deleteEntryIds = created))
+        }
+        cleanupPrints().let { if (it.isNotEmpty()) onPrintsRemoved(it) }
+        return result
+    }
+
     private fun today() = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date())
 
     /** Prijzen van vandaag bewaren voor het koersverschil; ouder dan een maand alleen één per maand. */

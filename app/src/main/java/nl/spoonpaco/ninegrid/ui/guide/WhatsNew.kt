@@ -28,11 +28,21 @@ object WhatsNew {
     fun items(dutch: Boolean): List<Item> = if (dutch) NL else EN
 
     private val NL = listOf(
-        Item("Scannen, één kaart: onderin staat van de laatste drie kaarten nu een fotootje van de gevonden kaart met een gekleurde rand (groen zeker, oranje controleren, blauw met ★ foil checken). Tik voor een exemplaar erbij, het kruisje haalt de kaart weg.", "add"),
+        Item("Andere prints: op het kaartscherm opent Andere prints › de lijst met alle prints van een kaart, met plaatje, jaar, de prijs per afwerking, goedkoopst en ✓ bij de huidige. Sorteer op nieuwste of goedkoopste.", "collection"),
+        Item("Print van een exemplaar wijzigen: ✎ → tik op de regel Print. Het exemplaar houdt zijn plek; bij een stapel kies je voor hoeveel het geldt. Zo zet je ook 1 van 3 op foil.", "collection"),
+        Item("+ Exemplaar toevoegen staat nu altijd op het kaartscherm: Normaal, Foil of Etched (met prijs), het aantal en meteen de plek.", "collection"),
+        Item("Verlanglijst: kies de precieze print uit de printlijst; prijs en prijsalarm rekenen met die print.", "allcards"),
+        Item("Bans en reprints: een melding als een kaart die je hebt gebanned of weer toegestaan wordt, of opnieuw uitkomt in een nieuwe set. In te stellen bij Instellingen → Collectie.", "overview"),
+        Item("Naar een deck: kaarten die banned zijn of buiten de kleuren van de commander vallen, staan meteen oranje bij Controleer.", "review"),
     )
 
     private val EN = listOf(
-        Item("Scanning one card: the last three cards at the bottom are now a small photo of the card found, with a coloured border (green sure, orange check, blue with ★ check foil). Tap for one more copy, the cross removes the card.", "add"),
+        Item("Other prints: on the card screen, Other prints › opens the list of all prints of a card, with image, year, the price per finish, cheapest and ✓ at the current one. Sort by newest or cheapest.", "collection"),
+        Item("Change the print of a copy: ✎ → tap the Print line. The copy keeps its location; for a stack you choose how many it applies to. This is also how you make 1 of 3 foil.", "collection"),
+        Item("+ Add copy is now always on the card screen: Normal, Foil or Etched (with price), the quantity and the location right away.", "collection"),
+        Item("Wishlist: choose the exact print from the list of prints; price and price alert use that print.", "allcards"),
+        Item("Bans and reprints: a message when a card you own is banned or allowed again, or comes out again in a new set. Set it in Settings → Collection.", "overview"),
+        Item("To a deck: cards that are banned or outside the commander's colours are orange under Check right away.", "review"),
     )
 }
 

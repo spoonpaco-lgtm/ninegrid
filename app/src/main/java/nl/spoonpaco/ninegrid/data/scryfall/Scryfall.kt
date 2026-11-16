@@ -72,6 +72,8 @@ data class SfCard(
     @SerialName("printed_name") val printedName: String? = null,
     /** Alleen digitaal (MTG Arena/Online): niet in de offline kaartdatabase. */
     val digital: Boolean = false,
+    /** Welke afwerkingen er van deze print bestaan: nonfoil, foil, etched (leeg in de offline kaartdatabase). */
+    val finishes: List<String> = emptyList(),
 ) {
     fun toPrint(): CardPrint {
         val img = imageUris ?: cardFaces?.firstOrNull()?.imageUris

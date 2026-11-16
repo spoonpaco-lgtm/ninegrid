@@ -531,6 +531,27 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         return Triple(same, other, fresh)
     }
 
+    /**
+     * Punt 4e: kaarten die niet in het gekozen deck passen (banned of niet legaal in het format, of buiten de kleuren
+     * van de commander), per vak-sleutel. Leeg als de bestemming de collectie is. De commander komt uit het deck
+     * zelf en uit de kaarten op dit scherm die als Commander gemarkeerd zijn.
+     */
+    fun deckIssues(): Map<Int, nl.spoonpaco.ninegrid.domain.DeckFitIssue> {
+        val format = when (destination) {
+            Destination.COLLECTION -> return emptyMap()
+            Destination.NEW_DECK -> newDeckFormat
+            Destination.EXISTING_DECK -> decks.value.firstOrNull { it.id == targetDeckId }?.format ?: return emptyMap()
+        }
+        val commanders = pending.filter { it.include && it.section == Section.COMMANDER }.mapNotNull { it.print?.colorIdentity } +
+            (if (destination == Destination.EXISTING_DECK) entries.value.filter { it.entry.deckId == targetDeckId && it.entry.section == Section.COMMANDER }.mapNotNull { it.print?.colorIdentity } else emptyList())
+        val identity = if (commanders.isEmpty()) null else commanders.flatMap { it.toList() }.toSet()
+        return pending.mapNotNull { item ->
+            val p = item.print ?: return@mapNotNull null
+            if (!item.include) return@mapNotNull null
+            nl.spoonpaco.ninegrid.domain.DeckFit.issue(format, p.legalities, p.colorIdentity, identity, item.section == Section.COMMANDER, item.proxy)?.let { item.key to it }
+        }.toMap()
+    }
+
     /** Andere prints die bij [quantity] stuks uit de collectie gepakt worden, als tekst ("5ED 430 ×2"); leeg als het dezelfde print is. */
     fun otherPrintsTaken(print: CardPrint, finish: String, quantity: Int): String {
         val byId = entries.value.mapNotNull { it.print }.associateBy { it.id }
@@ -901,6 +922,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
             ctx.getSharedPreferences(it, android.content.Context.MODE_PRIVATE).edit().clear().commit()
         }
         if (!o.keepOffline) runCatching { c.offline.delete() }
+        runCatching { c.watcher.reset() }
         images.clearAll()
         settingsStore.resetAll(o.keepOffline)
         busy = false
@@ -972,6 +994,11 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         winnerWeek = monday
     }
     fun setBreakoutAlerts(v: Boolean) = viewModelScope.launch { settingsStore.setBreakoutAlerts(v) }
+    fun setBanAlerts(v: Boolean) = viewModelScope.launch { settingsStore.setBanAlerts(v) }
+    /** Weer aan: eerst de stand opnieuw vastleggen, zodat er geen melding komt over alles wat in de tussentijd uitkwam. */
+    fun setReprintAlerts(v: Boolean) = viewModelScope.launch { if (v) c.watcher.resetReprints(); settingsStore.setReprintAlerts(v) }
+    fun setWatchAllFormats(v: Boolean) = viewModelScope.launch { settingsStore.setWatchAllFormats(v) }
+    fun setReprintMin(v: Double) = viewModelScope.launch { settingsStore.setReprintMin(v) }
     fun setFilter(screen: String, f: nl.spoonpaco.ninegrid.ui.components.CardFilter) = viewModelScope.launch { settingsStore.setFilter(screen, f.toJson()) }
     // ---------- AI-hulp ----------
     fun setAiEnabled(v: Boolean) = viewModelScope.launch { settingsStore.setAi(enabled = v) }
@@ -2096,6 +2123,53 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         repo.rememberPrint(p)
         if (query.trim().length >= 2) settingsStore.addRecentSearch(query.trim())
         then(p.id)
+    }
+
+    // ---------- Print kiezen (punt 8) ----------
+    /** Alle prints van een kaart met hun afwerkingen: bij Scryfall, zonder internet uit de offline kaartdatabase. */
+    suspend fun printOptions(name: String): List<nl.spoonpaco.ninegrid.domain.PrintOption> {
+        val cards = runCatching { repo.scryfall.printsOf(name) }.getOrNull()?.takeIf { it.isNotEmpty() } ?: repo.offlinePrints?.invoke(name).orEmpty()
+        return cards.filter { !it.digital }.distinctBy { it.id }.map { c ->
+            val p = c.toPrint()
+            nl.spoonpaco.ninegrid.domain.PrintOption(p, nl.spoonpaco.ninegrid.domain.PrintChoice.finishes(c.finishes, p))
+        }
+    }
+
+    /** Welke afwerkingen een print heeft (normaal, foil, etched). */
+    suspend fun finishesOf(p: CardPrint): List<String> {
+        val c = runCatching { repo.scryfall.cardById(p.id) }.getOrNull()
+        return nl.spoonpaco.ninegrid.domain.PrintChoice.finishes(c?.finishes.orEmpty(), p)
+    }
+
+    /**
+     * Een exemplaar (of een deel van een stapel) wijzigen: print, afwerking, taal, conditie, proxy. De plek blijft.
+     * [then] krijgt de nieuwe print als die veranderd is, zodat het kaartscherm daarheen kan springen.
+     */
+    fun changeCopy(before: Entry, after: Entry, newPrint: CardPrint?, count: Int, then: (String?) -> Unit = {}) = viewModelScope.launch {
+        val name = nameOf(before)
+        val moved = newPrint?.takeIf { it.id != before.printId }
+        val summary = if (moved != null) str(R.string.log_print_changed, count, name, "${moved.setCode} ${moved.collectorNumber}") else str(R.string.log_edited, name)
+        repo.changeEntry(before, after, moved, count, summary)
+        if (moved != null) {
+            messageUndo = true
+            message = str(R.string.msg_print_changed, count, "${moved.setCode} ${moved.collectorNumber}")
+        }
+        snapshot()
+        then(moved?.id)
+    }
+
+    /** "+ Exemplaar toevoegen" op het kaartscherm: afwerking, aantal en plek in één keer. */
+    fun addCopy(p: CardPrint, finish: String, quantity: Int, deckId: Long?, section: String?, binder: String?, page: Int?, slot: Int?) = viewModelScope.launch {
+        val n = quantity.coerceAtLeast(1)
+        val list = listOf(NewEntry(p, Entry(
+            printId = p.id, finish = finish, quantity = n, deckId = deckId, section = if (deckId != null) (section ?: Section.MAIN) else null,
+            binder = if (deckId == null) binder else null, page = if (deckId == null) page else null, slot = if (deckId == null) slot else null,
+        )))
+        val where = deckId?.let { id -> decks.value.firstOrNull { it.id == id }?.name } ?: str(R.string.collection)
+        repo.addEntries(list, str(R.string.log_copy_added, n, p.name, where))
+        messageUndo = true
+        message = str(R.string.msg_copy_added, n, p.name, where) + strikeAfterSave(list)
+        snapshot()
     }
 
     /** Een kaart die je nog niet hebt toevoegen aan je collectie (1 stuk, gewoon, Engels). */

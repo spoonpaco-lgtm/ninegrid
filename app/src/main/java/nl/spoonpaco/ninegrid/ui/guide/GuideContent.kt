@@ -131,6 +131,8 @@ object Guide {
             Note("Scan je een blad dat er al in staat, dan waarschuwt de app: Al gescand? Je kiest dan zelf of je het toch toevoegt."),
             H("Commander"),
             P("Maak je een Commander-deck, tik dan bij de aanvoerder op de knop Commander. Zonder commander kun je wel opslaan, maar de deckcontrole meldt het dan."),
+            H("Past niet in het deck"),
+            P("Gaan de kaarten naar een deck, dan staat een kaart die er niet in past meteen oranje bij Controleer, met de reden: Banned in dit format, Niet legaal in dit format, of Buiten de kleuren van de commander. De commander komt uit het deck zelf en uit de kaarten op dit scherm met de knop Commander. Je kunt zo'n kaart toch opslaan; de deckcontrole meldt hem dan."),
         )),
         Chapter("collection", "Je collectie", "Zoeken, filteren, het kaartscherm en plekken.", listOf(
             Steps(listOf(
@@ -140,12 +142,12 @@ object Guide {
                 "Sorteer op prijs of naam. De kaarten staan gegroepeerd per set.",
             )),
             H("Het kaartscherm"),
-            P("Tik op een kaart voor het kaartscherm: de kaart groot bovenaan (tik voor volledig scherm; een foil glanst als je de telefoon kantelt), daaronder naam, type, set en de legaliteit per format. Met Op verlanglijst (of Toevoegen aan collectie) zet je hem op je lijst. In het blok Prijs staan normaal en foil, welke vrienden hem hebben, en de links naar Scryfall en Cardmarket (of TCGplayer bij dollars)."),
+            P("Tik op een kaart voor het kaartscherm: de kaart groot bovenaan (tik voor volledig scherm; een foil glanst als je de telefoon kantelt), daaronder naam, type, set en de legaliteit per format. Met + Exemplaar toevoegen kies je Normaal, Foil of Etched (alleen wat er van die print bestaat, met de prijs), het aantal en meteen de plek: je collectie (met map, blad en vak) of een deck. Op verlanglijst zet hem op je lijst. Onder de setregel opent Andere prints de lijst met alle prints van de kaart: met plaatje, set, nummer en jaar, de prijs per afwerking, goedkoopst bij de goedkoopste en ✓ bij de huidige; te sorteren op nieuwste of goedkoopste. Tik op een print om erheen te gaan en hem toe te voegen. In het blok Prijs staan normaal en foil, welke vrienden hem hebben, en de links naar Scryfall en Cardmarket (of TCGplayer bij dollars)."),
             P("Onder Jouw exemplaren staat elk exemplaar met plek en details:"),
             Steps(listOf(
                 "− en + passen het aantal aan.",
                 "Verplaatsen zet (een deel van) de stapel in een deck, of terug naar je collectie met map, blad en vak.",
-                "Bewerken past afwerking, taal, conditie en proxy aan.",
+                "Bewerken (✎) past print, afwerking, taal, conditie en proxy aan. Tik op de regel Print om een andere print te kiezen; het exemplaar houdt zijn plek. Bij een stapel (×3) kies je voor hoeveel het geldt, de rest blijft in een eigen regel. Bestaat de afwerking niet bij de nieuwe print, dan kiest de app Normaal en zegt dat. Komt het op een plek waar al een gelijke stapel ligt, dan wordt het één stapel. Daarna springt het kaartscherm naar de nieuwe print.",
                 "Verwijderen haalt de exemplaren uit de app.",
             )),
             Note("Proxies worden grijs getoond en tellen niet mee in aantallen of waarde."),
@@ -167,7 +169,7 @@ object Guide {
             H("Verlanglijst"),
             Steps(listOf(
                 "Zet een kaart op je verlanglijst vanuit Alle kaarten, het kaartscherm, een bijna-combo of een AI-koopvoorstel, of plak een lijst via ⋮ → Lijst plakken naar verlanglijst.",
-                "Tik op een kaart voor het kaartscherm. Standaard is elke print goed. Met het potlood (✎) bewerk je: een precieze print, alleen foil, en hoeveel je er zoekt (in de lijst: 1 van 4). Met de knop Game Changers bovenaan zie je alleen de Game Changers op je lijst. Bij elke print staat de prijs van de goedkoopste print (vanaf …); onder de naam zie je het prijsalarm en welke vriend hem heeft.",
+                "Tik op een kaart voor het kaartscherm. Standaard is elke print goed. Met het potlood (✎) bewerk je: een precieze print (tik op de printregel voor de printlijst; prijs en prijsalarm rekenen daarna met die print), alleen foil, en hoeveel je er zoekt (in de lijst: 1 van 4). Met de knop Game Changers bovenaan zie je alleen de Game Changers op je lijst. Bij elke print staat de prijs van de goedkoopste print (vanaf …); onder de naam zie je het prijsalarm en welke vriend hem heeft.",
                 "Scan of importeer je de kaart, dan streept de app hem vanzelf af en zegt dat in de melding.",
                 "De ✓ rechts (Gekocht) zet de kaart in één tik in je collectie, met de gekozen print en het aantal.",
             )),
@@ -288,6 +290,9 @@ object Guide {
             H("Prijzen op de achtergrond"),
             P("Elke dag werkt de app de prijzen bij via wifi, ook als je hem niet opent; is er 48 uur geen wifi geweest, dan via mobiele data. Scryfall geeft één prijs per print: taal en conditie tellen niet mee."),
             Tip("Breakout: stijgt een kaart die je hebt op één dag minstens €3 én 25%, dan krijg je een melding, bijvoorbeeld Breakout Creature. Hoogstens één per dag; uit te zetten in Instellingen."),
+            H("Bans en reprints"),
+            P("Na de dagelijkse prijsupdate kijkt de app bij Scryfall of er iets veranderd is aan kaarten die je hebt. Wordt een kaart gebanned, restricted of weer toegestaan in een format waarin je een deck hebt, dan krijg je een melding met hoeveel je er hebt, wat ze waard zijn en in welk deck ze zitten. Komt een kaart die je hebt opnieuw uit in een nieuwe set (ook al tijdens de spoilers), dan meldt de app de set, de releasedatum en jouw print met zijn waarde. Eén melding voor de bans en één voor de reprints; met één kaart opent tikken die kaart."),
+            Note("De eerste controle legt alleen de stand vast, zonder meldingen. Alleen met internet; Android kan de controle uitstellen om batterij te sparen. Een reprint laat de prijs niet altijd dalen: de melding is informatie, geen verkoopadvies. In Instellingen → Collectie zet je bans en reprints apart aan of uit, kies je Alle formats, en stel je in vanaf welke waarde per stuk een reprint gemeld wordt (standaard €5)."),
             Steps(listOf(
                 "Prijzen komen via Scryfall: Cardmarket in euro's of TCGplayer in dollars (kies in Instellingen).",
                 "Meestal is het de trendprijs, nooit de laagste prijs.",
@@ -363,7 +368,7 @@ object Guide {
             H("3. Kaartgegevens"),
             P("Afbeeldingen opslaan (uit, klein of volledig; alleen van kaarten die je hebt) en alleen via wifi. De offline kaartdatabase: uit, bij nieuwe set of alleen handmatig. Aan betekent scannen zonder internet en snel importeren, maar één grote download en ruimte op je telefoon. Prijzen blijven via de dagelijkse update komen. Downloaden via alleen wifi, of ook mobiele data (met een vraag vooraf, en automatisch alleen als je dat apart aanzet)."),
             H("4. Collectie"),
-            P("Completionist: bij aan tellen voor de compleetheid van een set alleen kaarten in je binders, niet in decks. Breakout-meldingen: een bericht als een kaart van jou op één dag minstens €3 én 25% stijgt. Bulkgrens voor boosters: kaarten onder dit bedrag (standaard €0,25) tellen niet mee in de uitslag zonder bulk."),
+            P("Completionist: bij aan tellen voor de compleetheid van een set alleen kaarten in je binders, niet in decks. Breakout-meldingen: een bericht als een kaart van jou op één dag minstens €3 én 25% stijgt. Bans en reprints: een bericht bij een ban, restrictie of unban, en bij een reprint van een kaart die je hebt. Bulkgrens voor boosters: kaarten onder dit bedrag (standaard €0,25) tellen niet mee in de uitslag zonder bulk."),
             H("5. AI-hulp"),
             P("Standaard uit. Kies een dienst (Gemini heeft een gratis variant, Claude, OpenAI, DeepSeek, Mistral, OpenRouter, Groq of een eigen adres), plak je sleutel en tik op Test. Bij het scannen leest de AI alleen de oranje of niet gevonden vakjes; de app controleert het bij Scryfall. Met een maximum per dag. De sleutel staat versleuteld op deze telefoon en niet in de back-up."),
             P("Is de dienst druk (overbelast of te veel verzoeken), dan probeert de app het stil opnieuw na 2, 5 en 10 seconden; dat telt als één verzoek. Lukt het dan nog niet, dan krijg je één melding die zegt wat er aan de hand is: dienst overbelast (niet jouw sleutel), limiet van de dienst bereikt, sleutel klopt niet, model onbekend of geen verbinding. Bij Test probeert hij het maar één keer opnieuw, zodat je snel antwoord hebt."),
@@ -482,6 +487,8 @@ object Guide {
             Note("Scan a page that is already in the app and you get a warning: Already scanned? You decide whether to add it anyway."),
             H("Commander"),
             P("Making a Commander deck? Tap the Commander button on the card that leads the deck. You can save without one, but the deck check will mention it."),
+            H("Doesn't fit the deck"),
+            P("When the cards go to a deck, a card that doesn't fit is orange under Check right away, with the reason: Banned in this format, Not legal in this format, or Outside the commander's colours. The commander comes from the deck itself and from cards on this screen with the Commander button. You can still save such a card; the deck check will then mention it."),
         )),
         Chapter("collection", "Your collection", "Searching, filtering, the card screen and locations.", listOf(
             Steps(listOf(
@@ -491,12 +498,12 @@ object Guide {
                 "Sort by price or name. Cards are grouped by set.",
             )),
             H("The card screen"),
-            P("Tap a card for the card screen: the card large at the top (tap for full screen; a foil shines when you tilt the phone), below it name, type, set and legality per format. On wishlist (or Add to collection) puts it on your list. The Price block shows normal and foil, which friends have it, and links to Scryfall and Cardmarket (or TCGplayer when using dollars)."),
+            P("Tap a card for the card screen: the card large at the top (tap for full screen; a foil shines when you tilt the phone), below it name, type, set and legality per format. + Add copy lets you choose Normal, Foil or Etched (only what exists for that print, with its price), the quantity and right away the location: your collection (with binder, page and slot) or a deck. On wishlist puts it on your list. Below the set line, Other prints opens the list of all prints of the card: with image, set, number and year, the price per finish, cheapest at the cheapest and ✓ at the current one; sort by newest or cheapest. Tap a print to go there and add it. The Price block shows normal and foil, which friends have it, and links to Scryfall and Cardmarket (or TCGplayer when using dollars)."),
             P("Your copies lists every copy with its location and details:"),
             Steps(listOf(
                 "− and + change the quantity.",
                 "Move puts (part of) the stack into a deck, or back into your collection with binder, page and slot.",
-                "Edit changes finish, language, condition and proxy.",
+                "Edit (✎) changes print, finish, language, condition and proxy. Tap the Print line to choose another print; the copy keeps its location. For a stack (×3) you choose how many it applies to, the rest stays in its own row. If the finish doesn't exist for the new print, the app picks Normal and says so. If an identical stack already lies in that place, they become one stack. Afterwards the card screen jumps to the new print.",
                 "Delete removes the copies from the app.",
             )),
             Note("Proxies are shown in grey and do not count in totals or value."),
@@ -518,7 +525,7 @@ object Guide {
             H("Wishlist"),
             Steps(listOf(
                 "Put a card on your wishlist from All cards, the card screen, an almost-combo or an AI buy suggestion, or paste a list via ⋮ → Paste list to wishlist.",
-                "Tap a card for the card screen. By default any print is fine. Use the pencil (✎) to edit: an exact print, foil only, and how many you want (in the list: 1 of 4). The Game Changers button at the top shows only the Game Changers on your list. With any print you see the price of the cheapest print (from …); below the name you see the price alert and which friend has it.",
+                "Tap a card for the card screen. By default any print is fine. Use the pencil (✎) to edit: an exact print (tap the print line for the list of prints; price and price alert then use that print), foil only, and how many you want (in the list: 1 of 4). The Game Changers button at the top shows only the Game Changers on your list. With any print you see the price of the cheapest print (from …); below the name you see the price alert and which friend has it.",
                 "Scan or import the card and the app ticks it off by itself, saying so in the message.",
                 "The ✓ on the right (Bought) puts the card in your collection in one tap, with the chosen print and quantity.",
             )),
@@ -639,6 +646,9 @@ object Guide {
             H("Prices in the background"),
             P("Every day the app updates prices on Wi-Fi, even if you do not open it; after 48 hours without Wi-Fi, over mobile data. Scryfall gives one price per print: language and condition do not count."),
             Tip("Breakout: when a card you own rises at least €3 and 25% in one day, you get a message, for example Breakout Creature. At most one a day; turn it off in Settings."),
+            H("Bans and reprints"),
+            P("After the daily price update the app checks at Scryfall whether anything changed for cards you own. If a card is banned, restricted or allowed again in a format you have a deck in, you get a message with how many you have, what they are worth and which deck they are in. If a card you own comes out again in a new set (already during spoilers), the app tells you the set, the release date and your print with its value. One message for bans and one for reprints; with one card, tapping opens that card."),
+            Note("The first check only records the current state, without messages. Only with internet; Android may delay the check to save battery. A reprint does not always lower the price: the message is information, not advice to sell. In Settings → Collection you turn bans and reprints on or off separately, choose All formats, and set from which value per card a reprint is reported (€5 by default)."),
             Steps(listOf(
                 "Prices come from Scryfall: Cardmarket in euros or TCGplayer in dollars (choose in Settings).",
                 "Usually the trend price, never the lowest price.",
@@ -714,7 +724,7 @@ object Guide {
             H("3. Card data"),
             P("Store images (off, small or full; only for cards you own) and Wi-Fi only. The offline card database: off, on new set or manual only. On means scanning without internet and fast imports, but one large download and space on your phone. Prices still come from the daily update. Download via Wi-Fi only, or also mobile data (with a question first, and automatically only if you turn that on separately)."),
             H("4. Collection"),
-            P("Completionist: when on, set completeness only counts cards in your binders, not in decks. Breakout alerts: a message when a card you own rises at least €3 and 25% in a day. Bulk limit for boosters: cards below this amount (€0.25 by default) don't count in the result without bulk."),
+            P("Completionist: when on, set completeness only counts cards in your binders, not in decks. Breakout alerts: a message when a card you own rises at least €3 and 25% in a day. Bans and reprints: a message on a ban, restriction or unban, and on a reprint of a card you own. Bulk limit for boosters: cards below this amount (€0.25 by default) don't count in the result without bulk."),
             H("5. AI help"),
             P("Off by default. Choose a service (Gemini has a free tier, Claude, OpenAI, DeepSeek, Mistral, OpenRouter, Groq or your own address), paste your key and tap Test. When scanning, the AI only reads orange or not-found slots; the app checks the result at Scryfall. With a daily maximum. The key is stored encrypted on this phone and is not in the backup."),
             P("When the service is busy (overloaded or too many requests), the app quietly tries again after 2, 5 and 10 seconds; that counts as one request. If it still fails, you get one message saying what is going on: service overloaded (not your key), service limit reached, key not accepted, unknown model or no connection. Test retries only once, so you get an answer quickly."),

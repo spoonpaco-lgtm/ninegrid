@@ -28,6 +28,7 @@ class PriceWorker(context: Context, params: WorkerParameters) : CoroutineWorker(
             c.repository.takeSnapshot()
             runCatching { notifyBreakout(c) }
             runCatching { notifyWishAlarms(c) }
+            runCatching { notifyWatch(c) }
             runCatching { checkOfflineDb(c) }
             Result.success()
         }.getOrElse { if (runAttemptCount < 3) Result.retry() else Result.success() }
@@ -87,6 +88,64 @@ class PriceWorker(context: Context, params: WorkerParameters) : CoroutineWorker(
         nm.notify(WISH_ID, n)
     }
 
+    /**
+     * Bans en reprints (punt 40): één melding voor de bans, één voor de reprints. Tik op een melding met één kaart opent die kaart.
+     * Privacymodus: geen bedragen (de melding is op het vergrendelscherm te zien).
+     */
+    private suspend fun notifyWatch(c: nl.spoonpaco.ninegrid.AppContainer) {
+        val s = c.settings.current()
+        val r = c.watcher.check(s)
+        if (r.legal.isEmpty() && r.reprints.isEmpty()) return
+        val ctx = applicationContext
+        val nm = ctx.getSystemService(android.app.NotificationManager::class.java)
+        if (android.os.Build.VERSION.SDK_INT >= 26) {
+            nm.createNotificationChannel(android.app.NotificationChannel(WATCH_CHANNEL, ctx.getString(nl.spoonpaco.ninegrid.R.string.watch_channel), android.app.NotificationManager.IMPORTANCE_DEFAULT))
+        }
+        val money = { v: Double -> if (s.privacy) "••••" else nl.spoonpaco.ninegrid.domain.Money.format(v, s.currency) }
+        fun formatName(f: String) = f.replaceFirstChar { it.uppercase() }
+        fun post(id: Int, req: Int, title: String, lines: List<String>, printId: String?) {
+            val intent = android.content.Intent(ctx, nl.spoonpaco.ninegrid.MainActivity::class.java).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+            if (printId != null) intent.putExtra(EXTRA_OPEN_CARD, printId)
+            val open = android.app.PendingIntent.getActivity(ctx, req, intent, android.app.PendingIntent.FLAG_IMMUTABLE or android.app.PendingIntent.FLAG_UPDATE_CURRENT)
+            val text = lines.joinToString("\n")
+            val n = androidx.core.app.NotificationCompat.Builder(ctx, WATCH_CHANNEL)
+                .setSmallIcon(nl.spoonpaco.ninegrid.R.drawable.ic_stat_ninegrid)
+                .setContentTitle(title).setContentText(lines.first())
+                .setStyle(androidx.core.app.NotificationCompat.BigTextStyle().bigText(text))
+                .setContentIntent(open).setAutoCancel(true)
+                .build()
+            nm.notify(id, n)
+        }
+        if (r.legal.isNotEmpty()) {
+            val heads = r.legal.map { a ->
+                ctx.getString(when (a.kind) {
+                    nl.spoonpaco.ninegrid.domain.Watch.Kind.BANNED -> nl.spoonpaco.ninegrid.R.string.watch_banned
+                    nl.spoonpaco.ninegrid.domain.Watch.Kind.RESTRICTED -> nl.spoonpaco.ninegrid.R.string.watch_restricted
+                    nl.spoonpaco.ninegrid.domain.Watch.Kind.UNBANNED -> nl.spoonpaco.ninegrid.R.string.watch_unbanned
+                    nl.spoonpaco.ninegrid.domain.Watch.Kind.NOT_LEGAL -> nl.spoonpaco.ninegrid.R.string.watch_not_legal
+                    nl.spoonpaco.ninegrid.domain.Watch.Kind.NOW_LEGAL -> nl.spoonpaco.ninegrid.R.string.watch_now_legal
+                }, a.name, formatName(a.format))
+            }
+            val lines = r.legal.mapIndexed { i, a ->
+                heads[i] + ". " + ctx.getString(nl.spoonpaco.ninegrid.R.string.watch_you_have, a.copies, money(a.value)) +
+                    if (a.decks.isNotEmpty()) " " + ctx.getString(nl.spoonpaco.ninegrid.R.string.watch_in_decks, a.decks.joinToString(", ")) else ""
+            }
+            val title = if (r.legal.size == 1) heads.first() else ctx.getString(nl.spoonpaco.ninegrid.R.string.watch_legal_many, r.legal.size)
+            post(WATCH_LEGAL_ID, 5, title, lines, r.legal.map { it.printId }.distinct().singleOrNull())
+        }
+        if (r.reprints.isNotEmpty()) {
+            val df = c.settings.current().dateStyle
+            val lines = r.reprints.map { a ->
+                val day = runCatching { nl.spoonpaco.ninegrid.domain.Dates.date(java.time.LocalDate.parse(a.releasedAt), df) }.getOrDefault(a.releasedAt)
+                ctx.getString(nl.spoonpaco.ninegrid.R.string.watch_reprint_line, a.name, a.setName, day,
+                    a.yourSets.joinToString("/"), money(a.unitValue))
+            }
+            val title = if (r.reprints.size == 1) ctx.getString(nl.spoonpaco.ninegrid.R.string.watch_reprint_one, r.reprints.first().name)
+            else ctx.getString(nl.spoonpaco.ninegrid.R.string.watch_reprint_many, r.reprints.size)
+            post(WATCH_REPRINT_ID, 6, title, lines, r.reprints.singleOrNull()?.printId)
+        }
+    }
+
     /** Offline kaartdatabase "bij nieuwe set": bijwerken als er een nieuwe set uit is, of na een maand. */
     private suspend fun checkOfflineDb(c: nl.spoonpaco.ninegrid.AppContainer) {
         val s = c.settings.current()
@@ -103,6 +162,9 @@ class PriceWorker(context: Context, params: WorkerParameters) : CoroutineWorker(
         private const val CHANNEL = "breakout"
         private const val BREAKOUT_ID = 4301
         private const val WISH_ID = 4303
+        private const val WATCH_CHANNEL = "watch"
+        private const val WATCH_LEGAL_ID = 4305
+        private const val WATCH_REPRINT_ID = 4306
         const val EXTRA_OPEN_CARD = "open_card"
         const val EXTRA_OPEN_WISH = "open_wish"
         private const val NAME = "daily_prices"

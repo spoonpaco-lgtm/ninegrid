@@ -204,13 +204,16 @@ fun ReviewScreen(vm: AppViewModel, onBack: () -> Unit, onSaved: (Long?) -> Unit)
                 )
             }
             // Bij een scan in groepen: eerst wat echt gecontroleerd moet worden (oranje), dan alleen nog de foil (blauw), dan de rest.
-            val grouped = vm.importSource == ImportSource.SCAN && items.any { it.cardCheck || it.foilCheck }
-            val check = if (grouped) items.filter { it.cardCheck } else emptyList()
-            val foilCheck = if (grouped) items.filter { it.foilCheck && !it.cardCheck } else emptyList()
-            val rest = if (grouped) items.filter { !it.cardCheck && !it.foilCheck } else items.toList()
+            // Naar een deck: kaarten die er niet in passen (banned, niet legaal, buiten de kleuren) staan meteen bij Controleer.
+            val issues = vm.deckIssues()
+            fun needsLook(i: PendingItem) = i.cardCheck || i.key in issues
+            val grouped = (vm.importSource == ImportSource.SCAN && items.any { it.cardCheck || it.foilCheck }) || issues.isNotEmpty()
+            val check = if (grouped) items.filter { needsLook(it) } else emptyList()
+            val foilCheck = if (grouped) items.filter { it.foilCheck && !needsLook(it) } else emptyList()
+            val rest = if (grouped) items.filter { !needsLook(it) && !it.foilCheck } else items.toList()
             fun LazyListScope.rows(list: List<PendingItem>) = items(list, key = { it.key }) { item ->
                 PendingRow(
-                    item, vm, settings, expanded == item.key,
+                    item, vm, settings, expanded == item.key, issues[item.key],
                     showSection = vm.destination != Destination.COLLECTION,
                     isCommanderDeck = isCommander || (vm.destination == Destination.EXISTING_DECK && decks.firstOrNull { it.id == vm.targetDeckId }?.format == DeckFormat.COMMANDER),
                     onToggle = { expanded = if (expanded == item.key) null else item.key },
@@ -269,6 +272,7 @@ private fun PendingRow(
     vm: AppViewModel,
     settings: nl.spoonpaco.ninegrid.data.AppSettings,
     expanded: Boolean,
+    issue: nl.spoonpaco.ninegrid.domain.DeckFitIssue?,
     showSection: Boolean,
     isCommanderDeck: Boolean,
     onToggle: () -> Unit,
@@ -299,7 +303,7 @@ private fun PendingRow(
         colors = CardDefaults.cardColors(containerColor = extra.cardSurface),
         shape = NgShape.Normal,
         border = when {
-            item.cardCheck -> androidx.compose.foundation.BorderStroke(1.5.dp, NgColors.Amber)
+            item.cardCheck || issue != null -> androidx.compose.foundation.BorderStroke(1.5.dp, NgColors.Amber)
             item.foilCheck -> androidx.compose.foundation.BorderStroke(1.5.dp, NgColors.FoilBlue)
             else -> null
         },
@@ -335,6 +339,15 @@ private fun PendingRow(
                         if (p != null) "${p.setCode} ${p.collectorNumber} · ${p.rarity.replaceFirstChar { it.uppercase() }}" + (if (showSection) " · " + sectionLabelPlain(item.section) else "")
                         else item.label,
                         fontSize = NgText.body, color = extra.subtle, maxLines = 2,
+                    )
+                    // Past niet in het deck (punt 4e).
+                    if (issue != null) Text(
+                        when (issue) {
+                            nl.spoonpaco.ninegrid.domain.DeckFitIssue.BANNED -> stringResource(R.string.deckfit_banned)
+                            nl.spoonpaco.ninegrid.domain.DeckFitIssue.NOT_LEGAL -> stringResource(R.string.deckfit_not_legal)
+                            nl.spoonpaco.ninegrid.domain.DeckFitIssue.COLORS -> stringResource(R.string.deckfit_colors)
+                        },
+                        fontSize = NgText.body, color = NgColors.Amber, fontWeight = FontWeight.Bold, maxLines = 2,
                     )
                     // Wat de AI met dit vak deed.
                     vm.aiMarks[item.key]?.let { m ->
