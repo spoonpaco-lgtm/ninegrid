@@ -21,7 +21,7 @@
     <string name="cancel">Annuleren</string>
     <string name="card_name">Kaartnaam</string>
     <string name="change_format">Format wijzigen</string>
-    <string name="change_log">Wijzigingslog</string>
+    <string name="change_log">Laatste actie ongedaan maken</string>
     <string name="check_updates">Controleer op updates</string>
     <string name="choose_other_print">Andere print kiezen</string>
     <string name="choose_print">Kies print</string>
@@ -282,7 +282,7 @@
     <string name="import_looking_up">Kaarten opzoeken bij Scryfall…</string>
     <string name="import_saving">Opslaan…</string>
     <string name="import_done">%1$d kaarten geïmporteerd, %2$d decks. %3$d niet gevonden.</string>
-    <string name="import_undo_hint">De hele import is één wijziging: je maakt hem in één keer ongedaan via Meer → Wijzigingslog.</string>
+    <string name="import_undo_hint">De hele import is één wijziging: je maakt hem in één keer ongedaan via Meer → Laatste actie ongedaan maken.</string>
     <string name="import_not_found_title">Niet gevonden</string>
     <string name="import_copy_not_found">Kopiëren als lijst</string>
     <string name="import_not_found_hint">Plak deze lijst via Lijst plakken, verbeter de regels en voeg ze zo toe.</string>

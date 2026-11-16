@@ -66,7 +66,7 @@ object Guide {
                 "Hoort een nummer in je bestand bij een andere kaart dan de naam, dan neemt NineGrid de naam. Die regels zie je na afloop onder Nummer klopte niet, zodat je ze in je bestand kunt verbeteren.",
             )),
             P("Settabbladen en Losse kaarten gaan naar je collectie, het tabblad Decks wordt per deck overgezet met Commander, Deck en Sideboard. Foil, etched, taal, aantal en proxy gaan mee. Uit Historie komt de lijn van de grafiek. Het tabblad Overzicht wordt overgeslagen."),
-            Tip("De hele import is één wijziging: via Meer → Wijzigingslog maak je hem in één keer ongedaan."),
+            Tip("De hele import is één wijziging: via Meer → Laatste actie ongedaan maken maak je hem in één keer ongedaan."),
             Note("Terugschrijven naar je Sheet (synchroniseren) volgt later; daarvoor is een Google-koppeling nodig."),
         )),
         Chapter("add", "Kaarten toevoegen", "Scannen, een bestaande foto, een lijst plakken of één kaart zoeken.", listOf(
@@ -328,7 +328,7 @@ object Guide {
         Chapter("undo", "Een stap terug (wijzigingslog)", "Wat er bewaard wordt en hoe je iets ongedaan maakt.", listOf(
             P("Elke wijziging komt in het wijzigingslog: kaarten toevoegen, verplaatsen, bewerken, verwijderen, en decks maken, wijzigen of verwijderen."),
             Steps(listOf(
-                "Ga naar Meer → Wijzigingslog.",
+                "Ga naar Meer → Laatste actie ongedaan maken.",
                 "Tik op Laatste wijziging ongedaan maken.",
                 "Nog een stap terug? Tik nog een keer. Ongedaan gemaakte regels worden doorgestreept.",
             )),
@@ -417,7 +417,7 @@ object Guide {
                 "If a number in your file belongs to another card than the name, NineGrid uses the name. Those lines are listed afterwards under Number did not match, so you can correct them in your file.",
             )),
             P("Set tabs and Loose cards go to your collection, the Decks tab is imported per deck with Commander, Deck and Sideboard. Foil, etched, language, quantity and proxy come along. History becomes the chart line. The Overview tab is skipped."),
-            Tip("The whole import is one change: undo it in one go via More → Change log."),
+            Tip("The whole import is one change: undo it in one go via More → Undo last action."),
             Note("Writing back to your Sheet (syncing) comes later; that needs a Google connection."),
         )),
         Chapter("add", "Adding cards", "Scanning, an existing photo, pasting a list or searching one card.", listOf(
@@ -679,7 +679,7 @@ object Guide {
         Chapter("undo", "Going back (change log)", "What is kept and how to undo something.", listOf(
             P("Every change goes into the change log: adding, moving, editing and deleting cards, and creating, changing or deleting decks."),
             Steps(listOf(
-                "Go to More → Change log.",
+                "Go to More → Undo last action.",
                 "Tap Undo latest change.",
                 "Another step back? Tap again. Undone lines are struck through.",
             )),

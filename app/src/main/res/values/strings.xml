@@ -22,7 +22,7 @@
     <string name="cancel">Cancel</string>
     <string name="card_name">Card name</string>
     <string name="change_format">Change format</string>
-    <string name="change_log">Change log</string>
+    <string name="change_log">Undo last action</string>
     <string name="check_updates">Check for updates</string>
     <string name="choose_other_print">Choose other print</string>
     <string name="choose_print">Choose print</string>
@@ -283,7 +283,7 @@
     <string name="import_looking_up">Looking up cards at Scryfall…</string>
     <string name="import_saving">Saving…</string>
     <string name="import_done">%1$d cards imported, %2$d decks. %3$d not found.</string>
-    <string name="import_undo_hint">The whole import is one change: you can undo it in one go via More → Change log.</string>
+    <string name="import_undo_hint">The whole import is one change: you can undo it in one go via More → Undo last action.</string>
     <string name="import_not_found_title">Not found</string>
     <string name="import_copy_not_found">Copy as list</string>
     <string name="import_not_found_hint">Paste this list via Paste list, correct the lines and add them that way.</string>
