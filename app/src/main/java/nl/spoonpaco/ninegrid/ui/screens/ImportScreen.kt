@@ -15,6 +15,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.FileOpen
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -52,7 +53,7 @@ import nl.spoonpaco.ninegrid.ui.theme.NgColors
 /** Je bestaande collectie in één keer overzetten uit de MTG Collection Sheet (.xlsx) of een .csv. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ImportScreen(vm: AppViewModel, onBack: () -> Unit, onDone: () -> Unit) {
+fun ImportScreen(vm: AppViewModel, onBack: () -> Unit, onDone: () -> Unit, onPaste: () -> Unit = {}) {
     val extra = LocalNgExtra.current
     val entries by vm.entries.collectAsState()
     val clipboard = LocalClipboardManager.current
@@ -99,6 +100,11 @@ fun ImportScreen(vm: AppViewModel, onBack: () -> Unit, onDone: () -> Unit) {
                     OutlinedButton(onClick = { picker.launch(mimeTypes) }, modifier = Modifier.fillMaxWidth()) {
                         Text(stringResource(R.string.import_choose))
                     }
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedButton(onClick = onPaste, modifier = Modifier.fillMaxWidth()) {
+                        Icon(Icons.Filled.ContentPaste, null); Spacer(Modifier.padding(4.dp)); Text(stringResource(R.string.paste_list))
+                    }
+                    Text(stringResource(R.string.import_paste_hint), fontSize = NgText.body, color = extra.subtle)
                     if (vm.importStep == ImportStep.FAILED) {
                         Spacer(Modifier.height(10.dp))
                         Text(stringResource(R.string.import_unreadable), color = NgColors.Error)

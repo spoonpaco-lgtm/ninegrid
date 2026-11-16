@@ -102,7 +102,7 @@ object Guide {
             H("Een bestaande foto gebruiken"),
             P("Tik op het scanscherm linksonder op het fotoknopje en kies een foto uit je galerij. De rest gaat hetzelfde als bij scannen."),
             H("Een lijst plakken"),
-            P("Via Collectie → + → Lijst plakken, Meer → Lijst plakken, of in een deck. Eén kaart per regel:"),
+            P("Via Collectie → + → Lijst plakken, Meer → Importeren → Lijst plakken, of in een deck. Eén kaart per regel:"),
             P("1 Edgar Markov (INR) 328\n4 Murder (M20) 109 *F*\n1 Sol Ring (C21) 263 *E*"),
             Steps(listOf(
                 "*F* achter een regel betekent foil, *E* betekent etched.",
@@ -453,7 +453,7 @@ object Guide {
             H("Using an existing photo"),
             P("On the scan screen tap the photo button at the bottom left and choose a photo from your gallery. The rest works the same as scanning."),
             H("Pasting a list"),
-            P("Via Collection → + → Paste list, More → Paste list, or inside a deck. One card per line:"),
+            P("Via Collection → + → Paste list, More → Import → Paste list, or inside a deck. One card per line:"),
             P("1 Edgar Markov (INR) 328\n4 Murder (M20) 109 *F*\n1 Sol Ring (C21) 263 *E*"),
             Steps(listOf(
                 "*F* after a line means foil, *E* means etched.",

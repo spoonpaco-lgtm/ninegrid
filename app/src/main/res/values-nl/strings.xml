@@ -1068,4 +1068,5 @@
     <string name="set_group_lang">Taal en regio</string>
     <string name="more_app">App</string>
     <string name="backup_menu_sub">Back-up maken, terugzetten, CSV exporteren</string>
+    <string name="import_paste_hint">Kopieer een lijst van een site of bericht en plak hem hier.</string>
 </resources>

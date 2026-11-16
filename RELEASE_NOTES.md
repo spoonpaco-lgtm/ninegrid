@@ -1,7 +1,8 @@
 NineGrid 0.9.9.3 – Vivien
 
 Menu opgeruimd
-- Meer is verdeeld in blokken: bovenaan Handleiding en Wat is nieuw; Collectie (Importeren, Lijst plakken (direct onder Importeren), Back-up en export, Delen met vrienden, Laatste actie ongedaan maken); App (Instellingen, Over NineGrid).
+- Meer is verdeeld in blokken: bovenaan Handleiding en Wat is nieuw; Collectie (Importeren, Back-up en export, Delen met vrienden, Laatste actie ongedaan maken); App (Instellingen, Over NineGrid).
+- Lijst plakken zit nu in Importeren, naast het kiezen van een bestand.
 - Back-up en export is een eigen scherm op Meer: back-up maken, terugzetten, automatische back-up, CSV en onderaan in het rood Alles wissen.
 - Over NineGrid staat nog maar op één plek (Meer), met versie, controleren op updates, automatisch bijwerken en Wat is nieuw. De groep Over verdween uit Instellingen en de Handleiding staat niet meer dubbel.
 - Instellingen heeft acht groepen: Weergave (thema, gildekleur, effecten), Taal en regio (taal, valuta, datum en tijd), Privacy, Scannen, Kaartgegevens, Collectie, AI-hulp en Ontwikkelaar.

@@ -271,7 +271,7 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
                 })
             }
             composable("import") {
-                nl.spoonpaco.ninegrid.ui.screens.ImportScreen(vm, onBack = { nav.popBackStack() }, onDone = { tab("collection") })
+                nl.spoonpaco.ninegrid.ui.screens.ImportScreen(vm, onBack = { nav.popBackStack() }, onDone = { tab("collection") }, onPaste = { nav.navigate("paste") })
             }
             composable("boosters") { nl.spoonpaco.ninegrid.ui.screens.BoostersScreen(vm, onBack = { nav.popBackStack() }) }
             composable("share") { nl.spoonpaco.ninegrid.ui.screens.ShareScreen(vm, onBack = { nav.popBackStack() }, onFriend = { nav.navigate("friend/$it") }) }

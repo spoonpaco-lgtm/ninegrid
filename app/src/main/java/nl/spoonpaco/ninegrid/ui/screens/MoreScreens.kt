@@ -115,8 +115,6 @@ fun MoreScreen(onPaste: () -> Unit, onChanges: () -> Unit, onSettings: () -> Uni
             MoreHeader(stringResource(R.string.set_group_collection))
             ListItem(headlineContent = { Text(stringResource(R.string.import_title)) }, supportingContent = { Text(stringResource(R.string.import_sub)) },
                 leadingContent = { Icon(Icons.Filled.FileOpen, null) }, modifier = Modifier.clickableRow(onImport))
-            ListItem(headlineContent = { Text(stringResource(R.string.paste_list)) }, leadingContent = { Icon(Icons.Filled.ContentPaste, null) },
-                modifier = Modifier.clickableRow(onPaste))
             ListItem(headlineContent = { Text(stringResource(R.string.backup_export)) }, supportingContent = { Text(stringResource(R.string.backup_menu_sub)) },
                 leadingContent = { Icon(Icons.Filled.Backup, null) }, modifier = Modifier.clickableRow(onBackup))
             ListItem(headlineContent = { Text(stringResource(R.string.share_title)) }, supportingContent = { Text(stringResource(R.string.share_sub)) },
