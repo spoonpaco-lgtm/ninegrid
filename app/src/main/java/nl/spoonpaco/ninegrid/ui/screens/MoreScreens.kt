@@ -42,6 +42,8 @@ import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.FileOpen
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
@@ -90,7 +92,7 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MoreScreen(onPaste: () -> Unit, onChanges: () -> Unit, onSettings: () -> Unit, onAbout: () -> Unit, onGuide: () -> Unit, onImport: () -> Unit = {}, onShare: () -> Unit = {}) {
+fun MoreScreen(onPaste: () -> Unit, onChanges: () -> Unit, onSettings: () -> Unit, onAbout: () -> Unit, onGuide: () -> Unit, onImport: () -> Unit = {}, onShare: () -> Unit = {}, onBackup: () -> Unit = {}, onWhatsNew: () -> Unit = {}) {
     Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.more), fontWeight = FontWeight.Bold) }) }) { pad ->
         Column(Modifier.padding(pad).verticalScroll(rememberScrollState())) {
             // De handleiding bovenaan, goed zichtbaar.
@@ -108,20 +110,32 @@ fun MoreScreen(onPaste: () -> Unit, onChanges: () -> Unit, onSettings: () -> Uni
                     }
                 }
             }
-            ListItem(headlineContent = { Text(stringResource(R.string.share_title)) }, supportingContent = { Text(stringResource(R.string.share_sub)) },
-                leadingContent = { Icon(Icons.Filled.Share, null) }, modifier = Modifier.clickableRow(onShare))
+            ListItem(headlineContent = { Text(stringResource(R.string.whats_new)) }, leadingContent = { Icon(Icons.Filled.AutoAwesome, null) },
+                modifier = Modifier.clickableRow(onWhatsNew))
+            MoreHeader(stringResource(R.string.set_group_collection))
             ListItem(headlineContent = { Text(stringResource(R.string.import_title)) }, supportingContent = { Text(stringResource(R.string.import_sub)) },
                 leadingContent = { Icon(Icons.Filled.FileOpen, null) }, modifier = Modifier.clickableRow(onImport))
             ListItem(headlineContent = { Text(stringResource(R.string.paste_list)) }, leadingContent = { Icon(Icons.Filled.ContentPaste, null) },
                 modifier = Modifier.clickableRow(onPaste))
+            ListItem(headlineContent = { Text(stringResource(R.string.backup_export)) }, supportingContent = { Text(stringResource(R.string.backup_menu_sub)) },
+                leadingContent = { Icon(Icons.Filled.Backup, null) }, modifier = Modifier.clickableRow(onBackup))
+            ListItem(headlineContent = { Text(stringResource(R.string.share_title)) }, supportingContent = { Text(stringResource(R.string.share_sub)) },
+                leadingContent = { Icon(Icons.Filled.Share, null) }, modifier = Modifier.clickableRow(onShare))
             ListItem(headlineContent = { Text(stringResource(R.string.change_log)) }, leadingContent = { Icon(Icons.Filled.History, null) },
                 modifier = Modifier.clickableRow(onChanges))
+            MoreHeader(stringResource(R.string.more_app))
             ListItem(headlineContent = { Text(stringResource(R.string.settings_backup)) }, leadingContent = { Icon(Icons.Filled.Settings, null) },
                 modifier = Modifier.clickableRow(onSettings))
             ListItem(headlineContent = { Text(stringResource(R.string.about)) }, leadingContent = { Icon(Icons.Filled.Info, null) },
                 modifier = Modifier.clickableRow(onAbout))
         }
     }
+}
+
+@Composable
+private fun MoreHeader(text: String) {
+    Text(text, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, fontSize = NgText.body,
+        modifier = Modifier.padding(start = 16.dp, top = 14.dp, bottom = 2.dp))
 }
 
 fun Modifier.clickableRow(onClick: () -> Unit) = this.clickable(onClick = onClick)
@@ -162,21 +176,12 @@ fun ChangeLogScreen(vm: AppViewModel, onBack: () -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit, onGuide: () -> Unit = {}, onAbout: () -> Unit = {}, onWhatsNew: () -> Unit = {}) {
+fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit) {
     val settings by vm.settings.collectAsState()
     // Hoofdscherm met groepen; tik = die groep. Terug gaat eerst naar het hoofdscherm.
     var group by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf<SettingsGroup?>(null) }
     androidx.activity.compose.BackHandler(enabled = group != null) { group = null }
-    val all by vm.entries.collectAsState()
-    val decks by vm.decks.collectAsState()
-    var wiping by remember { mutableStateOf(false) }
     val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
-    val backup = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { it?.let(vm::backupTo) }
-    val restore = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { it?.let(vm::previewRestore) }
-    val csv = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) { uri ->
-        uri?.let { vm.writeText(it, Export.collectionCsv(all, decks.associate { d -> d.id to d.name })) }
-    }
-    val folder = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { it?.let(vm::setBackupFolder) }
     val currentLang = AppCompatDelegate.getApplicationLocales().toLanguageTags().ifBlank { "system" }
     // Privacymodus aan: back-up en CSV (met prijzen) en de privacy-instellingen alleen na vingerafdruk.
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -198,9 +203,7 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit, onGuide: () -> Unit = {
         Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(if (group == null) 0.dp else 16.dp)) {
             when (group) {
                 null -> SettingsGroup.entries.forEach { g ->
-                    // Wissen staat apart, in het rood, boven Over NineGrid.
-                    if (g == SettingsGroup.WIPE) HorizontalDivider(Modifier.padding(vertical = 6.dp))
-                    val red = g == SettingsGroup.WIPE
+                    val red = false
                     ListItem(
                         leadingContent = { Icon(g.icon, null, tint = if (red) NgColorsError else MaterialTheme.colorScheme.primary) },
                         headlineContent = { Text(stringResource(g.title), fontWeight = FontWeight.SemiBold, color = if (red) NgColorsError else androidx.compose.ui.graphics.Color.Unspecified) },
@@ -245,6 +248,8 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit, onGuide: () -> Unit = {
                         }
                         Switch(checked = settings.effects, onCheckedChange = { vm.setEffects(it) })
                     }
+                }
+                SettingsGroup.PRIVACY -> {
                     // Privacymodus: aanzetten mag altijd, uitzetten en de stijl wijzigen alleen na vingerafdruk.
                     Spacer(Modifier.height(16.dp))
                     Text(stringResource(R.string.privacy_title), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
@@ -272,6 +277,8 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit, onGuide: () -> Unit = {
                         }
                     }
                     Text(stringResource(R.string.privacy_note), fontSize = NgText.body, color = nl.spoonpaco.ninegrid.ui.theme.LocalNgExtra.current.subtle)
+                }
+                SettingsGroup.LANG -> {
                     ChoiceRow(stringResource(R.string.app_language), listOf("system", "nl", "en"), currentLang.substringBefore('-'), { langLabels[it] ?: it }) {
                         AppCompatDelegate.setApplicationLocales(if (it == "system") LocaleListCompat.getEmptyLocaleList() else LocaleListCompat.forLanguageTags(it))
                     }
@@ -468,7 +475,41 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit, onGuide: () -> Unit = {
                         Text(stringResource(R.string.ai_privacy), fontSize = NgText.caption, color = LocalNgExtra.current.subtle)
                     }
                 }
-                SettingsGroup.BACKUP -> {
+            }
+            Spacer(Modifier.height(24.dp))
+        }
+    }
+
+}
+
+/** Back-up, terugzetten, CSV en (onderaan, in het rood) alles wissen. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BackupScreen(vm: AppViewModel, onBack: () -> Unit) {
+    val settings by vm.settings.collectAsState()
+    val all by vm.entries.collectAsState()
+    val decks by vm.decks.collectAsState()
+    var wiping by remember { mutableStateOf(false) }
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val gateTitle = stringResource(R.string.privacy_gate_title)
+    val gateExport = stringResource(R.string.privacy_gate_export)
+    val gateSettings = stringResource(R.string.privacy_gate_settings)
+    fun gated(sub: String, action: () -> Unit) = if (settings.privacy) nl.spoonpaco.ninegrid.ui.components.PrivacyGate.ask(context, gateTitle, sub, action) else action()
+    val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+    val backup = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { it?.let(vm::backupTo) }
+    val restore = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { it?.let(vm::previewRestore) }
+    val csv = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) { uri ->
+        uri?.let { vm.writeText(it, Export.collectionCsv(all, decks.associate { d -> d.id to d.name })) }
+    }
+    val folder = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { it?.let(vm::setBackupFolder) }
+    Scaffold(topBar = {
+        TopAppBar(
+            title = { Text(stringResource(R.string.backup_export)) },
+            navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) } },
+            actions = { nl.spoonpaco.ninegrid.ui.guide.HelpButton("backup") },
+        )
+    }) { pad ->
+        Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
                     Text(stringResource(R.string.backup_export), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                     Text(stringResource(R.string.backup_explain), fontSize = NgText.body, color = LocalNgExtra.current.subtle)
                     Spacer(Modifier.height(6.dp))
@@ -490,30 +531,14 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit, onGuide: () -> Unit = {
                     }
                     Spacer(Modifier.height(8.dp))
                     OutlinedButton(onClick = { gated(gateExport) { csv.launch("ninegrid-collectie-$today.csv") } }) { Text(stringResource(R.string.export_csv)) }
-                }
-                SettingsGroup.WIPE -> {
+                    HorizontalDivider(Modifier.padding(vertical = 14.dp))
                     Text(stringResource(R.string.wipe_title), fontWeight = FontWeight.Bold, color = NgColorsError)
                     Text(stringResource(R.string.wipe_explain), fontSize = NgText.body, color = LocalNgExtra.current.subtle)
                     OutlinedButton(onClick = { gated(gateSettings) { wiping = true } }) { Text(stringResource(R.string.wipe_button), color = NgColorsError) }
-                }
-                SettingsGroup.ABOUT -> {
-                    Text("NineGrid ${BuildConfig.VERSION_NAME} – ${BuildConfig.CODENAME}", fontWeight = FontWeight.Bold)
-                    Spacer(Modifier.height(8.dp))
-                    OutlinedButton(onClick = { vm.checkUpdate(manual = true) }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.check_updates)) }
-                    val ul = mapOf("wifi" to stringResource(R.string.update_auto_wifi), "any" to stringResource(R.string.update_auto_any), "off" to stringResource(R.string.update_auto_off))
-                    ChoiceRow(stringResource(R.string.update_auto), listOf("wifi", "any", "off"), settings.updateAuto, { ul[it] ?: it }) { vm.setUpdateAuto(it) }
-                    Text(stringResource(R.string.update_auto_explain), fontSize = NgText.body, color = LocalNgExtra.current.subtle)
-                    OutlinedButton(onClick = onWhatsNew, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.whats_new)) }
-                    OutlinedButton(onClick = onGuide, modifier = Modifier.fillMaxWidth()) { Icon(Icons.AutoMirrored.Filled.MenuBook, null); Spacer(Modifier.size(6.dp)); Text(stringResource(R.string.guide)) }
-                    OutlinedButton(onClick = onAbout, modifier = Modifier.fillMaxWidth()) { Icon(Icons.Filled.Info, null); Spacer(Modifier.size(6.dp)); Text(stringResource(R.string.about_app)) }
-                }
-            }
             Spacer(Modifier.height(24.dp))
         }
     }
-
     if (wiping) WipeDialog(vm, hasFolder = settings.backupFolder != null, onDismiss = { wiping = false })
-
     vm.restorePreview?.let { b -> RestoreDialog(vm, b) }
 }
 
@@ -561,14 +586,13 @@ private fun RestoreDialog(vm: AppViewModel, b: nl.spoonpaco.ninegrid.data.Backup
 /** De groepen van het instellingenscherm, in deze volgorde. */
 enum class SettingsGroup(val title: Int, val icon: androidx.compose.ui.graphics.vector.ImageVector, val help: String) {
     VIEW(R.string.set_group_view, Icons.Filled.Palette, "settings"),
+    LANG(R.string.set_group_lang, Icons.Filled.Language, "settings"),
+    PRIVACY(R.string.privacy_title, Icons.Filled.Lock, "settings"),
     SCAN(R.string.set_group_scan, Icons.Filled.CameraAlt, "add"),
     DATA(R.string.set_group_data, Icons.Filled.Storage, "settings"),
     COLLECTION(R.string.set_group_collection, Icons.Filled.Collections, "collection"),
     AI(R.string.set_group_ai, Icons.Filled.AutoAwesome, "settings"),
-    BACKUP(R.string.set_group_backup, Icons.Filled.Backup, "backup"),
     DEV(R.string.set_group_dev, Icons.Filled.BugReport, "settings"),
-    WIPE(R.string.wipe_title, Icons.Filled.DeleteForever, "backup"),
-    ABOUT(R.string.set_group_about, Icons.Filled.Info, "start"),
 }
 
 /** Eén regel onder elke groep: hoe het nu staat. */
@@ -576,8 +600,10 @@ enum class SettingsGroup(val title: Int, val icon: androidx.compose.ui.graphics.
 private fun settingsSummary(g: SettingsGroup, vm: AppViewModel, st: nl.spoonpaco.ninegrid.data.AppSettings, lang: String): String {
     val on = stringResource(R.string.on); val off = stringResource(R.string.off)
     return when (g) {
-        SettingsGroup.VIEW -> listOf(themeLabelPlain(st.theme), langLabelPlain(lang.substringBefore('-')), st.currency,
+        SettingsGroup.VIEW -> themeLabelPlain(st.theme) + " · " + stringResource(R.string.effects) + ": " + (if (st.effects) on else off)
+        SettingsGroup.LANG -> listOf(langLabelPlain(lang.substringBefore('-')), st.currency,
             nl.spoonpaco.ninegrid.domain.Dates.dateTime(System.currentTimeMillis(), st.dateStyle)).joinToString(" · ")
+        SettingsGroup.PRIVACY -> stringResource(R.string.privacy_mode) + ": " + (if (st.privacy) on else off)
         SettingsGroup.SCAN -> stringResource(R.string.setting_auto_short) + ": " + (if (st.autoCapture) on else off) + " · " +
             stringResource(R.string.setting_timing_short) + ": " + (if (st.showTiming) on else off)
         SettingsGroup.DATA -> stringResource(R.string.images) + ": " + imageModeLabelPlain(st.imageMode) + " · " + stringResource(R.string.offline_db_short) + ": " +
@@ -591,11 +617,7 @@ private fun settingsSummary(g: SettingsGroup, vm: AppViewModel, st: nl.spoonpaco
             val used = if (st.aiCountDay == java.time.LocalDate.now().toString()) st.aiCount else 0
             nl.spoonpaco.ninegrid.data.ai.AiProviders.byId(st.aiProvider).label + " · " + stringResource(R.string.ai_used_today, used, st.aiDailyLimit)
         }
-        SettingsGroup.BACKUP -> if (st.backupFolder != null) stringResource(R.string.auto_backup_on, if (st.lastBackup > 0) nl.spoonpaco.ninegrid.domain.Dates.date(st.lastBackup, st.dateStyle) else "–")
-            else stringResource(R.string.auto_backup_off)
-        SettingsGroup.WIPE -> stringResource(R.string.wipe_summary)
         SettingsGroup.DEV -> stringResource(R.string.setting_timing_short) + ": " + (if (st.showTiming) on else off) + " · " + stringResource(R.string.dev_scan_report_short) + ": " + (if (st.devScanReport) on else off)
-        SettingsGroup.ABOUT -> stringResource(R.string.version_x, BuildConfig.VERSION_NAME + " – " + BuildConfig.CODENAME)
     }
 }
 
@@ -620,8 +642,9 @@ fun imageModeLabelPlain(v: String) = when (v) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AboutScreen(onBack: () -> Unit, onTour: () -> Unit) {
+fun AboutScreen(vm: AppViewModel, onBack: () -> Unit, onTour: () -> Unit, onWhatsNew: () -> Unit) {
     val uri = LocalUriHandler.current
+    val settings by vm.settings.collectAsState()
     Scaffold(topBar = {
         TopAppBar(
             title = { Text(stringResource(R.string.about)) },
@@ -632,6 +655,12 @@ fun AboutScreen(onBack: () -> Unit, onTour: () -> Unit) {
             Image(painterResource(R.drawable.logo_ninegrid), null, Modifier.size(160.dp))
             Spacer(Modifier.height(12.dp))
             Text("NineGrid ${BuildConfig.VERSION_NAME} – ${BuildConfig.CODENAME}", fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(8.dp))
+            OutlinedButton(onClick = { vm.checkUpdate(manual = true) }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.check_updates)) }
+            val ul = mapOf("wifi" to stringResource(R.string.update_auto_wifi), "any" to stringResource(R.string.update_auto_any), "off" to stringResource(R.string.update_auto_off))
+            ChoiceRow(stringResource(R.string.update_auto), listOf("wifi", "any", "off"), settings.updateAuto, { ul[it] ?: it }) { vm.setUpdateAuto(it) }
+            Text(stringResource(R.string.update_auto_explain), fontSize = NgText.body, color = LocalNgExtra.current.subtle)
+            OutlinedButton(onClick = onWhatsNew, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.whats_new)) }
             Spacer(Modifier.height(12.dp))
             Text(stringResource(R.string.about_text), textAlign = TextAlign.Center)
             Spacer(Modifier.height(12.dp))

@@ -218,6 +218,8 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
                     onGuide = { nav.navigate("guide") },
                     onImport = { nav.navigate("import") },
                     onShare = { nav.navigate("share") },
+                    onBackup = { nav.navigate("backup") },
+                    onWhatsNew = { vm.showWhatsNew = true },
                 )
             }
             composable("card/{printId}", arguments = listOf(navArgument("printId") { type = NavType.StringType })) {
@@ -278,13 +280,11 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
             }
             composable("changes") { ChangeLogScreen(vm, onBack = { nav.popBackStack() }) }
             composable("settings") {
-                SettingsScreen(
-                    vm, onBack = { nav.popBackStack() }, onGuide = { nav.navigate("guide") },
-                    onAbout = { nav.navigate("about") }, onWhatsNew = { vm.showWhatsNew = true },
-                )
+                SettingsScreen(vm, onBack = { nav.popBackStack() })
             }
+            composable("backup") { nl.spoonpaco.ninegrid.ui.screens.BackupScreen(vm, onBack = { nav.popBackStack() }) }
             composable("about") {
-                AboutScreen(onBack = { nav.popBackStack() }, onTour = { nav.navigate("onboarding") })
+                AboutScreen(vm, onBack = { nav.popBackStack() }, onTour = { nav.navigate("onboarding") }, onWhatsNew = { vm.showWhatsNew = true })
             }
         }
     }

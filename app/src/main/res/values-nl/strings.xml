@@ -147,7 +147,7 @@
     <string name="section_main">Deck</string>
     <string name="section_sideboard">Sideboard</string>
     <string name="set">Set</string>
-    <string name="settings_backup">Instellingen en back-up</string>
+    <string name="settings_backup">Instellingen</string>
     <string name="share">Delen</string>
     <string name="show_tour">Uitleg opnieuw tonen</string>
     <string name="skip">Overslaan</string>
@@ -637,7 +637,7 @@
     <string name="share_title">Delen en ruilen</string>
     <string name="share_sub">Je collectie sturen, collecties van vrienden bekijken, ruilen</string>
     <string name="whats_new_more">Lees meer in de handleiding →</string>
-    <string name="whats_new_later">Dit lees je terug via Instellingen → Over NineGrid.</string>
+    <string name="whats_new_later">Dit lees je terug via Meer → Over NineGrid.</string>
     <string name="guide_search">Zoek in de handleiding</string>
     <string name="guide_search_none">Niets gevonden. Probeer een ander woord.</string>
     <string name="share_mine_title">Je collectie delen</string>
@@ -1065,4 +1065,7 @@
     <string name="price_hist_none">Voor deze kaart zijn nog geen prijzen bewaard. De app bewaart de prijzen van kaarten die je hebt.</string>
     <string name="price_hist_few">De app bewaart de prijs vanaf %1$s; het verloop verschijnt na een paar dagen.</string>
     <string name="price_hist_note">De laatste maand per dag, daarna één meting per maand. Dezelfde Cardmarket- of TCGplayer-prijs als de rest van de app.</string>
+    <string name="set_group_lang">Taal en regio</string>
+    <string name="more_app">App</string>
+    <string name="backup_menu_sub">Back-up maken, terugzetten, CSV exporteren</string>
 </resources>

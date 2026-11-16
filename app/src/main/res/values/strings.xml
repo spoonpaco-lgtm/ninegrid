@@ -148,7 +148,7 @@
     <string name="section_main">Deck</string>
     <string name="section_sideboard">Sideboard</string>
     <string name="set">Set</string>
-    <string name="settings_backup">Settings and backup</string>
+    <string name="settings_backup">Settings</string>
     <string name="share">Share</string>
     <string name="show_tour">Show introduction again</string>
     <string name="skip">Skip</string>
@@ -638,7 +638,7 @@
     <string name="share_title">Share and trade</string>
     <string name="share_sub">Send your collection, view friends\' collections, find trades</string>
     <string name="whats_new_more">Read more in the guide →</string>
-    <string name="whats_new_later">You can read this again under Settings → About NineGrid.</string>
+    <string name="whats_new_later">You can read this again under More → About.</string>
     <string name="guide_search">Search the guide</string>
     <string name="guide_search_none">Nothing found. Try another word.</string>
     <string name="share_mine_title">Share your collection</string>
@@ -1066,4 +1066,7 @@
     <string name="price_hist_none">No prices saved for this card yet. The app saves prices of cards you have.</string>
     <string name="price_hist_few">The app saves the price from %1$s; the history appears after a few days.</string>
     <string name="price_hist_note">Last month daily, older one reading per month. Same Cardmarket or TCGplayer price as the rest of the app.</string>
+    <string name="set_group_lang">Language and region</string>
+    <string name="more_app">App</string>
+    <string name="backup_menu_sub">Back up, restore, export CSV</string>
 </resources>

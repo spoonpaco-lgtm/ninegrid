@@ -2,7 +2,7 @@
 
 *English: [FEATURES.md](FEATURES.md)*
 
-Huidige versie: **0.9.9.2 – Vivien**. Elke versie heeft de naam van een planeswalker.
+Huidige versie: **0.9.9.3 – Vivien**. Elke versie heeft de naam van een planeswalker.
 
 ## Wat NineGrid anders maakt
 
@@ -82,7 +82,7 @@ Huidige versie: **0.9.9.2 – Vivien**. Elke versie heeft de naam van een planes
 - **Back-up** met de hand of elke week naar een map naar keuze; terugzetten op een nieuwe telefoon, alles of losse delen, met een samenvatting van wat erin zit; export als CSV.
 - **Bijwerken vanuit de app**: dagelijks kijken, op de achtergrond downloaden (standaard via wifi), één tik om te installeren.
 - **Privacymodus**: alle bedragen verborgen behalve in de ruilmatch; uitzetten, even kijken, back-up en export alleen met vingerafdruk; stijlen compleated, zegel, schaduw en stippen.
-- Instellingen in acht groepen; datum- en tijdformaat naar keuze; dag en nacht (zon en maan); **gildekleuren**; Magic-effecten (foil-glans bij kantelen, verbannen, stempels) uit te zetten; Nederlands en Engels.
+- Instellingen in acht groepen; datum- en tijdformaat naar keuze; dag en nacht (zon en maan); **gildekleuren**; Magic-effecten (foil-glans bij kantelen, verbannen, stempels) uit te zetten; Nederlands en Engels. Back-up en export heeft een eigen scherm op Meer.
 - De back-up is compleet: kaarten, decks en deckregels, historie, verlanglijst en prijsalarmen, boosters, vrienden, wijzigingslog en instellingen (niet: AI-sleutel, offline database, plaatjes).
 - **Handleiding** in de app met zoeken, een ? op elk scherm, en **Wat is nieuw** na een update.
 

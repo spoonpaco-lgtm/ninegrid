@@ -28,11 +28,11 @@ object WhatsNew {
     fun items(dutch: Boolean): List<Item> = if (dutch) NL else EN
 
     private val NL = listOf(
-        Item("Scannen, één kaart: onderin staat van de laatste drie kaarten nu een fotootje van de gevonden kaart met een gekleurde rand (groen zeker, oranje controleren, blauw met ★ foil checken). Tik voor een exemplaar erbij, het kruisje haalt de kaart weg.", "add"),
+        Item("Menu opgeruimd: Meer heeft nu blokken. Back-up en export (met Alles wissen onderaan in het rood) staat op Meer naast Importeren. Over NineGrid is één plek geworden, met versie, updates en Wat is nieuw. Instellingen is verdeeld in Weergave, Taal en regio, Privacy, Scannen, Kaartgegevens, Collectie, AI-hulp en Ontwikkelaar.", "settings"),
     )
 
     private val EN = listOf(
-        Item("Scanning one card: the last three cards at the bottom are now a small photo of the card found, with a coloured border (green sure, orange check, blue with ★ check foil). Tap for one more copy, the cross removes the card.", "add"),
+        Item("Menu tidied up: More now has sections. Backup and export (with Erase everything in red at the bottom) lives on More next to Import. About NineGrid is now one place, with version, updates and What's new. Settings is split into View, Language and region, Privacy, Scanning, Card data, Collection, AI help and Developer.", "settings"),
     )
 }
 
