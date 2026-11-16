@@ -1,4 +1,4 @@
-NineGrid 0.9.9.3 – Vivien
+NineGrid 0.9.10.1 – Dovin
 
 Menu opgeruimd
 - Meer is verdeeld in blokken: bovenaan Handleiding en Wat is nieuw; Collectie (Importeren, Back-up en export, Delen met vrienden, Laatste actie ongedaan maken); App (Instellingen, Over NineGrid).
@@ -6,6 +6,29 @@ Menu opgeruimd
 - Back-up en export is een eigen scherm op Meer: back-up maken, terugzetten, automatische back-up, CSV en onderaan in het rood Alles wissen.
 - Over NineGrid staat nog maar op één plek (Meer), met versie, controleren op updates, automatisch bijwerken en Wat is nieuw. De groep Over verdween uit Instellingen en de Handleiding staat niet meer dubbel.
 - Instellingen heeft acht groepen: Weergave (thema, gildekleur, effecten), Taal en regio (taal, valuta, datum en tijd), Privacy, Scannen, Kaartgegevens, Collectie, AI-hulp en Ontwikkelaar.
+
+NineGrid 0.9.10 – Dovin
+
+Dovin Baan, de Azorius-ambtenaar die elke regel en elk formulier kent: een versie over welke print je precies hebt en welke kaarten nog mogen. Gebouwd en getest met unittests; nog niet op een echte telefoon geprobeerd.
+
+Print kiezen (8)
+- Kaartscherm: onder de setregel staat Andere prints ›. Dat opent de lijst met alle prints van de kaart: klein plaatje, set, nummer en jaar, per afwerking (normaal, foil, etched) de prijs, "goedkoopst" bij de goedkoopste en ✓ bij de huidige. Sorteren op nieuwste of goedkoopste. Tik op een print om erheen te gaan; Terug brengt je bij de vorige print.
+- Print van een exemplaar wijzigen: ✎ bij Jouw exemplaren → bovenaan de regel Print › → dezelfde printlijst. Het exemplaar houdt zijn plek (binder, blad en vak, of deck), taal, conditie en proxy. Daarna springt het kaartscherm naar de nieuwe print. Ongedaan maken werkt zoals altijd.
+- Bij een stapel (×3) kies je voor hoeveel exemplaren het geldt; de rest blijft zoals hij was, in een eigen regel. Zo zet je ook 1 van 3 op foil.
+- Bestaat de afwerking niet bij de nieuwe print, dan kiest de app Normaal (of wat er wel is) en zegt dat. Ligt er op dezelfde plek al een gelijke stapel, dan wordt het één stapel.
+- + Exemplaar toevoegen staat altijd op het kaartscherm (was alleen te zien als je de kaart nog niet had): Normaal, Foil of Etched (alleen wat er van die print bestaat, met prijs), het aantal en meteen de plek: de collectie (met map, blad en vak) of een deck.
+- Verlanglijst → ✎: bij "precies deze print" staat de printregel; tik voor de printlijst. Prijs en prijsalarm rekenen daarna met die print.
+
+Melding bij ban of reprint (40)
+- Na de dagelijkse prijsupdate kijkt de app of er iets veranderd is aan kaarten die je hebt (geen proxies).
+- Bans: wordt een kaart gebanned, restricted, weer toegestaan, niet meer legaal of juist legaal in een format waarin je een deck hebt, dan krijg je een melding met hoeveel je er hebt, wat ze waard zijn en in welk deck ze zitten. Met Alle formats volg je alle zes formats.
+- Reprints: sets die nog niet uit zijn of de afgelopen 30 dagen uitkwamen (geen tokens of digitale sets). Komt een kaart die je hebt daarin voor in een andere print, dan een melding met de set, de releasedatum en jouw print met zijn waarde. Elke reprint wordt één keer gemeld. Alleen sets waarvan het aantal kaarten veranderde worden opnieuw opgehaald, dus na de spoilers kost het bijna niets.
+- Eén melding voor de bans, één voor de reprints; met één kaart opent tikken die kaart. Privacymodus: geen bedragen in de melding.
+- Instellingen → Collectie: bans en reprints apart aan of uit, Alle formats, en vanaf welke waarde per stuk een reprint gemeld wordt (standaard €5).
+- De eerste controle legt alleen de stand vast, zonder meldingen. Een reprint laat de prijs niet altijd dalen: de melding is informatie, geen verkoopadvies.
+
+Past niet in het deck (4e)
+- Gaan de kaarten naar een deck (scannen vanuit een deck, een lijst plakken naar een deck), dan staat een kaart die banned of niet legaal is in het format van het deck, of buiten de kleuren van de commander valt, meteen oranje bij Controleer, met de reden. De commander komt uit het deck zelf en uit de kaarten op het scherm met de knop Commander. Opslaan kan nog steeds.
 
 NineGrid 0.9.9.2 – Vivien
 

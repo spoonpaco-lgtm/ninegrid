@@ -13,6 +13,7 @@ Dit is "de lijst": wat Mick wil dat NineGrid nog krijgt. Een nieuw gesprek begin
 - Keystore, wachtwoorden en de AI-sleutel blijven buiten de repo (GitHub secrets / alleen op de telefoon).
 - Bij elke versie: handleiding (NL/EN), Wat is nieuw, FEATURES.md en FEATURES.nl.md, RELEASE_NOTES.md bijwerken.
 - Tellen op afbeeldingen: vak voor vak / kwadrant voor kwadrant.
+- Vóór het voorstellen van nieuwe features eerst FEATURES.md in de repo nakijken of het er al in zit (16 nov: proefhand was voorgesteld maar bestond al).
 
 ## Hoe te werken (technisch, voor een nieuw gesprek)
 
@@ -39,6 +40,11 @@ Dit is "de lijst": wat Mick wil dat NineGrid nog krijgt. Een nieuw gesprek begin
 - Een kaart is alleen groen als naam, set en nummer samen kloppen. Sinds 0.9.8.1 is een kaart uit een andere set dan gevraagd, of zonder nummer met meerdere prints van die naam, altijd oranje.
 - Leeg vak: `EmptySlots.decide`, alleen leeg als er geen tekst in dat vak is en weinig structuur.
 - Scanrapport (Meer → Instellingen → Ontwikkelaar, op het controlescherm "Scan delen"): foto en per vak wat gelezen is; vraag Mick om dat bij een slechte scan.
+
+**Print kiezen, bans en reprints (stand 0.9.10)**
+- Printlijst, ✎ met print en splitsen, + Exemplaar toevoegen: `ui/screens/PrintDialogs.kt`; regels (afwerkingen, prijs, sorteren) in `domain/PrintChoice.kt`; opslaan als één wijziging in `Repository.changeEntry`.
+- Bans en reprints: `data/Watcher.kt` (stand in `filesDir/watch.json`, gewist bij fabrieksinstellingen), regels in `domain/Watch.kt`, melding in `PriceWorker.notifyWatch`. Legaliteit komt uit de prints, die de prijsupdate ververst.
+- 4e: `domain/DeckFit.kt` en `AppViewModel.deckIssues()`; het controlescherm zet zulke kaarten in de groep Controleer.
 
 **Bekende open vragen**
 - Een heel blad leest minder dan in 0.9.6. Verdachten uit 0.9.7: onderste strook 3×, contrastpoging, gedeelde tekstherkenner. Nodig: scanrapport of voorbeeldfoto. Zo nodig die punten terugdraaien.
@@ -67,6 +73,18 @@ Dit is "de lijst": wat Mick wil dat NineGrid nog krijgt. Een nieuw gesprek begin
 | 0.9.9 | Vivien | 37 scanner repareren, 38 foil-twijfel blauw ★, 39 kaart voor kaart stroomlijnen, 4 scannen naar een deck, 28 één keuze uit de collectie halen, 33–36 filters/sorteren, thumbnails bij suggesties, inklapbare combo-blokken, segmentbalk Thumbnails \| Namen |
 | 0.9.9.1 | Vivien | Fix leeg venster bij ontbrekende combokaart; lijnenkiezer (Aantal kaarten als vakje, groepen, alleen sets met kaarten); taartgrafiek Lijn \| Taart; inklapbaar Prijsverloop op het kaartscherm |
 | 0.9.9.2 | Vivien | Scannen van één kaart: fotootje met gekleurde rand onderin; kader past tussen de gemeten balken; Controleer-knop niet meer afgekapt |
+| 0.9.10 | Dovin | 8 print kiezen (printlijst, print van een exemplaar wijzigen en splitsen, + Exemplaar toevoegen, verlanglijst), 40 melding bij ban of reprint, 4e past niet in het deck oranje |
+| 0.9.10.1 | Dovin | Menu opgeruimd: Meer in blokken, Back-up en export eigen scherm, Over op één plek, Lijst plakken in Importeren, Wijzigingslog heet Laatste actie ongedaan maken, Instellingen in 8 andere groepen |
+
+### 0.9.10 – nog na te kijken op Micks telefoon
+
+- Kaartscherm: Andere prints › opent de printlijst (plaatje, jaar, prijs per afwerking, goedkoopst, ✓); sorteren Nieuwste | Goedkoopste; tik = nieuw kaartscherm erbovenop, Terug = vorige print.
+- ✎ bij een exemplaar: regel Print › → printlijst; bij ×3 het vak "Voor hoeveel exemplaren"; foil die niet bestaat → Normaal met melding; daarna springt het kaartscherm naar de nieuwe print; ongedaan maken.
+- + Exemplaar toevoegen: afwerkingen met prijs (welke er bestaan komt van Scryfall; zonder internet of met de offline database afgeleid uit de prijzen), aantal, collectie met map/blad/vak of een deck met Deck/Sideboard/Commander.
+- Verlanglijst ✎ → precies deze print → printregel → printlijst; prijs en alarm met die print.
+- Bans en reprints: Instellingen → Collectie. De eerste nachtelijke controle legt alleen de stand vast; meldingen pas bij een echte wijziging daarna. Reprints volgt sets die nog niet uit zijn of de laatste 30 dagen uitkwamen. Toestemming voor meldingen (Android 13+) wordt nog alleen bij importeren gevraagd.
+- 4e: plakken naar een deck of scannen vanuit een deck met een banned kaart of een kaart buiten de commanderkleuren → oranje bij Controleer met de reden.
+- Etched heeft bij Cardmarket (via Scryfall) geen eigen prijs: in de printlijst dan de foilprijs, maar alleen als er van die print geen gewone foil bestaat.
 
 ### 0.9.9.2 – nog na te kijken op Micks telefoon
 
@@ -133,10 +151,10 @@ Gebouwd en getest met unittests; dit kan alleen op een echte telefoon gecontrole
 |---|---|---|
 | 0.9.8 ✔ | Kaito (uitgebracht) | 27 Ontwikkelaar-menu met scanrapport, 26 vegen, 16 NIEUW, 19 commander wijzigen, 2 fabrieksinstellingen, 30 melding bij lamp die niet aangaat, 31 kaartjes bij combo's |
 | 0.9.8.1 ✔ / 0.9.8.2 ✔ | Kaito (uitgebracht) | 32 opgegeven set is een grens, 29 vormgeving gelijk trekken |
-| 0.9.9 ✔ | Vivien (uitgebracht) | Gebouwd: 37, 38, 39 (op 39a, 39c na), 4 (op 4e na), 28, 33–36. Oorspronkelijke volgorde: 37 scanner repareren, 38 foil-twijfel blauw ★, 39 kaart voor kaart scannen stroomlijnen (39c pas na 37), daarna 4 scannen naar een deck (pas als de bladscan weer goed leest), 28 deckimport: één keuze voor uit de collectie halen, 33 filter- en sorteerknoppen bij alle kaartenlijsten, 34 thumbnails bij suggesties en tikken op elke combokaart, 35 inklapbare blokken bij combo's, 36 weergavekeuze Thumbnails | Namen als segmentbalk. Zet Mick 0.9.9 uiteen in stappen (bv. 0.9.9.1), dan houdt elke stap de naam Vivien |
+| 0.9.9 ✔ | Vivien (uitgebracht) | Gebouwd: 37, 38, 39 (op 39a, 39c na), 4 (op 4e na), 28, 33–36. Oorspronkelijke volgorde: 37 scanner repareren, 38 foil-twijfel blauw ★, 39 kaart voor kaart scannen stroomlijnen (39c pas na 37), daarna 4 scannen naar een deck (pas als de bladscan weer goed leest), 28 deckimport: één keuze voor uit de collectie halen, 33 filter- en sorteerknoppen bij alle kaartenlijsten, 34 thumbnails bij suggesties en tikken op elke combokaart, 35 inklapbare blokken bij combo's, 36 weergavekeuze Thumbnails \| Namen als segmentbalk. Zet Mick 0.9.9 uiteen in stappen (bv. 0.9.9.1), dan houdt elke stap de naam Vivien |
 | 0.9.9.1 ✔ | Vivien (uitgebracht) | Fix combokaart, lijnenkiezer, taartgrafiek, Prijsverloop op het kaartscherm |
 | 0.9.9.2 ✔ | Vivien (uitgebracht) | Scannen van één kaart: fotootje met gekleurde rand onderin; kader past tussen de gemeten balken; Controleer-knop niet meer afgekapt |
-| 0.9.10 | nog kiezen | 8 print kiezen, in twee stappen: eerst 8a–e (printlijst), daarna 8f–l (exemplaren wijzigen en splitsen) |
+| 0.9.10 ✔ | Dovin (uitgebracht) | 8 print kiezen (8a–l), 4e kaarten buiten de kleuren of banned meteen oranje bij scannen naar een deck, 40 melding bij ban of reprint. Mick (16 nov): alles in één versie |
 | 0.9.11 | nog kiezen | 3 exporteren (sites nog te kiezen; eerst de actuele importformaten nakijken) |
 | 1.0 | — | Fase 2 |
 
@@ -164,11 +182,11 @@ De nummers hieronder zijn die van de lijst zoals Mick ze kent.
    b. Na Controleer: het controlescherm met het deck al als bestemming, bovenaan keuze Deck / Sideboard / Commander
    c. Per kaart kijkt de app in je collectie: los in je collectie → verplaatsen naar het deck (standaard), met "Uit collectie · Rood blad 3 vak 5"; zit al in een ander deck → keuze verplaatsen of nieuw; heb je nog niet → nieuw, direct in het deck
    d. Per kaart nog te wijzigen (verplaatsen of nieuw), en als proxy te markeren
-   e. Kaarten buiten de kleuren van de commander of banned meteen oranje in het controlescherm
+   e. Kaarten buiten de kleuren van de commander of banned meteen oranje in het controlescherm (gebouwd in 0.9.10, samen met 40)
    f. Na opslaan terug naar het deck; de scanner vergeet het deck, zodat de volgende gewone scan weer naar de collectie gaat
    g. Ongedaan maken werkt zoals altijd; verplaatste kaarten gaan terug naar hun oude plek
    h. Gebruikt de regels van 0.9.7 (domain/DeckTake): basic lands alleen precies dezelfde print
-8. Print kiezen:
+8. Print kiezen (gebouwd in 0.9.10):
    a. Verlanglijst → Bewerken: onder "precies deze print" een regel "SLD 1798 · Secret Lair Drop ›"; tik = lijst met alle prints van die kaart
    b. Per print: klein plaatje, set, nummer en jaar, normale en foilprijs, "goedkoopst" bij de goedkoopste, ✓ bij de huidige
    c. Tik = die print kiezen; prijs en prijsalarm op de verlanglijst rekenen daarna met die print
@@ -293,6 +311,16 @@ De nummers hieronder zijn die van de lijst zoals Mick ze kent.
    b. **Kaart blijft in beeld na de foto**: na elke automatische foto een chipje onderin ("Mondrak ✓ ONE 21"); tik om te corrigeren, +1 voor een tweede exemplaar (nu moet je de kaart weghalen en terugleggen)
    c. **Controleren alleen waar het nodig is**: controlescherm toont alleen de oranje (en blauwe, zie 38) kaarten, bv. "Controleer 3 van 40"; groene gaan rechtstreeks de lijst in, met Ongedaan maken. **Pas bouwen als de herkenning betrouwbaar is (na 37)**, anders slaan fouten als Apostle of Invasion stil op
    d. **Foil als sessiestand** met duidelijke kleur, plus één tik op het chipje onderweg (sluit aan op 38)
+
+40. Melding bij ban of reprint (nieuw; Mick, 16 nov; gebouwd in 0.9.10, samen met 4e):
+   a. Eén keer per dag een controle op de achtergrond (WorkManager), alleen met internet; Android kan die uitstellen om batterij te sparen, dus geen vast tijdstip. Zonder internet volgt de controle de volgende keer
+   b. **Bans**: de app bewaart per kaart in de collectie de legaliteit per format (Scryfall `legalities`) en haalt dagelijks de nieuwe stand op voor alleen de eigen kaarten (`/cards/collection`, 75 per verzoek). Melding bij banned, restricted en ook bij een unban, met aantal, waarde en in welk deck, bv. "Nadu is gebanned in Modern. Je hebt 2 exemplaren (€ 34), waarvan 1 in deck X"
+   c. Standaard alleen voor formats waarin Mick een deck heeft
+   d. **Reprints**: sets ophalen die sinds de vorige controle bij Scryfall zijn bijgekomen (ook nog niet uitgebrachte sets met spoilers) en kaarten daarin op oracle_id vergelijken met de collectie. Melding met set, releasedatum en de eigen print met waarde, bv. "Doubling Season komt opnieuw uit in [set] (release 14 feb). Jij hebt de FDN-print (€ 41)". In spoilerseizoen kunnen er een paar dagen achter elkaar meldingen komen
+   e. Instellingen: bans en reprints apart aan/uit; waardegrens (bv. alleen kaarten boven € 5), anders een melding voor elke common die terugkomt
+   f. Bij de bestaande prijsalarmen, zodat alle meldingen op één plek staan
+   g. De melding is informatie, geen verkoopadvies: een reprint laat de prijs niet altijd dalen (speciale prints houden vaak hun waarde)
+   h. Geen AI, gratis via Scryfall; gebruikt de offline database die er al is
 
 ## Fase 2 (wacht op startsein) → wordt 1.0
 - Sheet-koppeling (deel 2 punt 2, optie A: nieuwe Sheet via drive.file; Google Cloud-project + privacypagina nodig)

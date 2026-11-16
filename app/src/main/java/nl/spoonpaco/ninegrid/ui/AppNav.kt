@@ -229,6 +229,8 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
                     onBinder = { b, pg, sl -> nav.navigate("binder/" + android.net.Uri.encode(b) + "?page=${pg ?: -1}&slot=${sl ?: -1}") },
                     // Vegen vervangt het kaartscherm, zodat Terug naar de lijst gaat en niet langs alle kaarten.
                     onSwipe = { id -> vm.openCardId(id) { nav.navigate("card/$it") { popUpTo("card/{printId}") { inclusive = true } } } },
+                    // Andere print kiezen: een nieuw kaartscherm erbovenop, zodat Terug naar de vorige print gaat.
+                    onOpenPrint = { id -> nav.navigate("card/$id") },
                 )
             }
             composable("deck/{deckId}", arguments = listOf(navArgument("deckId") { type = NavType.LongType })) {

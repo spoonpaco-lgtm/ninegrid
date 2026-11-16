@@ -461,7 +461,10 @@ private fun WishEditDialog(vm: AppViewModel, w: nl.spoonpaco.ninegrid.data.db.Wi
     var anyPrint by remember { mutableStateOf(w.item.anyPrint) }
     var foilOnly by remember { mutableStateOf(w.item.foilOnly) }
     var alarmOn by remember { mutableStateOf(w.item.alarmPrice != null) }
-    val unit = w.print?.let { p -> Money.unitPrice(nl.spoonpaco.ninegrid.data.db.Entry(printId = p.id, finish = if (foilOnly) nl.spoonpaco.ninegrid.data.db.Finish.FOIL else nl.spoonpaco.ninegrid.data.db.Finish.NONFOIL), p, settings.currency) } ?: 0.0
+    // Punt 8a–c: precies deze print kiezen uit de printlijst; prijs en prijsalarm rekenen daarna met die print.
+    var chosen by remember { mutableStateOf(w.print) }
+    var picking by remember { mutableStateOf(false) }
+    val unit = chosen?.let { p -> Money.unitPrice(nl.spoonpaco.ninegrid.data.db.Entry(printId = p.id, finish = if (foilOnly) nl.spoonpaco.ninegrid.data.db.Finish.FOIL else nl.spoonpaco.ninegrid.data.db.Finish.NONFOIL), p, settings.currency) } ?: 0.0
     // Doelprijs staat al klaar: huidige prijs min 10%.
     var target by remember { mutableStateOf(String.format(java.util.Locale.US, "%.2f", w.item.alarmPrice ?: (unit * 0.9))) }
     androidx.compose.material3.AlertDialog(
@@ -472,7 +475,7 @@ private fun WishEditDialog(vm: AppViewModel, w: nl.spoonpaco.ninegrid.data.db.Wi
                 androidx.compose.material3.OutlinedTextField(wanted, { v -> wanted = v.filter { it.isDigit() }.take(3) }, singleLine = true, label = { Text(stringResource(R.string.wish_wanted)) },
                     keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number))
                 CheckRowSimple(stringResource(R.string.wish_any_print_long), anyPrint) { anyPrint = it }
-                if (!anyPrint && w.print != null) Text("${w.print.setCode} ${w.print.collectorNumber} · ${w.print.setName}", fontSize = NgText.body, modifier = Modifier.padding(start = 48.dp))
+                if (!anyPrint) Column(Modifier.padding(start = 48.dp)) { PrintLine(chosen) { picking = true } }
                 CheckRowSimple(stringResource(R.string.wish_foil_only), foilOnly) { foilOnly = it }
                 Spacer(Modifier.padding(4.dp))
                 CheckRowSimple(stringResource(R.string.wish_alarm), alarmOn) { alarmOn = it }
@@ -487,10 +490,12 @@ private fun WishEditDialog(vm: AppViewModel, w: nl.spoonpaco.ninegrid.data.db.Wi
         confirmButton = {
             TextButton(onClick = {
                 val n = wanted.toIntOrNull()?.coerceAtLeast(1) ?: w.item.wanted
+                val pr = chosen
                 vm.updateWish(w.item.copy(
                     wanted = n, got = w.item.got.coerceAtMost(n - 1).coerceAtLeast(0), anyPrint = anyPrint, foilOnly = foilOnly,
                     alarmPrice = if (alarmOn) target.toDoubleOrNull() else null, alarmCurrency = settings.currency, alarmArmed = true,
-                ))
+                    printId = pr?.id ?: w.item.printId, oracleId = pr?.oracleId?.takeIf { it.isNotBlank() } ?: w.item.oracleId,
+                ), pr?.takeIf { it.id != w.item.printId })
                 onDismiss()
             }) { Text(stringResource(R.string.save)) }
         },
@@ -501,6 +506,15 @@ private fun WishEditDialog(vm: AppViewModel, w: nl.spoonpaco.ninegrid.data.db.Wi
             }
         },
     )
+    if (picking) PrintPickerDialog(vm, w.item.name, chosen?.id, onDismiss = { picking = false }, onPick = { o ->
+        picking = false
+        chosen = o.print
+        // Doelprijs van het alarm opnieuw klaarzetten op de nieuwe print (min 10%), tenzij er al een alarm stond.
+        if (w.item.alarmPrice == null) {
+            val u = Money.unitPrice(nl.spoonpaco.ninegrid.data.db.Entry(printId = o.print.id, finish = if (foilOnly) nl.spoonpaco.ninegrid.data.db.Finish.FOIL else nl.spoonpaco.ninegrid.data.db.Finish.NONFOIL), o.print, settings.currency)
+            target = String.format(java.util.Locale.US, "%.2f", u * 0.9)
+        }
+    })
 }
 
 @Composable

@@ -949,4 +949,90 @@ class ParserTest {
         val sharp = e + (6 to 18.0)
         assertEquals(setOf(4), nl.spoonpaco.ninegrid.domain.EmptySlots.decide(sharp, hasText, noLines = setOf(4, 6)))
     }
+
+    // ---------- 0.9.10: bans en reprints (40), past niet in deck (4e), print kiezen (8) ----------
+
+    private val legalAll = "commander=legal,modern=legal,pioneer=not_legal,standard=not_legal,legacy=legal,pauper=not_legal,vintage=legal"
+
+    @Test
+    fun watchSeesBanAndUnban() {
+        val old = mapOf("o1" to nl.spoonpaco.ninegrid.domain.Watch.compact(legalAll))
+        val banned = mapOf("o1" to nl.spoonpaco.ninegrid.domain.Watch.compact(legalAll.replace("modern=legal", "modern=banned")))
+        val ch = nl.spoonpaco.ninegrid.domain.Watch.changes(old, banned, setOf(DeckFormat.MODERN, DeckFormat.COMMANDER))
+        assertEquals(1, ch.size)
+        assertEquals(DeckFormat.MODERN, ch[0].format)
+        assertEquals(nl.spoonpaco.ninegrid.domain.Watch.Kind.BANNED, ch[0].kind)
+        // Niet gevolgd format: geen melding.
+        assertTrue(nl.spoonpaco.ninegrid.domain.Watch.changes(old, banned, setOf(DeckFormat.COMMANDER)).isEmpty())
+        // Terug: unban.
+        val back = nl.spoonpaco.ninegrid.domain.Watch.changes(banned, old, setOf(DeckFormat.MODERN))
+        assertEquals(nl.spoonpaco.ninegrid.domain.Watch.Kind.UNBANNED, back.single().kind)
+        // Een kaart die er de vorige keer nog niet was, geeft geen melding.
+        assertTrue(nl.spoonpaco.ninegrid.domain.Watch.changes(emptyMap(), banned, setOf(DeckFormat.MODERN)).isEmpty())
+        // Van banned naar not_legal zegt niets.
+        assertFalse(nl.spoonpaco.ninegrid.domain.Watch.interesting("banned", "not_legal"))
+        assertTrue(nl.spoonpaco.ninegrid.domain.Watch.interesting("legal", "not_legal"))
+    }
+
+    @Test
+    fun watchFindsReprintsOfOwnedCardsOnlyOnce() {
+        val w = nl.spoonpaco.ninegrid.domain.Watch
+        val cards = listOf(
+            nl.spoonpaco.ninegrid.domain.Watch.SetCard("o1", "Doubling Season", "NEW", "New Set", "2027-02-14"),
+            nl.spoonpaco.ninegrid.domain.Watch.SetCard("o2", "Island", "NEW", "New Set", "2027-02-14"),
+            nl.spoonpaco.ninegrid.domain.Watch.SetCard("o3", "Only Here", "NEW", "New Set", "2027-02-14"),
+        )
+        val owned = mapOf("o1" to setOf("FDN"), "o3" to setOf("NEW"))
+        val hits = w.reprints(cards, owned, emptySet())
+        assertEquals(listOf("o1"), hits.map { it.oracleId })
+        // Al gemeld: niet nog een keer.
+        assertTrue(w.reprints(cards, owned, setOf(w.reprintKey("NEW", "o1"))).isEmpty())
+        // Sets volgen: nog niet uit of kort geleden; tokens en digitale sets niet.
+        assertTrue(w.follow("expansion", false, "2027-02-14", "2026-11-16"))
+        assertTrue(w.follow("expansion", false, "2026-11-01", "2026-11-16"))
+        assertFalse(w.follow("expansion", false, "2026-01-01", "2026-11-16"))
+        assertFalse(w.follow("token", false, "2027-02-14", "2026-11-16"))
+        assertFalse(w.follow("expansion", true, "2027-02-14", "2026-11-16"))
+    }
+
+    @Test
+    fun deckFitFlagsBannedAndColors() {
+        val f = nl.spoonpaco.ninegrid.domain.DeckFit
+        val banned = legalAll.replace("modern=legal", "modern=banned")
+        assertEquals(nl.spoonpaco.ninegrid.domain.DeckFitIssue.BANNED, f.issue(DeckFormat.MODERN, banned, "G", null, false, false))
+        assertEquals(nl.spoonpaco.ninegrid.domain.DeckFitIssue.NOT_LEGAL, f.issue(DeckFormat.PIONEER, legalAll, "G", null, false, false))
+        // Proxy telt niet voor legaliteit; casual nooit.
+        assertNull(f.issue(DeckFormat.MODERN, banned, "G", null, false, true))
+        assertNull(f.issue(DeckFormat.CASUAL, banned, "G", null, false, false))
+        // Kleuren: alleen met een bekende commander, en niet voor de commander zelf.
+        assertEquals(nl.spoonpaco.ninegrid.domain.DeckFitIssue.COLORS, f.issue(DeckFormat.COMMANDER, legalAll, "UG", setOf('U', 'R'), false, false))
+        assertNull(f.issue(DeckFormat.COMMANDER, legalAll, "UR", setOf('U', 'R'), false, false))
+        assertNull(f.issue(DeckFormat.COMMANDER, legalAll, "UG", null, false, false))
+        assertNull(f.issue(DeckFormat.COMMANDER, legalAll, "UG", setOf('U', 'R'), true, false))
+        // Zonder bekende legaliteit (offline database): niets melden.
+        assertNull(f.issue(DeckFormat.MODERN, "", "G", null, false, false))
+    }
+
+    @Test
+    fun printChoiceFinishesPricesAndSort() {
+        val pc = nl.spoonpaco.ninegrid.domain.PrintChoice
+        fun print(id: String, date: String, eur: Double?, foil: Double?) =
+            nl.spoonpaco.ninegrid.data.db.CardPrint(id = id, name = "X", setCode = id.uppercase(), collectorNumber = "1", releasedAt = date, eur = eur, eurFoil = foil)
+        val a = print("a", "2020-01-01", 3.0, 9.0)
+        val b = print("b", "2024-01-01", 1.0, null)
+        val c = print("c", "2022-01-01", null, null)
+        // Afwerkingen: van Scryfall, anders uit de prijzen, anders normaal + foil.
+        assertEquals(listOf("nonfoil", "foil", "etched"), pc.finishes(listOf("etched", "foil", "nonfoil"), a))
+        assertEquals(listOf("nonfoil"), pc.finishes(emptyList(), b))
+        assertEquals(listOf("nonfoil", "foil"), pc.finishes(emptyList(), c))
+        val opts = listOf(a, b, c).map { nl.spoonpaco.ninegrid.domain.PrintOption(it, pc.finishes(emptyList(), it)) }
+        assertEquals("b", pc.cheapestId(opts, "EUR"))
+        assertEquals(listOf("b", "c", "a"), pc.sort(opts, false, "EUR").map { it.print.id })
+        assertEquals(listOf("b", "a", "c"), pc.sort(opts, true, "EUR").map { it.print.id })
+        // Afwerking die niet bestaat bij de nieuwe print: Normaal, anders wat er is.
+        assertEquals("nonfoil", pc.fitFinish("foil", listOf("nonfoil")))
+        assertEquals("foil", pc.fitFinish("foil", listOf("nonfoil", "foil")))
+        assertEquals("etched", pc.fitFinish("foil", listOf("etched")))
+        assertEquals("2020", pc.year(a))
+    }
 }

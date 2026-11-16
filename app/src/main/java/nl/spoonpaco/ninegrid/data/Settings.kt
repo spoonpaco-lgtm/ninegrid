@@ -62,6 +62,14 @@ data class AppSettings(
     /** Melding bij een Breakout: een kaart die op één dag flink stijgt. */
     val breakoutAlerts: Boolean = true,
     val lastBreakoutDay: String = "",
+    /** Melding bij een ban, restrictie of unban van een kaart die je hebt (punt 40). */
+    val banAlerts: Boolean = true,
+    /** Melding als een kaart die je hebt opnieuw uitkomt in een nieuwe set. */
+    val reprintAlerts: Boolean = true,
+    /** Bans: alle formats volgen in plaats van alleen de formats van je decks. */
+    val watchAllFormats: Boolean = false,
+    /** Reprints: alleen melden voor kaarten die per stuk minstens dit waard zijn (in je valuta). */
+    val reprintMin: Double = 5.0,
     /** De versie waarvan "Wat is nieuw" al is getoond. */
     val lastSeenVersion: String = "",
     /** Naam waaronder je deelt (gevraagd bij de eerste keer), en je vaste code als deler. */
@@ -157,6 +165,10 @@ class SettingsStore(private val context: Context) {
         val autoSpeed = stringPreferencesKey("auto_speed")
         val breakoutAlerts = booleanPreferencesKey("breakout_alerts")
         val lastBreakoutDay = stringPreferencesKey("last_breakout_day")
+        val banAlerts = booleanPreferencesKey("ban_alerts")
+        val reprintAlerts = booleanPreferencesKey("reprint_alerts")
+        val watchAllFormats = booleanPreferencesKey("watch_all_formats")
+        val reprintMin = androidx.datastore.preferences.core.doublePreferencesKey("reprint_min")
         val lastSeenVersion = stringPreferencesKey("last_seen_version")
         val shareName = stringPreferencesKey("share_name")
         val shareId = stringPreferencesKey("share_id")
@@ -253,6 +265,10 @@ class SettingsStore(private val context: Context) {
         autoSpeed = this[K.autoSpeed] ?: "normal",
         breakoutAlerts = this[K.breakoutAlerts] ?: true,
         lastBreakoutDay = this[K.lastBreakoutDay] ?: "",
+        banAlerts = this[K.banAlerts] ?: true,
+        reprintAlerts = this[K.reprintAlerts] ?: true,
+        watchAllFormats = this[K.watchAllFormats] ?: false,
+        reprintMin = this[K.reprintMin] ?: 5.0,
         lastSeenVersion = this[K.lastSeenVersion] ?: "",
         shareName = this[K.shareName] ?: "",
         shareId = this[K.shareId] ?: "",
@@ -331,6 +347,10 @@ class SettingsStore(private val context: Context) {
     suspend fun setAutoCapture(v: Boolean) = context.dataStore.edit { it[K.autoCapture] = v }
     suspend fun setAutoSpeed(v: String) = context.dataStore.edit { it[K.autoSpeed] = v }
     suspend fun setBreakoutAlerts(v: Boolean) = context.dataStore.edit { it[K.breakoutAlerts] = v }
+    suspend fun setBanAlerts(v: Boolean) = context.dataStore.edit { it[K.banAlerts] = v }
+    suspend fun setReprintAlerts(v: Boolean) = context.dataStore.edit { it[K.reprintAlerts] = v }
+    suspend fun setWatchAllFormats(v: Boolean) = context.dataStore.edit { it[K.watchAllFormats] = v }
+    suspend fun setReprintMin(v: Double) = context.dataStore.edit { it[K.reprintMin] = v }
     suspend fun setLastBreakoutDay(v: String) = context.dataStore.edit { it[K.lastBreakoutDay] = v }
     suspend fun setLastSeenVersion(v: String) = context.dataStore.edit { it[K.lastSeenVersion] = v }
     suspend fun addRecentSearch(q: String) = context.dataStore.edit { p ->

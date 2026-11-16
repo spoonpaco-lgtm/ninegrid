@@ -89,7 +89,7 @@ val LANGUAGES = listOf("", "DE", "FR", "IT", "ES", "PT", "JP", "KO", "RU", "CN",
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CardDetailScreen(vm: AppViewModel, printId: String, onBack: () -> Unit, onFriend: (String) -> Unit = {}, onBinder: (String, Int?, Int?) -> Unit = { _, _, _ -> }, onSwipe: (String) -> Unit = {}) {
+fun CardDetailScreen(vm: AppViewModel, printId: String, onBack: () -> Unit, onFriend: (String) -> Unit = {}, onBinder: (String, Int?, Int?) -> Unit = { _, _, _ -> }, onSwipe: (String) -> Unit = {}, onOpenPrint: (String) -> Unit = onSwipe) {
     val settings by vm.settings.collectAsState()
     val print by vm.repo.print(printId).collectAsState(initial = null)
     val copies by vm.repo.entriesForPrint(printId).collectAsState(initial = emptyList())
@@ -100,6 +100,8 @@ fun CardDetailScreen(vm: AppViewModel, printId: String, onBack: () -> Unit, onFr
     var moving by remember { mutableStateOf<Entry?>(null) }
     var deleting by remember { mutableStateOf<Entry?>(null) }
     var exiling by remember { mutableStateOf<Entry?>(null) }
+    var otherPrints by remember { mutableStateOf(false) }
+    var addingCopy by remember { mutableStateOf(false) }
     val extra = LocalNgExtra.current
 
     Scaffold(topBar = {
@@ -182,6 +184,10 @@ fun CardDetailScreen(vm: AppViewModel, printId: String, onBack: () -> Unit, onFr
                 Text(p.rarity.replaceFirstChar { it.uppercase() }, color = NgColors.rarity(p.rarity), fontWeight = FontWeight.Bold, fontSize = NgText.body)
                 if (p.gameChanger) SmallTag(stringResource(R.string.game_changer), MaterialTheme.colorScheme.primary)
             }
+            // Andere prints van deze kaart (punt 8e): overstappen en die aan collectie of verlanglijst toevoegen.
+            TextButton(onClick = { otherPrints = true }, contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 8.dp)) {
+                Text(stringResource(R.string.other_prints), fontSize = NgText.body)
+            }
             // Legaliteit klein, in twee vaste regels van drie.
             val legal = listOf("commander", "modern", "pioneer", "standard", "legacy", "pauper").map { f -> f to Formats.legalityOf(p.legalities, f) }
             if (legal.any { it.second != null }) {
@@ -195,7 +201,8 @@ fun CardDetailScreen(vm: AppViewModel, printId: String, onBack: () -> Unit, onFr
             }
             // Toevoegen of op de verlanglijst, gevuld in de accentkleur.
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 10.dp, bottom = 6.dp)) {
-                if (copies.isEmpty()) androidx.compose.material3.Button(onClick = { vm.addOneToCollection(p) }) { Icon(Icons.Filled.Add, null); Spacer(Modifier.width(4.dp)); Text(stringResource(R.string.add_to_collection)) }
+                // Altijd zichtbaar (punt 8j): afwerking, aantal en plek in één keer.
+                androidx.compose.material3.Button(onClick = { addingCopy = true }) { Icon(Icons.Filled.Add, null); Spacer(Modifier.width(4.dp)); Text(stringResource(R.string.add_copy)) }
                 androidx.compose.material3.Button(onClick = { vm.addToWishlist(p) }) { Text("♡ " + stringResource(R.string.wish_add_btn)) }
             }
 
@@ -276,7 +283,19 @@ fun CardDetailScreen(vm: AppViewModel, printId: String, onBack: () -> Unit, onFr
         }
     }
 
-    editing?.let { e -> EditEntryDialog(e, onDismiss = { editing = null }) { vm.updateEntry(it); editing = null } }
+    editing?.let { e ->
+        val pr = print
+        if (pr == null) EditEntryDialog(e, onDismiss = { editing = null }) { vm.updateEntry(it); editing = null }
+        // Daarna springt het kaartscherm naar de nieuwe print (punt 8i).
+        else EditCopyDialog(vm, e, pr, onDismiss = { editing = null }, onPrintChanged = { id -> onSwipe(id) })
+    }
+    if (otherPrints) print?.let { pr ->
+        PrintPickerDialog(vm, pr.name, pr.id, onDismiss = { otherPrints = false }, onPick = { o ->
+            otherPrints = false
+            if (o.print.id != pr.id) vm.openPrint(o.print) { id -> onOpenPrint(id) }
+        })
+    }
+    if (addingCopy) print?.let { pr -> AddCopyDialog(vm, pr, onDismiss = { addingCopy = false }) }
     makeCommander?.let { (dk, cp) -> ChangeCommanderDialog(vm, dk, start = PickedCommander(cp.entry, cp.print!!), onDismiss = { makeCommander = null }) }
     moving?.let { e -> MoveDialog(e, decks, vm.binders.collectAsState().value, onDismiss = { moving = null }) { q, d, s, b, pg, sl -> vm.moveEntry(e, q, d, s, b, pg, sl); moving = null } }
     exiling?.let { e -> nl.spoonpaco.ninegrid.ui.components.ExileSwirl { vm.deleteEntry(e); exiling = null } }

@@ -2,7 +2,7 @@
 
 *English: [FEATURES.md](FEATURES.md)*
 
-Huidige versie: **0.9.9.3 – Vivien**. Elke versie heeft de naam van een planeswalker.
+Huidige versie: **0.9.10.1 – Dovin**. Elke versie heeft de naam van een planeswalker.
 
 ## Wat NineGrid anders maakt
 
@@ -38,10 +38,11 @@ Huidige versie: **0.9.9.3 – Vivien**. Elke versie heeft de naam van een planes
 - Schakelaar **Mijn collectie | Alle kaarten | Verlanglijst**.
 - Zoeken, **filteren** (rarity, kleur, type, foil, Game Changers, binder, ook in decks, regeltekst) en **sorteren** (set, naam, prijs, per binder); filters worden onthouden.
 - **Alle kaarten**: zoeken in alle Magic-kaarten (offline database of Scryfall), met een label wat je al hebt en het filter "Alleen wat ik niet heb".
-- **Verlanglijst**: willekeurige of precieze print, alleen foil, aantal; vanzelf afgestreept bij scannen; tik = kaartscherm, ✎ = bewerken, Gekocht in één tik; een lijst plakken.
+- **Verlanglijst**: willekeurige of precieze print (te kiezen uit de printlijst), alleen foil, aantal; vanzelf afgestreept bij scannen; tik = kaartscherm, ✎ = bewerken, Gekocht in één tik; een lijst plakken.
 - **Prijsalarm** op de verlanglijst: doel staat klaar op −10%, één melding per dag, bij elke print de goedkoopste.
 - **Bladweergave** per binder: 3×3 dat altijd op één scherm past, met foil, stapels en lege vakken; alle bladen in één scherm; lang drukken om te verplaatsen.
 - **Kaartscherm**: de kaart groot (volledig scherm met een tik, foil-glans bij kantelen), normale en foilprijs, legaliteit per format, wie van je vrienden hem heeft, links naar Scryfall en Cardmarket / TCGplayer.
+- **Print kiezen**: Andere prints › toont alle prints van een kaart met plaatje, jaar, prijs per afwerking, goedkoopst en ✓ bij de huidige (sorteren op nieuwste of goedkoopste). De print van een exemplaar wijzigen of een deel van een stapel splitsen (bijvoorbeeld 1 van 3 foil), met de plek erbij; **+ Exemplaar toevoegen** met afwerking, aantal en plek in één keer.
 - **Plekken**: map, blad en vak per kaart.
 - **Sets**: compleetheid per set en per rarity, stempel Compleet, ontbrekende kaarten, varianten; **Completionist** (vinkje met ⓘ) telt alleen kaarten in binders, niet in decks. Setscherm met kopkaart, schakelaar Ontbreekt | Heb ik, en per kaart ♡ en + of waar hij ligt.
 
@@ -54,6 +55,7 @@ Huidige versie: **0.9.9.3 – Vivien**. Elke versie heeft de naam van een planes
 - **Combo's** via Commander Spellbook: combo's in het deck, invloed op de bracket, bijna-combo's met een actie per status (In deck, Ruilmatch, Op verlanglijst). Laat zien als het deck sinds de laatste zoekactie is veranderd.
 - **Suggesties** uit je eigen collectie: rollen als balkjes met doelen per decktype (automatisch, of zelf kiezen), zelf kaarten bij een rol aanvinken, wat erbij, betere lands, wat eruit, en **Bij vrienden**. Elke ruil bekijk je eerst. De blokken klappen in en uit en leggen uit wat ze zijn.
 - Stempel **Legaal** of **Banned**.
+- Naar een deck scannen of plakken: kaarten die **banned** zijn of **buiten de kleuren** van de commander vallen, staan meteen oranje op het controlescherm.
 - Een deck vullen vanuit je collectie; kaarten verhuizen, niets wordt dubbel geteld.
 
 ## Overzicht en prijzen
@@ -62,6 +64,7 @@ Huidige versie: **0.9.9.3 – Vivien**. Elke versie heeft de naam van een planes
 - Bij de grafiek een schakelaar **Lijn | Taart**: de verdeling van nu per set, rarity of deck. Op het kaartscherm een inklapbaar blok **Prijsverloop** per kaart.
 - **Winner of the Week**: de kaart die je het meeste opleverde.
 - **Breakout**-melding: een kaart van jou stijgt op één dag minstens €3 en 25%.
+- Melding bij **ban of reprint**: een kaart van jou wordt gebanned, restricted of weer toegestaan in een format van je decks, of komt opnieuw uit in een nieuwe set (ook tijdens de spoilers), met wat je hebt en wat het waard is.
 - Prijsbewegingen als loyalty-schildjes (▲ +6 / ▼ −3).
 - **Boosters**: per booster betaald, eruit, winst of verlies (ook zonder bulk) en de hit; boxen; per set het gemiddelde, waarde toen en nu.
 

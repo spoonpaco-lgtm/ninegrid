@@ -422,6 +422,29 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit) {
                         Text(stringResource(R.string.breakout_alerts_explain), fontSize = NgText.body, modifier = Modifier.weight(1f))
                         Switch(checked = settings.breakoutAlerts, onCheckedChange = { vm.setBreakoutAlerts(it) })
                     }
+
+                    // Bans en reprints (punt 40): na de dagelijkse prijsupdate, bij de andere meldingen.
+                    Spacer(Modifier.height(16.dp))
+                    Text(stringResource(R.string.watch_title), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(stringResource(R.string.watch_bans_explain), fontSize = NgText.body, modifier = Modifier.weight(1f))
+                        Switch(checked = settings.banAlerts, onCheckedChange = { vm.setBanAlerts(it) })
+                    }
+                    if (settings.banAlerts) Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(stringResource(R.string.watch_all_formats), fontSize = NgText.body, modifier = Modifier.weight(1f))
+                        Switch(checked = settings.watchAllFormats, onCheckedChange = { vm.setWatchAllFormats(it) })
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(stringResource(R.string.watch_reprints_explain), fontSize = NgText.body, modifier = Modifier.weight(1f))
+                        Switch(checked = settings.reprintAlerts, onCheckedChange = { vm.setReprintAlerts(it) })
+                    }
+                    if (settings.reprintAlerts) {
+                        var minText by remember { mutableStateOf(String.format(java.util.Locale.getDefault(), "%.2f", settings.reprintMin)) }
+                        OutlinedTextField(minText, { v -> minText = v.filter { it.isDigit() || it == ',' || it == '.' }.take(6); vm.parseMoney(minText)?.let { vm.setReprintMin(it) } },
+                            singleLine = true, modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.watch_reprint_min, settings.currency)) },
+                            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal))
+                    }
+                    Text(stringResource(R.string.watch_note), fontSize = NgText.caption, color = LocalNgExtra.current.subtle)
                 }
                 SettingsGroup.AI -> {
                     // AI-hulp: standaard uit; eigen sleutel, alleen op deze telefoon.
@@ -610,7 +633,8 @@ private fun settingsSummary(g: SettingsGroup, vm: AppViewModel, st: nl.spoonpaco
                 else -> if (st.offlineDbUpdated > 0) nl.spoonpaco.ninegrid.domain.Dates.date(st.offlineDbUpdated, st.dateStyle) else on
             }
         SettingsGroup.COLLECTION -> stringResource(R.string.completionist) + ": " + (if (st.completionist) on else off) + " · " +
-            stringResource(R.string.breakout_alerts) + ": " + (if (st.breakoutAlerts) on else off)
+            stringResource(R.string.breakout_alerts) + ": " + (if (st.breakoutAlerts) on else off) + " · " +
+            stringResource(R.string.watch_short) + ": " + (if (st.banAlerts || st.reprintAlerts) on else off)
         SettingsGroup.AI -> if (!st.aiEnabled) off else {
             val used = if (st.aiCountDay == java.time.LocalDate.now().toString()) st.aiCount else 0
             nl.spoonpaco.ninegrid.data.ai.AiProviders.byId(st.aiProvider).label + " · " + stringResource(R.string.ai_used_today, used, st.aiDailyLimit)
