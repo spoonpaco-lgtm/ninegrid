@@ -2,7 +2,7 @@
 
 *Nederlands: [FEATURES.nl.md](FEATURES.nl.md)*
 
-Current version: **0.9.9.2 – Vivien**. Every version is named after a planeswalker.
+Current version: **0.9.10 – Dovin**. Every version is named after a planeswalker.
 
 ## What makes NineGrid different
 
@@ -38,10 +38,11 @@ Current version: **0.9.9.2 – Vivien**. Every version is named after a planeswa
 - Switch **My collection | All cards | Wishlist**.
 - Search, **filter** (rarity, colour, type, foil, Game Changers, binder, also in decks, rules text) and **sort** (set, name, price, by binder); filters are remembered.
 - **All cards**: search every Magic card (offline database or Scryfall), with a label for what you already have and the filter "Only what I don't have".
-- **Wishlist**: any or an exact print, foil only, quantity; ticked off when you scan; tap = card screen, ✎ = edit, Bought in one tap; paste a list.
+- **Wishlist**: any or an exact print (chosen from the list of prints), foil only, quantity; ticked off when you scan; tap = card screen, ✎ = edit, Bought in one tap; paste a list.
 - **Price alert** on the wishlist: target ready at −10%, one notification a day, the cheapest print when any print will do.
 - **Page view** per binder: 3×3 that always fits on one screen, with foil, stacks and empty slots; all pages on one screen; long press to move.
 - **Card screen**: the card large (full screen with one tap, foil shine when tilting), normal and foil price, legality per format, which friends have it, links to Scryfall and Cardmarket / TCGplayer.
+- **Choose a print**: Other prints › shows all prints of a card with image, year, price per finish, cheapest and ✓ at the current one (sort by newest or cheapest). Change the print of a copy or split part of a stack (for example 1 of 3 foil), keeping its location; **+ Add copy** with finish, quantity and location in one go.
 - **Locations**: binder, page and slot per card.
 - **Sets screen**: completeness per set and per rarity, a Complete stamp, missing cards, variants; **Completionist** (checkbox with ⓘ) counts only cards in binders, not in decks. Set screen with a header card, a Missing | I have switch, and per card ♡ and + or where it is.
 
@@ -54,6 +55,7 @@ Current version: **0.9.9.2 – Vivien**. Every version is named after a planeswa
 - **Combos** via Commander Spellbook: combos in the deck, influence on the bracket, almost-combos with an action per status (In deck, Trade match, On wishlist). Shows when the deck changed since the last search.
 - **Suggestions** from your own collection: roles as bars with targets per deck type (automatic, or your choice), tick cards for a role yourself, what to add, better lands, what to cut, and **At friends**. Review every swap before it happens. The blocks fold and unfold and explain what they are.
 - **Legal** or **Banned** stamp.
+- Scanning or pasting into a deck: cards that are **banned** or **outside the colours** of the commander are orange on the review screen right away.
 - Fill a deck from your collection; cards move, nothing is counted twice.
 
 ## Overview and prices
@@ -62,6 +64,7 @@ Current version: **0.9.9.2 – Vivien**. Every version is named after a planeswa
 - A **Line | Pie** switch at the chart: how things are divided right now by set, rarity or deck. On the card screen a collapsible **Price history** block per card.
 - **Winner of the Week**: the card that gained you the most.
 - **Breakout** alert: a card you own rises at least €3 and 25% in a day.
+- Alert on a **ban or reprint**: a card you own is banned, restricted or allowed again in a format of your decks, or comes out again in a new set (already during spoilers), with what you have and what it is worth.
 - Price movements as loyalty shields (▲ +6 / ▼ −3).
 - **Boosters**: per booster paid, out, profit or loss (also without bulk) and the hit; boxes; average per set, value then and now.
 
