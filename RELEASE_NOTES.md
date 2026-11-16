@@ -1,3 +1,8 @@
+NineGrid 0.9.9.2 – Vivien
+
+Scanner, een kaart tegelijk
+- Onderin staat van de laatste drie kaarten nu een fotootje van de gevonden kaart in plaats van de naam, met een gekleurde rand: groen is zeker, oranje is controleren, blauw met ★ is foil checken. Tik op het fotootje voor een extra exemplaar (+1), het kruisje haalt de kaart weg. Staan plaatjes uit in de instellingen, dan blijft het chipje met de naam.
+
 NineGrid 0.9.9.1 – Vivien
 
 Overzicht → grafiek: Lijnen kiezen

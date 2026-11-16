@@ -82,6 +82,9 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.border
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
@@ -913,13 +916,37 @@ private fun ScanSummaryBar(
                         else -> Color.White.copy(alpha = 0.5f)
                     }
                     val shown = p.print?.let { it.name + " " + it.setCode.uppercase() + " " + it.collectorNumber } ?: (p.query.name ?: "?")
-                    androidx.compose.material3.InputChip(
-                        selected = false, onClick = { vm.updatePending(p.copy(quantity = p.quantity + 1)) },
-                        label = { Text(shown + if (p.quantity > 1) " ×${p.quantity}" else "", fontSize = 11.sp, color = Color.White, maxLines = 1) },
-                        leadingIcon = { Text(if (p.foilCheck || p.finish != nl.spoonpaco.ninegrid.data.db.Finish.NONFOIL) "★" else "●", color = mark, fontSize = 11.sp) },
-                        trailingIcon = { Icon(Icons.Filled.Close, stringResource(R.string.undo), tint = Color.White, modifier = Modifier.size(14.dp).clickable { vm.removePending(p.key) }) },
-                        modifier = Modifier.heightIn(min = 26.dp),
-                    )
+                    val thumbs = vm.settings.collectAsState().value.imageMode != nl.spoonpaco.ninegrid.data.ImageMode.OFF
+                    if (thumbs) {
+                        // Een fotootje van de gevonden kaart, met de kleur van de zekerheid als rand: groen zeker, oranje controleren, blauw foil checken.
+                        // Tik = nog een exemplaar erbij (+1), kruisje = weghalen. Nog niet gevonden: een leeg kaartje met een grijze rand.
+                        Box(Modifier.padding(top = 4.dp, end = 4.dp).semantics { contentDescription = shown }) {
+                            Box(
+                                Modifier.clip(RoundedCornerShape(5.dp)).border(2.5.dp, mark, RoundedCornerShape(5.dp))
+                                    .clickable { vm.updatePending(p.copy(quantity = p.quantity + 1)) },
+                            ) {
+                                if (p.print != null) nl.spoonpaco.ninegrid.ui.components.CardThumb(p.print, vm.images, vm.settings.collectAsState().value, width = 40, foil = p.finish != nl.spoonpaco.ninegrid.data.db.Finish.NONFOIL)
+                                else Box(Modifier.size(width = 40.dp, height = 56.dp).background(Color.White.copy(alpha = 0.12f)))
+                            }
+                            if (p.quantity > 1) Text("×${p.quantity}", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold,
+                                modifier = Modifier.align(Alignment.BottomEnd).background(Color.Black.copy(alpha = 0.7f), RoundedCornerShape(4.dp)).padding(horizontal = 3.dp))
+                            if (p.foilCheck || p.finish != nl.spoonpaco.ninegrid.data.db.Finish.NONFOIL) Text("★", color = mark, fontSize = 12.sp, fontWeight = FontWeight.Bold,
+                                modifier = Modifier.align(Alignment.BottomStart).padding(start = 3.dp))
+                            Box(
+                                Modifier.align(Alignment.TopEnd).offset(x = 4.dp, y = (-4).dp).size(18.dp).clip(CircleShape).background(Color.Black.copy(alpha = 0.8f))
+                                    .clickable { vm.removePending(p.key) },
+                                contentAlignment = Alignment.Center,
+                            ) { Icon(Icons.Filled.Close, stringResource(R.string.undo), tint = Color.White, modifier = Modifier.size(12.dp)) }
+                        }
+                    } else {
+                        androidx.compose.material3.InputChip(
+                            selected = false, onClick = { vm.updatePending(p.copy(quantity = p.quantity + 1)) },
+                            label = { Text(shown + if (p.quantity > 1) " ×${p.quantity}" else "", fontSize = 11.sp, color = Color.White, maxLines = 1) },
+                            leadingIcon = { Text(if (p.foilCheck || p.finish != nl.spoonpaco.ninegrid.data.db.Finish.NONFOIL) "★" else "●", color = mark, fontSize = 11.sp) },
+                            trailingIcon = { Icon(Icons.Filled.Close, stringResource(R.string.undo), tint = Color.White, modifier = Modifier.size(14.dp).clickable { vm.removePending(p.key) }) },
+                            modifier = Modifier.heightIn(min = 26.dp),
+                        )
+                    }
                 }
             }
         }

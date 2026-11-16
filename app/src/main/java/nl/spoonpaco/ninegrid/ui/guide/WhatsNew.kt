@@ -28,17 +28,11 @@ object WhatsNew {
     fun items(dutch: Boolean): List<Item> = if (dutch) NL else EN
 
     private val NL = listOf(
-        Item("Overzicht: Aantal kaarten is nu een vakje in Lijnen kiezen. De lijst heeft groepen (gekozen, totaal, decks, sets), alleen sets waar je kaarten van hebt, de duurste eerst en met de naam erbij.", "overview"),
-        Item("Overzicht: een schakelaar Lijn | Taart bij de grafiek. De taart toont de verdeling van nu per set, rarity of deck, naar waarde of aantal kaarten.", "overview"),
-        Item("Kaartscherm: een inklapbaar blok Prijsverloop met het verloop van de prijs van die kaart en, dichtgeklapt, de verandering van de afgelopen week.", "collection"),
-        Item("Fix: tikken op een ontbrekende kaart bij Combo's opende een leeg venster.", "decks"),
+        Item("Scannen, één kaart: onderin staat van de laatste drie kaarten nu een fotootje van de gevonden kaart met een gekleurde rand (groen zeker, oranje controleren, blauw met ★ foil checken). Tik voor een exemplaar erbij, het kruisje haalt de kaart weg.", "add"),
     )
 
     private val EN = listOf(
-        Item("Overview: Number of cards is now a box in Choose lines. The list has groups (chosen, totals, decks, sets), only sets you have cards of, most valuable first and with the name added.", "overview"),
-        Item("Overview: a Line | Pie switch at the chart. The pie shows how things are divided right now by set, rarity or deck, by value or number of cards.", "overview"),
-        Item("Card screen: a collapsible Price history block with the price of that card over time and, collapsed, the change over the past week.", "collection"),
-        Item("Fix: tapping a missing card in Combos opened an empty window.", "decks"),
+        Item("Scanning one card: the last three cards at the bottom are now a small photo of the card found, with a coloured border (green sure, orange check, blue with ★ check foil). Tap for one more copy, the cross removes the card.", "add"),
     )
 }
 
