@@ -30,14 +30,17 @@ object TestsetScore {
 
     data class Verdict(val ok: Boolean, val nameOk: Boolean, val setOk: Boolean, val numberOk: Boolean)
 
-    fun judge(e: Expect, r: SlotRead?): Verdict {
-        if (e.empty) {
-            val ok = r == null || (r.name == null && r.collectorNumber == null)
-            return Verdict(ok, ok, ok, ok)
-        }
-        val nameOk = r?.name != null && e.name != null && similarity(r.name, e.name) >= 0.8
-        val setOk = e.set == null || r?.setCode.equals(e.set, true)
-        val numberOk = e.number == null || r?.collectorNumber?.trimStart('0') == e.number.trimStart('0')
+    fun judge(e: Expect, r: SlotRead?): Verdict =
+        judge(e, r?.name, r?.setCode, r?.collectorNumber, r == null || (r.name == null && r.collectorNumber == null))
+
+    /** Naam, set en nummer zoals gelezen (of na het opzoeken); [blank] = er is niets gelezen of gevonden. */
+    fun judge(e: Expect, name: String?, set: String?, number: String?, blank: Boolean): Verdict {
+        if (e.empty) return Verdict(blank, blank, blank, blank)
+        // Een splitkaart heet "A // B": de eerste helft of de hele naam mag gelijken.
+        val nameOk = name != null && e.name != null &&
+            (similarity(name, e.name) >= 0.8 || name.split("//").any { similarity(it, e.name) >= 0.8 } || e.name.split("//").any { similarity(name, it) >= 0.8 })
+        val setOk = e.set == null || set.equals(e.set, true)
+        val numberOk = e.number == null || number?.trimStart('0') == e.number.trimStart('0')
         return Verdict(nameOk && setOk && numberOk, nameOk, setOk, numberOk)
     }
 

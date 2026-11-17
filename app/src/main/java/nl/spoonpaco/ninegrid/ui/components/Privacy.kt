@@ -47,7 +47,23 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 /** Privacymodus: [hidden] = bedragen nu verborgen (aan, en niet even aan het kijken). */
-data class PrivacyState(val hidden: Boolean = false, val style: String = PrivacyStyle.COMPLEATED)
+data class PrivacyState(
+    val hidden: Boolean = false, val style: String = PrivacyStyle.COMPLEATED,
+    val scope: String = "all", val percent: Boolean = false, val counts: Boolean = false, val above: Double = 0.0,
+) {
+    /** Verbergt de privacymodus nu dit soort bedrag? Een kaartprijs op of onder de grens ([above]) blijft zichtbaar. */
+    fun hides(kind: PrivacyKind, value: Double? = null): Boolean {
+        if (!hidden) return false
+        val byScope = when (scope) { "totals" -> kind == PrivacyKind.TOTAL; "cards" -> kind == PrivacyKind.CARD; else -> true }
+        if (!byScope) return false
+        return !(kind == PrivacyKind.CARD && above > 0 && value != null && value <= above)
+    }
+    /** Aantallen kaarten verbergen (alleen bij de keuze Ook aantallen verbergen). */
+    val hidesCounts get() = hidden && counts
+}
+
+/** Een kaartprijs (per kaart, in lijsten) of een totaal (waarde van collectie, set, deck, binder, boosters). */
+enum class PrivacyKind { CARD, TOTAL }
 
 object PrivacyStyle {
     const val COMPLEATED = "compleated"
@@ -68,21 +84,28 @@ fun PrivacyProvider(vm: AppViewModel, content: @Composable () -> Unit) {
         val wait = vm.peekUntil - System.currentTimeMillis()
         if (wait > 0) { kotlinx.coroutines.delay(wait); vm.endPeek() }
     }
-    CompositionLocalProvider(LocalPrivacy provides PrivacyState(settings.privacy && !peeking, settings.privacyStyle), content = content)
+    CompositionLocalProvider(LocalPrivacy provides PrivacyState(settings.privacy && !peeking, settings.privacyStyle, settings.privacyScope, settings.privacyPercent, settings.privacyCounts, settings.privacyAbove), content = content)
 }
 
 /** Een bedrag voor op het scherm: verborgen als € •••• zolang de privacymodus aan staat. */
 @Composable
-fun money(v: Double, currency: String): String =
-    if (LocalPrivacy.current.hidden) (if (currency == "USD") "$ ••••" else "€ ••••") else Money.format(v, currency)
+fun money(v: Double, currency: String, kind: PrivacyKind = PrivacyKind.CARD): String =
+    if (LocalPrivacy.current.hides(kind, v)) (if (currency == "USD") "$ ••••" else "€ ••••") else Money.format(v, currency)
+
+/** "12 kaarten", of "••• kaarten" als aantallen verborgen zijn. */
+@Composable
+fun cardsText(n: Int): String =
+    if (LocalPrivacy.current.hidesCounts) androidx.compose.ui.res.pluralStringResource(R.plurals.n_cards, n, n).replace(n.toString(), "•••")
+    else androidx.compose.ui.res.pluralStringResource(R.plurals.n_cards, n, n)
 
 /**
  * Over een bedrag: in de gekozen stijl een vlek (compleated), een zegel of rook in plaats van de tekst.
  * Bij stippen blijft de tekst (€ ••••) gewoon staan.
  */
-fun Modifier.privacyMask(): Modifier = composed {
+fun Modifier.privacyMask(kind: PrivacyKind = PrivacyKind.CARD): Modifier = composed {
     val p = LocalPrivacy.current
-    if (!p.hidden || p.style == PrivacyStyle.DOTS) return@composed this
+    // Met een grens (alleen dure kaarten) zet money() zelf de stippen; een vlek over een zichtbare prijs zou fout zijn.
+    if (!p.hides(kind) || p.style == PrivacyStyle.DOTS || (kind == PrivacyKind.CARD && p.above > 0)) return@composed this
     val effects = LocalEffects.current
     val wobble = if (effects && p.style != PrivacyStyle.SEAL) {
         rememberInfiniteTransition(label = "mask").animateFloat(0f, 1f, infiniteRepeatable(tween(4000, easing = LinearEasing), RepeatMode.Reverse), label = "w").value

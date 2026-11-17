@@ -1116,4 +1116,18 @@ class ParserTest {
         assertFalse(nl.spoonpaco.ninegrid.domain.TestsetScore.judge(exp[1]!!, good.copy(collectorNumber = "24")).ok)
         assertTrue(nl.spoonpaco.ninegrid.domain.TestsetScore.judge(exp[3]!!, null).ok)
     }
+
+    @org.junit.Test
+    fun privacyRules() {
+        val P = nl.spoonpaco.ninegrid.ui.components.PrivacyState
+        val C = nl.spoonpaco.ninegrid.ui.components.PrivacyKind.CARD
+        val T = nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL
+        assertFalse(P(hidden = false).hides(C, 5.0))
+        assertTrue(P(hidden = true).hides(C, 5.0) && P(hidden = true).hides(T, 5.0))
+        assertTrue(P(hidden = true, scope = "totals").hides(T) && !P(hidden = true, scope = "totals").hides(C, 5.0))
+        assertTrue(P(hidden = true, scope = "cards").hides(C, 5.0) && !P(hidden = true, scope = "cards").hides(T))
+        val above = P(hidden = true, above = 10.0)
+        assertFalse(above.hides(C, 9.99)); assertTrue(above.hides(C, 10.01)); assertTrue(above.hides(T, 1.0))
+        assertTrue(P(hidden = true, counts = true).hidesCounts && !P(hidden = true).hidesCounts && !P(hidden = false, counts = true).hidesCounts)
+    }
 }

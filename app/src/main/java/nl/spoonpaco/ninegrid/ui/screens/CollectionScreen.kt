@@ -177,11 +177,11 @@ fun CollectionScreen(
                         when (mode) {
                             "all" -> stringResource(R.string.all_cards_sub)
                             "wish" -> listOfNotNull(
-                                stringResource(R.string.wish_total_from, vm.wishlistCount(), nl.spoonpaco.ninegrid.ui.components.money(wishValue, settings.currency)),
+                                stringResource(R.string.wish_total_from, vm.wishlistCount(), nl.spoonpaco.ninegrid.ui.components.money(wishValue, settings.currency, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL)),
                                 wishes.count { it.item.alarmPrice != null }.takeIf { it > 0 }?.let { "🔔 " + pluralStringResource(R.plurals.wish_n_alarms, it, it) },
                                 wishes.count { vm.friendsHaving(it.item.name).isNotEmpty() }.takeIf { it > 0 }?.let { stringResource(R.string.wish_n_at_friends, it) + " ›" },
                             ).joinToString(" · ")
-                            else -> pluralStringResource(R.plurals.n_cards, count, count) + " · " + nl.spoonpaco.ninegrid.ui.components.money(value, settings.currency)
+                            else -> nl.spoonpaco.ninegrid.ui.components.cardsText(count) + " · " + nl.spoonpaco.ninegrid.ui.components.money(value, settings.currency, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL)
                         },
                         style = MaterialTheme.typography.bodySmall, color = LocalNgExtra.current.subtle,
                     )
@@ -253,7 +253,7 @@ fun CollectionScreen(
                                             g.binder.isEmpty() -> stringResource(R.string.no_binder)
                                             else -> g.binder
                                         }
-                                        val detail = pluralStringResource(R.plurals.n_cards, g.count, g.count) + " · " + nl.spoonpaco.ninegrid.ui.components.money(g.value, settings.currency)
+                                        val detail = nl.spoonpaco.ninegrid.ui.components.cardsText(g.count) + " · " + nl.spoonpaco.ninegrid.ui.components.money(g.value, settings.currency, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL)
                                         if (g.binder != null && g.binder.isNotEmpty() && !g.binder.startsWith("\u0000")) {
                                             // Tik op een binder: de bladweergave.
                                             Row(Modifier.fillMaxWidth().clickable { onBinder(g.binder) }) { SectionHeader("$title  ▦ ›", detail) }

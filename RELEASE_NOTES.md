@@ -24,6 +24,14 @@ Kleine verbeteringen
 - Overzicht: de keuze Lijn of Taart en de splitsing (set, rarity, deck) blijven onthouden na het sluiten van de app.
 - Scannen of plakken naar een deck: bovenin het controlescherm Alle kaarten naar: Deck of Sideboard, in één tik. Commander-kaarten blijven staan; bij een Commander-deck is de knop er niet.
 
+Privacymodus: meer controle
+- Wat verbergen: alles, alleen totalen of alleen kaartprijzen.
+- Grafiek in procenten, aantallen kaarten ook verbergen, meldingen altijd zonder bedragen, en alleen kaartprijzen boven een zelf gekozen bedrag verbergen.
+
+Grafiek en testset
+- Het venster bij tikken op de grafiek toont de lijnen op volgorde van waarde op die dag.
+- Testset draaien gebruikt nu de hele scanroute, zodat de meting klopt met de app.
+
 Meldingen
 - Toestemming voor meldingen wordt gevraagd zodra je prijsstijging-, ban- of reprintmeldingen aanzet (Android 13 en hoger).
 

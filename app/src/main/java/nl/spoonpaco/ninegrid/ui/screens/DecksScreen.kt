@@ -160,7 +160,7 @@ fun DecksScreen(vm: AppViewModel, onDeck: (Long) -> Unit, onNewDeck: () -> Unit,
                         item(key = "h_$f") {
                             Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 4.dp)) {
                                 Text(formatLabel(f), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, modifier = Modifier.weight(1f))
-                                Text(pluralStringResource(R.plurals.n_decks, l.size, l.size) + " · " + nl.spoonpaco.ninegrid.ui.components.money(l.sumOf { it.value }, settings.currency), fontSize = NgText.body, color = extra.subtle)
+                                Text(pluralStringResource(R.plurals.n_decks, l.size, l.size) + " · " + nl.spoonpaco.ninegrid.ui.components.money(l.sumOf { it.value }, settings.currency, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL), fontSize = NgText.body, color = extra.subtle)
                             }
                         }
                         items(l, key = { it.d.id }) { r -> DeckRowCard(r.d, r.count, r.value, r.check, settings.currency) { onDeck(r.d.id) } }
@@ -186,7 +186,7 @@ private fun DeckRowCard(d: nl.spoonpaco.ninegrid.data.db.Deck, count: Int, value
             Column(Modifier.weight(1f)) {
                 Text(d.name, fontWeight = FontWeight.Bold)
                 Text(
-                    listOfNotNull(formatLabel(d.format), pluralStringResource(R.plurals.n_cards, count, count), check.bracketHint?.let { stringResource(R.string.bracket_short, it) }).joinToString(" · "),
+                    listOfNotNull(formatLabel(d.format), nl.spoonpaco.ninegrid.ui.components.cardsText(count), check.bracketHint?.let { stringResource(R.string.bracket_short, it) }).joinToString(" · "),
                     fontSize = NgText.body, color = extra.subtle,
                 )
             }
@@ -194,7 +194,7 @@ private fun DeckRowCard(d: nl.spoonpaco.ninegrid.data.db.Deck, count: Int, value
             Spacer(Modifier.width(8.dp))
             ManaPips(check.colorIdentity, size = 16)
             Spacer(Modifier.width(10.dp))
-            Text(nl.spoonpaco.ninegrid.ui.components.money(value, currency), color = extra.price, fontWeight = FontWeight.Bold, modifier = Modifier.then(nl.spoonpaco.ninegrid.ui.components.privacyMask()))
+            Text(nl.spoonpaco.ninegrid.ui.components.money(value, currency, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL), color = extra.price, fontWeight = FontWeight.Bold, modifier = Modifier.then(nl.spoonpaco.ninegrid.ui.components.privacyMask(nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL)))
         }
     }
 }
@@ -335,8 +335,8 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
                     }
                     val bits = listOfNotNull(
                         formatLabel(d.format),
-                        pluralStringResource(R.plurals.n_cards, cardCount, cardCount),
-                        nl.spoonpaco.ninegrid.ui.components.money(totalValue, settings.currency),
+                        nl.spoonpaco.ninegrid.ui.components.cardsText(cardCount),
+                        nl.spoonpaco.ninegrid.ui.components.money(totalValue, settings.currency, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL),
                         if (d.format == DeckFormat.COMMANDER) stringResource(R.string.bracket_short, check.bracketHint ?: "?") else null,
                         if (d.format == DeckFormat.CASUAL) null else if (check.issues.isEmpty()) "✓ " + stringResource(R.string.legal) else "⚠ " + pluralStringResource(R.plurals.n_issues, check.issues.size, check.issues.size),
                     )
@@ -360,7 +360,7 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
                                 val label = if (s == Section.COMMANDER && part.size == 1) part.first().print?.name ?: sectionLabel(s) else sectionLabel(s)
                                 val n = part.filter { !it.entry.proxy }.sumOf { it.entry.quantity }
                                 Text(label, modifier = Modifier.weight(1f), color = extra.subtle, maxLines = 1)
-                                Text(pluralStringResource(R.plurals.n_cards, n, n) + " · " + nl.spoonpaco.ninegrid.ui.components.money(part.sumOf { Money.total(it.entry, it.print, settings.currency) }, settings.currency), color = extra.subtle)
+                                Text(nl.spoonpaco.ninegrid.ui.components.cardsText(n) + " · " + nl.spoonpaco.ninegrid.ui.components.money(part.sumOf { Money.total(it.entry, it.print, settings.currency) }, settings.currency, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL), color = extra.subtle)
                             }
                         }
                         if (d.format == DeckFormat.COMMANDER) {
@@ -470,7 +470,7 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Text((if (closed) "▸ " else "▾ ") + deckGroupName(g), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, modifier = Modifier.weight(1f))
-                            Text("$n · " + nl.spoonpaco.ninegrid.ui.components.money(part.sumOf { Money.total(it.entry, it.print, settings.currency) }, settings.currency), fontSize = NgText.body, color = extra.subtle)
+                            Text("$n · " + nl.spoonpaco.ninegrid.ui.components.money(part.sumOf { Money.total(it.entry, it.print, settings.currency) }, settings.currency, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL), fontSize = NgText.body, color = extra.subtle)
                         }
                     }
                     if (!closed) items(sorted(part), key = { it.entry.id }) { e ->

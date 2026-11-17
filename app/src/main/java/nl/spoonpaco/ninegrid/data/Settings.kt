@@ -112,6 +112,13 @@ data class AppSettings(
     /** Privacymodus: bedragen verborgen (behalve de ruilmatch), en in welke stijl. */
     val privacy: Boolean = false,
     val privacyStyle: String = "compleated",
+    /** Wat de privacymodus verbergt: "all", "totals" (alleen totalen) of "cards" (alleen kaartprijzen). */
+    val privacyScope: String = "all",
+    val privacyPercent: Boolean = false,
+    val privacyCounts: Boolean = false,
+    val privacyNotify: Boolean = false,
+    /** Kaartprijzen boven dit bedrag verbergen (in de gekozen valuta); 0 = alle kaartprijzen. */
+    val privacyAbove: Double = 0.0,
     /** Boosters: kaarten onder dit bedrag tellen als bulk; laatst betaalde prijs en type. */
     val bulkThreshold: Double = 0.25,
     val lastBoosterPrice: Double = 0.0,
@@ -197,6 +204,11 @@ class SettingsStore(private val context: Context) {
         val accent = stringPreferencesKey("accent")
         val privacy = booleanPreferencesKey("privacy")
         val privacyStyle = stringPreferencesKey("privacy_style")
+        val privacyScope = stringPreferencesKey("privacy_scope")
+        val privacyPercent = booleanPreferencesKey("privacy_percent")
+        val privacyCounts = booleanPreferencesKey("privacy_counts")
+        val privacyNotify = booleanPreferencesKey("privacy_notify")
+        val privacyAbove = androidx.datastore.preferences.core.doublePreferencesKey("privacy_above")
         val bulkThreshold = androidx.datastore.preferences.core.doublePreferencesKey("bulk_threshold")
         val lastBoosterPrice = androidx.datastore.preferences.core.doublePreferencesKey("last_booster_price")
         val lastBoosterType = stringPreferencesKey("last_booster_type")
@@ -300,6 +312,11 @@ class SettingsStore(private val context: Context) {
         accent = this[K.accent] ?: "",
         privacy = this[K.privacy] ?: false,
         privacyStyle = this[K.privacyStyle] ?: "compleated",
+        privacyScope = this[K.privacyScope] ?: "all",
+        privacyPercent = this[K.privacyPercent] ?: false,
+        privacyCounts = this[K.privacyCounts] ?: false,
+        privacyNotify = this[K.privacyNotify] ?: false,
+        privacyAbove = this[K.privacyAbove] ?: 0.0,
         bulkThreshold = this[K.bulkThreshold] ?: 0.25,
         lastBoosterPrice = this[K.lastBoosterPrice] ?: 0.0,
         lastBoosterType = this[K.lastBoosterType] ?: "",
@@ -408,6 +425,11 @@ class SettingsStore(private val context: Context) {
     suspend fun setAccent(v: String) = context.dataStore.edit { it[K.accent] = v }
     suspend fun setPrivacy(v: Boolean) = context.dataStore.edit { it[K.privacy] = v }
     suspend fun setPrivacyStyle(v: String) = context.dataStore.edit { it[K.privacyStyle] = v }
+    suspend fun setPrivacyScope(v: String) = context.dataStore.edit { it[K.privacyScope] = v }
+    suspend fun setPrivacyPercent(v: Boolean) = context.dataStore.edit { it[K.privacyPercent] = v }
+    suspend fun setPrivacyCounts(v: Boolean) = context.dataStore.edit { it[K.privacyCounts] = v }
+    suspend fun setPrivacyNotify(v: Boolean) = context.dataStore.edit { it[K.privacyNotify] = v }
+    suspend fun setPrivacyAbove(v: Double) = context.dataStore.edit { it[K.privacyAbove] = v }
     suspend fun setBulkThreshold(v: Double) = context.dataStore.edit { it[K.bulkThreshold] = v }
     suspend fun setLastBooster(price: Double, type: String) = context.dataStore.edit { it[K.lastBoosterPrice] = price; it[K.lastBoosterType] = type }
     suspend fun setCollectionSort(v: String) = context.dataStore.edit { it[K.collectionSort] = v }

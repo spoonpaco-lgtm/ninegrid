@@ -284,6 +284,39 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit) {
                             }
                         }
                     }
+                    // Wat verbergt de privacymodus? En een paar extra keuzes.
+                    val scopeLabels = mapOf("all" to stringResource(R.string.privacy_scope_all), "totals" to stringResource(R.string.privacy_scope_totals), "cards" to stringResource(R.string.privacy_scope_cards))
+                    ChoiceRow(stringResource(R.string.privacy_scope), listOf("all", "totals", "cards"), settings.privacyScope, { scopeLabels[it] ?: it }) { gated(gateSettings) { vm.setPrivacyScope(it) } }
+                    Text(stringResource(R.string.privacy_scope_explain), fontSize = NgText.body, color = nl.spoonpaco.ninegrid.ui.theme.LocalNgExtra.current.subtle)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text(stringResource(R.string.privacy_percent))
+                            Text(stringResource(R.string.privacy_percent_explain), fontSize = NgText.body, color = nl.spoonpaco.ninegrid.ui.theme.LocalNgExtra.current.subtle)
+                        }
+                        Switch(checked = settings.privacyPercent, onCheckedChange = { gated(gateSettings) { vm.setPrivacyPercent(it) } })
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(stringResource(R.string.privacy_counts), modifier = Modifier.weight(1f))
+                        Switch(checked = settings.privacyCounts, onCheckedChange = { gated(gateSettings) { vm.setPrivacyCounts(it) } })
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text(stringResource(R.string.privacy_notify))
+                            Text(stringResource(R.string.privacy_notify_explain), fontSize = NgText.body, color = nl.spoonpaco.ninegrid.ui.theme.LocalNgExtra.current.subtle)
+                        }
+                        Switch(checked = settings.privacyNotify, onCheckedChange = { vm.setPrivacyNotify(it) })
+                    }
+                    var aboveText by remember(settings.privacyAbove) { mutableStateOf(if (settings.privacyAbove > 0) settings.privacyAbove.toString().removeSuffix(".0") else "") }
+                    OutlinedTextField(
+                        aboveText, { t -> aboveText = t.filter { it.isDigit() || it == '.' || it == ',' }.take(7) },
+                        label = { Text(stringResource(R.string.privacy_above, settings.currency)) }, singleLine = true,
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal),
+                        supportingText = { Text(stringResource(R.string.privacy_above_explain)) },
+                        modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+                    )
+                    OutlinedButton(onClick = { gated(gateSettings) { vm.setPrivacyAbove(aboveText.replace(',', '.').toDoubleOrNull() ?: 0.0) } }, modifier = Modifier.fillMaxWidth()) {
+                        Text(stringResource(R.string.privacy_above_save))
+                    }
                     Text(stringResource(R.string.privacy_note), fontSize = NgText.body, color = nl.spoonpaco.ninegrid.ui.theme.LocalNgExtra.current.subtle)
                 }
                 SettingsGroup.LANG -> {
@@ -335,7 +368,7 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit) {
                             tsBusy = ""
                             tsScope.launch {
                                 tsReport = runCatching {
-                                    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { runTestset(crashCtx, uri, vm.setInfo.keys) { tsBusy = it } }
+                                    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { runTestset(crashCtx, uri, vm) { tsBusy = it } }
                                 }.getOrElse { "Fout: ${it.message}" }
                                 tsBusy = null
                             }

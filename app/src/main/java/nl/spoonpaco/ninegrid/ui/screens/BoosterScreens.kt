@@ -100,7 +100,7 @@ fun BoosterReviewBlock(vm: AppViewModel) {
             val opened = boosters.count { it.boxId == box.id }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    stringResource(R.string.booster_box_line, opened + 1, box.size, money(box.price / box.size, box.currency)),
+                    stringResource(R.string.booster_box_line, opened + 1, box.size, money(box.price / box.size, box.currency, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL)),
                     fontSize = NgText.body, modifier = Modifier.weight(1f),
                 )
                 TextButton(onClick = { vm.endBox() }) { Text(stringResource(R.string.booster_box_end)) }
@@ -149,8 +149,8 @@ fun BoosterResultDialog(vm: AppViewModel) {
         title = { Text(boosterTypeLabel(r.booster.type) + " · " + r.booster.setCode) },
         text = {
             Column(Modifier.heightIn(max = 520.dp).verticalScroll(rememberScrollState())) {
-                ResultLine(stringResource(R.string.booster_paid_short), money(paid, cur), null)
-                ResultLine(stringResource(R.string.booster_out), money(value, cur), null)
+                ResultLine(stringResource(R.string.booster_paid_short), money(paid, cur, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL), null)
+                ResultLine(stringResource(R.string.booster_out), money(value, cur, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL), null)
                 ResultLine(stringResource(R.string.booster_gain), signed(value - paid, cur), value >= paid)
                 ResultLine(stringResource(R.string.booster_gain_nobulk, Money.format(settings.bulkThreshold, cur)), signed(noBulk - paid, cur), noBulk >= paid)
                 sorted.firstOrNull()?.let { (p, c) ->
@@ -182,7 +182,7 @@ fun BoosterResultDialog(vm: AppViewModel) {
 }
 
 @Composable
-private fun signed(v: Double, cur: String) = (if (v >= 0) "+" else "−") + money(kotlin.math.abs(v), cur)
+private fun signed(v: Double, cur: String) = (if (v >= 0) "+" else "−") + money(kotlin.math.abs(v), cur, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL)
 
 @Composable
 private fun ResultLine(label: String, value: String, good: Boolean?) {
@@ -225,14 +225,14 @@ fun BoostersScreen(vm: AppViewModel, onBack: () -> Unit) {
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)) {
                         Column(Modifier.padding(12.dp)) {
                             Text("${k.first} " + boosterTypeLabel(k.second) + " · " + androidx.compose.ui.res.pluralStringResource(R.plurals.n_opened, list.size, list.size), fontWeight = FontWeight.Bold)
-                            Text(stringResource(R.string.boosters_avg, money(avgOut, cur), money(avgPaid, cur)), fontSize = NgText.body)
+                            Text(stringResource(R.string.boosters_avg, money(avgOut, cur, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL), money(avgPaid, cur, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL)), fontSize = NgText.body)
                             Text(stringResource(R.string.boosters_per_booster, signed(avgOut - avgPaid, cur)), fontSize = NgText.body, fontWeight = FontWeight.Bold,
                                 color = if (avgOut >= avgPaid) NgColors.Synced else NgColors.Error)
                             list.mapNotNull { it.boxId }.distinct().forEach { bid ->
                                 boxes.firstOrNull { it.id == bid }?.let { box ->
                                     val inBox = list.filter { it.boxId == bid }
                                     val out = inBox.sumOf { now(it) }
-                                    Text(stringResource(R.string.boosters_box, inBox.size, box.size, money(out, cur), signed(out - box.price, cur)), fontSize = NgText.body, color = extra.subtle)
+                                    Text(stringResource(R.string.boosters_box, inBox.size, box.size, money(out, cur, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL), signed(out - box.price, cur)), fontSize = NgText.body, color = extra.subtle)
                                 }
                             }
                         }
@@ -243,9 +243,9 @@ fun BoostersScreen(vm: AppViewModel, onBack: () -> Unit) {
                     Row(Modifier.fillMaxWidth().clickable { editing = b }.padding(horizontal = 20.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
                             Text(nl.spoonpaco.ninegrid.domain.Dates.date(b.openedAt, ds), fontSize = NgText.body)
-                            Text(stringResource(R.string.boosters_then_now, money(b.valueAtOpen, b.currency), money(now(b), b.currency)), fontSize = NgText.body, color = extra.subtle)
+                            Text(stringResource(R.string.boosters_then_now, money(b.valueAtOpen, b.currency, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL), money(now(b), b.currency, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL)), fontSize = NgText.body, color = extra.subtle)
                         }
-                        Text(money(b.paid, b.currency), color = extra.price, fontWeight = FontWeight.Bold)
+                        Text(money(b.paid, b.currency, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL), color = extra.price, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -288,7 +288,7 @@ fun BoostersSummary(vm: AppViewModel, onOpen: () -> Unit) {
     Row(Modifier.fillMaxWidth().clickable(onClick = onOpen).padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f)) {
             Text(stringResource(R.string.boosters_title), fontWeight = FontWeight.Bold, color = extra.price)
-            Text(androidx.compose.ui.res.pluralStringResource(R.plurals.n_opened, boosters.size, boosters.size) + " · " + stringResource(R.string.boosters_total, money(paid, cur), money(out, cur)), fontSize = NgText.body)
+            Text(androidx.compose.ui.res.pluralStringResource(R.plurals.n_opened, boosters.size, boosters.size) + " · " + stringResource(R.string.boosters_total, money(paid, cur, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL), money(out, cur, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL)), fontSize = NgText.body)
         }
         Text(signed(out - paid, cur), fontWeight = FontWeight.Bold, color = if (out >= paid) NgColors.Synced else NgColors.Error)
         Text("  ›", color = extra.subtle)

@@ -1141,4 +1141,17 @@
     <string name="dev_testset_title">Test set result</string>
     <string name="dev_testset_share">Share</string>
     <string name="review_all_to">All cards to:</string>
+    <string name="privacy_scope">What to hide</string>
+    <string name="privacy_scope_all">Everything</string>
+    <string name="privacy_scope_totals">Only totals</string>
+    <string name="privacy_scope_cards">Only card prices</string>
+    <string name="privacy_scope_explain">Totals are the value of your collection, sets, decks, binders and boosters, the chart and the Winner of the Week. Card prices are per card and in lists. With only card prices hidden, a card price can be worked out from the total of a set or deck with few cards.</string>
+    <string name="privacy_percent">Chart in percentages</string>
+    <string name="privacy_percent_explain">With hidden totals the chart shows the change since the start in %, without amounts.</string>
+    <string name="privacy_counts">Also hide card counts</string>
+    <string name="privacy_notify">Notifications without amounts</string>
+    <string name="privacy_notify_explain">Always hide amounts in notifications on the lock screen, also when privacy mode is off.</string>
+    <string name="privacy_above">Hide card prices above (%1$s)</string>
+    <string name="privacy_above_explain">Empty = hide all card prices. Cheaper cards stay visible.</string>
+    <string name="privacy_above_save">Save limit</string>
 </resources>

@@ -16,6 +16,7 @@ Huidige versie: **0.9.11 – Tezzeret**. Elke versie heeft de naam van een plane
 - **Je binder zoals hij echt is.** Een bladweergave van 3×3 met elke kaart op zijn vak; tik op een leeg vak om precies die kaart te scannen.
 - **Boosters bijhouden.** Wat je betaalde tegenover wat eruit kwam, ook zonder bulk, per box en per set.
 - **Privacymodus met je vingerafdruk.** Bedragen verborgen voor wie je telefoon pakt, in een eigen stijl, en alleen met je vingerafdruk weer zichtbaar.
+- **Privacymodus: meer controle.** Kies wat verborgen wordt (alles, totalen of kaartprijzen), grafiek in procenten, aantallen verbergen, meldingen zonder bedragen en alleen dure kaarten verbergen.
 - **AI met je eigen sleutel.** Kies uit acht diensten; elke uitkomst van de AI wordt bij Scryfall gecontroleerd voordat hij in je collectie komt.
 - **Gratis, zonder grenzen, zonder account.** Geen maximum aan decks of exports, geen abonnement, geen tracking. Je collectie staat op je eigen telefoon.
 

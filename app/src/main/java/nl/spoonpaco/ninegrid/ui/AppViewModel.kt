@@ -811,6 +811,11 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun setBulkThreshold(v: Double) = viewModelScope.launch { settingsStore.setBulkThreshold(v) }
     fun setChartLines(v: List<String>) = viewModelScope.launch { settingsStore.setChartLines(v) }
     fun setChartMetric(v: String) = viewModelScope.launch { settingsStore.setChartMetric(v) }
+    fun setPrivacyScope(v: String) = viewModelScope.launch { settingsStore.setPrivacyScope(v) }
+    fun setPrivacyPercent(v: Boolean) = viewModelScope.launch { settingsStore.setPrivacyPercent(v) }
+    fun setPrivacyCounts(v: Boolean) = viewModelScope.launch { settingsStore.setPrivacyCounts(v) }
+    fun setPrivacyNotify(v: Boolean) = viewModelScope.launch { settingsStore.setPrivacyNotify(v) }
+    fun setPrivacyAbove(v: Double) = viewModelScope.launch { settingsStore.setPrivacyAbove(v) }
     fun setPieMode(v: Boolean) = viewModelScope.launch { settingsStore.setPieMode(v) }
     fun setPieSplit(v: String) = viewModelScope.launch { settingsStore.setPieSplit(v) }
     fun setChartRange(v: String) = viewModelScope.launch { settingsStore.setChartRange(v) }

@@ -262,6 +262,26 @@ internal suspend fun reread(bmp: Bitmap, result: ScanResult, single: Boolean, kn
     return result.copy(slots = slots) to count
 }
 
+/** Ruimt wat de voetregel verkeerd gaf op, zie ScanParser.sanitize en ScanParser.alignToPage. Ook gebruikt door Testset draaien. */
+internal suspend fun tidyReads(vm: nl.spoonpaco.ninegrid.ui.AppViewModel, result: ScanResult, single: Boolean): ScanResult {
+    val known = vm.setInfo.keys.map { it.uppercase() }.toSet()
+    val english = result.slots.associate { r -> r.slot to (r.name?.let { n -> runCatching { vm.repo.isEnglishName(n) }.getOrDefault(false) } ?: false) }
+    var slots = result.slots.map { ScanParser.sanitize(it, known, english[it.slot] == true) }
+    if (!single) {
+        val forced = vm.scanSet.trim().uppercase().ifBlank { null }
+        val page = ScanParser.dominantSet(slots)
+        if (forced == null && page != null) {
+            val fits = HashMap<Int, Boolean>()
+            for (r in slots) {
+                if (r.setCode == null || r.setCode == page) continue
+                fits[r.slot] = runCatching { vm.repo.fitsSet(page, r.name, r.collectorNumber) }.getOrDefault(false)
+            }
+            slots = ScanParser.alignToPage(slots, forced) { _, r -> fits[r.slot] == true }
+        }
+    }
+    return result.copy(slots = slots)
+}
+
 /** Uitsnede van een stuk van de foto, verkleind tot een kleine afbeelding voor het controlescherm. */
 private fun cutOut(bmp: Bitmap, a: Area, maxW: Int = 260): Bitmap? = runCatching {
     val l = a.left.toInt().coerceIn(0, bmp.width - 1); val t = a.top.toInt().coerceIn(0, bmp.height - 1)
@@ -272,7 +292,7 @@ private fun cutOut(bmp: Bitmap, a: Area, maxW: Int = 260): Bitmap? = runCatching
 
 /** Per vak een uitsnede van de foto (blad), of één uitsnede (losse kaart). */
 /** Kijkt per vak naar het beeld (het midden, zonder de naden van het mapje) en markeert de lege vakken. */
-private fun markEmpty(bmp: Bitmap, result: ScanResult): ScanResult {
+internal fun markEmpty(bmp: Bitmap, result: ScanResult): ScanResult {
     val f = result.frame ?: return result
     val cw = f.width / 3f; val ch = f.height / 3f
     val energies = (1..9).associateWith { slot ->
@@ -445,24 +465,7 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
     }
 
     /** Ruimt wat de voetregel verkeerd gaf op, zie ScanParser.sanitize en ScanParser.alignToPage. */
-    suspend fun tidy(result: ScanResult, single: Boolean): ScanResult {
-        val known = vm.setInfo.keys.map { it.uppercase() }.toSet()
-        val english = result.slots.associate { r -> r.slot to (r.name?.let { n -> runCatching { vm.repo.isEnglishName(n) }.getOrDefault(false) } ?: false) }
-        var slots = result.slots.map { ScanParser.sanitize(it, known, english[it.slot] == true) }
-        if (!single) {
-            val forced = vm.scanSet.trim().uppercase().ifBlank { null }
-            val page = ScanParser.dominantSet(slots)
-            if (forced == null && page != null) {
-                val fits = HashMap<Int, Boolean>()
-                for (r in slots) {
-                    if (r.setCode == null || r.setCode == page) continue
-                    fits[r.slot] = runCatching { vm.repo.fitsSet(page, r.name, r.collectorNumber) }.getOrDefault(false)
-                }
-                slots = ScanParser.alignToPage(slots, forced) { _, r -> fits[r.slot] == true }
-            }
-        }
-        return result.copy(slots = slots)
-    }
+    suspend fun tidy(result: ScanResult, single: Boolean): ScanResult = tidyReads(vm, result, single)
 
     fun process(bmp: Bitmap, crop: Area?, fromCamera: Boolean) {
         scope.launch {

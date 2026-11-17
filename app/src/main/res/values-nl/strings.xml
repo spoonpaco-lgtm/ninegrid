@@ -1140,4 +1140,17 @@
     <string name="dev_testset_title">Uitslag testset</string>
     <string name="dev_testset_share">Delen</string>
     <string name="review_all_to">Alle kaarten naar:</string>
+    <string name="privacy_scope">Wat verbergen</string>
+    <string name="privacy_scope_all">Alles</string>
+    <string name="privacy_scope_totals">Alleen totalen</string>
+    <string name="privacy_scope_cards">Alleen kaartprijzen</string>
+    <string name="privacy_scope_explain">Totalen zijn de waarde van je collectie, sets, decks, binders en boosters, de grafiek en de Winner of the Week. Kaartprijzen staan per kaart en in lijsten. Verberg je alleen de kaartprijzen, dan is een kaartprijs terug te rekenen uit het totaal van een set of deck met weinig kaarten.</string>
+    <string name="privacy_percent">Grafiek in procenten</string>
+    <string name="privacy_percent_explain">Bij verborgen totalen toont de grafiek de verandering sinds het begin in %, zonder bedragen.</string>
+    <string name="privacy_counts">Ook aantallen kaarten verbergen</string>
+    <string name="privacy_notify">Meldingen zonder bedragen</string>
+    <string name="privacy_notify_explain">Bedragen in meldingen altijd verbergen op het vergrendelscherm, ook als de privacymodus uit staat.</string>
+    <string name="privacy_above">Kaartprijzen verbergen boven (%1$s)</string>
+    <string name="privacy_above_explain">Leeg = alle kaartprijzen verbergen. Goedkopere kaarten blijven zichtbaar.</string>
+    <string name="privacy_above_save">Grens opslaan</string>
 </resources>

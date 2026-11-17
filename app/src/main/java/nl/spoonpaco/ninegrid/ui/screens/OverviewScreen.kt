@@ -174,13 +174,13 @@ fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}, onSets: () ->
                 androidx.compose.runtime.LaunchedEffect(cur, settings.lastPriceUpdate) { vm.computePriceChanges(); vm.computeWinner() }
                 Panel {
                     Text(stringResource(R.string.total_collection), color = extra.subtle, fontSize = NgText.body)
-                    Text(nl.spoonpaco.ninegrid.ui.components.money(grand.value, cur), fontSize = 30.sp, fontWeight = FontWeight.Bold, color = extra.price, modifier = Modifier.then(nl.spoonpaco.ninegrid.ui.components.privacyMask()))
+                    Text(nl.spoonpaco.ninegrid.ui.components.money(grand.value, cur, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL), fontSize = 30.sp, fontWeight = FontWeight.Bold, color = extra.price, modifier = Modifier.then(nl.spoonpaco.ninegrid.ui.components.privacyMask(nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL)))
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(androidx.compose.ui.res.pluralStringResource(R.plurals.n_cards, grand.total, grand.total), fontSize = NgText.body)
+                        Text(nl.spoonpaco.ninegrid.ui.components.cardsText(grand.total), fontSize = NgText.body)
                         if (diff != null) {
                             val up = diff >= 0
                             Text(
-                                "  ·  " + (if (up) "▲ " else "▼ ") + nl.spoonpaco.ninegrid.ui.components.money(kotlin.math.abs(diff), cur) + " " + stringResource(R.string.since_days, java.time.temporal.ChronoUnit.DAYS.between(LocalDate.parse(base.day), LocalDate.now()).toInt()),
+                                "  ·  " + (if (up) "▲ " else "▼ ") + nl.spoonpaco.ninegrid.ui.components.money(kotlin.math.abs(diff), cur, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL) + " " + stringResource(R.string.since_days, java.time.temporal.ChronoUnit.DAYS.between(LocalDate.parse(base.day), LocalDate.now()).toInt()),
                                 fontSize = NgText.body, color = if (up) NgColors.Synced else NgColors.Error, fontWeight = FontWeight.Bold,
                             )
                         }
@@ -219,10 +219,10 @@ fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}, onSets: () ->
                             Column(Modifier.weight(1f)) {
                                 Text(w.print.name + if (w.finish != nl.spoonpaco.ninegrid.data.db.Finish.NONFOIL) " (${w.finish})" else "", fontWeight = FontWeight.Bold)
                                 Text("${w.print.setCode} ${w.print.collectorNumber}", fontSize = NgText.body, color = extra.subtle)
-                                Text(nl.spoonpaco.ninegrid.ui.components.money(w.oldUnit, cur) + " → " + nl.spoonpaco.ninegrid.ui.components.money(w.newUnit, cur) + String.format(java.util.Locale.getDefault(), "  (%+.0f%%)", w.pct), fontSize = NgText.body)
+                                Text(nl.spoonpaco.ninegrid.ui.components.money(w.oldUnit, cur, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL) + " → " + nl.spoonpaco.ninegrid.ui.components.money(w.newUnit, cur, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL) + String.format(java.util.Locale.getDefault(), "  (%+.0f%%)", w.pct), fontSize = NgText.body)
                                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 2.dp)) {
-                                    if (nl.spoonpaco.ninegrid.ui.components.LocalEffects.current) nl.spoonpaco.ninegrid.ui.components.LoyaltyShield("+" + nl.spoonpaco.ninegrid.ui.components.money(w.totalGain, cur), up = true)
-                                    else Text("▲ " + nl.spoonpaco.ninegrid.ui.components.money(w.totalGain, cur), fontSize = NgText.body, fontWeight = FontWeight.Bold, color = NgColors.Synced)
+                                    if (nl.spoonpaco.ninegrid.ui.components.LocalEffects.current) nl.spoonpaco.ninegrid.ui.components.LoyaltyShield("+" + nl.spoonpaco.ninegrid.ui.components.money(w.totalGain, cur, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL), up = true)
+                                    else Text("▲ " + nl.spoonpaco.ninegrid.ui.components.money(w.totalGain, cur, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL), fontSize = NgText.body, fontWeight = FontWeight.Bold, color = NgColors.Synced)
                                     if (w.quantity > 1) Text("  ·  " + stringResource(R.string.winner_copies, w.quantity), fontSize = NgText.body, color = extra.subtle)
                                 }
                             }
@@ -351,13 +351,19 @@ fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}, onSets: () ->
                     } else if (series.all { it.points.size < 2 }) {
                         Text(stringResource(R.string.chart_empty), fontSize = NgText.body, color = extra.subtle, modifier = Modifier.padding(vertical = 8.dp))
                     }
-                    val hideMoney = nl.spoonpaco.ninegrid.ui.components.LocalPrivacy.current.hidden
+                    val priv = nl.spoonpaco.ninegrid.ui.components.LocalPrivacy.current
+                    val hideMoney = priv.hides(nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL)
+                    val hideCounts = priv.hidesCounts
+                    // Grafiek in procenten: bij verborgen bedragen blijft de verandering ten opzichte van het begin zichtbaar.
+                    val pctBase = series.firstOrNull()?.points?.minByOrNull { it.first }?.second?.takeIf { it > 0.0 }
+                    val usePct = hideMoney && priv.percent && byValue && pctBase != null
+                    fun pctText(v: Double) = String.format(java.util.Locale.getDefault(), "%+.1f%%", (v / pctBase!! - 1.0) * 100.0)
                     HistoryChart(
                         series = series, fromDay = from, toDay = maxOf(now, from + 60_000), showTime = days in 1..7,
                         // In het kader het precieze bedrag; langs de as zoveel decimalen als de stap tussen de lijnen vraagt.
-                        formatY = { v -> if (hideMoney && byValue) "••••" else if (byGain) (if (v > 0.005) "+" else if (v < -0.005) "−" else "") + Money.format(kotlin.math.abs(v), cur) else if (byValue) Money.format(v, cur) else v.toInt().toString() },
-                        formatAxis = { v, step -> if (hideMoney && byValue) "••••" else if (byGain) (if (v > 0.005) "+" else if (v < -0.005) "−" else "") + axisMoney(kotlin.math.abs(v), step, cur) else if (byValue) axisMoney(v, step, cur) else v.toInt().toString() },
-                        secondary = countSeries,
+                        formatY = { v -> if (hideMoney && (byValue || byGain)) (if (usePct) pctText(v) else "••••") else if (hideCounts && !byValue && !byGain) "•••" else if (byGain) (if (v > 0.005) "+" else if (v < -0.005) "−" else "") + Money.format(kotlin.math.abs(v), cur) else if (byValue) Money.format(v, cur) else v.toInt().toString() },
+                        formatAxis = { v, step -> if (hideMoney && (byValue || byGain)) (if (usePct) pctText(v) else "••••") else if (hideCounts && !byValue && !byGain) "•••" else if (byGain) (if (v > 0.005) "+" else if (v < -0.005) "−" else "") + axisMoney(kotlin.math.abs(v), step, cur) else if (byValue) axisMoney(v, step, cur) else v.toInt().toString() },
+                        secondary = if (hideCounts) null else countSeries,
                         gapMs = 36L * 3600 * 1000,
                         formatX = { ms, withTime -> if (withTime) nl.spoonpaco.ninegrid.domain.Dates.dateTime(ms, settings.dateStyle) else nl.spoonpaco.ninegrid.domain.Dates.date(ms, settings.dateStyle) },
                         axisColor = MaterialTheme.colorScheme.onSurface, textColor = extra.subtle,
@@ -429,11 +435,11 @@ fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}, onSets: () ->
                         Text(stringResource(R.string.sets_title), fontWeight = FontWeight.Bold)
                         Text(
                             androidx.compose.ui.res.pluralStringResource(R.plurals.n_sets, sets.size, sets.size) + " · " +
-                                androidx.compose.ui.res.pluralStringResource(R.plurals.n_cards, setTotal.total, setTotal.total),
+                                nl.spoonpaco.ninegrid.ui.components.cardsText(setTotal.total),
                             fontSize = NgText.body, color = extra.subtle,
                         )
                     }
-                    Text(nl.spoonpaco.ninegrid.ui.components.money(setTotal.value, cur), fontWeight = FontWeight.Bold, color = extra.price, modifier = Modifier.then(nl.spoonpaco.ninegrid.ui.components.privacyMask()))
+                    Text(nl.spoonpaco.ninegrid.ui.components.money(setTotal.value, cur, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL), fontWeight = FontWeight.Bold, color = extra.price, modifier = Modifier.then(nl.spoonpaco.ninegrid.ui.components.privacyMask(nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL)))
                     Text("  ›", fontWeight = FontWeight.Bold)
                 }
             }
@@ -445,11 +451,11 @@ fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}, onSets: () ->
                         Text(stringResource(R.string.decks), fontWeight = FontWeight.Bold)
                         Text(
                             androidx.compose.ui.res.pluralStringResource(R.plurals.n_decks, deckRows.size, deckRows.size) + " · " +
-                                androidx.compose.ui.res.pluralStringResource(R.plurals.n_cards, deckTotal.total, deckTotal.total),
+                                nl.spoonpaco.ninegrid.ui.components.cardsText(deckTotal.total),
                             fontSize = NgText.body, color = extra.subtle,
                         )
                     }
-                    Text(nl.spoonpaco.ninegrid.ui.components.money(deckTotal.value, cur), fontWeight = FontWeight.Bold, color = extra.price, modifier = Modifier.then(nl.spoonpaco.ninegrid.ui.components.privacyMask()))
+                    Text(nl.spoonpaco.ninegrid.ui.components.money(deckTotal.value, cur, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL), fontWeight = FontWeight.Bold, color = extra.price, modifier = Modifier.then(nl.spoonpaco.ninegrid.ui.components.privacyMask(nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL)))
                     Text("  ›", fontWeight = FontWeight.Bold)
                 }
             }
@@ -520,12 +526,12 @@ private fun TwoLineRow(name: String, c: Counts, currency: String, bold: Boolean 
     Column(mod.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(name, fontWeight = if (bold) FontWeight.Bold else FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
-            Text(nl.spoonpaco.ninegrid.ui.components.money(c.value, currency), fontWeight = FontWeight.Bold, color = extra.price, modifier = Modifier.then(nl.spoonpaco.ninegrid.ui.components.privacyMask()))
+            Text(nl.spoonpaco.ninegrid.ui.components.money(c.value, currency, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL), fontWeight = FontWeight.Bold, color = extra.price, modifier = Modifier.then(nl.spoonpaco.ninegrid.ui.components.privacyMask(nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL)))
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             listOf("M" to c.m to NgColors.Mythic, "R" to c.r to NgColors.Rare, "U" to c.u to NgColors.Uncommon, "C" to c.c to NgColors.Common, "O" to c.o to NgColors.Special)
                 .forEach { (lv, col) -> Text("${lv.first} ${lv.second}", color = col, fontSize = NgText.body) }
-            Text("· " + androidx.compose.ui.res.pluralStringResource(R.plurals.n_cards, c.total, c.total), fontSize = NgText.body, color = extra.subtle)
+            Text("· " + nl.spoonpaco.ninegrid.ui.components.cardsText(c.total), fontSize = NgText.body, color = extra.subtle)
         }
     }
 }
@@ -665,7 +671,7 @@ private fun PieBlock(slices: List<Slice>, byCount: Boolean, currency: String) {
             Text("$pct%", color = extra.subtle, fontSize = NgText.body)
             Spacer(Modifier.width(10.dp))
             if (byCount) Text(sl.amount.toInt().toString(), fontWeight = FontWeight.Bold)
-            else Text(nl.spoonpaco.ninegrid.ui.components.money(sl.amount, currency), fontWeight = FontWeight.Bold, color = extra.price, modifier = Modifier.then(nl.spoonpaco.ninegrid.ui.components.privacyMask()))
+            else Text(nl.spoonpaco.ninegrid.ui.components.money(sl.amount, currency, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL), fontWeight = FontWeight.Bold, color = extra.price, modifier = Modifier.then(nl.spoonpaco.ninegrid.ui.components.privacyMask(nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL)))
         }
     }
 }

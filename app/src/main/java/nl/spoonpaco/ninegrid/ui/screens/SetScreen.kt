@@ -180,8 +180,8 @@ fun SetScreen(vm: AppViewModel, code: String, onBack: () -> Unit, onReview: () -
                         val missingValue = missing.sumOf { (if (settings.currency == "USD") it.usd else it.eur) ?: 0.0 }
                         Row {
                             Text(stringResource(R.string.set_missing_total) + " ", fontSize = NgText.body, color = extra.subtle)
-                            Text(nl.spoonpaco.ninegrid.ui.components.money(missingValue, settings.currency), fontSize = NgText.body, fontWeight = FontWeight.Bold, color = extra.price,
-                                modifier = nl.spoonpaco.ninegrid.ui.components.privacyMask())
+                            Text(nl.spoonpaco.ninegrid.ui.components.money(missingValue, settings.currency, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL), fontSize = NgText.body, fontWeight = FontWeight.Bold, color = extra.price,
+                                modifier = nl.spoonpaco.ninegrid.ui.components.privacyMask(nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL))
                         }
                         CompletionistToggle(settings.completionist, onChange = { vm.setCompletionist(it) })
                     }

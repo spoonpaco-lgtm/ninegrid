@@ -91,6 +91,7 @@ Exporteren naar andere sites en apps (begin met de twee of drie sites die Mick e
 - Vóór het bouwen de actuele importformaten van elke site nakijken, niet uit het hoofd
 
 Ook in 0.9.11:
+- Gebouwd: grafiekvenster sorteert per dag op waarde; Testset draaien loopt nu de volledige scanroute (inclusief database) voor een eerlijke meting; privacymodus met meer controle (zie 1c).
 - Kleine verbeteringen (17 nov): Lijn/Taart en splitsing onthouden; Alle kaarten naar Deck of Sideboard bij een deck (bij Commander niet; daar is de commander zelf de uitzondering).
 - Verlanglijst: −1 en swipe-verwijderen met terugzetten, elke regel zegt welke print (17 nov, op Micks verzoek in 0.9.11 gebouwd). Open: Mick zag na een printwijziging niet de juiste print of prijs; in de code niet te vinden, eerst vragen wat hij precies ziet.
 - Scanrapport met instellingen (set, lamp, automatisch afdrukken, AI-hulp, offline database, taal).
@@ -120,9 +121,9 @@ Deck delen via QR-code (was Route D in Fase 2; Mick 17 nov: in 0.9.11):
 - Kost: een extra onderdeel om QR-codes te lezen (ML Kit barcode-scanning, ongeveer 2 à 3 MB). Alleen NineGrid begrijpt de code; gewone tekst in de QR zou elke QR-lezer kunnen tonen, maar maakt de code groter en lastiger te scannen (nog te kiezen).
 - Geen koppeling met Moxfield of Archidekt; dat is Exporteren.
 
-### 1c. Op de lijst, versie nog kiezen
+### 1c. Privacymodus: meer controle (gebouwd in 0.9.11, wacht op test en "ja, release")
 
-Privacymodus: meer controle (Mick 17 nov):
+Gebouwd (Mick 17 nov): Wat verbergen, grafiek in procenten, aantallen verbergen, meldingen zonder bedragen, kaartprijzen boven een grens. Totalen en kaartprijzen zijn in alle schermen gemarkeerd. Oorspronkelijke wensen:
 - **Wat verbergen** (Mick): Alles (zoals nu) | Alleen totalen (waarde van collectie, sets en decks, de grafiek, Winner of the Week, boosters) | Alleen kaartprijzen (per kaart en in lijsten; de totalen blijven zichtbaar). Stijl (compleated, zegel, schaduw, stippen) en vingerafdruk blijven zoals nu.
 - Technisch: nu is het één schakelaar en verbergen `money()` en `privacyMask()` in `ui/components/Privacy.kt` elk bedrag. Elke plek moet dus gaan zeggen of het een totaal of een kaartprijs is (bijvoorbeeld een soort bij `money()`), en alle schermen moeten worden nagelopen. Meldingen (`PriceWorker`) volgen dezelfde keuze.
 - Extra opties (gekozen door Mick, 17 nov):

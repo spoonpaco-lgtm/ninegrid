@@ -181,7 +181,9 @@ fun HistoryChart(
             val xx = x(day)
             drawLine(axisColor.copy(alpha = 0.6f), Offset(xx, top), Offset(xx, bottom), strokeWidth = 1.5f)
             val rows = listOf(label(day) to Color.Unspecified) +
-                series.mapNotNull { s -> s.points.firstOrNull { it.first == day }?.let { "${s.label}: ${formatY(it.second)}" to s.color } } +
+                // Zelfde volgorde als de lijnen op die dag: hoogste bovenaan. Schuif je naar een andere dag, dan wisselt het mee.
+                series.mapNotNull { s -> s.points.firstOrNull { it.first == day }?.let { it.second to ("${s.label}: ${formatY(it.second)}" to s.color) } }
+                    .sortedByDescending { it.first }.map { it.second } +
                 listOfNotNull(second?.let { s -> s.points.firstOrNull { it.first == day }?.let { "${s.label}: ${formatSecondary(it.second)}" to s.color } })
             val tp = android.graphics.Paint().apply { textSize = 11.sp.toPx(); isAntiAlias = true }
             val lineH = 14.sp.toPx()

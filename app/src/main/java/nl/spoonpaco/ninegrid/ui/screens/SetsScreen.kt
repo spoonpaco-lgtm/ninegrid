@@ -124,7 +124,7 @@ fun SetsScreen(vm: AppViewModel, onBack: () -> Unit, onSet: (String) -> Unit) {
                 Column {
                     Text(stringResource(R.string.sets_title), fontWeight = FontWeight.Bold)
                     Text(
-                        pluralStringResource(R.plurals.n_sets, rows.size, rows.size) + " · " + nl.spoonpaco.ninegrid.ui.components.money(rows.sumOf { it.value }, cur),
+                        pluralStringResource(R.plurals.n_sets, rows.size, rows.size) + " · " + nl.spoonpaco.ninegrid.ui.components.money(rows.sumOf { it.value }, cur, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL),
                         style = MaterialTheme.typography.bodySmall, color = extra.subtle,
                     )
                 }
@@ -167,7 +167,7 @@ private fun SetRowView(r: SetRow, cur: String, icons: Boolean, vm: AppViewModel,
         Column(Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("${r.name} (${r.code})", fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
-                Text(nl.spoonpaco.ninegrid.ui.components.money(r.value, cur), fontWeight = FontWeight.Bold, color = extra.price, modifier = Modifier.then(nl.spoonpaco.ninegrid.ui.components.privacyMask()))
+                Text(nl.spoonpaco.ninegrid.ui.components.money(r.value, cur, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL), fontWeight = FontWeight.Bold, color = extra.price, modifier = Modifier.then(nl.spoonpaco.ninegrid.ui.components.privacyMask(nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL)))
             }
             // Rarity als één balkje; tik erop voor de getallen.
             val parts = listOf(r.mythic to NgColors.Mythic, r.rare to NgColors.Rare, r.uncommon to NgColors.Uncommon, r.common to NgColors.Common, r.other to NgColors.Special)
@@ -181,7 +181,7 @@ private fun SetRowView(r: SetRow, cur: String, icons: Boolean, vm: AppViewModel,
                 listOf("M" to parts[0], "R" to parts[1], "U" to parts[2], "C" to parts[3], "O" to parts[4]).forEach { (l, p) -> Text("$l ${p.first}", color = p.second, fontSize = NgText.body) }
             }
             Text(
-                pluralStringResource(R.plurals.n_cards, r.cards, r.cards) +
+                nl.spoonpaco.ninegrid.ui.components.cardsText(r.cards) +
                     if (r.size > 0) "  ·  " + stringResource(R.string.sets_complete, r.owned, r.size, r.pct) else "",
                 fontSize = NgText.body, color = extra.subtle,
             )

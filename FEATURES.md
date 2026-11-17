@@ -16,6 +16,7 @@ Current version: **0.9.11 – Tezzeret**. Every version is named after a planesw
 - **Your binder as it really is.** A 3×3 page view with every card in its slot; tap an empty slot to scan exactly that card.
 - **Track boosters.** What you paid versus what came out, also without bulk, per box and per set.
 - **Privacy mode with your fingerprint.** Amounts hidden from whoever picks up your phone, in a style of your choice, and only visible again with your fingerprint.
+- **Privacy mode: more control.** Choose what is hidden (everything, totals or card prices), chart in percentages, hide counts, notifications without amounts, and hide only expensive cards.
 - **AI with your own key.** Choose from eight services; every AI result is checked at Scryfall before it reaches your collection.
 - **Free, no limits, no account.** No caps on decks or exports, no subscription, no tracking. Your collection lives on your own phone.
 
