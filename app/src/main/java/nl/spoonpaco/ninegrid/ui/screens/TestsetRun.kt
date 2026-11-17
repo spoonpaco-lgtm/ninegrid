@@ -25,8 +25,12 @@ internal suspend fun runTestset(ctx: Context, tree: Uri, vm: AppViewModel, progr
     val body = StringBuilder()
     var ok = 0; var total = 0; var sureWrong = 0; var checkRight = 0; var notFound = 0; var rawOk = 0
     val t0 = System.currentTimeMillis()
+    val prevSet = vm.scanSet
     try {
         for (dir in dirs) {
+            // Zoals Mick de app gebruikt: de set van het blad is ingevuld (mapnaam NN-SET-…); een gemengd blad heeft er geen.
+            val folderSet = Regex("^\\d+-([A-Za-z0-9]{2,5})-").find(dir.name)?.groupValues?.get(1)?.uppercase()?.takeIf { it != "GEMENGD" }.orEmpty()
+            withContext(Dispatchers.Main) { vm.scanSet = folderSet }
             val expected = TestsetScore.parse(ctx.contentResolver.openInputStream(dir.findFile("uitslag.txt")!!.uri)!!.bufferedReader().readLines())
             for (fname in listOf("foto.jpg", "foto-2.jpg")) {
                 val file = dir.findFile(fname) ?: continue
@@ -67,14 +71,14 @@ internal suspend fun runTestset(ctx: Context, tree: Uri, vm: AppViewModel, progr
             }
         }
     } finally {
-        withContext(Dispatchers.Main) { if (vm.pending.isNotEmpty()) vm.clearPending() }
+        withContext(Dispatchers.Main) { if (vm.pending.isNotEmpty()) vm.clearPending(); vm.scanSet = prevSet }
     }
     val secs = (System.currentTimeMillis() - t0) / 1000
     return buildString {
         appendLine("NineGrid testset, volledige scanroute (versie ${nl.spoonpaco.ninegrid.BuildConfig.VERSION_NAME}, ${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL})")
         appendLine("Totaal: $total vakken, $ok helemaal goed na opzoeken · $secs s")
         appendLine("Groen maar fout (het ergste): $sureWrong · oranje maar goed: $checkRight · niet gevonden: $notFound")
-        appendLine("Zoals een scan uit de galerij (zonder kader van de camera). Namen tellen goed bij 80% gelijkenis. Heeft internet nodig voor kaarten die de offline database niet kent.")
+        appendLine("Met de set van de mapnaam ingevuld, zoals jij de app gebruikt. Zoals een scan uit de galerij (zonder kader van de camera). Namen tellen goed bij 80% gelijkenis. Heeft internet nodig voor kaarten die de offline database niet kent.")
         append(body)
     }
 }
