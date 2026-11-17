@@ -104,7 +104,7 @@ Dit is "de lijst": wat Mick wil dat NineGrid nog krijgt. Een nieuw gesprek begin
 ### 0.9.9.1 – nog na te kijken op Micks telefoon
 
 - ✓ Combo's: tikken op een ontbrekende kaart opent nu het kaartscherm (was leeg): nagekeken door Mick, werkt.
-- Lijnen kiezen: vakje Aantal kaarten, groepen, Sets ingeklapt, setnamen; een set zonder kaarten verdwijnt uit de lijst.
+- ✓ Lijnen kiezen: vakje Aantal kaarten, groepen, Sets ingeklapt, setnamen; een set zonder kaarten verdwijnt uit de lijst. Nagekeken door Mick, werkt.
 - Taart: Lijn | Taart, splitsen per Sets, Rarity of Decks; keuze wordt niet onthouden na sluiten van de app.
 - Prijsverloop op het kaartscherm: schildje verschijnt pas na een week aan prijzen; dichtgeklapt staat er dan nog niets (nog te doen: "Verschijnt na een week" tonen). Alleen kaarten in de collectie hebben bewaarde prijzen.
 - Nog niet op de lijst gezet: prijshistorie ophalen uit MTGJSON (tot 90 dagen terug; formaat en Cardmarket-waarde niet nagekeken).
