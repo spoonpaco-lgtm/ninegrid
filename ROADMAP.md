@@ -90,6 +90,15 @@ Exporteren naar andere sites en apps (begin met de twee of drie sites die Mick e
 - Wat exporteren: alles, alleen losse kaarten, een binder of een set (zelfde keuze als het deelscherm); proxies standaard niet mee
 - Vóór het bouwen de actuele importformaten van elke site nakijken, niet uit het hoofd
 
+### 1b. Scanner: testset en beter rapport (voorstel, wacht op startsein)
+
+Doel: de scanner meetbaar beter maken en oude fouten nooit laten terugkomen.
+- **Scanrapport met de eerste gok:** de app onthoudt direct na de scan wat hij zelf van elk vak maakte. Bij Scan delen staat per vak "app dacht: X" en "jij maakte er: Y" (alleen als die verschillen). Nu staat de uitkomst pas bij het delen en toont dan de door Mick gecorrigeerde kaart; de eerste gok van de app gaat verloren.
+- **Testset met foto's (ongeveer 20):** foto's in de repo, elk met een klein bestand met de juiste kaarten per vak ("jij maakte er" uit het rapport). Basis: de vier rapporten van 11 nov.
+- **Draaien op GitHub:** een aparte workflow met een emulator laat de echte scanner (ML Kit zit in de app, `text-recognition:16.0.1`) alle foto's lezen en toont per foto en vak wat goed of fout is. Duurt ongeveer 10 tot 15 minuten en de herkenning op een emulator kan afwijken van Micks Samsung.
+- **Draaien op de telefoon:** Ontwikkelaar → Testset draaien: de app leest de foto's uit een map op de telefoon en toont goed/fout per foto. Dit is de echte meting.
+- **Open:** de repo is publiek en kaartfoto's zijn Wizards-materiaal; kiezen tussen een paar foto's van eigen bladen, een privé-repo of een aparte map. Mick levert de foto's met de juiste uitslag.
+
 ### 2. Kleine verbeteringen (nog geen versie)
 
 - Prijsverloop op het kaartscherm: dichtgeklapt "Verschijnt na een week" tonen zolang er minder dan een week aan prijzen is.
