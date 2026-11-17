@@ -101,7 +101,6 @@ Doel: de scanner meetbaar beter maken en oude fouten nooit laten terugkomen.
 
 ### 2. Kleine verbeteringen (nog geen versie)
 
-- Prijsverloop op het kaartscherm: dichtgeklapt "Verschijnt na een week" tonen zolang er minder dan een week aan prijzen is.
 - Taartgrafiek: de gekozen weergave (Lijn of Taart) en splitsing onthouden na het sluiten van de app.
 - Scannen, kaart voor kaart: 39a de set van de vorige kaart als aanname; 39c groene kaarten overslaan op het controlescherm (pas bouwen als de herkenning betrouwbaar is; wacht op een test op de telefoon).
 - Scannen naar een deck: één keuze Deck / Sideboard / Commander voor alle kaarten tegelijk.
