@@ -1139,4 +1139,5 @@
     <string name="dev_testset_explain">Kies een map met testbladen (submappen met foto.jpg en uitslag.txt, zoals testset/ in de repo). De echte scanner leest elke foto en laat zien wat goed en fout is. Duurt een of twee minuten.</string>
     <string name="dev_testset_title">Uitslag testset</string>
     <string name="dev_testset_share">Delen</string>
+    <string name="review_all_to">Alle kaarten naar:</string>
 </resources>

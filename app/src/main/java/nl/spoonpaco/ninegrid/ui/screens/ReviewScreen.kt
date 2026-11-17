@@ -180,6 +180,15 @@ fun ReviewScreen(vm: AppViewModel, onBack: () -> Unit, onSaved: (Long?) -> Unit)
                     Text(stringResource(R.string.take_summary, same, other, fresh), fontSize = NgText.body, color = extra.subtle)
                 }
             }
+            // Naar een deck: alle kaarten in één keer naar Deck of Sideboard (niet bij Commander: daar is alles Deck, behalve de commander zelf).
+            if (vm.destination != Destination.COLLECTION && !isCommander && items.count { it.print != null } > 1 &&
+                !(vm.destination == Destination.EXISTING_DECK && decks.firstOrNull { it.id == vm.targetDeckId }?.format == DeckFormat.COMMANDER)) item(key = "all_sections") {
+                Row(Modifier.padding(horizontal = 16.dp, vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text(stringResource(R.string.review_all_to), fontWeight = FontWeight.Bold)
+                    FilterChip(selected = false, onClick = { vm.setAllSections(Section.MAIN) }, label = { Text(sectionLabelPlain(Section.MAIN)) })
+                    FilterChip(selected = false, onClick = { vm.setAllSections(Section.SIDEBOARD) }, label = { Text(sectionLabelPlain(Section.SIDEBOARD)) })
+                }
+            }
             // Ontwikkelaar: foto en per vak wat gelezen is, te delen om een scanfout te laten nakijken.
             if (settings.devScanReport && vm.importSource == ImportSource.SCAN && vm.hasScanReport) item {
                 val context = androidx.compose.ui.platform.LocalContext.current

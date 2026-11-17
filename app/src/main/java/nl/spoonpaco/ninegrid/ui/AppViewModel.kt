@@ -246,7 +246,9 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         targetDeckId = scanDeckId
         val forcedSet = scanSet.trim().uppercase().ifBlank { null }
         // Komen de meeste kaarten uit één set, dan is dat de set voor de twijfelgevallen op dit blad.
-        val pageSet = if (single) forcedSet else forcedSet ?: nl.spoonpaco.ninegrid.domain.ScanParser.dominantSet(reads)
+        // Kaart voor kaart: de set van de vorige kaart is de aanname als de voetregel van deze geen set geeft.
+        val assumedSet = if (single && forcedSet == null && append) pending.lastOrNull { it.print != null }?.print?.setCode?.uppercase() else null
+        val pageSet = if (single) forcedSet ?: assumedSet else forcedSet ?: nl.spoonpaco.ninegrid.domain.ScanParser.dominantSet(reads)
         // Bij een blad altijd alle 9 vakken tonen, ook als er niets gelezen is: dan zie je dat er een kaart gemist is.
         val list = if (single) reads.take(1) else (1..9).map { slot -> reads.firstOrNull { it.slot == slot } ?: SlotRead(slot, null, null, null, emptyList()) }
         list.forEach { r ->
@@ -563,6 +565,14 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
             .joinToString(", ")
     }
 
+    /** Alle kaarten in één keer naar Deck of Sideboard (bij een deck als bestemming). Commander-kaarten blijven staan. */
+    fun setAllSections(section: String) {
+        pending.indices.forEach { i ->
+            val it = pending[i]
+            if (it.include && it.print != null && !it.proxy && it.section != Section.COMMANDER) pending[i] = it.copy(section = section)
+        }
+    }
+
     fun updatePending(item: PendingItem) {
         val idx = pending.indexOfFirst { it.key == item.key }
         if (idx >= 0) pending[idx] = item
@@ -803,6 +813,8 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun setBulkThreshold(v: Double) = viewModelScope.launch { settingsStore.setBulkThreshold(v) }
     fun setChartLines(v: List<String>) = viewModelScope.launch { settingsStore.setChartLines(v) }
     fun setChartMetric(v: String) = viewModelScope.launch { settingsStore.setChartMetric(v) }
+    fun setPieMode(v: Boolean) = viewModelScope.launch { settingsStore.setPieMode(v) }
+    fun setPieSplit(v: String) = viewModelScope.launch { settingsStore.setPieSplit(v) }
     fun setChartRange(v: String) = viewModelScope.launch { settingsStore.setChartRange(v) }
     fun setChartCount(v: Boolean) = viewModelScope.launch { settingsStore.setChartCount(v) }
     fun setScanMode(v: String) = viewModelScope.launch { settingsStore.setScanMode(v) }

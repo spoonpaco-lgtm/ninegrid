@@ -108,8 +108,8 @@ fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}, onSets: () ->
     val cur = settings.currency
     val extra = LocalNgExtra.current
     var choosing by remember { mutableStateOf(false) }
-    var pieMode by rememberSaveable { mutableStateOf(false) }
-    var pieSplit by rememberSaveable { mutableStateOf("set") }
+    val pieMode = settings.pieMode
+    val pieSplit = settings.pieSplit
 
     // Alleen opnieuw uitrekenen als de kaarten, decks of valuta veranderen.
     val sets = remember(all, cur) {
@@ -312,8 +312,8 @@ fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}, onSets: () ->
                     Text(stringResource(R.string.chart_title), fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(6.dp))
                     SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-                        SegmentedButton(selected = !pieMode, onClick = { pieMode = false }, shape = SegmentedButtonDefaults.itemShape(0, 2)) { Text(stringResource(R.string.chart_mode_line)) }
-                        SegmentedButton(selected = pieMode, onClick = { pieMode = true }, shape = SegmentedButtonDefaults.itemShape(1, 2)) { Text(stringResource(R.string.chart_mode_pie)) }
+                        SegmentedButton(selected = !pieMode, onClick = { vm.setPieMode(false) }, shape = SegmentedButtonDefaults.itemShape(0, 2)) { Text(stringResource(R.string.chart_mode_line)) }
+                        SegmentedButton(selected = pieMode, onClick = { vm.setPieMode(true) }, shape = SegmentedButtonDefaults.itemShape(1, 2)) { Text(stringResource(R.string.chart_mode_pie)) }
                     }
                     Spacer(Modifier.height(6.dp))
                     if (pieMode) {
@@ -337,7 +337,7 @@ fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}, onSets: () ->
                             else pieSlices(rawSlices, 6, stringResource(R.string.pie_other), extra.subtle)
                         Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.horizontalScroll(rememberScrollState())) {
                             listOf("set" to stringResource(R.string.chart_group_sets), "rarity" to stringResource(R.string.pie_split_rarity), "deck" to stringResource(R.string.decks)).forEach { (k, l) ->
-                                FilterChip(selected = pieSplit == k, onClick = { pieSplit = k }, label = { Text(l) })
+                                FilterChip(selected = pieSplit == k, onClick = { vm.setPieSplit(k) }, label = { Text(l) })
                             }
                             Spacer(Modifier.width(6.dp))
                             FilterChip(selected = !countMode, onClick = { vm.setChartMetric("value") }, label = { Text(stringResource(R.string.chart_value)) })

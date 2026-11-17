@@ -20,6 +20,11 @@ Verlanglijst
 - Elke regel zegt welke print hij toont (setnaam, set en nummer, de prijs van die print) of dat het elke print is. Dezelfde kaart in verschillende prints kon al als aparte regels; kies bij Verlanglijst toevoegen een print.
 - Een printwijziging in ✎ heb ik in de code nagelopen en zie geen fout; als het bij jou toch de oude print of prijs laat zien, graag precies wat je ziet.
 
+Kleine verbeteringen
+- Overzicht: de keuze Lijn of Taart en de splitsing (set, rarity, deck) blijven onthouden na het sluiten van de app.
+- Scannen, kaart voor kaart: geeft de voetregel van een kaart geen set, dan geldt de set van de vorige kaart als aanname (zoals een blad dat al deed). Staat er wel een set, of heb je er zelf een opgegeven, dan wint die.
+- Scannen of plakken naar een deck: bovenin het controlescherm Alle kaarten naar: Deck of Sideboard, in één tik. Commander-kaarten blijven staan; bij een Commander-deck is de knop er niet.
+
 Meldingen
 - Toestemming voor meldingen wordt gevraagd zodra je prijsstijging-, ban- of reprintmeldingen aanzet (Android 13 en hoger).
 

@@ -36,6 +36,8 @@ data class AppSettings(
     /** Grafiek: welke lijnen aan staan (sleutels zoals total, deck:3, set:MH1), waarde of aantal, en de periode. */
     val chartLines: List<String> = listOf("total"),
     val chartMetric: String = "value",
+    val pieMode: Boolean = false,
+    val pieSplit: String = "set",
     val chartRange: String = "3M",
     /** Grafiek: bij Waarde ook het aantal kaarten als tweede lijn (met een eigen as rechts). */
     val chartCount: Boolean = true,
@@ -151,6 +153,8 @@ class SettingsStore(private val context: Context) {
         val lastPriceUpdate = longPreferencesKey("last_price_update")
         val chartLines = stringPreferencesKey("chart_lines")
         val chartMetric = stringPreferencesKey("chart_metric")
+        val pieMode = booleanPreferencesKey("pie_mode")
+        val pieSplit = stringPreferencesKey("pie_split")
         val chartRange = stringPreferencesKey("chart_range")
         val chartCount = booleanPreferencesKey("chart_count")
         val scanMode = stringPreferencesKey("scan_mode")
@@ -250,6 +254,8 @@ class SettingsStore(private val context: Context) {
         lastPriceUpdate = this[K.lastPriceUpdate] ?: 0,
         chartLines = this[K.chartLines]?.split(",")?.filter { it.isNotBlank() } ?: listOf("total"),
         chartMetric = this[K.chartMetric] ?: "value",
+        pieMode = this[K.pieMode] ?: false,
+        pieSplit = this[K.pieSplit] ?: "set",
         chartRange = this[K.chartRange] ?: "3M",
         chartCount = this[K.chartCount] ?: true,
         scanMode = this[K.scanMode] ?: "page",
@@ -334,6 +340,8 @@ class SettingsStore(private val context: Context) {
     suspend fun setLastPriceUpdate(v: Long) = context.dataStore.edit { it[K.lastPriceUpdate] = v }
     suspend fun setChartLines(v: List<String>) = context.dataStore.edit { it[K.chartLines] = v.joinToString(",") }
     suspend fun setChartMetric(v: String) = context.dataStore.edit { it[K.chartMetric] = v }
+    suspend fun setPieMode(v: Boolean) = context.dataStore.edit { it[K.pieMode] = v }
+    suspend fun setPieSplit(v: String) = context.dataStore.edit { it[K.pieSplit] = v }
     suspend fun setChartRange(v: String) = context.dataStore.edit { it[K.chartRange] = v }
     suspend fun setChartCount(v: Boolean) = context.dataStore.edit { it[K.chartCount] = v }
     suspend fun setScanMode(v: String) = context.dataStore.edit { it[K.scanMode] = v }

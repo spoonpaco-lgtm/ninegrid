@@ -1140,4 +1140,5 @@
     <string name="dev_testset_explain">Choose a folder with test sheets (sub-folders with foto.jpg and uitslag.txt, like testset/ in the repo). The real scanner reads every photo and shows what is right and wrong. Takes a minute or two.</string>
     <string name="dev_testset_title">Test set result</string>
     <string name="dev_testset_share">Share</string>
+    <string name="review_all_to">All cards to:</string>
 </resources>
