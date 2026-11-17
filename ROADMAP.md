@@ -130,13 +130,13 @@ Scanrapport:
 Privacymodus: meer controle (Mick 17 nov):
 - **Wat verbergen** (Mick): Alles (zoals nu) | Alleen totalen (waarde van collectie, sets en decks, de grafiek, Winner of the Week, boosters) | Alleen kaartprijzen (per kaart en in lijsten; de totalen blijven zichtbaar). Stijl (compleated, zegel, schaduw, stippen) en vingerafdruk blijven zoals nu.
 - Technisch: nu is het één schakelaar en verbergen `money()` en `privacyMask()` in `ui/components/Privacy.kt` elk bedrag. Elke plek moet dus gaan zeggen of het een totaal of een kaartprijs is (bijvoorbeeld een soort bij `money()`), en alle schermen moeten worden nagelopen. Meldingen (`PriceWorker`) volgen dezelfde keuze.
-- Extra opties (voorstel, Mick kiest nog):
+- Extra opties (gekozen door Mick, 17 nov):
   - Grafiek in procenten: de lijn en de stijging of daling in % blijven zichtbaar, zonder bedragen op de as.
   - Ook aantallen verbergen (hoeveel kaarten je hebt, per set en in totaal).
-  - Automatisch weer aan: bij elke start van de app, en na de vingerafdruk weer verborgen na een paar minuten of zodra je de app verlaat.
-  - Geen schermafbeeldingen en een leeg plaatje in het overzicht van recente apps zolang de privacymodus aan staat (FLAG_SECURE).
-  - Meldingen: bedragen altijd verbergen op het vergrendelscherm, ook als de privacymodus uit staat.
+  - Meldingen zonder bedragen: een eigen schakelaar (aan/uit). Aan = bedragen in meldingen altijd verborgen op het vergrendelscherm, ook als de privacymodus uit staat.
   - Alleen dure kaarten verbergen: kaartprijzen boven een bedrag dat je zelf kiest.
+- Bewust niet (Mick, 17 nov): privacymodus automatisch weer aan (bij start of na een paar minuten), en schermafbeeldingen blokkeren (FLAG_SECURE).
+- Let op: bij "alleen kaartprijzen" zijn kaartprijzen terug te rekenen uit het totaal van een set of deck met weinig kaarten.
 
 ### 2. Kleine verbeteringen (nog geen versie)
 
