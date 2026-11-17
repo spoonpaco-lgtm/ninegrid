@@ -36,7 +36,11 @@ android {
         versionName = versionNameValue
         buildConfigField("String", "CODENAME", "\"$versionCodenameValue\"")
         vectorDrawables { useSupportLibrary = true }
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
+
+    // De testset (foto's en uitslagen) gaat als assets mee in de emulatortest, niet in de app.
+    sourceSets { getByName("androidTest") { assets.srcDir("../testset") } }
 
     // Ondertekening: de sleutel komt uit GitHub-geheimen (zie README).
     // Zonder sleutel wordt de release met de debug-sleutel ondertekend, zodat hij installeerbaar blijft.
@@ -120,4 +124,6 @@ dependencies {
     implementation("com.google.mlkit:text-recognition:16.0.1")
 
     testImplementation("junit:junit:4.13.2")
+    androidTestImplementation("androidx.test:runner:1.6.2")
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
 }
