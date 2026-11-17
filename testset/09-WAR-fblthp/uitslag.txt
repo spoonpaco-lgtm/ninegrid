@@ -1,10 +1,10 @@
-# Juiste uitslag, door Claude van de foto gelezen (alleen namen; nog door Mick te controleren)
-vak 1: Fblthp, the Lost
+# Juiste uitslag: namen door Claude van de foto gelezen; set en nummer overgenomen uit het scanrapport waar de app geen twijfel had (nog door Mick te controleren)
+vak 1: Fblthp, the Lost (WAR 50)
 vak 2: Lazotep Plating
 vak 3: Jace's Triumph
-vak 4: Planewide Celebration
+vak 4: Planewide Celebration (WAR 172)
 vak 5: Davriel, Rogue Shadowmage
-vak 6: Bleeding Edge
-vak 7: Vizier of the Scorpion
+vak 6: Bleeding Edge (WAR 78)
+vak 7: Vizier of the Scorpion (WAR 111)
 vak 8: Eternal Taskmaster
 vak 9: Liliana's Triumph

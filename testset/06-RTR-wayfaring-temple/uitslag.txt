@@ -1,10 +1,10 @@
-# Juiste uitslag, door Claude van de foto gelezen (alleen namen; nog door Mick te controleren)
+# Juiste uitslag: namen door Claude van de foto gelezen; set en nummer overgenomen uit het scanrapport waar de app geen twijfel had (nog door Mick te controleren)
 vak 1: Wayfaring Temple
-vak 2: Jarad's Orders
+vak 2: Jarad's Orders (RTR 175)
 vak 3: Havoc Festival
 vak 4: Risen Sanctuary
-vak 5: Izzet Staticaster
+vak 5: Izzet Staticaster (RTR 173)
 vak 6: Treasured Find
-vak 7: Golgari Keyrune
+vak 7: Golgari Keyrune (RTR 229)
 vak 8: Selesnya Keyrune
-vak 9: Tablet of the Guilds
+vak 9: Tablet of the Guilds (RTR 235)

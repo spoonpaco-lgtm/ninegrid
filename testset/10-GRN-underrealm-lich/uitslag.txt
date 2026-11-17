@@ -1,10 +1,10 @@
-# Juiste uitslag, door Claude van de foto gelezen (alleen namen; nog door Mick te controleren)
-vak 1: Underrealm Lich
-vak 2: Knight of Autumn
-vak 3: Wee Dragonauts
+# Juiste uitslag: namen door Claude van de foto gelezen; set en nummer overgenomen uit het scanrapport waar de app geen twijfel had (nog door Mick te controleren)
+vak 1: Underrealm Lich (GRN 211)
+vak 2: Knight of Autumn (GRN 183)
+vak 3: Wee Dragonauts (GRN 214)
 vak 4: Boros Challenger
-vak 5: Nightveil Predator
-vak 6: Silent Dart
+vak 5: Nightveil Predator (GRN 191)
+vak 6: Silent Dart (GRN 241)
 vak 7: Discovery // Dispersal
 vak 8: Integrity // Intervention
 vak 9: Flower // Flourish

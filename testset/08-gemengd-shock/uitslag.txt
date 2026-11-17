@@ -1,5 +1,5 @@
-# Juiste uitslag, door Claude van de foto gelezen (alleen namen; nog door Mick te controleren)
-vak 1: Shock
+# Juiste uitslag: namen door Claude van de foto gelezen; set en nummer overgenomen uit het scanrapport waar de app geen twijfel had (nog door Mick te controleren)
+vak 1: Shock (STA 44)
 vak 2: leeg
 vak 3: leeg
 vak 4: Deathbringer Regent

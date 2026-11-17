@@ -1,10 +1,10 @@
-# Juiste uitslag, door Claude van de foto gelezen (alleen namen; nog door Mick te controleren)
-vak 1: Mirrex
-vak 2: The Seedcore
+# Juiste uitslag: namen door Claude van de foto gelezen; set en nummer overgenomen uit het scanrapport waar de app geen twijfel had (nog door Mick te controleren)
+vak 1: Mirrex (ONE 254)
+vak 2: The Seedcore (ONE 259)
 vak 3: Razorverge Thicket
-vak 4: Seachrome Coast
-vak 5: Darkslick Shores
-vak 6: Copperline Gorge
+vak 4: Seachrome Coast (ONE 374)
+vak 5: Darkslick Shores (ONE 372)
+vak 6: Copperline Gorge (ONE 249)
 vak 7: leeg
 vak 8: Edgewall Inn
 vak 9: Restless Bivouac

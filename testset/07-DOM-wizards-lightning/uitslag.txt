@@ -1,10 +1,10 @@
-# Juiste uitslag, door Claude van de foto gelezen (alleen namen; nog door Mick te controleren)
-vak 1: Wizard's Lightning
-vak 2: Goblin Barrage
+# Juiste uitslag: namen door Claude van de foto gelezen; set en nummer overgenomen uit het scanrapport waar de app geen twijfel had (nog door Mick te controleren)
+vak 1: Wizard's Lightning (DOM 152)
+vak 2: Goblin Barrage (DOM 128)
 vak 3: leeg
-vak 4: Wild Onslaught
+vak 4: Wild Onslaught (DOM 188)
 vak 5: leeg
 vak 6: leeg
-vak 7: Oath of Teferi
+vak 7: Oath of Teferi (DOM 200)
 vak 8: Raff Capashen, Ship's Mage
 vak 9: leeg

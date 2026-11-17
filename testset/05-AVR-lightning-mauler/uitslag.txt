@@ -1,10 +1,10 @@
-# Juiste uitslag, door Claude van de foto gelezen (alleen namen; nog door Mick te controleren)
-vak 1: Lightning Mauler
-vak 2: Kessig Malcontents
-vak 3: Aggravate
-vak 4: Revenge of the Hunted
-vak 5: Champion of Lambholt
-vak 6: Gloomwidow
-vak 7: Rain of Thorns
+# Juiste uitslag: namen door Claude van de foto gelezen; set en nummer overgenomen uit het scanrapport waar de app geen twijfel had (nog door Mick te controleren)
+vak 1: Lightning Mauler (AVR 144)
+vak 2: Kessig Malcontents (AVR 142)
+vak 3: Aggravate (AVR 125)
+vak 4: Revenge of the Hunted (AVR 191)
+vak 5: Champion of Lambholt (AVR 171)
+vak 6: Gloomwidow (AVR 180)
+vak 7: Rain of Thorns (AVR 190)
 vak 8: Triumph of Ferocity
 vak 9: Vorstclaw
