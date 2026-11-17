@@ -90,6 +90,9 @@ Exporteren naar andere sites en apps (begin met de twee of drie sites die Mick e
 - Wat exporteren: alles, alleen losse kaarten, een binder of een set (zelfde keuze als het deelscherm); proxies standaard niet mee
 - Vóór het bouwen de actuele importformaten van elke site nakijken, niet uit het hoofd
 
+Ook in 0.9.11:
+- Meldingstoestemming (Android 13+) wordt nu alleen bij importeren gevraagd; ook vragen bij het aanzetten van bans en reprints.
+
 ### 1b. Scanner: testset en beter rapport (voorstel, wacht op startsein)
 
 Doel: de scanner meetbaar beter maken en oude fouten nooit laten terugkomen.
@@ -105,7 +108,6 @@ Doel: de scanner meetbaar beter maken en oude fouten nooit laten terugkomen.
 - Scannen, kaart voor kaart: 39a de set van de vorige kaart als aanname; 39c groene kaarten overslaan op het controlescherm (pas bouwen als de herkenning betrouwbaar is; wacht op een test op de telefoon).
 - Scannen naar een deck: één keuze Deck / Sideboard / Commander voor alle kaarten tegelijk.
 - Prijshistorie ophalen uit MTGJSON (tot 90 dagen terug): formaat en Cardmarket-waarde zijn nog niet nagekeken, en Mick heeft het nog niet bevestigd.
-- Meldingstoestemming (Android 13+) wordt nu alleen bij importeren gevraagd; ook vragen bij het aanzetten van bans en reprints.
 
 ### 3. Nog na te kijken op Micks telefoon
 
