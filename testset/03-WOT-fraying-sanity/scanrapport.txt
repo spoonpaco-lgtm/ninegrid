@@ -1,0 +1,91 @@
+NineGrid scanrapport
+versie: 0.9.8.2 · toestel: samsung SM-A165F
+soort: blad · galerij · foto 1530x2040
+scherpte: 3305.5 · dekking: 0.48 · lezen: 1852 ms · opnieuw gelezen: 8
+vakken met naam of nummer en set: 4 van 9
+
+vak 1: niet gevonden (Read: IITI1T111111TITTTIIT)
+  set=- nummer=- taal=- naam=-
+  > IITI1T111111TITTTIIT
+vak 2: niet gevonden (Card seen, but nothing read)
+  set=- nummer=- taal=- naam=-
+vak 3: niet gevonden (Read: ‘-eenenere’)
+  set=- nummer=- taal=- naam=-eenenere
+  > -eenenere
+  > Enchantment
+  > Creatures don't untap during their
+  > controllers' untap steps.
+  > Whenever a creature enters the battlefield,
+  > Creatures don't untap during their
+  > controllers' untap steps.
+  > Whenever a creature enters the battlefield,
+  > Creatures don't untap during their
+  > controllers' untap steps.
+  > Whenever a creature enters the battlefield,
+vak 4: niet gevonden (Read: Fraying Sanity)
+  set=- nummer=- taal=- naam=-
+  > Fraying Sanity
+vak 5: niet gevonden (Read: Compulsion)
+  set=- nummer=- taal=- naam=-
+  > Compulsion
+vak 6: niet gevonden (Read: ‘untap all creatures’)
+  set=- nummer=- taal=- naam=untap all creatures
+  andere namen: The dak forest lit up with a thousand eyes, | High Fae might be more than myth | -Beyond the Great Henge | W E Wands of the Ciaut
+  > untap all creatures.
+  > "The dak forest lit up with a thousand eyes,
+  > and for the first tinnd, Jurald considered that the
+  > High Fae might be more than myth."
+  > -Beyond the Great Henge
+  > W&E 2021Wands of the Ciaut
+  > R0vNIANCOVOVICH
+  > Compulsion
+  > untap all creatures.
+  > "The dark forest lit up toith a thousand eyves,
+  > and for the first time, Jurald considered that the
+  > High Fae might be more than mytd."
+vak 7: gevonden: Fraying Sanity (WOT 19)
+  set=- nummer=19 taal=- naam=-
+  andere namen: Enchantment - Aura Curse | Enchant player | At the begin | eoinning of each end step,
+  > Enchantment - Aura Curse
+  > Enchant player
+  > At the begin
+  > eoinning of each end step,
+  > where Xis
+  > the number of cards put into their graveyard
+  > from anywhere this tun.
+  > "I sato ny mind stretch like cloth on a loom,
+  > Warping, toisting tozvard a deathless doon."
+  > -A Traveler's Trials
+  > &e 02yWands ef the Coast
+  > R OO19
+  > NV TASPILANON
+vak 8: gevonden: Compulsion (WOT 15)
+  set=WOT nummer=15 taal= naam=-
+  andere namen: Enchantment | , Discard a card Draw a card | , Sacrifice Compulsion Drawv a card
+  > Enchantment
+  > 00, Discard a card: Draw a card.
+  > 00, Sacrifice Compulsion: Drawv a card.
+  > O nIy love, would that you could
+  > understand!
+  > Adventiure beckons; I must take its hand"
+  > "The Scholar G the Kight
+  > U 0015
+  > M&O 2023 Wiands of the Coast
+  > WOT-EN ALRON NG
+  > *EN AtRON NG
+vak 9: gevonden: Compulsion (WOT 15)
+  set=WOT nummer=15 taal= naam=-
+  andere namen: Enchantment | , Discard a card Draw a card
+  > Enchantment
+  > 00, Discard a card: Draw a card.
+  > 00, Sacrifice Compulsion: Draw a card.
+  > "O nny love, would that you could
+  > understand!
+  > Adventure beckons; I mmust take its hand."
+  > The Scholar & the Knight"
+  > M& 203)Wizards of the Coast
+  > wOTEN >ARON NG
+  > U 0015
+  > WOTENARON NG
+  > M&202}Wizards of the Coast
+  > L

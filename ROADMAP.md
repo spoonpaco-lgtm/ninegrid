@@ -97,7 +97,7 @@ Doel: de scanner meetbaar beter maken en oude fouten nooit laten terugkomen.
 - **Testset met foto's (ongeveer 20):** foto's in de repo, elk met een klein bestand met de juiste kaarten per vak ("jij maakte er" uit het rapport). Basis: de vier rapporten van 11 nov.
 - **Draaien op GitHub:** een aparte workflow met een emulator laat de echte scanner (ML Kit zit in de app, `text-recognition:16.0.1`) alle foto's lezen en toont per foto en vak wat goed of fout is. Duurt ongeveer 10 tot 15 minuten en de herkenning op een emulator kan afwijken van Micks Samsung.
 - **Draaien op de telefoon:** Ontwikkelaar → Testset draaien: de app leest de foto's uit een map op de telefoon en toont goed/fout per foto. Dit is de echte meting.
-- **Open:** de repo is publiek en kaartfoto's zijn Wizards-materiaal; kiezen tussen een paar foto's van eigen bladen, een privé-repo of een aparte map. Mick levert de foto's met de juiste uitslag.
+- **Waar:** de map `testset/` in de repo (Mick, 17 nov: in de repo, zodat ze altijd bij de hand zijn). Begin: 4 bladen van 11 nov, elk in een eigen map met `foto.jpg` en `scanrapport.txt` (zie `testset/README.md`). Per map moet nog een `uitslag.txt` komen met de juiste kaart per vak. De repo is publiek en kaartfoto's zijn Wizards-materiaal: alleen foto's van eigen bladen. Nieuwe bladen: foto en rapport in een nieuwe map `NN-set-kaart`. De foto's zijn verkleinde versies; originelen zijn beter.
 
 ### 2. Kleine verbeteringen (nog geen versie)
 

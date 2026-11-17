@@ -1,0 +1,154 @@
+NineGrid scanrapport
+versie: 0.9.8.2 · toestel: samsung SM-A165F
+soort: blad · galerij · foto 1530x2040
+scherpte: 9551.1 · dekking: 0.75 · lezen: 1671 ms · opnieuw gelezen: 5
+vakken met naam of nummer en set: 8 van 9
+
+vak 1: gevonden: Leyline of the Void (WOT 30)
+  set=WOT nummer=30 taal= naam=Leyline of the Void
+  > 2
+  > Leyline of the Void
+  > Enchantment
+  > If Leyline of the Void is in your opening hand,
+  > you may begin the game with it on the
+  > battlefield.
+  > If a card would be put into an opponent'
+  > graveyard from anywhere, exile it instead.
+  > Malevolent lights pulsed around her, whispering
+  > of riches in the dark. Szill she tvalked on."
+  > The Nameless Knight of Summer
+  > R 0030
+  > &o2023 Wizarts of the Cogst
+  > WOTEN >MATTEO MARORAM
+vak 2: gevonden: Polluted Bonds (WOT 34) [controleren]
+  set=WOT nummer=2023 taal= naam=Polluted Bonds
+  > Polluted Bonds
+  > Enchantment
+  > Whenever a land enters the battlefield
+  > under an opponent's
+  > player loses 2 life andtrol, that
+  > gain 2 life.
+  > cTuas the cruelest of ironies: the realm, in
+  > desperate need of rest, by endless
+  > sleep that offered no
+  > The Wicked Slumber
+  > RO034
+  > M&C2023 Wizards of the Coast
+  > WOTEN WILLIAM PuirER
+  > Polluted Bonds
+  > sleep that offered no comfort."
+  > -The Wicked Slumber
+  > RO034
+  > wOTENWLLUAM PuirER
+  > TH&C 2023 Wizards of the Coast
+vak 3: gevonden: Vampiric Rites (WOT 37)
+  set=WOT nummer=37 taal= naam=-
+  andere namen: Vampiric Rites
+  > Vampiric Rites
+  > Enchantment
+  > 00, Sacrifice a creature: You gain 1
+  > life and draw a card.
+  > "Should prying eyes observe the ritual,
+  > seize them for the cauldron, and soak
+  > the altar with the blood of the witness."
+  > The Witch's Way
+  > U 0037
+  > &2023 Wizards of the Coast
+  > WOTEN HARRY CONWAY
+  > Vampiric Rites
+  > the altar cvith the blood of the witness."
+  > -The Witch's Way
+  > U 0037
+  > WOT•EN HARRY CoNWAY
+  > H & 2023 Wizards of the Coast
+  > Vampiric Rites
+vak 4: gevonden: Stab Wound (RVR 93) [controleren]
+  set=MOT nummer=2023 taal= naam=Stab Wound
+  > Stab Wound
+  > Enchantment - Aura
+  > Enchant creature
+  > Enchanted creature gets -2/-2.
+  > At the beginning of the upkeep of enchanted
+  > creature's controller, that player loses 2 life.
+  > “What frst seemed like a ridiculous and vaguely
+  > demeaning task quickly turned into a vicious
+  > Struggle for survival."
+  > -Welcome to Sweettooth
+  > IM &c 2023 Wizards of the Coast
+  > MOTEN SHArER BROWN
+vak 5: gevonden: Dark Tutelage (WOT 28)
+  set=WOT nummer=28 taal= naam=Dark Tutelage
+  > Dark Tutelage
+  > 20
+  > Enchantment
+  > At the beginning of your upkeep, reveal the
+  > top card of your library and put that card
+  > into your hand. You lose life equal to its
+  > mana value.
+  > "Ours is a path of the outcast, of pain given and
+  > pain received. But for the strong, it is a path
+  > that leads to pouer unteihered fron fae riddles,"
+  > -The Witch's Way
+  > u 0028
+  > 1&2024Wirds of he Coast
+  > WOTEN AGAIL LARSON
+vak 6: niet gevonden (Card seen, but nothing read)
+  set=- nummer=- taal=- naam=-
+vak 7: gevonden: Sneak Attack (WOT 50) [controleren]
+  set=WOT nummer=- taal= naam=Sneak Áttack
+  > 3e
+  > Sneak Áttack
+  > Enchantment
+  > O: You may put a creature card from your
+  > hand onto the battlefield. That creature
+  > gains haste. Sacrifice the creature at the
+  > beginning of the next end step.
+  > Korlag carefully prepared to try the new 'am
+  > bush' strategy he d heard about.
+  > The Ogre's Revenge
+  > M O0So
+  > M& 202 3Wizards of tbe Coau
+  > WOTEN SHAIER BRoWN
+  > Sneak Attack
+  > 32
+vak 8: niet gevonden (Read: CAK 47 · ‘Raid Bombardment’)
+  set=CAK nummer=47 taal=ES naam=Raid Bombardment
+  > Raid Bombardment
+  > 2€
+  > Enchantment
+  > Whenever a creature you control with power
+  > r less attacks, Raid Bombardment deals
+  > l damage to the player or planeswalker that
+  > creature is attacking.
+  > "For slaying dosens of redeaps using only fruit
+  > and
+  > cakes, il
+  > tlhe Gluttoueers rcen srivors uere dubbed
+  > -Assault on Delverhaugh
+  > UM ~SHAILa BaowN
+  > &C2021Wiards of the Coast
+  > Raid Bombardmer
+  > U 0047
+  > Delverhaugh
+  > WOTEN SHAIER BRoWN
+  > &C2025Wizards of the Coast
+vak 9: gevonden: Impact Tremors (WOT 44) [controleren]
+  set=WOT nummer=4 taal= naam=-
+  andere namen: Impact Tremors
+  > Impact Tremors
+  > Enchantment
+  > Whenever a creature enters the battlefield
+  > under your control, Impact Tremors deals
+  > 1 damage to each opponent.
+  > "With tears in his smoke-scorched eyes, he
+  > 2Uatched the living flames consume the only
+  > home hed ever known."
+  > The Apprentice's Folly
+  > T&C023 Wiards of the Coa
+  > U 004MTIIO MARIoRAM
+  > WOT-EN
+  > Impact Tremor
+  > U 0044
+  > wOTEN MATTIO MARIORAN
+  > T&C2023 Wzards of the Coass
+  > Impact Tremor

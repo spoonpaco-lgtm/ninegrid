@@ -1,0 +1,164 @@
+NineGrid scanrapport
+versie: 0.9.8 · toestel: samsung SM-A165F
+soort: blad · galerij · foto 1530x2040
+scherpte: 5960.5 · dekking: 0.68 · lezen: 1520 ms · opnieuw gelezen: 3
+vakken met naam of nummer en set: 9 van 9
+
+vak 1: niet gevonden (Read: EATUR 23 · ‘Mondrak, Glory Dominus’)
+  set=EATUR nummer=23 taal=ES naam=Mondrak, Glory Dominus
+  > Mondrak, Glory Dominus
+  > Legendary Creature - Phyrexian Horror
+  > If one or more tokens would be created
+  > under your control, twice that many of
+  > those tokens are created instead.
+  > 1, Sacrifice two other artifacts
+  > eatures: : Put an indestructible
+  > and or creat
+  > counter on Mondrak, Glory Dominus.
+  > ( can be paid coith either * or 2 life.)
+  > 4/4
+  > CT IN A ENGLI
+  > &202Wiarh of the Cast
+  > Mondrak, Glory Dominus
+  > 2*3
+  > O can be pad toith Cit
+  > 023/271 M
+  > ONEENONA ENGLE
+  > 4/4
+  > 1& 2021Wanh of the Cost
+vak 2: gevonden: The Eternal Wanderer (ONE 422) [controleren]
+  set=ONE nummer=35 taal= naam=Th Eternal Wan rer
+  > Th Eternal Wan 2rer
+  > Legendary Planeswalker
+  > No more than one crenture can attack The Eternal
+  > Wanderer cach combat.
+  > Exile up to one target artifact or creature.
+  > +: Return that card to the battlefield under its
+  > o at the beginning of that player's
+  > next
+  > 0Create a 2/2 white Samurai creature token with
+  > double strike,
+  > For each player, choose a creature that player
+  > creatures
+  > pluscis way.
+  > thev co
+  > control ne chosen this
+  > 35
+  > ONEEN AKENTO MATSUURA Tw & 202Wizards of the Coast
+vak 3: gevonden: White Sun's Twilight (ONE 38)
+  set=ONE nummer=38 taal= naam=White Sun's Twilight
+  > White Sun's Twilight
+  > Sorcery
+  > You gain X life. Create X 1/1
+  > colorless Phyrexian Mite artifact
+  > creature tokens with toxic 1 and
+  > This creature can't block."IfX is 5
+  > or more, destroy all other creatures.
+  > (Players dealt combat damage by a
+  > creature with toxic 1 also get a poison
+  > COunter.)
+  > & 2023Wzards of the Coast
+  > 038/27IR
+  > ONEEN lULIAN Kox looN WEN
+vak 4: gevonden: Hexgold Hoverwings (ONE 14)
+  set=ONE nummer=14 taal= naam=Hexgold Hoverwings
+  > Hexgold Hoverwings
+  > 3
+  > Artifact
+  > Equipment
+  > For Mirrodin! (Vhen this Equipment
+  > enters the battlefield, create a 2/2 red Rebel
+  > creature token, then attach this to i.)
+  > Equipped creature has flying.
+  > Creatures you control that are
+  > equipped get +1/+0.
+  > Equip 2 *
+  > O14/271 U
+  > ge 023 Wards of the Coast
+  > ONE EN KAI CARPENTR
+vak 5: gevonden: Ossification (ONE 26)
+  set=ONE nummer=26 taal= naam=Ossification
+  > Ossification
+  > Enchantment
+  > Aura
+  > Enchant basic land you control
+  > When Ossification enters the battlefield,
+  > exile target creature or planeswalker an
+  > opponent controls until Ossification leaves
+  > the battlefield.
+  > Only Elesh Norn's most loyal servants are
+  > granted the honor of becoming part of her
+  > throne.
+  > IV&202)Wiands of the Coat
+  > 026/271 U
+  > ONE*EN NINO VrCIA
+vak 6: gevonden: Against All Odds (ONE 1)
+  set=ONE nummer=1 taal= naam=Against AII Odds
+  > Against AII Odds
+  > Sorcery
+  > Choose one or both
+  > Exile target artifact or creature
+  > you control, then return it to the
+  > battlefield under its owner's control.
+  > Return target artifact or Creature
+  > card with n
+  > mana value 3 or less from
+  > your graveyard to the battlefield.
+  > M&2023 Wards of the Coast
+  > o072RUDY SisWANTO
+  > Against Al Odds
+  > 3&
+  > your graveyard to the battlefield.
+  > 001/271 U
+  > ONE*EN>RUDY SiswANTO
+  > IM& 2023 Wzards of the Coast
+vak 7: gevonden: Apostle of Invasion (ONE 3)
+  set=- nummer=- taal=- naam=Apostle of Invasion
+  > Apostle of Invasion
+  > Creature- Phyrexian Angel
+  > Flying
+  > Corrupted As long as an opponent
+  > has three or more poison counters,
+  > Apostle of Invasion has double strike.
+  > "Be not afraid of the holy chorus. Join
+  > raptirous harmony.
+  > 4/4
+  > 7412021Wirards f the C
+  > Coast
+  > Apostle of Invasion
+  > aKELA BoLVAR
+  > 4/4
+  > 83023Wrarda f the Coast
+  > MILA BOLIAR
+  > 4/4
+  > &2023Wrarda f the Coast
+vak 8: gevonden: Infested Fleshcutter (ONE 17)
+  set=TOK nummer=17 taal= naam=Infested Fleshcutter
+  > (Infested Fleshcutter
+  > Artifact- Equipment
+  > Equipped creature gets +2/+0.
+  > Whenever equipped creature attacks,
+  > create a 1/1 colorless Phyrexian Mite
+  > artifact creature token wvith toxic 1 and
+  > "This creature can't block." (Players
+  > dealt combat damage by t also get a poison
+  > counter.)
+  > Equip 2 *
+  > O17/ 27 u
+  > M&2021Wwands ef the Coast
+  > ONE&EN los PABoD!
+vak 9: gevonden: Jawbone Duelist (ONE 18)
+  set=ONE nummer=18 taal= naam=Jawbone Duelist
+  > Jawbone Duelist
+  > Creature Phyrexian Soldier
+  > Double strike
+  > Toxic 1 (Players dealt combat damage
+  > by this creature also get a poson
+  > counter:)
+  > "I have room for a few more teeth in my
+  > collection. Who's next)"
+  > 1/1
+  > O18/271
+  > U
+  > ONE EN >NINo VECIA
+  > M&3023Wwards of the Coast
