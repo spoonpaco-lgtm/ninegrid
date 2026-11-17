@@ -24,11 +24,12 @@ internal suspend fun runTestset(ctx: Context, tree: Uri, knownSets: Set<String>,
             val file = dir.findFile(fname) ?: continue
             progress("${dir.name}/$fname")
             body.appendLine("\n== ${dir.name}/$fname")
-            val reads = runCatching {
+            val reads = try {
                 val bmp = loadPhoto(ctx, file.uri)
                 val first = readImage(bmp, null, false)
                 reread(bmp, first, false, knownSets).first.slots.associateBy { it.slot }
-            }.getOrElse { body.appendLine("fout: ${it.message}"); continue }
+            } catch (e: Exception) { body.appendLine("fout: ${e.message}"); null }
+            if (reads == null) continue
             var good = 0
             for ((slot, e) in expected.toSortedMap()) {
                 val r = reads[slot]
