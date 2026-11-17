@@ -1107,4 +1107,11 @@
     <string name="msg_print_changed">%1$d× moved to print %2$s</string>
     <string name="log_copy_added">Added %1$d× %2$s to %3$s</string>
     <string name="msg_copy_added">%1$d× %2$s added to %3$s</string>
+    <string name="crash_title">NineGrid stopped</string>
+    <string name="crash_body">NineGrid crashed last time. Do you want to share the crash report? It holds the version, your phone model and the error, but no cards or other data of yours. Nothing is sent unless you share it.</string>
+    <string name="crash_share">Share</string>
+    <string name="crash_not_now">Not now</string>
+    <string name="crash_share_last">Share last crash report</string>
+    <string name="crash_explain">Opens the share menu of Android. Only the version, phone model and error are in it.</string>
+    <string name="crash_none">There is no crash report: NineGrid has not crashed.</string>
 </resources>

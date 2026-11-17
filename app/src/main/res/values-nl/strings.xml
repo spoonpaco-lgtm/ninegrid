@@ -1106,4 +1106,11 @@
     <string name="msg_print_changed">%1$d× verhuisd naar print %2$s</string>
     <string name="log_copy_added">%1$d× %2$s toegevoegd aan %3$s</string>
     <string name="msg_copy_added">%1$d× %2$s toegevoegd aan %3$s</string>
+    <string name="crash_title">NineGrid is gestopt</string>
+    <string name="crash_body">NineGrid is de vorige keer gecrasht. Wil je het crashrapport delen? Er staan de versie, je toestel en de foutmelding in, maar geen kaarten of andere gegevens van jou. Er wordt niets verstuurd tenzij je het deelt.</string>
+    <string name="crash_share">Delen</string>
+    <string name="crash_not_now">Niet nu</string>
+    <string name="crash_share_last">Laatste crashrapport delen</string>
+    <string name="crash_explain">Opent het deelmenu van Android. Er staan alleen de versie, het toestel en de foutmelding in.</string>
+    <string name="crash_none">Er is geen crashrapport: NineGrid is niet gecrasht.</string>
 </resources>

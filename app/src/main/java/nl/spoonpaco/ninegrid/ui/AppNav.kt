@@ -295,6 +295,17 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
 
     if (vm.showWhatsNew) nl.spoonpaco.ninegrid.ui.guide.WhatsNewDialog(onChapter = { nav.navigate("guide/$it") }, onDismiss = { vm.closeWhatsNew() })
 
+    if (vm.crashPending) {
+        val ctx = androidx.compose.ui.platform.LocalContext.current
+        AlertDialog(
+            onDismissRequest = { vm.crashAsked() },
+            title = { Text(stringResource(R.string.crash_title)) },
+            text = { Text(stringResource(R.string.crash_body)) },
+            confirmButton = { TextButton(onClick = { nl.spoonpaco.ninegrid.data.CrashReport.share(ctx); vm.crashAsked() }) { Text(stringResource(R.string.crash_share)) } },
+            dismissButton = { TextButton(onClick = { vm.crashAsked() }) { Text(stringResource(R.string.crash_not_now)) } },
+        )
+    }
+
     if (askBackup) {
         AlertDialog(
             onDismissRequest = { askBackup = false; vm.setBackupAsked() },

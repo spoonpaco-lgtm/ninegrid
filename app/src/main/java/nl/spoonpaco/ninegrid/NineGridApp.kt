@@ -10,6 +10,7 @@ class NineGridApp : Application() {
     override fun onCreate() {
         super.onCreate()
         container = AppContainer(this)
+        nl.spoonpaco.ninegrid.data.CrashReport.install(this)
         // Elke dag de prijzen bijwerken op de achtergrond (alleen via wifi).
         nl.spoonpaco.ninegrid.data.PriceWorker.schedule(this)
         // Elke dag kijken of er een nieuwe versie is, en die (standaard via wifi) alvast downloaden.

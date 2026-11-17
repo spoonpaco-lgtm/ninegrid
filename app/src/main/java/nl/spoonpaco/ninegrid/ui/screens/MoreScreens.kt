@@ -311,6 +311,12 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit) {
                         Switch(checked = settings.devScanReport, onCheckedChange = { vm.setDevScanReport(it) })
                     }
                     Text(stringResource(R.string.dev_scan_report_explain), fontSize = NgText.body, color = LocalNgExtra.current.subtle)
+                    val crashCtx = androidx.compose.ui.platform.LocalContext.current
+                    val hasCrash = nl.spoonpaco.ninegrid.data.CrashReport.latest(crashCtx) != null
+                    OutlinedButton(onClick = { nl.spoonpaco.ninegrid.data.CrashReport.share(crashCtx) }, enabled = hasCrash, modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
+                        Text(stringResource(R.string.crash_share_last))
+                    }
+                    Text(stringResource(if (hasCrash) R.string.crash_explain else R.string.crash_none), fontSize = NgText.body, color = LocalNgExtra.current.subtle)
                 }
                 SettingsGroup.SCAN -> {
                     Text(stringResource(R.string.scanning), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)

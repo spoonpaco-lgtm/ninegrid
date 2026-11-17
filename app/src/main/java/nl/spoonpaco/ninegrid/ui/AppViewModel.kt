@@ -1121,6 +1121,10 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     /** "Wat is nieuw" tonen na een update (niet bij een nieuwe installatie). */
     var showWhatsNew by mutableStateOf(false)
+
+    /** Is NineGrid vorige keer gecrasht en is het rapport nog niet aangeboden? */
+    var crashPending by mutableStateOf(nl.spoonpaco.ninegrid.data.CrashReport.hasPending(app))
+    fun crashAsked() { nl.spoonpaco.ninegrid.data.CrashReport.markAsked(getApplication()); crashPending = false }
     fun checkWhatsNew() = viewModelScope.launch {
         val s = settingsStore.current()
         if (s.lastSeenVersion == BuildConfig.VERSION_NAME) return@launch
