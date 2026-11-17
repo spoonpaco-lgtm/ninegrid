@@ -242,7 +242,7 @@ fun CardDetailScreen(vm: AppViewModel, printId: String, onBack: () -> Unit, onFr
             }
 
             Spacer(Modifier.height(6.dp))
-            Text(stringResource(R.string.your_copies, copies.sumOf { it.entry.quantity }), fontWeight = FontWeight.Bold, fontSize = NgText.heading, modifier = Modifier.fillMaxWidth().padding(top = 4.dp))
+            Text(nl.spoonpaco.ninegrid.ui.components.maskCount(stringResource(R.string.your_copies, copies.sumOf { it.entry.quantity }), copies.sumOf { it.entry.quantity }), fontWeight = FontWeight.Bold, fontSize = NgText.heading, modifier = Modifier.fillMaxWidth().padding(top = 4.dp))
             copies.forEach { cp ->
                 val e = cp.entry
                 Card(colors = CardDefaults.cardColors(containerColor = extra.cardSurface), modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
@@ -262,7 +262,7 @@ fun CardDetailScreen(vm: AppViewModel, printId: String, onBack: () -> Unit, onFr
                         }
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             IconButton(onClick = { vm.updateEntry(e.copy(quantity = e.quantity - 1)) }) { Icon(Icons.Filled.Remove, stringResource(R.string.less)) }
-                            Text("${e.quantity}", fontWeight = FontWeight.Bold)
+                            Text(nl.spoonpaco.ninegrid.ui.components.countStr(e.quantity), fontWeight = FontWeight.Bold)
                             IconButton(onClick = { vm.updateEntry(e.copy(quantity = e.quantity + 1)) }) { Icon(Icons.Filled.Add, stringResource(R.string.more_one)) }
                             Spacer(Modifier.weight(1f))
                             val cmdDeck = decks.firstOrNull { it.id == e.deckId && it.format == nl.spoonpaco.ninegrid.data.db.DeckFormat.COMMANDER }

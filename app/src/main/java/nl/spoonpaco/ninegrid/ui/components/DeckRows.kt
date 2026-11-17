@@ -87,7 +87,7 @@ fun DeckCardRow(entry: Entry, print: CardPrint?, settings: AppSettings, images: 
         Column(Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    (if (entry.quantity > 1) "${entry.quantity}× " else "") + (print?.name ?: "?"),
+                    (if (entry.quantity > 1) "${countStr(entry.quantity)}× " else "") + (print?.name ?: "?"),
                     fontWeight = FontWeight.Bold, fontSize = 13.5.sp, maxLines = 1, overflow = TextOverflow.Ellipsis,
                     textDecoration = if (entry.proxy) TextDecoration.LineThrough else null,
                     color = if (entry.proxy) NgColors.Proxy else MaterialTheme.colorScheme.onSurface,
