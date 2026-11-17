@@ -219,7 +219,7 @@ fun CardDetailScreen(vm: AppViewModel, printId: String, onBack: () -> Unit, onFr
                         Column(Modifier.weight(1f)) {
                             Text(label, fontSize = NgText.body, color = extra.subtle)
                             Text(v?.let { nl.spoonpaco.ninegrid.ui.components.money(it, settings.currency) } ?: "–", fontSize = NgText.large, fontWeight = FontWeight.Bold,
-                                color = extra.price, modifier = nl.spoonpaco.ninegrid.ui.components.privacyMask())
+                                color = extra.price, modifier = nl.spoonpaco.ninegrid.ui.components.privacyMask(value = v))
                         }
                     }
                 }

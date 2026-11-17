@@ -102,10 +102,10 @@ fun cardsText(n: Int): String =
  * Over een bedrag: in de gekozen stijl een vlek (compleated), een zegel of rook in plaats van de tekst.
  * Bij stippen blijft de tekst (€ ••••) gewoon staan.
  */
-fun Modifier.privacyMask(kind: PrivacyKind = PrivacyKind.CARD): Modifier = composed {
+fun Modifier.privacyMask(kind: PrivacyKind = PrivacyKind.CARD, value: Double? = null): Modifier = composed {
     val p = LocalPrivacy.current
-    // Met een grens (alleen dure kaarten) zet money() zelf de stippen; een vlek over een zichtbare prijs zou fout zijn.
-    if (!p.hides(kind) || p.style == PrivacyStyle.DOTS || (kind == PrivacyKind.CARD && p.above > 0)) return@composed this
+    // Met een grens (alleen dure kaarten) hangt het af van de waarde: een goedkope kaart blijft zichtbaar, een dure krijgt de gekozen stijl.
+    if (!p.hides(kind, value) || p.style == PrivacyStyle.DOTS) return@composed this
     val effects = LocalEffects.current
     val wobble = if (effects && p.style != PrivacyStyle.SEAL) {
         rememberInfiniteTransition(label = "mask").animateFloat(0f, 1f, infiniteRepeatable(tween(4000, easing = LinearEasing), RepeatMode.Reverse), label = "w").value
@@ -283,4 +283,4 @@ fun PrivacyButton(vm: AppViewModel) {
 }
 
 /** Hetzelfde als Modifier.privacyMask(), te gebruiken zonder import. */
-fun privacyMask(kind: PrivacyKind = PrivacyKind.CARD): Modifier = Modifier.privacyMask(kind)
+fun privacyMask(kind: PrivacyKind = PrivacyKind.CARD, value: Double? = null): Modifier = Modifier.privacyMask(kind, value)

@@ -163,7 +163,7 @@ fun BoosterResultDialog(vm: AppViewModel) {
                             Text(p.name, fontWeight = FontWeight.Bold, fontSize = NgText.heading)
                             Text("${p.setCode.uppercase()} ${p.collectorNumber}", fontSize = NgText.body, color = extra.subtle)
                             Text(money(Money.unitPrice(Entry(printId = c.printId, finish = c.finish), p, cur), cur), fontSize = NgText.large, fontWeight = FontWeight.Bold,
-                                color = extra.price, modifier = privacyMask())
+                                color = extra.price, modifier = privacyMask(value = Money.unitPrice(Entry(printId = c.printId, finish = c.finish), p, cur)))
                         }
                     }
                 }

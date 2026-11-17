@@ -106,7 +106,7 @@ fun DeckCardRow(entry: Entry, print: CardPrint?, settings: AppSettings, images: 
         RowManaCost(print, size = 14)
         Spacer(Modifier.width(7.dp))
         Text(money(Money.total(entry, print, settings.currency), settings.currency), color = extra.price, fontWeight = FontWeight.Bold, fontSize = NgText.body,
-            maxLines = 1, textAlign = androidx.compose.ui.text.style.TextAlign.End, modifier = Modifier.widthIn(min = 52.dp).then(privacyMask()))
+            maxLines = 1, textAlign = androidx.compose.ui.text.style.TextAlign.End, modifier = Modifier.widthIn(min = 52.dp).then(privacyMask(value = Money.total(entry, print, settings.currency))))
     }
 }
 

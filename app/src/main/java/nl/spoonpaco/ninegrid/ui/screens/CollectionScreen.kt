@@ -399,7 +399,7 @@ private fun WishRow(
             Column(horizontalAlignment = Alignment.End) {
                 if (i.anyPrint && unit != null) Text(stringResource(R.string.wish_from_label), fontSize = NgText.caption, color = extra.subtle)
                 Text(if (i.anyPrint && unit != null) nl.spoonpaco.ninegrid.ui.components.money(unit, settings.currency) else priceText,
-                    color = extra.price, fontWeight = FontWeight.Bold, fontSize = NgText.emphasis, modifier = nl.spoonpaco.ninegrid.ui.components.privacyMask())
+                    color = extra.price, fontWeight = FontWeight.Bold, fontSize = NgText.emphasis, modifier = nl.spoonpaco.ninegrid.ui.components.privacyMask(value = unit))
             }
             Spacer(Modifier.width(6.dp))
             // Eén minder (alleen bij meer dan één), dan Bewerken en Gekocht: klein, zodat de naam ruimte houdt.
