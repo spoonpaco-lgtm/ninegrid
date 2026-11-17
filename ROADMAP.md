@@ -97,7 +97,7 @@ Dit is "de lijst": wat Mick wil dat NineGrid nog krijgt. Een nieuw gesprek begin
 ### 0.9.9.2 – nog na te kijken op Micks telefoon
 
 - Scannen van één kaart: fotootje (plaatje van de gevonden kaart) met rand groen/oranje/blauw ★; tik = +1, kruisje = weg; bij plaatjes uit blijft het chipje met de naam.
-- Kader past tussen de gemeten balken: geen lijn meer dwars door het kader, bij Blad en bij 1 kaart. Het kader is bij 1 kaart iets kleiner geworden.
+- ✓ Kader past tussen de gemeten balken: geen lijn meer dwars door het kader, bij Blad en bij 1 kaart. Het kader is bij 1 kaart iets kleiner geworden. Nagekeken door Mick, werkt.
 - ✓ Controleer-knop onder Opslaan is volledig zichtbaar: nagekeken door Mick, werkt.
 - Nog te doen: bij Prijsverloop (kaartscherm) dichtgeklapt "Verschijnt na een week"; taartkeuze onthouden.
 
