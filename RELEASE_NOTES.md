@@ -1,3 +1,27 @@
+NineGrid 0.9.11 – Tezzeret
+
+Tezzeret, de uitvinder die alles met alles verbindt: een versie om je lijsten de deur uit te krijgen en om crashes en scanfouten beter te kunnen zien. Gebouwd en getest met unittests; nog niet op een echte telefoon geprobeerd.
+
+Exporteren (3 sites)
+- Deck → ⋮ → Exporteren naar een site…: Moxfield, Archidekt of Cardmarket. De lijst wordt gekopieerd en de site opent; plakken in het importvak. Moxfield en Archidekt krijgen "aantal Naam (SET) nummer" met *F* of *E*. Cardmarket krijgt "aantal Naam (Setnaam)": hun lijst kent geen nummer, foil of taal.
+- Meer → Back-up en export → Collectie voor Moxfield (CSV): kolommen zoals Moxfield zelf exporteert (Count, Tradelist Count, Name, Edition, Condition, Language, Foil, Tags, Last Modified, Collector Number, Alter, Proxy, Purchase Price). Kaarten in decks staan er als losse regels in. Alles staat als Near Mint.
+- Verlanglijst → Kopieer voor Cardmarket: wat je nog mist, bij een gekozen print met setnaam. Cardmarket neemt maximaal 150 regels per lijst.
+- De formaten zijn opgezocht bij Moxfield, Archidekt en Cardmarket. Foil en etched via *F* en *E* is de gangbare schrijfwijze, maar niet bij elke site officieel gedocumenteerd: even nakijken na je eerste import.
+
+Deck delen via QR
+- Deck → ⋮ → Delen via QR-code. Op de andere telefoon: Decks → scan-icoon. Het deck komt in het controlescherm, net als een geplakte lijst.
+- De code bevat de decklijst, ingepakt. Een commanderdeck van 100 kaarten past in één code; een veel langere lijst komt in delen, in willekeurige volgorde te scannen. Er gaat niets over internet.
+
+Crashrapport
+- NineGrid bewaart bij een crash een klein rapport (versie, toestel, Android, foutmelding; geen kaarten). Bij de volgende start vraag je of je het wilt delen; het deelmenu van Android doet de rest. Ook te vinden onder Instellingen → Ontwikkelaar → Laatste crashrapport delen.
+
+Meldingen
+- Toestemming voor meldingen wordt gevraagd zodra je prijsstijging-, ban- of reprintmeldingen aanzet (Android 13 en hoger).
+
+Scanner: testset en beter rapport
+- Het scanrapport noemt per vak ook wat de app eerst dacht ("app dacht eerst: …"), naast wat het werd na jouw correcties.
+- testset/ in de repo heeft vier bladen met foto, scanrapport en uitslag.txt (de juiste kaart per vak). Op GitHub draait Actions → Scanner-testset de scanner op een emulator over die foto's en zet de uitslag in de samenvatting. Alleen op verzoek; de gewone bouw en release blijven ongemoeid. De emulator kan andere uitslagen geven dan de Samsung.
+
 NineGrid 0.9.10.1 – Dovin
 
 Menu opgeruimd

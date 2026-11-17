@@ -2,7 +2,7 @@
 
 *Nederlands: [FEATURES.nl.md](FEATURES.nl.md)*
 
-Current version: **0.9.10.1 – Dovin**. Every version is named after a planeswalker.
+Current version: **0.9.11 – Tezzeret**. Every version is named after a planeswalker.
 
 ## What makes NineGrid different
 
@@ -70,6 +70,8 @@ Current version: **0.9.10.1 – Dovin**. Every version is named after a planeswa
 
 ## Share and trade
 - **Share your collection as a small file** (WhatsApp, e-mail …) under your own name; choose everything, the loose collection, binders, sets or decks. No prices and no proxies are sent.
+- **Share a deck by QR code**: the other phone scans it and gets the deck in the review screen; a commander deck fits in one code, nothing goes over the internet.
+- **Export to Moxfield, Archidekt and Cardmarket**: a deck as a list in the site's own format (copied, site opens), the collection as a Moxfield CSV, the wishlist as a Cardmarket list.
 - **Collections of others** per person, view only. Sending again replaces the old version. Also exports from other apps, for friends without NineGrid.
 - **Trade match**: which of their cards improve your decks and the other way round, with prices; tick cards to see whether a trade is about even. Wishlists come along: what the other has from your wishlist is at the top.
 - Trading is visible everywhere: a **Trade** block on Overview, **At friends** in deck suggestions, **Also at: Jan ×2** on the card screen.
@@ -97,7 +99,6 @@ Plans, not promises. See the release notes for what actually shipped.
 
 **1.0**
 - Google Sheet sync
-- Share a deck by QR code
 
 ## Privacy
 No account, no tracking, no ads. Card names and numbers go to Scryfall; deck card names go to Commander Spellbook when you search for combos. Photos stay on the phone, unless you turn on AI help: then only the crop of a doubtful slot goes to the AI service you chose.

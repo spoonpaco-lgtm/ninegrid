@@ -28,11 +28,19 @@ object WhatsNew {
     fun items(dutch: Boolean): List<Item> = if (dutch) NL else EN
 
     private val NL = listOf(
-        Item("Menu opgeruimd: Meer heeft nu blokken. Back-up en export (met Alles wissen onderaan in het rood) staat op Meer naast Importeren. Over NineGrid is één plek geworden, met versie, updates en Wat is nieuw. Instellingen is verdeeld in Weergave, Taal en regio, Privacy, Scannen, Kaartgegevens, Collectie, AI-hulp en Ontwikkelaar.", "settings"),
+        Item("Exporteren: een deck naar Moxfield, Archidekt of Cardmarket (⋮ → Exporteren naar een site…), de hele collectie als Moxfield-CSV (Meer → Back-up en export) en je verlanglijst als Cardmarket-lijst. De formaten zijn nagekeken bij de sites zelf.", "decks"),
+        Item("Deck delen via QR-code: ⋮ → Delen via QR-code in een deck, en op Decks het scan-icoon om er een te ontvangen. Past een commanderdeck in één code.", "decks"),
+        Item("Gecrasht? Bij de volgende start vraagt NineGrid of je het crashrapport wilt delen (versie, toestel en foutmelding, geen kaarten). Je kiest zelf of het verstuurd wordt.", "settings"),
+        Item("Meldingen: toestemming wordt gevraagd zodra je prijsstijging-, ban- of reprintmeldingen aanzet.", "settings"),
+        Item("Scanrapport (Ontwikkelaar) noemt nu ook wat de app eerst dacht, naast wat jij ervan maakte. Er staat een testset van scanbladen in de repo en een emulatortest op GitHub.", "settings"),
     )
 
     private val EN = listOf(
-        Item("Menu tidied up: More now has sections. Backup and export (with Erase everything in red at the bottom) lives on More next to Import. About NineGrid is now one place, with version, updates and What's new. Settings is split into View, Language and region, Privacy, Scanning, Card data, Collection, AI help and Developer.", "settings"),
+        Item("Export: a deck to Moxfield, Archidekt or Cardmarket (⋮ → Export to a site…), the whole collection as a Moxfield CSV (More → Backup and export) and your wishlist as a Cardmarket list. The formats were checked at the sites themselves.", "decks"),
+        Item("Share a deck by QR code: ⋮ → Share via QR code in a deck, and the scan icon on Decks to receive one. A commander deck fits in one code.", "decks"),
+        Item("Crashed? On the next start NineGrid asks whether you want to share the crash report (version, phone and error message, no cards). You decide whether it is sent.", "settings"),
+        Item("Notifications: permission is asked as soon as you turn on price rise, ban or reprint alerts.", "settings"),
+        Item("The scan report (Developer) now also shows what the app first thought, next to what you made of it. A test set of scan sheets is in the repo, with an emulator test on GitHub.", "settings"),
     )
 }
 

@@ -2,7 +2,7 @@
 
 *English: [FEATURES.md](FEATURES.md)*
 
-Huidige versie: **0.9.10.1 – Dovin**. Elke versie heeft de naam van een planeswalker.
+Huidige versie: **0.9.11 – Tezzeret**. Elke versie heeft de naam van een planeswalker.
 
 ## Wat NineGrid anders maakt
 
@@ -70,6 +70,8 @@ Huidige versie: **0.9.10.1 – Dovin**. Elke versie heeft de naam van een planes
 
 ## Delen en ruilen
 - **Je collectie delen als klein bestand** (WhatsApp, e-mail …) onder je eigen naam; kies alles, de losse collectie, binders, sets of decks. Prijzen en proxies gaan niet mee.
+- **Een deck delen via een QR-code**: de andere telefoon scant hem en krijgt het deck in het controlescherm; een commanderdeck past in één code, er gaat niets over internet.
+- **Exporteren naar Moxfield, Archidekt en Cardmarket**: een deck als lijst in het formaat van de site zelf (gekopieerd, de site opent), de collectie als Moxfield-CSV, de verlanglijst als Cardmarket-lijst.
 - **Collecties van anderen** per persoon, alleen bekijken. Opnieuw sturen vervangt de oude versie. Ook exports uit andere apps, voor vrienden zonder NineGrid.
 - **Ruilmatch**: welke kaarten van de ander jouw decks beter maken en andersom, met prijzen; vink aan en zie of een ruil ongeveer gelijk is. Verlanglijsten gaan mee: wat de ander van jouw verlanglijst heeft staat bovenaan.
 - Ruilen is overal te zien: blok **Ruilen** op Overzicht, **Bij vrienden** in decksuggesties, **Ook bij: Jan ×2** op het kaartscherm.
@@ -97,7 +99,6 @@ Plannen, geen beloftes. Wat echt in een versie zit, staat in de release notes.
 
 **1.0**
 - Koppeling met Google Sheets
-- Een deck delen via een QR-code
 
 ## Privacy
 Geen account, geen tracking, geen advertenties. Kaartnamen en nummers gaan naar Scryfall; kaartnamen van een deck gaan naar Commander Spellbook als je combo's zoekt. Foto's blijven op je telefoon, tenzij je AI-hulp aanzet: dan gaat alleen de uitsnede van een twijfelvak naar de AI-dienst die je koos.

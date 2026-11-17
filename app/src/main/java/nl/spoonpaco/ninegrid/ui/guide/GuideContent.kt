@@ -264,7 +264,10 @@ object Guide {
             )),
             Tip("De uitkomst blijft bewaard tot je het deck verandert; dan zoek je opnieuw."),
             H("Delen en exporteren"),
-            P("Met het deel-icoon stuur je de lijst naar WhatsApp, mail of Moxfield. Via ⋮ → Exporteren als tekst sla je hem op als bestand."),
+            P("Met het deel-icoon stuur je de lijst naar WhatsApp of mail. Via ⋮ → Exporteren als tekst sla je hem op als bestand."),
+            P("Via ⋮ → Exporteren naar een site… kies je Moxfield, Archidekt of Cardmarket. NineGrid kopieert de lijst in het formaat van die site en opent hem; jij plakt hem daar in het importvak. Moxfield en Archidekt krijgen set, nummer en foil of etched. Cardmarket krijgt alleen naam en setnaam: foil en taal zitten niet in hun lijst."),
+            H("Deck delen via QR-code"),
+            P("⋮ → Delen via QR-code laat het deck als QR-code zien. Op de andere telefoon tik je op Decks op het scan-icoon rechtsboven en richt je de camera erop. Het deck komt in het controlescherm, net als een geplakte lijst. Een commanderdeck past in één code; is een lijst te lang, dan zijn het er meer: scan ze allemaal, in willekeurige volgorde. Er gaat niets over internet."),
         )),
         Chapter("overview", "Overzicht en prijzen", "Wat de cijfers betekenen en waar de prijzen vandaan komen.", listOf(
             P("Bovenaan staat de Totale waarde collectie met het aantal kaarten en het verschil met ongeveer een maand geleden. Daaronder Winner of the Week, de grafiek, de balk Waarde per rarity, één regel Sets en per deck de waarde."),
@@ -356,7 +359,8 @@ object Guide {
             P("Onder Meer → Back-up en export, onderaan bij Alles wissen (in het rood) kies je wat je wist: collectie, decks, historie, wijzigingslog en plaatjes. Eerst wordt er een back-up gemaakt, en je bevestigt door WISSEN te typen. Laat je het wijzigingslog staan, dan maak je het met één tik ongedaan."),
             P("Kies je bovenaan Alles (fabrieksinstellingen), dan gaat ook de rest weg: verlanglijst, boosters, vrienden, instellingen en de AI-sleutel. De offline kaartdatabase kun je bewaren. Daarna start de app opnieuw als nieuw; je back-up zet je terug via Meer → Back-up."),
             H("Exporteren"),
-            P("Collectie exporteren (CSV) maakt een bestand dat je in Google Sheets of Excel kunt openen."),
+            P("Collectie exporteren (CSV) maakt een bestand dat je in Google Sheets of Excel kunt openen. Collectie voor Moxfield (CSV) maakt een bestand voor Moxfield → Collection → Import, met set, nummer, taal, foil en proxy; kaarten in decks staan er als losse regels in."),
+            P("In Collectie → Verlanglijst staat Kopieer voor Cardmarket: wat je nog mist, als lijst voor een Cardmarket-verlanglijst (maximaal 150 regels per lijst)."),
         )),
         Chapter("settings", "Instellingen", "Acht groepen, elk met hoe het nu staat.", listOf(
             P("Meer → Instellingen opent een overzicht met acht groepen (Weergave, Taal en regio, Privacy, Scannen, Kaartgegevens, Collectie, AI-hulp, Ontwikkelaar). Back-up en export staat apart op Meer. Onder elke groep staat in één regel hoe het nu staat; tik erop om hem te openen. Terug brengt je naar het overzicht. Het ? rechtsboven opent het hoofdstuk dat bij die groep hoort."),
@@ -620,7 +624,10 @@ object Guide {
             )),
             Tip("The result is kept until you change the deck; then search again."),
             H("Sharing and exporting"),
-            P("The share icon sends the list to WhatsApp, mail or Moxfield. Via ⋮ → Export as text you save it as a file."),
+            P("The share icon sends the list to WhatsApp or mail. Via ⋮ → Export as text you save it as a file."),
+            P("Via ⋮ → Export to a site… you choose Moxfield, Archidekt or Cardmarket. NineGrid copies the list in that site's format and opens the site; you paste it in the import box. Moxfield and Archidekt get set, number and foil or etched. Cardmarket gets only name and set name: foil and language are not part of its list."),
+            H("Share a deck by QR code"),
+            P("⋮ → Share via QR code shows the deck as a QR code. On the other phone, tap the scan icon at the top right of Decks and point the camera at it. The deck opens in the review screen, like a pasted list. A commander deck fits in one code; a very long list needs more, then scan them all, in any order. Nothing goes over the internet."),
         )),
         Chapter("overview", "Overview and prices", "What the numbers mean and where prices come from.", listOf(
             P("At the top is the Total value collection with the number of cards and the change since about a month ago. Below are Winner of the Week, the chart, the Value per rarity bar, one Sets line and the value per deck."),
@@ -712,7 +719,8 @@ object Guide {
             P("Under More → Backup and export, at the bottom under Erase everything (in red) you choose what to erase: collection, decks, history, change log and images. A backup is made first, and you confirm by typing ERASE. If you keep the change log, one tap undoes it."),
             P("Choose Everything (factory reset) at the top and the rest goes too: wishlist, boosters, friends, settings and the AI key. You can keep the offline card database. The app then restarts as new; restore your backup under More → Backup."),
             H("Exporting"),
-            P("Export collection (CSV) creates a file you can open in Google Sheets or Excel."),
+            P("Export collection (CSV) creates a file you can open in Google Sheets or Excel. Collection for Moxfield (CSV) creates a file for Moxfield → Collection → Import, with set, number, language, foil and proxy; cards in decks are separate rows."),
+            P("On Collection → Wishlist, Copy for Cardmarket gives what you still miss as a list for a Cardmarket wants list (at most 150 lines per list)."),
         )),
         Chapter("settings", "Settings", "Eight groups, each showing how it is set now.", listOf(
             P("More → Settings opens an overview with eight groups (View, Language and region, Privacy, Scanning, Card data, Collection, AI help, Developer). Backup and export lives separately on More. Under each group one line shows how it is set now; tap it to open it. Back returns to the overview. The ? at the top right opens the chapter for that group."),
