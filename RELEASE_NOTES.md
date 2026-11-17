@@ -22,7 +22,6 @@ Verlanglijst
 
 Kleine verbeteringen
 - Overzicht: de keuze Lijn of Taart en de splitsing (set, rarity, deck) blijven onthouden na het sluiten van de app.
-- Scannen, kaart voor kaart: geeft de voetregel van een kaart geen set, dan geldt de set van de vorige kaart als aanname (zoals een blad dat al deed). Staat er wel een set, of heb je er zelf een opgegeven, dan wint die.
 - Scannen of plakken naar een deck: bovenin het controlescherm Alle kaarten naar: Deck of Sideboard, in één tik. Commander-kaarten blijven staan; bij een Commander-deck is de knop er niet.
 
 Meldingen

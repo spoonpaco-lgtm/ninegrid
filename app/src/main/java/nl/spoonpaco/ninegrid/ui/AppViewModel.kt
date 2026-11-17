@@ -246,9 +246,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         targetDeckId = scanDeckId
         val forcedSet = scanSet.trim().uppercase().ifBlank { null }
         // Komen de meeste kaarten uit één set, dan is dat de set voor de twijfelgevallen op dit blad.
-        // Kaart voor kaart: de set van de vorige kaart is de aanname als de voetregel van deze geen set geeft.
-        val assumedSet = if (single && forcedSet == null && append) pending.lastOrNull { it.print != null }?.print?.setCode?.uppercase() else null
-        val pageSet = if (single) forcedSet ?: assumedSet else forcedSet ?: nl.spoonpaco.ninegrid.domain.ScanParser.dominantSet(reads)
+        val pageSet = if (single) forcedSet else forcedSet ?: nl.spoonpaco.ninegrid.domain.ScanParser.dominantSet(reads)
         // Bij een blad altijd alle 9 vakken tonen, ook als er niets gelezen is: dan zie je dat er een kaart gemist is.
         val list = if (single) reads.take(1) else (1..9).map { slot -> reads.firstOrNull { it.slot == slot } ?: SlotRead(slot, null, null, null, emptyList()) }
         list.forEach { r ->

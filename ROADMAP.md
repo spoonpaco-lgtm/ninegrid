@@ -91,7 +91,7 @@ Exporteren naar andere sites en apps (begin met de twee of drie sites die Mick e
 - Vóór het bouwen de actuele importformaten van elke site nakijken, niet uit het hoofd
 
 Ook in 0.9.11:
-- Kleine verbeteringen (17 nov): Lijn/Taart en splitsing onthouden; 39a set van de vorige kaart als aanname bij kaart voor kaart; Alle kaarten naar Deck of Sideboard bij een deck (bij Commander niet; daar is de commander zelf de uitzondering).
+- Kleine verbeteringen (17 nov): Lijn/Taart en splitsing onthouden; Alle kaarten naar Deck of Sideboard bij een deck (bij Commander niet; daar is de commander zelf de uitzondering).
 - Verlanglijst: −1 en swipe-verwijderen met terugzetten, elke regel zegt welke print (17 nov, op Micks verzoek in 0.9.11 gebouwd). Open: Mick zag na een printwijziging niet de juiste print of prijs; in de code niet te vinden, eerst vragen wat hij precies ziet.
 - Scanrapport met instellingen (set, lamp, automatisch afdrukken, AI-hulp, offline database, taal).
 - Meldingstoestemming (Android 13+) wordt nu alleen bij importeren gevraagd; ook vragen bij het aanzetten van bans en reprints.
@@ -121,7 +121,7 @@ Deck delen via QR-code (was Route D in Fase 2; Mick 17 nov: in 0.9.11):
 
 ### 2. Kleine verbeteringen (nog geen versie)
 
-- Scannen, kaart voor kaart: 39c groene kaarten overslaan op het controlescherm (pas bouwen als de herkenning betrouwbaar is; wacht op een test op de telefoon).
+- Scannen, kaart voor kaart: 39a (set van de vorige kaart als aanname) is door Mick afgewezen, 17 nov: scannen wordt er trager van; een set telt alleen als de gebruiker hem zelf opgeeft. 39c groene kaarten overslaan op het controlescherm (pas bouwen als de herkenning betrouwbaar is; wacht op een test op de telefoon).
 - Prijshistorie ophalen uit MTGJSON (tot 90 dagen terug): formaat en Cardmarket-waarde zijn nog niet nagekeken, en Mick heeft het nog niet bevestigd.
 
 ### 3. Nog na te kijken op Micks telefoon
