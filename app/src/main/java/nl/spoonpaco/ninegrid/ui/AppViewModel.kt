@@ -448,6 +448,8 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                 }
             }
             if (pending.none { it.status == ItemStatus.WAITING }) clearSavedPending()
+            // Voor het scanrapport: wat de app er zelf van maakte, vóór AI-hulp en vóór correcties van de gebruiker.
+            if (scan) firstGuess = pending.filter { it.slot != null }.associate { it.slot!! to scanOutcome(it) }
             // AI-hulp bij twijfel (als aan): de oranje en niet gevonden vakjes van deze scan.
             if (scan) aiAssist(todo.mapNotNull { t -> pending.firstOrNull { it.key == t.key } })
             // Losse kaarten: dezelfde kaart nog eens = één erbij in plaats van een nieuwe regel.
@@ -814,11 +816,13 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     var lastScanReads by mutableStateOf<List<SlotRead>>(emptyList()); private set
     private var lastScanMeta: nl.spoonpaco.ninegrid.domain.ScanMeta? = null
     private var lastScanPhoto: ByteArray? = null
+    private var firstGuess: Map<Int, String> = emptyMap()
 
     /** Onthoudt de foto (verkleind) en wat er gelezen is, zodat het rapport erna gedeeld kan worden. */
     fun recordScan(bmp: android.graphics.Bitmap, reads: List<SlotRead>, meta: nl.spoonpaco.ninegrid.domain.ScanMeta) {
         lastScanReads = reads
         lastScanMeta = meta
+        firstGuess = emptyMap()
         lastScanPhoto = runCatching {
             val maxSide = 2000
             val f = minOf(1f, maxSide.toFloat() / maxOf(bmp.width, bmp.height))
@@ -836,7 +840,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         val stamp = java.text.SimpleDateFormat("yyyyMMdd-HHmmss", java.util.Locale.US).format(java.util.Date())
         dir.mkdirs()
         dir.listFiles()?.filter { it.name.startsWith("scanrapport-") }?.forEach { it.delete() }
-        val txt = java.io.File(dir, "scanrapport-$stamp.txt").also { it.writeText(nl.spoonpaco.ninegrid.domain.ScanReport.build(meta, lastScanReads, outcomes)) }
+        val txt = java.io.File(dir, "scanrapport-$stamp.txt").also { it.writeText(nl.spoonpaco.ninegrid.domain.ScanReport.build(meta, lastScanReads, outcomes, firstGuess)) }
         val jpg = lastScanPhoto?.let { b -> java.io.File(dir, "scanrapport-$stamp.jpg").also { it.writeBytes(b) } }
         return listOfNotNull(txt, jpg)
     }

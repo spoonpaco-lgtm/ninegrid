@@ -771,6 +771,24 @@ class ParserTest {
         assertTrue(text.contains("1 van 2"))
     }
 
+    /** Is een vak gecorrigeerd, dan noemt het rapport ook wat de app er eerst van maakte. */
+    @Test
+    fun scanReportShowsFirstGuess() {
+        val reads = listOf(
+            nl.spoonpaco.ninegrid.domain.SlotRead(1, "ONE", "23", "ES", listOf("Mondrak, Glory Dominus"), "Mondrak, Glory Dominus"),
+            nl.spoonpaco.ninegrid.domain.SlotRead(2, "ONE", "38", "EN", listOf("White Sun's Twilight"), "White Sun's Twilight"),
+        )
+        val meta = nl.spoonpaco.ninegrid.domain.ScanMeta("0.9.11", false, false, 10.0, 0.7f, 1000, 0, 1530, 2040, "T")
+        val text = nl.spoonpaco.ninegrid.domain.ScanReport.build(
+            meta, reads,
+            mapOf(1 to "gevonden: Mondrak, Glory Dominus (ONE 23)", 2 to "gevonden: White Sun's Twilight (ONE 38)"),
+            mapOf(1 to "niet gevonden (Read: EATUR 23)", 2 to "gevonden: White Sun's Twilight (ONE 38)"),
+        )
+        assertTrue(text.contains("vak 1: gevonden: Mondrak, Glory Dominus (ONE 23)\n  app dacht eerst: niet gevonden (Read: EATUR 23)"))
+        // Niet gecorrigeerd: geen extra regel.
+        assertFalse(text.contains("vak 2: gevonden: White Sun's Twilight (ONE 38)\n  app dacht"))
+    }
+
     /** Label NIEUW: alleen losse kaarten, binnen het aantal dagen, en niet als alles als gezien is gemarkeerd. */
     @Test
     fun newLabelRules() {
