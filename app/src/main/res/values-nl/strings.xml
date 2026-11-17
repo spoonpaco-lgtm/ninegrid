@@ -1113,4 +1113,12 @@
     <string name="crash_share_last">Laatste crashrapport delen</string>
     <string name="crash_explain">Opent het deelmenu van Android. Er staan alleen de versie, het toestel en de foutmelding in.</string>
     <string name="crash_none">Er is geen crashrapport: NineGrid is niet gecrasht.</string>
+    <string name="export_to_site">Exporteren naar een site…</string>
+    <string name="export_to_site_explain">Kopieert de lijst en opent de site. Plak hem daar in het importvak.</string>
+    <string name="export_copied">Lijst gekopieerd voor %s. Plak hem in het importvak.</string>
+    <string name="export_cardmarket_note">Cardmarket krijgt alleen namen en setnamen: foil en taal zitten niet in hun lijst.</string>
+    <string name="export_moxfield_csv">Collectie voor Moxfield (CSV)</string>
+    <string name="export_moxfield_csv_hint">In Moxfield: Collection → Import. Kaarten in decks staan er als losse regels in.</string>
+    <string name="export_wants">Kopieer voor Cardmarket</string>
+    <string name="export_wants_copied">%d regels gekopieerd. Cardmarket neemt maximaal 150 regels per lijst.</string>
 </resources>

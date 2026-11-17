@@ -1053,4 +1053,27 @@ class ParserTest {
         assertEquals("etched", pc.fitFinish("foil", listOf("etched")))
         assertEquals("2020", pc.year(a))
     }
+
+    /** Exportformaten: Moxfield-CSV, Cardmarket-lijst met setnaam, Moxfield/Archidekt-tekst. */
+    @Test
+    fun exportFormatsForSites() {
+        fun p(name: String, set: String, setName: String, nr: String) =
+            nl.spoonpaco.ninegrid.data.db.CardPrint(id = "$set$nr", name = name, setCode = set, setName = setName, collectorNumber = nr)
+        fun e(p: nl.spoonpaco.ninegrid.data.db.CardPrint, q: Int, finish: String = "nonfoil", lang: String = "", proxy: Boolean = false, section: String? = null) =
+            nl.spoonpaco.ninegrid.data.db.EntryWithPrint(
+                nl.spoonpaco.ninegrid.data.db.Entry(printId = p.id, quantity = q, finish = finish, language = lang, proxy = proxy, section = section), p)
+        val bolt = p("Lightning Bolt", "M11", "Magic 2011", "146")
+        val csv = nl.spoonpaco.ninegrid.domain.Export.moxfieldCsv(listOf(e(bolt, 2, "foil", "FR"), e(p("Duress, the \"Test\"", "STA", "Strixhaven Mystical Archive", "29"), 1, proxy = true)))
+        val rows = csv.trim().lines()
+        assertEquals("Count,Tradelist Count,Name,Edition,Condition,Language,Foil,Tags,Last Modified,Collector Number,Alter,Proxy,Purchase Price", rows[0])
+        assertEquals("2,0,Lightning Bolt,m11,Near Mint,French,foil,,,146,False,False,", rows[1])
+        assertTrue(rows[2].contains("\"Duress, the \"\"Test\"\"\"") && rows[2].endsWith(",True,"))
+        // Cardmarket: setnaam, geen nummer of foil; gelijke kaart + set telt samen.
+        val cm = nl.spoonpaco.ninegrid.domain.Export.deckTextFor(nl.spoonpaco.ninegrid.domain.Export.Site.CARDMARKET,
+            listOf(e(bolt, 2), e(bolt, 1, "foil"), e(p("Island", "M11", "", "234"), 3)), false)
+        assertEquals("3 Island\n3 Lightning Bolt (Magic 2011)\n", cm)
+        // Moxfield en Archidekt: de gewone tekst met set en nummer.
+        val mox = nl.spoonpaco.ninegrid.domain.Export.deckTextFor(nl.spoonpaco.ninegrid.domain.Export.Site.MOXFIELD, listOf(e(bolt, 1, "foil")), false)
+        assertEquals("1 Lightning Bolt (M11) 146 *F*\n", mox)
+    }
 }

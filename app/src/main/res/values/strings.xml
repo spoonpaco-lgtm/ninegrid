@@ -1114,4 +1114,12 @@
     <string name="crash_share_last">Share last crash report</string>
     <string name="crash_explain">Opens the share menu of Android. Only the version, phone model and error are in it.</string>
     <string name="crash_none">There is no crash report: NineGrid has not crashed.</string>
+    <string name="export_to_site">Export to a site…</string>
+    <string name="export_to_site_explain">Copies the list and opens the site. Paste it there into the import box.</string>
+    <string name="export_copied">List copied for %s. Paste it in the import box.</string>
+    <string name="export_cardmarket_note">Cardmarket gets names and set names only: foil and language are not part of its list.</string>
+    <string name="export_moxfield_csv">Collection for Moxfield (CSV)</string>
+    <string name="export_moxfield_csv_hint">In Moxfield: Collection → Import. Decks are included as separate copies.</string>
+    <string name="export_wants">Copy for Cardmarket</string>
+    <string name="export_wants_copied">%d wants copied. Cardmarket takes at most 150 lines per list.</string>
 </resources>

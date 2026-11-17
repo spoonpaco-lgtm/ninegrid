@@ -537,6 +537,9 @@ fun BackupScreen(vm: AppViewModel, onBack: () -> Unit) {
     val csv = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) { uri ->
         uri?.let { vm.writeText(it, Export.collectionCsv(all, decks.associate { d -> d.id to d.name })) }
     }
+    val moxCsv = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) { uri ->
+        uri?.let { vm.writeText(it, Export.moxfieldCsv(all)) }
+    }
     val folder = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { it?.let(vm::setBackupFolder) }
     Scaffold(topBar = {
         TopAppBar(
@@ -567,6 +570,8 @@ fun BackupScreen(vm: AppViewModel, onBack: () -> Unit) {
                     }
                     Spacer(Modifier.height(8.dp))
                     OutlinedButton(onClick = { gated(gateExport) { csv.launch("ninegrid-collectie-$today.csv") } }) { Text(stringResource(R.string.export_csv)) }
+                    OutlinedButton(onClick = { gated(gateExport) { moxCsv.launch("moxfield-collectie-$today.csv") } }, modifier = Modifier.padding(top = 4.dp)) { Text(stringResource(R.string.export_moxfield_csv)) }
+                    Text(stringResource(R.string.export_moxfield_csv_hint), fontSize = NgText.body, color = LocalNgExtra.current.subtle)
                     HorizontalDivider(Modifier.padding(vertical = 14.dp))
                     Text(stringResource(R.string.wipe_title), fontWeight = FontWeight.Bold, color = NgColorsError)
                     Text(stringResource(R.string.wipe_explain), fontSize = NgText.body, color = LocalNgExtra.current.subtle)

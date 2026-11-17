@@ -208,6 +208,7 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
     var formatPicker by remember { mutableStateOf(false) }
     var commanderDialog by remember { mutableStateOf(false) }
     var deleting by remember { mutableStateOf(false) }
+    var exporting by remember { mutableStateOf(false) }
     var picking by remember { mutableStateOf(false) }
     var tab by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(0) }
     var cardQuery by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf("") }
@@ -218,6 +219,28 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
     val text = Export.deckText(list, d?.format == DeckFormat.COMMANDER)
     val saveLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/plain")) { uri ->
         if (uri != null) vm.writeText(uri, text)
+    }
+
+    if (exporting) {
+        val copied = stringResource(R.string.export_copied)
+        AlertDialog(
+            onDismissRequest = { exporting = false },
+            title = { Text(stringResource(R.string.export_to_site)) },
+            text = {
+                Column {
+                    Text(stringResource(R.string.export_to_site_explain), fontSize = NgText.body, color = extra.subtle)
+                    Export.Site.values().forEach { site ->
+                        TextButton(onClick = {
+                            exporting = false
+                            nl.spoonpaco.ninegrid.ui.components.copyAndOpen(context, d?.name ?: "deck", Export.deckTextFor(site, list, d?.format == DeckFormat.COMMANDER), site.url, copied.replace("%s", site.label))
+                        }) { Text(site.label) }
+                    }
+                    if (list.any { it.entry.finish != nl.spoonpaco.ninegrid.data.db.Finish.NONFOIL }) Text(stringResource(R.string.export_cardmarket_note), fontSize = NgText.caption, color = extra.subtle)
+                }
+            },
+            confirmButton = {},
+            dismissButton = { TextButton(onClick = { exporting = false }) { Text(stringResource(R.string.cancel)) } },
+        )
     }
 
     val listState = androidx.compose.foundation.lazy.rememberLazyListState()
@@ -240,6 +263,7 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
                     DropdownMenuItem(text = { Text(stringResource(R.string.rename)) }, leadingIcon = { Icon(Icons.Filled.Edit, null) }, onClick = { menu = false; renaming = true })
                     DropdownMenuItem(text = { Text(stringResource(R.string.change_format)) }, onClick = { menu = false; formatPicker = true })
                     if (d?.format == DeckFormat.COMMANDER) DropdownMenuItem(text = { Text(stringResource(R.string.commander_change)) }, onClick = { menu = false; commanderDialog = true })
+                    DropdownMenuItem(text = { Text(stringResource(R.string.export_to_site)) }, leadingIcon = { Icon(Icons.Filled.Share, null) }, onClick = { menu = false; exporting = true })
                     DropdownMenuItem(text = { Text(stringResource(R.string.export_text)) }, leadingIcon = { Icon(Icons.Filled.FileDownload, null) }, onClick = { menu = false; saveLauncher.launch("${d?.name ?: "deck"}.txt") })
                     DropdownMenuItem(text = { Text(stringResource(R.string.delete_deck)) }, leadingIcon = { Icon(Icons.Filled.Delete, null) }, onClick = { menu = false; deleting = true })
                 }

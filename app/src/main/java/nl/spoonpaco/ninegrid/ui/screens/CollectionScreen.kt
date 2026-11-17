@@ -436,6 +436,12 @@ private fun WishlistPanel(vm: AppViewModel, onCard: (String) -> Unit, onPaste: (
         item(key = "filters") {
             Row(Modifier.padding(horizontal = NgSpace.screen), verticalAlignment = Alignment.CenterVertically) {
                 androidx.compose.material3.FilterChip(selected = gcOnly, onClick = { gcOnly = !gcOnly }, label = { Text(stringResource(R.string.filter_game_changers)) })
+                val wantsContext = androidx.compose.ui.platform.LocalContext.current
+                val wantsCopied = stringResource(R.string.export_wants_copied)
+                androidx.compose.material3.AssistChip(modifier = Modifier.padding(start = 8.dp), onClick = {
+                    val (txt, n) = nl.spoonpaco.ninegrid.domain.Export.cardmarketWants(wishes)
+                    nl.spoonpaco.ninegrid.ui.components.copyAndOpen(wantsContext, "Cardmarket", txt, nl.spoonpaco.ninegrid.domain.Export.Site.CARDMARKET.url, wantsCopied.replace("%d", n.toString()))
+                }, label = { Text(stringResource(R.string.export_wants)) })
                 if (gcOnly && shownWishes.isEmpty()) Text(stringResource(R.string.guide_search_none), fontSize = NgText.body, color = extra.subtle, modifier = Modifier.padding(start = 10.dp))
             }
         }
