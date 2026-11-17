@@ -134,6 +134,20 @@ Gebouwd (Mick 17 nov): Wat verbergen, grafiek in procenten, aantallen verbergen,
 - Bewust niet (Mick, 17 nov): privacymodus automatisch weer aan (bij start of na een paar minuten), en schermafbeeldingen blokkeren (FLAG_SECURE).
 - Let op: bij "alleen kaartprijzen" zijn kaartprijzen terug te rekenen uit het totaal van een set of deck met weinig kaarten.
 
+### 1d. Privacystijlen erbij (voorstel, wacht op startsein; Mick 17 nov: "bouw wanneer ik het zeg")
+
+Gevraagd: een **kleiner zegel** (compacte variant van Zegel, past op kleine prijzen in lijsten).
+Voorstellen om uit te kiezen (elk is een stijl naast Compleated, Zegel, Schaduw en Stippen):
+- **Toxic**: giftig groene gloed met langzaam omhoog borrelende druppels over het bedrag.
+- **Infect**: kleine −1/−1-tellers (zwarte ronde schijfjes) die over het bedrag liggen.
+- **Lightning Bolt**: een snelle bliksemflits die het bedrag wegslaat; blijft daarna als ⚡⚡⚡ staan.
+- **Morph**: het bedrag ligt onder een omgedraaide kaart (kaartrug) met "2/2".
+- **Fog**: een mistsluier die rustig voorbij drijft.
+- **Counterspell**: blauw zegel met "Countered"-streep over het bedrag.
+- **Phasing**: het bedrag is half doorzichtig en flikkert zachtjes ("phased out").
+- **Mana-pips**: bedrag als rij kleurige manasymbolen, in je gekozen gildekleur.
+Alle stijlen houden dezelfde breedte als het bedrag en schakelen over op rustige stippen als Magic-effecten uit staan.
+
 ### 2. Kleine verbeteringen (nog geen versie)
 
 - Scannen, kaart voor kaart: 39a (set van de vorige kaart als aanname) is door Mick afgewezen, 17 nov: scannen wordt er trager van; een set telt alleen als de gebruiker hem zelf opgeeft. 39c groene kaarten overslaan op het controlescherm (pas bouwen als de herkenning betrouwbaar is; wacht op een test op de telefoon).
