@@ -1119,7 +1119,8 @@ class ParserTest {
 
     @org.junit.Test
     fun privacyRules() {
-        val P = nl.spoonpaco.ninegrid.ui.components.PrivacyState
+        fun P(hidden: Boolean = false, scope: String = "all", above: Double = 0.0, counts: Boolean = false) =
+            nl.spoonpaco.ninegrid.ui.components.PrivacyState(hidden = hidden, scope = scope, above = above, counts = counts)
         val C = nl.spoonpaco.ninegrid.ui.components.PrivacyKind.CARD
         val T = nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL
         assertFalse(P(hidden = false).hides(C, 5.0))
