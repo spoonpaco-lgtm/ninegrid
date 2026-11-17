@@ -125,6 +125,19 @@ Verlanglijst:
 Scanrapport:
 - Ook de instellingen en omstandigheden van de scan in het rapport: ingevulde set (of leeg), flits aan of uit, automatisch afdrukken of zelf, AI-hulp aan, offline database aan, taalinstelling, enkel blad of één kaart. Nu staan er alleen versie, toestel, soort (blad of één kaart), camera of galerij, scherpte, dekking, leestijd, opnieuw gelezen en fotoformaat in.
 
+### 1c. Op de lijst, versie nog kiezen
+
+Privacymodus: meer controle (Mick 17 nov):
+- **Wat verbergen** (Mick): Alles (zoals nu) | Alleen totalen (waarde van collectie, sets en decks, de grafiek, Winner of the Week, boosters) | Alleen kaartprijzen (per kaart en in lijsten; de totalen blijven zichtbaar). Stijl (compleated, zegel, schaduw, stippen) en vingerafdruk blijven zoals nu.
+- Technisch: nu is het één schakelaar en verbergen `money()` en `privacyMask()` in `ui/components/Privacy.kt` elk bedrag. Elke plek moet dus gaan zeggen of het een totaal of een kaartprijs is (bijvoorbeeld een soort bij `money()`), en alle schermen moeten worden nagelopen. Meldingen (`PriceWorker`) volgen dezelfde keuze.
+- Extra opties (voorstel, Mick kiest nog):
+  - Grafiek in procenten: de lijn en de stijging of daling in % blijven zichtbaar, zonder bedragen op de as.
+  - Ook aantallen verbergen (hoeveel kaarten je hebt, per set en in totaal).
+  - Automatisch weer aan: bij elke start van de app, en na de vingerafdruk weer verborgen na een paar minuten of zodra je de app verlaat.
+  - Geen schermafbeeldingen en een leeg plaatje in het overzicht van recente apps zolang de privacymodus aan staat (FLAG_SECURE).
+  - Meldingen: bedragen altijd verbergen op het vergrendelscherm, ook als de privacymodus uit staat.
+  - Alleen dure kaarten verbergen: kaartprijzen boven een bedrag dat je zelf kiest.
+
 ### 2. Kleine verbeteringen (nog geen versie)
 
 - Taartgrafiek: de gekozen weergave (Lijn of Taart) en splitsing onthouden na het sluiten van de app.
