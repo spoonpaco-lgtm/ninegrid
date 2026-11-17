@@ -283,4 +283,4 @@ fun PrivacyButton(vm: AppViewModel) {
 }
 
 /** Hetzelfde als Modifier.privacyMask(), te gebruiken zonder import. */
-fun privacyMask(): Modifier = Modifier.privacyMask()
+fun privacyMask(kind: PrivacyKind = PrivacyKind.CARD): Modifier = Modifier.privacyMask(kind)
