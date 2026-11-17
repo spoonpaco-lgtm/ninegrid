@@ -29,7 +29,7 @@ internal suspend fun runTestset(ctx: Context, tree: Uri, vm: AppViewModel, progr
     try {
         for (dir in dirs) {
             // Zoals Mick de app gebruikt: de set van het blad is ingevuld (mapnaam NN-SET-…); een gemengd blad heeft er geen.
-            val folderSet = Regex("^\\d+-([A-Za-z0-9]{2,5})-").find(dir.name)?.groupValues?.get(1)?.uppercase()?.takeIf { it != "GEMENGD" }.orEmpty()
+            val folderSet = Regex("^\\d+-([A-Za-z0-9]{2,5})-").find(dir.name.orEmpty())?.groupValues?.get(1)?.uppercase()?.takeIf { it != "GEMENGD" } ?: ""
             withContext(Dispatchers.Main) { vm.scanSet = folderSet }
             val expected = TestsetScore.parse(ctx.contentResolver.openInputStream(dir.findFile("uitslag.txt")!!.uri)!!.bufferedReader().readLines())
             for (fname in listOf("foto.jpg", "foto-2.jpg")) {
