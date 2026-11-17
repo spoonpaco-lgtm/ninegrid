@@ -1,0 +1,103 @@
+NineGrid scanrapport
+versie: 0.9.11 · toestel: samsung SM-A165F
+soort: blad · camera · foto 1080x1440
+instellingen: set GRN · lamp aan · automatisch afdrukken uit · AI-hulp uit · offline database aan · taal en
+scherpte: 1370.9 · dekking: 0.49 · lezen: 1344 ms · opnieuw gelezen: 6
+vakken met naam of nummer en set: 6 van 9
+
+vak 1: gevonden: Underrealm Lich (GRN 211)
+  set=- nummer=- taal=- naam=Underrealm Lich
+  > Underrealm Lich
+  > Creature -Zombie EIf Shaman
+  > you would dre aurd, instead look at
+  > put onc into yeurhan and the est into
+  > Py 4lfe Ưnderealm Lh cins
+  > indesurucible inl end ot fürn. Tp it
+  > "Voue sryd, oveowrưe
+  > Underrealm Lich
+  > bble uithl end otrurn. Thp it.
+  > "Vou 'ee sryed, oveorhder
+  > 4/3)
+  > Ucbble uitl end ot rürn. Thp it.
+  > "Vou ee sryed, ocehorlder
+  > 4/3
+vak 2: gevonden: Knight of Autumn (GRN 183)
+  set=- nummer=- taal=- naam=Knlght of Autumn
+  > Knlght of Autumn
+  > ure - Dryad Knight
+  > When Knight of Autumn enters the
+  > Put two +1et counters on Knight oi
+  > Destroy target artifsct or enchantment
+  > You gain 4 life
+  > 2/1
+  > Knlght of Autumn
+  > Destroy target artifact or enchantment.
+  > You gain 4 lifeS
+  > 2/1
+  > Destroy target artifact or enchantment.
+  > You gain 4 life
+  > 2/1
+vak 3: gevonden: Wee Dragonauts (GRN 214)
+  set=- nummer=- taal=- naam=Wee Dragonauts
+  > Wee Dragonauts
+  > Creafure - Faerle Wzard
+  > Flying
+  > Cat an insont:
+  > spell, Wee bragon
+  > renion
+  > eohingy cari
+  > piretune Find ale case, amd
+  > Jzba, lrzt ninher
+  > /3)
+  > Wee Dragonauts
+  > the Nazekite' spire-Unes Find the cause, and
+  > telt thee so keep it up
+  > -Juzba, Iezet ninker
+  > J14/358u
+  > GRNENoneN
+  > 1/3
+  > Phe Narekine spire-tUs Find ahe cause, and
+  > el them no kerp up
+  > -Juzba, Ieze hinker
+  > 1/3
+vak 4: gevonden: Roc Charger (GRN 24)
+  set=- nummer=- taal=- naam=Boros Challenger
+  > Boros Challenger
+  > Crearure- Human Soldier
+  > 2 Beros Challenger gets +1/+1
+  > until cnd of turn
+  > "Send your chanpion. I could sse a
+  > 2/3
+  > Boros Challenger
+  > Send your charspion. I could sde a
+  > light toorkout."
+  > 2/3
+  > Send yor charspion. I could ade a
+  > light toorkout."
+  > 2/3
+vak 5: gevonden: Nightveil Predator (GRN 191)
+  app dacht eerst: gevonden: Nightveil Sprite (GRN 48)
+  set=- nummer=- taal=- naam=Nightveil Predator
+  > Nightveil Predator
+  > 003O
+  > Cea-e
+  > Flyng ieeth
+  > Meyro
+  > Nighrveil Predator
+vak 6: gevonden: Silent Dart (GRN 241)
+  set=- nummer=- taal=- naam=Silent Dart
+  > Silent Dart
+  > Artifact
+  > 4, e, Sacrifce Silenr Dart: It deals
+  > 3 damage to target creature.
+  > "These termts are acceptable to House
+  > Silent Dart
+vak 7: gevonden: Discovery // Dispersal (GRN 223) [controleren]
+  app dacht eerst: niet gevonden (Card seen, but nothing read)
+  set=- nummer=- taal=- naam=-
+vak 8: gevonden: Integrity // Intervention (GRN 227) [controleren]
+  app dacht eerst: niet gevonden (Card seen, but nothing read)
+  set=- nummer=- taal=- naam=-
+vak 9: gevonden: Flower // Flourish (GRN 226) [controleren] [foil]
+  app dacht eerst: niet gevonden (Card seen, but nothing read)
+  set=- nummer=- taal=- naam=-

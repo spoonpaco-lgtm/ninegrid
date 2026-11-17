@@ -1,11 +1,10 @@
 # Juiste uitslag (door Claude van de foto gelezen, nog door Mick te controleren)
-# Nummers met ? zijn onzeker en moeten nog gecontroleerd worden.
 vak 1: Leyline of the Void (WOT 30)
 vak 2: Polluted Bonds (WOT 34)
 vak 3: Vampiric Rites (WOT 37)
 vak 4: Stab Wound (WOT 36)
 vak 5: Dark Tutelage (WOT 28)
 vak 6: leeg
-vak 7: Sneak Attack (WOT ?)
+vak 7: Sneak Attack (WOT 50)
 vak 8: Raid Bombardment (WOT 47)
 vak 9: Impact Tremors (WOT 44)

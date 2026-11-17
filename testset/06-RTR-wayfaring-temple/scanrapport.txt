@@ -1,0 +1,114 @@
+NineGrid scanrapport
+versie: 0.9.11 · toestel: samsung SM-A165F
+soort: blad · camera · foto 1080x1440
+scherpte: 430.9 · dekking: 0.71 · lezen: 1748 ms · opnieuw gelezen: 9
+vakken met naam of nummer en set: 8 van 9
+
+vak 1: gevonden: Wayfaring Temple (PLST mm3-202) [foil]
+  app dacht eerst: gevonden: Wayfaring Temple (PLST mm3-202)
+  set=- nummer=- taal=- naam=Wayfartrg Temple
+  > Wayfartrg Temple
+  > Eem:
+  > cvhar dainage to plaver, poputate
+  > Wayfarirg Temple
+vak 2: gevonden: Jarad's Orders (RTR 175)
+  set=- nummer=- taal=- naam=Jarads Oders
+  andere namen: arad's Oolers
+  > arad's Oolers
+  > Sorceey
+  > Search our hbracy for uy o to
+  > into vout grateyt heu shufle
+  > Jarads Oders
+vak 3: gevonden: Havoc Festival (RTR 166) [controleren]
+  app dacht eerst: niet gevonden (Read: ‘Havoc Fetvat’)
+  set=- nummer=- taal=- naam=Havoc Fetvat
+  > Havoc Fetvat
+  > teten
+  > Havoc etvat
+vak 4: gevonden: Risen Sanctuary (RTR 190) [controleren]
+  app dacht eerst: niet gevonden (Read: ‘Risen Sanctuary’)
+  set=- nummer=- taal=- naam=-
+  andere namen: Risen Sanctuary
+  > Risen Sanctuary
+  > CretureBemenal
+  > Vigtance
+  > ASLnan
+  > 3 ake cane o crh a single
+  > Risen Sanctuary
+  > arises, ri ee
+  > VE Lake care not
+  > arie ike chaft
+  > crah a singe
+  > Risen Sanetuary
+  > arises,
+  > vE Lakes (are o
+  > ei ee
+  > aride hke chaft
+  > cruh a single
+vak 5: gevonden: Izzet Staticaster (RTR 173)
+  set=- nummer=- taal=- naam=rzet Staticaster
+  > rzet Staticaster
+  > CcreatureHuman Wuard
+  > coud caIt an nsta
+  > e:Lzzet Staticavér denI damage
+  > crearure.
+  > Izzet Staticaster
+  > e: Lzet Staucavter doas I damage
+  > to target creiture and cach otber
+  > crature with the same name as that
+  > Crearure.
+  > e: lae Staiater doals I damage
+  > to target cretue and ech otlier
+  > carure with the same name as that
+  > Creature.
+vak 6: gevonden: Treasured Find (GK1 72)
+  set=- nummer=- taal=- naam=reasored Find
+  > reasored Find
+  > Sereery
+  > Return urget card a
+  > rhand
+  > halibuer ope
+  > f the pearihet dea
+  > Treasored Find
+  > exyste amul, the alibsit cor
+  > f the prfied deud
+  > Gorgons enae bel ohin: gn
+  > exyste amuls. he alibus
+  > of the parit tead.
+  > corp
+vak 7: gevonden: Golgari Keyrune (RTR 229)
+  set=- nummer=- taal=- naam=Goari keyrune
+  > Goari keyrune
+  > harons23
+  > A er
+  > Golgri Ke
+  > Hack and gr leec arhlact caTur
+  > WIh eAthiechunilendet rurn.
+  > aD pool
+  > Add er
+  > Gogri
+  > back and gres
+  > with deatieuch unil ende
+  > tarn
+  > arfact cOETurs
+vak 8: gevonden: Selesnya Keyrune (PLST rtr-233)
+  set=- nummer=- taal=- naam=Selesnya Keyrune
+  > (Selesnya Keyrune
+  > Add or ec yr ana pual
+  > Solesy Nosa
+  > Solesry Neiheeomes a
+  > N
+  > duteStod artiiact
+  > 33 eree
+  > SreAENIre unel end of tur
+  > • Solesny Noheeomes
+  > 33 green drtortitact
+  > Srearre unol end of tra
+  > a
+vak 9: gevonden: Tablet of the Guilds (RTR 235)
+  set=- nummer=- taal=- naam=Tablet of the Guilds
+  > Tablet of the Guilds
+  > (Arisct
+  > the eteten cok, ea ge Ie w
+  > the eben coko jeu ga Ie x
+  > chusen ceaKs

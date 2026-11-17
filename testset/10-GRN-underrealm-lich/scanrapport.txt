@@ -1,0 +1,89 @@
+NineGrid scanrapport
+versie: 0.9.11 · toestel: samsung SM-A165F
+soort: blad · camera · foto 1080x1440
+instellingen: set leeg (automatisch) · lamp uit · automatisch afdrukken uit · AI-hulp uit · offline database aan · taal en
+scherpte: 695.3 · dekking: 0.42 · lezen: 1421 ms · opnieuw gelezen: 5
+vakken met naam of nummer en set: 6 van 9
+
+vak 1: gevonden: Underrealm Lich (GRN 211) [controleren]
+  app dacht eerst: gevonden: Underrealm Lich (CLU 215) [controleren]
+  set=- nummer=43 taal=- naam=Underrealm Lich
+  > Underrealm Lich
+  > 330
+  > arure - Zombie Elf Shaman
+  > Metond dr cand, instead look a
+  > and the rest into
+  > our erv
+  > y life Undetala
+  > ch ga
+  > ot rurm Thp it
+  > 43
+vak 2: gevonden: Knight of Autumn (GRN 183)
+  app dacht eerst: gevonden: Knight of Autumn (AFC 187)
+  set=- nummer=- taal=- naam=Knight of Autumn
+  > Knight of Autumn
+  > Creature - Dryad Knlght
+  > n hght ol Autunn enters the
+  > b
+  > *ut wo +1leounters on Knight of
+  > * Destroy target artifact or enchantment
+  > You gain 4 lifev
+  > Knight of Autumn
+  > Destroy target artifact or enchantment.
+  > You gain 4 life
+  > 2/1
+  > Destroy target artifact or enchantment.
+  > You gain 4 life
+  > 2/1
+vak 3: gevonden: Wee Dragonauts (PLST grn-214) [controleren]
+  set=- nummer=13 taal=- naam=Wee Dragonaub
+  > Wee Dragonaub
+  > CreatureFaerie Wiant
+  > enevet ou cast ncntor sorcey
+  > el, ee Dragoih t
+  > "Somnieey
+  > Wee Dragonauts
+  > GANENSaN
+  > 13
+  > -Jab, lrnt nnk
+  > I3
+vak 4: gevonden: Boros Challenger (PLST grn-156)
+  set=- nummer=- taal=- naam=Boros Challenger
+  > Boros Challenger
+  > Crearure-Human Soldier
+  > Mentor (heneer thu creaure artacks,
+  > Boros Challenger gets 141
+  > Sesd voer chaspio, I could use
+  > hght aorkgt,
+  > Boros Challenger
+  > 2/3
+vak 5: gevonden: Nightveil Predator (GRN 191)
+  app dacht eerst: gevonden: Nightveil Predator (RVR 206)
+  set=- nummer=- taal=- naam=Nighiveil Predator
+  > Nighiveil Predator
+  > Creature- Vamy
+  > PioR, deathtouch
+  > Hexproot
+  > aY be the aarge
+  > 3/3
+  > Nighrveil Predator
+  > IN,oANra
+  > 3/3
+  > 3/3
+vak 6: gevonden: Silent Dart (GRN 241)
+  app dacht eerst: gevonden: Silent Dart (RVR 268)
+  set=- nummer=- taal=- naam=Silent Dart
+  > (Silent Dart
+  > (Artifact
+  > 3 damage to tareet cas
+  > "hae terHS are accoptakle no Hse
+  > Di SAall x shale on
+  > (Silent Dart
+vak 7: gevonden: Discovery // Dispersal (GRN 223) [controleren]
+  app dacht eerst: niet gevonden (Card seen, but nothing read)
+  set=- nummer=- taal=- naam=-
+vak 8: gevonden: Integrity // Intervention (GRN 227) [controleren]
+  app dacht eerst: niet gevonden (Card seen, but nothing read)
+  set=- nummer=- taal=- naam=-
+vak 9: leeg vak
+  set=- nummer=- taal=- naam=- leeg?

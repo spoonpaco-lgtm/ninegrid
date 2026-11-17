@@ -1,0 +1,131 @@
+NineGrid scanrapport
+versie: 0.9.11 · toestel: samsung SM-A165F
+soort: blad · galerij · foto 1530x2040
+instellingen: set leeg (automatisch) · lamp uit · automatisch afdrukken uit · AI-hulp uit · offline database aan · taal en
+scherpte: 2958.0 · dekking: 0.67 · lezen: 1620 ms · opnieuw gelezen: 4
+vakken met naam of nummer en set: 8 van 9
+
+vak 1: gevonden: Mirrex (ONE 254)
+  set=ONE nummer=254 taal= naam=Mirrex
+  > Mirrex
+  > Land- Sphere
+  > e:Add.
+  > e:Add one mana of any color. Activate only
+  > if Mirrex entered the battleield this turn.
+  > 3, : Create a 1/l colorless Phyrexian Mite
+  > arutact creature token with toxIC I and
+  > This creature can't block (Payvrs dealt
+  > cOmbat damagbyt also get a poson cOUnter.)
+  > 254/27 R
+  > ONEEN ADAM BS
+vak 2: gevonden: The Seedcore (ONE 259)
+  set=- nummer=259 taal=- naam=The Seedeore
+  > The Seedeore
+  > Land-- Sphere
+  > e:Add,
+  > color. Spend
+  > e:Add one mana of any
+  > this mana only to cast Phyrexian
+  > Creature spells.
+  > Corrupted e: Target 1/1 creature gets
+  > +2/+1 until end of turn. Activate e only if
+  > an opponent has three or more poison
+  > COunters
+  > w&Wws f thGu
+  > ONE
+  > The Seedcore
+  > cOunters.
+  > 259/271 ANKAIN ZUNK
+  > cOunters.
+vak 3: gevonden: Razorverge Thicket (ONE 257) [controleren]
+  set=- nummer=297 taal=- naam=Razorverge Thiket
+  > Razorverge Thiket
+  > Land
+  > Razorverge Thicket enters the
+  > batteficld tapped unless you control
+  > two or fewer other lands
+  > :Addor *
+  > Where cvolution meets austerity, primal
+  > might bucks against the yoke of hierarchy.
+  > 27271 A
+  > ONEENRANO GALIICOS
+  > Razorverge Thicket
+  > 297/271A
+  > ONEENRANOT GALLICOS
+  > yoRe of
+  > 297/271
+  > ONEENRANDT GALiICON
+  > yoke of
+vak 4: gevonden: Seachrome Coast (ONE 374)
+  set=ONE nummer=374 taal= naam=Seachrome Coast
+  > (Seachrome Coast
+  > Land
+  > Seachrome Coast enters the
+  > battlefield
+  > unless you control
+  > tapP
+  > lands.
+  > two or fewer
+  > : Add Oor O.
+  > 374
+  > ONE.EN ~SLAAS LoGINTAS
+vak 5: gevonden: Darkslick Shores (ONE 372)
+  set=ONE nummer=372 taal= naam=-
+  andere namen: Darkslick Shores
+  > Darkslick Shores
+  > Land
+  > Darkslick Shores enters the
+  > battlefield tapped unless you control
+  > two or fewer other lands.
+  > 9: AddO or .
+  > N81 NWants of the Cout
+  > ONEEN >DARIA KHUENIKOYA
+  > Darkslick Shores
+  > 372
+  > ONEEN
+  > EN DHA KnuENIROVA
+  > Darkslick Shores
+vak 6: gevonden: Copperline Gorge (ONE 249)
+  set=ONE nummer=249 taal= naam=Copperline Gorge
+  > Copperline Gorge
+  > Land
+  > Copperline Gorge enters the
+  > battlefield tapped unless you control
+  > two or fewer other lands.
+  > C:Addor .
+  > Where fire meets ferocity, a greater
+  > evolution begins.
+  > 249/271 R
+  > ONE EN YrONG-llAo lHAN
+vak 7: leeg vak
+  set=- nummer=- taal=- naam=- leeg?
+vak 8: gevonden: Edgewall Inn (WOE 255) [controleren]
+  set=- nummer=255 taal=- naam=Edgewall Inn
+  > Edgewall Inn
+  > Land
+  > Edgewall Inn enters the battlefield
+  > tapped.
+  > As Edgewall Inn enters the battlefield,
+  > choose a color.
+  > C:Add one mana of the chosen color.
+  > 3, , Sacrifice Edgewall Inn: Return
+  > target card that has an Adventure from
+  > your gravevard to vour hand,
+  > O255
+  > EN ALATNA DANNER
+vak 9: gevonden: Restless Bivouac (WOE 257) [controleren]
+  set=- nummer=257 taal=- naam=Restless Bivouac
+  > Restless Bivouac
+  > Land
+  > Restless Bivouac enters the battlefield tapped
+  > e:AddƏor*
+  > 1J* Restless Bivouac becomes a 22 red
+  > and whute Ox creature until end of rurn lts
+  > srill a land.
+  > Whenever Restless Bivouac attacks, put a
+  > +1+1 counter on tanget creature vou cntr
+  > RO252
+  > Restless Bivouac
+  > RO257
+  > wOEENY GaEMADY
+  > R O257

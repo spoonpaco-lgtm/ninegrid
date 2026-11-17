@@ -1,0 +1,123 @@
+NineGrid scanrapport
+versie: 0.9.11 · toestel: samsung SM-A165F
+soort: blad · camera · foto 1080x1440
+scherpte: 1051.9 · dekking: 0.80 · lezen: 2137 ms · opnieuw gelezen: 9
+vakken met naam of nummer en set: 8 van 9
+
+vak 1: gevonden: Lightning Mauler (AVR 144)
+  app dacht eerst: gevonden: Lightning Mauler (INR 399)
+  set=- nummer=- taal=- naam=Lightning Mauler
+  > Lightning Mauler
+  > CreatureHuman Berserker
+  > Soulbond bu mry air thêr creatune
+  > th amecher oacraar hm ether
+  > ar Aong as oY oum bth of thm )
+  > As long as Laghtnng ulcn p
+  > have haste.
+  > 2/1
+  > Lightning Mauler
+  > hdalt
+  > 2/1 )
+  > 2/1)
+vak 2: gevonden: Kessig Malcontents (AVR 142)
+  set=- nummer=- taal=- naam=Kessig Malcontents
+  > Kessig Malcontents
+  > 22
+  > Creature -- Human Warrior
+  > chtes
+  > the batefad
+  > et player equal to the number
+  > Discontent is a potoerful tevapon in the
+  > hands ef a mok
+  > 3/1
+  > Kessig Malcontents
+  > 22
+  > 3/1
+  > 3/1
+vak 3: gevonden: Aggravate (AVR 125)
+  set=- nummer=- taal=- naam=Aggravate
+  > Aggravate
+  > Instant
+  > eat damage this way
+  > "Barlarians They bsrned mry faterte
+  > Aggravate
+  > 322
+  > 1e alkenrati
+  > e baetrati
+vak 4: gevonden: Revenge of the Hunted (AVR 191)
+  set=- nummer=- taal=- naam=Revenge of the Hunted
+  > Revenge of the Hunted
+  > ceaire,
+  > gets +66 and in
+  > crcatures able to blockit this
+  > Miracle bu ty cast thu card
+  > Revenge of the Hunted
+  > u'k the fint card you dree this urn)
+  > es the fint card you dree Uhis urn)
+vak 5: gevonden: Champion of Lambholt (AVR 171)
+  app dacht eerst: gevonden: Champion of Lambholt (SLD 2245)
+  set=- nummer=- taal=- naam=Chamoion of Lambholt
+  > Chamoion of Lambholt
+  > Creature- Human Warrion
+  > than
+  > eatmbholt's power
+  > can't bloCk creatures jou conto
+  > the bartlefield under your control.
+  > a1+1 counter on Champion
+  > /
+  > Champion of Lambholt
+  > of Lambholt.
+  > 1/1
+  > of Lambholt.
+  > 1/1
+vak 6: gevonden: Gloomwidow (AVR 180)
+  app dacht eerst: gevonden: Gloomwidow (SOI 206)
+  set=- nummer=- taal=- naam=Gloomwidow
+  > Gloomwidow
+  > Creature-Solder
+  > Reach
+  > Gloomwidow can block only crearures
+  > ts on the moors didn 't
+  > oOY or long.
+  > 3/3
+  > Gloomwidow
+  > 3/3
+  > 3/3
+vak 7: gevonden: Rain of Thorns (AVR 190)
+  app dacht eerst: gevonden: Rain of Thorns (PLST c17-156)
+  set=- nummer=- taal=- naam=Rain of Thorns
+  > Rain of Thorns
+  > Sorcery
+  > Choose oDe or more Destroy target
+  > and'or des rtnent
+  > When the forests became havens for evsl,
+  > ps detd reu tys no cleanse
+  > Rain of Thorns
+  > the archmages deted rieta ty 0 clearie
+  > the lds
+  > the archmages dered rieta tyo clearie
+  > the alds
+vak 8: gevonden: Triumph of Ferocity (AVR 198) [controleren]
+  app dacht eerst: niet gevonden (Read: ‘Triumph of Ferocity’)
+  set=- nummer=- taal=- naam=-
+  andere namen: Triumph of Ferocity
+  > Triumph of Ferocity
+  > Enchantment
+  > Ar the beginning of your upkeep, draw a
+  > Ereatest power or tied for the greatest
+  > h,or die uth m.
+  > -Garruk Psldpake
+  > Triumph of Ferocity
+  > -Garruk SPildspake
+  > Triumph of Ferocity
+  > -Gurruk ridspoaker
+vak 9: gevonden: Vorstclaw (AVR 201) [controleren]
+  app dacht eerst: gevonden: Vorstclaw (PLST m20-201) [controleren]
+  set=- nummer=777 taal=- naam=Vorstclaw
+  > Vorstclaw
+  > Creature -lemental Horror
+  > "Where the toerecotes go? May that
+  > 777
+  > Vorstclaw
+  > 7/7
+  > 7/7

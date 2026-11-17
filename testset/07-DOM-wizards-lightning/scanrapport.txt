@@ -1,0 +1,74 @@
+NineGrid scanrapport
+versie: 0.9.11 · toestel: samsung SM-A165F
+soort: blad · camera · foto 1080x1440
+scherpte: 456.7 · dekking: 0.44 · lezen: 1026 ms · opnieuw gelezen: 5
+vakken met naam of nummer en set: 5 van 9
+
+vak 1: gevonden: Wizard's Lightning (DOM 152)
+  set=- nummer=- taal=- naam=Wizard's Lightning
+  > Wizard's Lightning
+  > Insrant
+  > This spell cots a les to cast if wu cont
+  > Wiard's Lghtning deals ) damage to any
+  > argce
+  > efite
+  > Wizard% iehtr
+  > tachr Asel se thni kghrming
+  > Nahan, dean ef steration
+  > vn hen the irst ag
+  > tasceht Arse se ahni ghing
+  > Nahan, dean ef terution
+vak 2: gevonden: Goblin Barrage (DOM 128)
+  set=- nummer=- taal=- naam=Goblin Barrage
+  > Goblin Barrage
+  > Sorcery
+  > Kcker Sacriflke an artifact or Goblin
+  > u ay larựce an aren
+  > arget creature. ICtis spel was icked
+  > 0 deals a damage to target player
+  > target creature. If this spell was kicked,
+  > it also deals 4 damage to target player
+  > or planeswalker.
+  > OMENI
+  > target creature. If this spell was kicked,
+  > it aso deals 4 damage to target player
+  > or planeswalker.
+vak 3: leeg vak
+  set=- nummer=- taal=- naam=- leeg?
+vak 4: gevonden: Wild Onslaught (DOM 188)
+  set=- nummer=- taal=- naam=Wild Onslaught
+  > Wild Onslaught
+  > Instant
+  > Kicker 4 (ou may pay an addiiona
+  > 4a ou cast thi gne
+  > creature vou control IE this snell was
+  > couhters on
+  > Wild Onslaught
+  > 30
+  > T/34BU
+vak 5: leeg vak
+  set=- nummer=- taal=- naam=- leeg?
+vak 6: leeg vak
+  set=- nummer=- taal=- naam=- leeg?
+vak 7: gevonden: Oath of Teferi (DOM 200)
+  app dacht eerst: gevonden: Oath of Teferi (CMM 934)
+  set=- nummer=- taal=- naam=Oath of Teferi
+  andere namen: endary Enchantment
+  > (Oath of Teferi
+  > endary Enchantment
+  > at anothcr arg
+  > WAcch soatk
+  > (Oath of Teferi
+  > 300
+vak 8: gevonden: Raff Capashen, Ship's Mage (DOM 202) [controleren]
+  app dacht eerst: niet gevonden (Read: ‘RutCaps’)
+  set=- nummer=- taal=- naam=RutCaps
+  andere namen: Legendary Creature - Human Wizard
+  > Legendary Creature - Human Wizard
+  > Flash
+  > Ves may cast historic spelss
+  > though thcy had tash. (acts,
+  > 3/3)
+  > RutCaps
+vak 9: leeg vak
+  set=- nummer=- taal=- naam=- leeg?

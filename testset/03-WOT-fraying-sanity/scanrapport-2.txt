@@ -1,0 +1,105 @@
+NineGrid scanrapport
+versie: 0.9.11 · toestel: samsung SM-A165F
+soort: blad · galerij · foto 1530x2040
+instellingen: set leeg (automatisch) · lamp uit · automatisch afdrukken uit · AI-hulp uit · offline database aan · taal en
+scherpte: 2535.4 · dekking: 0.38 · lezen: 1497 ms · opnieuw gelezen: 4
+vakken met naam of nummer en set: 4 van 9
+
+vak 1: leeg vak
+  set=- nummer=- taal=- naam=- leeg?
+vak 2: leeg vak
+  set=- nummer=- taal=- naam=- leeg?
+vak 3: gevonden: Intruder Alarm (WOT 21)
+  app dacht eerst: gevonden: Intruder Alarm (TLE 15)
+  set=- nummer=- taal=- naam=Intruder Alarm
+  > Intruder Alarm
+  > 24
+  > Enchantment
+  > Creutures don't unap during their
+  > controllers untap steps
+  > Whenever a erenture unters the battlefield,
+  > ntap al ereaturON,
+  > The dark oren lit up winh a thouand eer,
+  > Re migh be morg thn vh
+  > evond the CIreat lenge
+  > Whenever a erenture enters the batlefleld,
+  > untap all ereatures.
+  > "The dark foren lit up
+  > and for the firt time.
+  > High Ke ighh be more than yi
+  > leyond the Grent Ilengg
+  > with a thoand eer,
+  > nild contderxd thar the
+  > Whenever a ereature enters the battlefleld,
+  > untap all erearures,
+  > "The dark frvn it up (with a thound eye
+  > and for the ru time. Jd conderyd thar the
+  > High Bue migh be mOrg than mvth"
+  > leyond the Great Hlenag
+vak 4: gevonden: Fraying Sanity (WOT 19) [controleren]
+  set=WOT nummer=2031W taal= naam=Fraying Sanity
+  > Fraying Sanity
+  > Enchantment Aura Curse
+  > Enchant player
+  > At the beginning of cach end step,
+  > enchanted player mills X cards, where X is
+  > number of cards put into their graveyard
+  > Irom anywhere this turn.
+  > I saw my mind stretch like cloth on a loon,
+  > Warping, Iwisting loUard a deathless
+  > s đoon.
+  > -A Traveler's Trials
+  > w&c 2031Wuards of the Coast
+  > ROOMEL TAMPIANON
+  > Fraying Sanity
+  > R 0019
+  > wOT-ENML TAMPIANON
+  > M&2023Wuards of the Coast
+  > R O019
+  > wOTEN ML TAMPIANON
+  > H&C 2023Wards of the Cat
+vak 5: gevonden: Compulsion (WOT 15)
+  set=- nummer=15 taal=- naam=Compulsion
+  > Compulsion
+  > Enchantment
+  > 00, Discard a card: Draw a card,
+  > 00, Sacrifice Compulsion: Draw a card.
+  > "O ny love, would that you could
+  > understand!
+  > Adventure beckons; I must take its hand."
+  > "The Scholar & the Kniglht"
+  > U 0015
+  > M&202)Wianh ef he Cat
+  > WOTENARON Ng
+  > U0015
+  > wOTENARON Na
+  > M& 202Wianh ef he Cuant
+  > U 0015
+  > WOT ENARON Na
+  > M& 202Wianh of the Cat
+vak 6: gevonden: Compulsion (WOT 15) [controleren]
+  app dacht eerst: niet gevonden (Read: 18 · ‘WotNfNCOovK’)
+  set=- nummer=18 taal=- naam=WotNfNCOovK
+  andere namen: Compulsion
+  > WotNfNCOovK
+  > Compulsion
+  > Enchantment
+  > 00, Discard a card: Drawa card.
+  > 00, Saeriflee Conmpulsion: Draw a card.
+  > "O ny lovw, toould hat sou could
+  > understand!
+  > Advenure beckonsl must take its hand"
+  > "The Scholar & the Knight"
+  > NUAUIWINh vf the Cv
+  > WOTEN fNCOOoYK
+  > U 0018
+  > wOTENON NG
+  > (0
+  > U 0018
+  > WOT«EN ARON NG
+vak 7: leeg vak
+  set=- nummer=- taal=- naam=- leeg?
+vak 8: leeg vak
+  set=- nummer=- taal=- naam=- leeg?
+vak 9: leeg vak
+  set=- nummer=- taal=- naam=- leeg?

@@ -1,0 +1,144 @@
+NineGrid scanrapport
+versie: 0.9.11 · toestel: samsung SM-A165F
+soort: blad · camera · foto 1080x1440
+scherpte: 1009.3 · dekking: 0.80 · lezen: 2169 ms · opnieuw gelezen: 9
+vakken met naam of nummer en set: 7 van 9
+
+vak 1: gevonden: Fblthp, the Lost (WAR 50)
+  app dacht eerst: gevonden: Fblthp, the Lost (RVR 420)
+  set=- nummer=- taal=- naam=Fblthp, the Lost
+  > Fblthp, the Lost
+  > Legendary Creafure - Homunculus
+  > When Polthp, the Lost enters the
+  > Irom your library or was cast fro
+  > wo cards instead
+  > Spell. shufle Fhltho into its owner
+  > library
+  > Fblthp, the Lost
+  > spell, shuffle Fblthp into its owner's
+  > library.
+  > 1/1
+  > spell, shuffle Fblthp into its owner's
+  > library.
+  > 1/1
+vak 2: gevonden: Lazotep Plating (PLST war-59)
+  set=- nummer=- taal=- naam=Lazotep Plating
+  > Lazotep Plating
+  > Instant
+  > Amass 1. (ha a + co
+  > cnate a o0 Nack ombsc Arry creaner
+  > Vou and permanents you control gain
+  > hexproof until end of rurn.o ar
+  > 3ur oppnont gomnl
+  > Lazotep Plating
+  > hexproof until end of turn. (ou and
+  > they can t be the targets of splls or abliies
+  > your opponcnts control)
+  > hexproof until end of turn. (You and
+  > they can 't be the tarets of splls or ablinies
+  > your opponents contro)
+  > G
+vak 3: gevonden: Jace's Triumph (WAR 55) [controleren]
+  app dacht eerst: niet gevonden (Read: ‘lace's Triumph’)
+  set=- nummer=- taal=- naam=-
+  andere namen: lace's Triumph
+  > lace's Triumph
+  > Sorcery
+  > Draw wo cards. If you control a
+  > Jace planewalker, draw three card
+  > noMImartine
+  > He eriph tas
+  > Belas plan, but tn
+  > r s
+  > Jace's Triumph
+  > 24
+  > Belas' plan, but
+  > por s sely
+  > Hltim
+  > t
+  > ersfanding y
+  > iy
+  > lace's Triumph
+  > 20
+  > Balast plan, but inenstanding ay
+  > poer Es saatg
+  > im
+vak 4: gevonden: Planewide Celebration (WAR 172)
+  set=- nummer=- taal=- naam=Planewide Celebratior
+  > Planewide Celebratior
+  > Sorcery
+  > hoose lour Tou may choose
+  > Create a 22 Citzsn crs
+  > hats a co
+  > rd fron
+  > your graevard to
+  > Planewide Celebration
+  > -Proliferate.
+  > - You gan life
+  > WAN-EN
+  > - Proliferate.
+  > You gain life
+  > WA-EN
+vak 5: gevonden: Davriel, Rogue Shadowmage (PLST war-83) [foil]
+  app dacht eerst: gevonden: Davriel, Rogue Shadowmage (PLST war-83)
+  set=- nummer=- taal=- naam=Drie, Rogue Shadowmage
+  > Drie, Rogue Shadowmage 2
+  > Legendary Planeswaler0avriel
+  > At the heginning nc
+  > Shadok
+  > Orile, Rogue Shadowmage 20
+vak 6: gevonden: Bleeding Edge (WAR 78)
+  set=- nummer=- taal=- naam=Bleeding Edge
+  > Bleeding Edge
+  > Sorcery
+  > Up to one target creature gets -2-2
+  > Bleeding Edge
+vak 7: gevonden: Vizier of the Scorpion (WAR 111)
+  app dacht eerst: gevonden: Vizier of the Scorpion (SCD 119)
+  set=- nummer=- taal=- naam=Vizier of the Scorpion
+  > Vizier of the Scorpion
+  > Creature - Zombie Wizard
+  > en Vizier of the Scorpion enters the
+  > avale a 00 klack Zembie
+  > Zombie tokens you control have deatht
+  > Vizier of the Scorpion
+  > 29
+  > Hu blesrag uu cure
+  > 1/1
+  > Hs blesg ua curse
+  > 1/1
+vak 8: gevonden: Eternal Taskmaster (WAR 90) [controleren]
+  app dacht eerst: niet gevonden (Read: ‘cmal’)
+  set=- nummer=- taal=- naam=cmal
+  > Creature-Zombie
+  > Eternal Takmaster enters the bartlefseld
+  > whenever Eternal Taskrnaster atack
+  > ard to your
+  > crearure card from
+  > calld Enernalt Thoy l never stap
+  > 2/3)
+  > cmal
+  > "Thcy are cald Eernals Thg neer stop
+  > -Jace Baleren
+  > 2/3
+  > "Thcy are calld Erenal They l neer op
+  > -Jace Beleren
+  > hom
+  > 2/3
+vak 9: gevonden: Liliana's Triumph (WAR 98) [controleren]
+  app dacht eerst: niet gevonden (Read: ‘iliana's Iriumph’)
+  set=- nummer=- taal=- naam=-
+  andere namen: iliana's Iriumph
+  > iliana's Iriumph
+  > 14
+  > Instant
+  > ach opponent sacnhces a creature
+  > cach opponent also discards a card.
+  > Her triüomnplh came not from escaping
+  > inder in claine her
+  > Liliana's Triumph
+  > LPdependence.
+  > WAN-ENR
+  > Liliana's Triumph
+  > Independence.
+  > WA-ENoa

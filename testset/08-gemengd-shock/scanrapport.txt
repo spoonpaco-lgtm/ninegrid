@@ -1,0 +1,102 @@
+NineGrid scanrapport
+versie: 0.9.11 · toestel: samsung SM-A165F
+soort: blad · camera · foto 1080x1440
+scherpte: 359.6 · dekking: 0.68 · lezen: 1383 ms · opnieuw gelezen: 6
+vakken met naam of nummer en set: 5 van 9
+
+vak 1: gevonden: Shock (STA 44)
+  app dacht eerst: gevonden: Shock (MSC 809)
+  set=- nummer=- taal=- naam=Shock
+  > Shock
+  > Instan
+  > Shock deals 2 damage to any target.
+  > Tthir da hre no kda /the henv
+  > -Ral Zarek, reunch os
+  > Shock
+  > iere ebyIN Am er atrackne m."
+  > Ral Zarek, reseanch nous
+  > ere ebyIng him er attacking im,"
+  > Ral Zarek, reneanh nos
+vak 2: leeg vak
+  set=- nummer=- taal=- naam=- leeg?
+vak 3: leeg vak
+  set=- nummer=- taal=- naam=- leeg?
+vak 4: gevonden: Deathbringer Regent (PDTK 96) [foil]
+  app dacht eerst: gevonden: Deathbringer Regent (J22 396)
+  set=- nummer=- taal=- naam=Deathhringer Regent
+  > Deathhringer Regent
+  > Craune Dragon
+  > Fhying
+  > When Deathenir Reent enters
+  > cat it Ion
+  > the bantefigld,
+  > Wben DeathbDBE Hegent enters
+  > the bartlefield, yo cast it frorn
+  > VOUY hand and there are five or more
+  > Otber eaireN the barttetield,
+  > destrog all ether earures
+  > Wben Deathb
+  > he baftlefield, you castit from
+  > VOur hand and there are five or more
+  > otber ceaturesun tbe barteficld,
+  > destroy all ether erearur
+  > Rekent encers
+vak 5: gevonden: Angel of Deliverance (PSOI 2) [foil]
+  app dacht eerst: gevonden: Angel of Deliverance (PSOI 2)
+  set=- nummer=- taal=- naam=Angel of Dellverance S
+  > Angel of Dellverance68S
+  > BAprl 201é
+  > ((Creature-Anvel
+  > Eving
+  > Duium Whenever ngel of
+  > are four or more Card te
+  > creature an onpoetrget
+  > Delivernce deals damage, if there
+  > arc four or more card typcs amnong
+  > cards in your graveyurd, exile target
+  > creature an opponent controls.
+  > Deliverance deals damagc, if there
+  > are four or more card typcs among
+  > cards in your graveyurd, exile target
+  > creature an opponent controls.
+vak 6: gevonden: Quicksmith Rebel (PAER 93) [controleren] [foil]
+  app dacht eerst: gevonden: Quicksmith Rebel (AER 93) [controleren]
+  set=- nummer=32 taal=- naam=Qulcksmith Rebel
+  > Qulcksmith Rebel
+  > Creature Human Artificer
+  > When Quicksrjeth Rebyl enters the
+  > pains e1n ae 2 damge
+  > 32
+  > Qulcksmith Rebel
+  > to target croaot
+  > As you contr
+  > "Lats ad just
+  > for as ang
+  > h Rebel.
+  > moettoppig pr
+  > to target croiu
+  > As you cont
+  > "Lats ad just
+  > for as fong
+  > ah Rebcl.
+  > motoppinr pacr.
+vak 7: leeg vak
+  set=- nummer=- taal=- naam=- leeg?
+  > S6
+  > 95
+vak 8: gevonden: Gluttonous Troll (PLST c21-218)
+  set=- nummer=- taal=- naam=Glutonous Troll
+  > 6/6)
+  > Glutonous Troll
+  > Cature Trol!
+  > he tanlef
+  > tokns equa
+  > 6/6
+  > Whin Ghutonoui Tral enters ihe banlee,
+  > Whn Gut onous Trol enten he banlekd,
+  > areste a oumber of Food oks equt so e
+  > Buber of epponem yuu hnE (Avd k
+  > a ar
+  > Sra arE
+vak 9: leeg vak
+  set=- nummer=- taal=- naam=- leeg?

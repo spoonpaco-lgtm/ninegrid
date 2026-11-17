@@ -1,0 +1,154 @@
+NineGrid scanrapport
+versie: 0.9.11 · toestel: samsung SM-A165F
+soort: blad · galerij · foto 1530x2040
+instellingen: set leeg (automatisch) · lamp uit · automatisch afdrukken uit · AI-hulp uit · offline database aan · taal en
+scherpte: 4058.1 · dekking: 0.68 · lezen: 1709 ms · opnieuw gelezen: 4
+vakken met naam of nummer en set: 7 van 9
+
+vak 1: leeg vak
+  set=- nummer=- taal=- naam=- leeg?
+vak 2: gevonden: Kinzu of the Bleak Coven (ONE 406)
+  set=- nummer=406 taal=- naam=-
+  andere namen: IKinzu of the Bleak Coven
+  > IKinzu of the Bleak Coven
+  > Legendary Creature --Plhyrexlan Vampire )
+  > Flying
+  > Whenever another nontoken creature
+  > you control dies, you may pay 2 life
+  > and exile it. If you do, create a token
+  > that's a copy of that creature, except
+  > it's 1/1 and has toxic 1. (Players dealt
+  > combat damage by it also get a poison
+  > counter.)
+  > 5/4
+  > 406
+  > ONE N ANDRAS ZAIBATOS
+  > MA202)Wiards of the Cnt
+  > Kinzu of the Bleak Coven
+  > combat damage by it also get a poison
+  > counter)
+  > 406 R
+  > ONEEN ANDREAS ZAIRATOS
+  > 5/4
+  > M&202)Wirards f the Coat
+  > Kinzu of the Bleak Coven
+vak 3: gevonden: Black Sun's Twilight (ONE 84)
+  set=ONE nummer=84 taal= naam=Black Sun's Twilight
+  > Black Sun's Twilight
+  > Instant
+  > Up to one target creature gets -X/-X until end
+  > of turn. If X is 5 or more, returri a creature
+  > card with mana value X or less from your
+  > graveyard to the battlefield tapped.
+  > "Where once there tuas complacence, Sheoldred
+  > brought ambition, and soon the tuill of Yawpnoth
+  > reigned."
+  > -Monument inscription
+  > Black Sun's Twilight
+  > Monunent inscription
+  > 084/271 R
+  > ONEEN losAs Dt Ro
+vak 4: gevonden: Nimraiser Paladin (ONE 101)
+  set=ONE nummer=101 taal= naam=Nimraiser Paladin
+  > Nimraiser Paladin
+  > Creature- Phyrexian Knight
+  > Toxic 2 (Players dealt combat damage
+  > by this creature also get two poison
+  > counters.)
+  > When Nimraiser Paladin enters the
+  > battlefield, return target creature
+  > card with mana value 3 or less from
+  > your graveyard to your hand.
+  > 414
+  > 101/271U
+  > w&2023 Wirards f the Caast
+  > ONEEN lost PARoDI
+vak 5: gevonden: Necrogen Communion (ONE 99)
+  set=ONE nummer=99 taal= naam=Necrogen Communion
+  > Necrogen Communion
+  > Enchantment Aura
+  > Enchant creature you control
+  > Enchanted creature has toxic 2.
+  > (Players dealt combat damage by it also
+  > get two poison counters.)
+  > When enchanted creature dies,
+  > return that card to the battlefield
+  > under your control.
+  > M&2023 Wizards of the Coast
+  > o99/2%ENANOA SOUZA
+  > ONE
+  > Necrogen Communion
+  > under your control.
+  > 099/271 U
+  > ONE ENERNANDA SOUZA
+  > N& 2023 Wizards of thé Coast
+  > under your control.
+  > 099/271 U
+  > ONEEN ERNANDA SoUZA
+  > M& 202Wards of thé Coast
+vak 6: gevonden: Necrosquito (ONE 100)
+  set=ONE nummer=100 taal= naam=Necrosquito
+  > Necrosquito
+  > 38
+  > Creature - Phyrexian Insect
+  > Flying
+  > Necrosquito enters the battlefield with two oil
+  > cOunters on it.
+  > Necrosquito gets +1/+1 for each oil counter
+  > on it.
+  > Whenever another creature or artifact you
+  > control is put into a graveyard from the
+  > battlefield, put an oil cOunter on Necrosquito.
+  > 0/0
+  > 100/271 U
+  > A0ZIilADINo
+  > ONE EN
+  > M& 2025Wizards of the Coast
+vak 7: gevonden: Bilious Skulldweller (ONE 83)
+  set=- nummer=- taal=- naam=Bilious Skulldweller
+  > Bilious Skulldweller
+  > Creature - Phyrexian Insect
+  > Deathtouch
+  > Toxic 1 (Players dealt combat damage by
+  > this creature also get a poison counter.)
+  > "Watch your footing aroind here.
+  > Anythng you might step on probably has
+  > teeth.
+  > Kara Vrist, resistance spymaster
+  > /1
+  > ONEENWIIIN VELINO
+  > M& 202) Wiuardh of the Caus
+  > Bilious Skulldweller
+  > ONEENSUN VLLINOK
+  > W&202) Wizards of the Coat
+  > ONE ENSTUN VELINOŃ
+  > M202) Wizarda of the Coau
+vak 8: gevonden: Feed the Infection (ONE 93)
+  set=ONE nummer=93 taal= naam=Feed the Infection
+  > Feed the Infection
+  > 3
+  > Sorcery
+  > You draw three cards and you lose 3 life
+  > Corrupted Each opponent who has
+  > three or more poison counters loses 3
+  > life,
+  > They wished to become vital parts of the
+  > Dross Pits. Azax-Azog granted their request.
+  > 093/271 U
+  > M&2033Wards of the Cuast
+  > ONEEN lASON A. ENGLE
+vak 9: gevonden: Ravenous Necrotitan (ONE 106) [controleren]
+  set=ONE nummer=100 taal= naam=Ravenous Necrotitan
+  > Ravenous Necrotitan
+  > Creature Phyrexian Horror
+  > Corrupted When Ravenous
+  > Necrotitan enters the battlefield,
+  > sacrifice a crcature unless an
+  > opponent has three or more poison
+  > Counters.
+  > Sheoldred's goliaths spread the
+  > Some of
+  > glory of Phyrexia. Others just eat.%
+  > 100/271 U
+  > Iw& 202)Wirards od the Cast
+  > ONE EN loHANN BooiN
