@@ -41,14 +41,15 @@ class ScanTestsetTest {
         var totalOk = 0; var total = 0
         val dirs = (ctx.assets.list("") ?: emptyArray()).filter { d -> ctx.assets.list(d)?.contains("uitslag.txt") == true }.sorted()
         assertTrue("Geen testmappen gevonden", dirs.isNotEmpty())
-        for (dir in dirs) {
-            val bmp = ctx.assets.open("$dir/foto.jpg").use { BitmapFactory.decodeStream(it) }
+        val jobs = dirs.flatMap { d -> listOf("foto.jpg", "foto-2.jpg").filter { f -> ctx.assets.list(d)?.contains(f) == true }.map { f -> d to f } }
+        for ((dir, file) in jobs) {
+            val bmp = ctx.assets.open("$dir/$file").use { BitmapFactory.decodeStream(it) }
             val text = Tasks.await(recognizer.process(InputImage.fromBitmap(bmp, 0)))
             val lines = text.textBlocks.flatMap { it.lines }.mapNotNull { l -> l.boundingBox?.let { OcrLine(l.text, it.exactCenterX(), it.exactCenterY()) } }
             val reads = ScanParser.analyze(lines, bmp.width, bmp.height).slots.associateBy { it.slot }
             val expected = ctx.assets.open("$dir/uitslag.txt").bufferedReader().readLines()
                 .filter { it.startsWith("vak ") }.associate { it.substringAfter("vak ").substringBefore(":").trim().toInt() to parseExpect(it) }
-            out.appendLine("\n== $dir")
+            out.appendLine("\n== $dir/$file")
             var ok = 0
             for ((slot, e) in expected.toSortedMap()) {
                 val r = reads[slot]
