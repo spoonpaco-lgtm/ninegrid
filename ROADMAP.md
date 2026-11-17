@@ -115,7 +115,7 @@ Dit is "de lijst": wat Mick wil dat NineGrid nog krijgt. Een nieuw gesprek begin
 - Lege hoesjes met glans: grenzen 0.35 en 0.7 in `EmptySlots.decide` zijn geschat.
 - Verzonnen setcode of taal valt weg; jaartal telt niet als kaartnummer; de set van het blad wint van één verlezen set.
 - Foil-twijfel is blauw ★ (chips "★ Foil" en "Geen foil"); geeft ML Kit ★ op echte foils?
-- Kaart voor kaart: chips met +1 en kruisje, Opslaan als alles zeker is, Foil als sessiestand.
+- Kaart voor kaart: chips met +1 en kruisje zijn sinds 0.9.9.2 een fotootje van de kaart met een gekleurde rand (zie 0.9.9.2); Opslaan als alles zeker is, Foil als sessiestand.
 - Scannen vanuit een deck (menu Toevoegen → Scannen) en de keuze "uit de collectie halen" (alles / exact dezelfde / niets).
 - Filters en sorteren bij deck, vriend en set; thumbnails bij suggesties; combo-blokken inklappen; segmentbalk Thumbnails | Namen.
 - Nog niet gebouwd: 39a (set van de vorige kaart als aanname), 39c (groene kaarten overslaan, wacht op test), 4e (kleuren/banned meteen oranje), één Deck/Sideboard/Commander-keuze voor alle kaarten.
