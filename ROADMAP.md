@@ -108,6 +108,13 @@ Crashrapport verzenden (nieuw; Mick 17 nov: in 0.9.11):
 - Ook te vinden onder Ontwikkelaar → Laatste crashrapport delen.
 - Zo kan Mick een crash zonder uitleg doorsturen en vindt de oorzaak snel.
 
+Deck delen via QR-code (was Route D in Fase 2; Mick 17 nov: in 0.9.11):
+- Deck → ⋮ → Delen via QR: op het scherm een QR-code met de decklijst. De ontvanger opent in NineGrid de scanner, richt de camera op het scherm en krijgt de lijst in hetzelfde controlescherm als bij Lijst plakken; hij kiest zelf wat hij toevoegt.
+- Compact: per kaart aantal, set en kaartnummer (bijvoorbeeld `1 MH2 123`), Commander en Sideboard gemarkeerd; de namen haalt de ontvanger zelf op uit de offline database of bij Scryfall. Een QR-code houdt ongeveer 2.900 bytes; een Commander-deck van 100 kaarten is ongeveer 1 KB, ingepakt minder. Een heel groot deck kan over twee of drie codes na elkaar.
+- Zonder internet, zonder account en zonder bestand dat je moet appen; handig als je iemand naast je hebt.
+- Kost: een extra onderdeel om QR-codes te lezen (ML Kit barcode-scanning, ongeveer 2 à 3 MB). Alleen NineGrid begrijpt de code; gewone tekst in de QR zou elke QR-lezer kunnen tonen, maar maakt de code groter en lastiger te scannen (nog te kiezen).
+- Geen koppeling met Moxfield of Archidekt; dat is Exporteren.
+
 ### 2. Kleine verbeteringen (nog geen versie)
 
 - Taartgrafiek: de gekozen weergave (Lijn of Taart) en splitsing onthouden na het sluiten van de app.
@@ -157,7 +164,6 @@ Alleen wat Mick nog niet heeft bevestigd.
 
 ## Fase 2 (wacht op startsein) → wordt 1.0
 - Sheet-koppeling (deel 2 punt 2, optie A: nieuwe Sheet via drive.file; Google Cloud-project + privacypagina nodig)
-- Route D: deck delen via QR-code (scherm scannen → decklijst)
 
 ## Later (idee, geen versie)
 - Verkoopalarm voor kaarten die je hebt: "meld als Ragavan boven € 60 komt" (omgekeerde prijsalarm, lijkt op Breakout)
