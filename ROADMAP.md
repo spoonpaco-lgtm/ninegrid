@@ -95,6 +95,7 @@ Ook in 0.9.11:
 - Verlanglijst: −1 en swipe-verwijderen met terugzetten, elke regel zegt welke print (17 nov, op Micks verzoek in 0.9.11 gebouwd). Open: Mick zag na een printwijziging niet de juiste print of prijs; in de code niet te vinden, eerst vragen wat hij precies ziet.
 - Scanrapport met instellingen (set, lamp, automatisch afdrukken, AI-hulp, offline database, taal).
 - Meldingstoestemming (Android 13+) wordt nu alleen bij importeren gevraagd; ook vragen bij het aanzetten van bans en reprints.
+- Grafiek, venster bij tikken (Mick 17 nov, met schermafbeelding; in 0.9.11): de regels in dezelfde volgorde als de lijnen op die dag, hoogste bovenaan (nu de volgorde van de gekozen lijnen, dus rood staat in de grafiek onderaan maar in het venster ergens middenin). De volgorde beweegt mee (Mick 17 nov): schuif je met je vinger naar een andere dag en wisselen lijnen daar van plek, dan wisselen ze in het venster ook. In `ui/overview/HistoryChart.kt` de `rows` (rond regel 184) per gekozen dag opnieuw sorteren op de waarde van die dag, aflopend. De tweede lijn (aantal kaarten) blijft onderaan.
 
 Scanner: testset en beter rapport (voorstel, wacht op startsein; Mick 17 nov: in 0.9.11):
 
@@ -118,6 +119,19 @@ Deck delen via QR-code (was Route D in Fase 2; Mick 17 nov: in 0.9.11):
 - Zonder internet, zonder account en zonder bestand dat je moet appen; handig als je iemand naast je hebt.
 - Kost: een extra onderdeel om QR-codes te lezen (ML Kit barcode-scanning, ongeveer 2 à 3 MB). Alleen NineGrid begrijpt de code; gewone tekst in de QR zou elke QR-lezer kunnen tonen, maar maakt de code groter en lastiger te scannen (nog te kiezen).
 - Geen koppeling met Moxfield of Archidekt; dat is Exporteren.
+
+### 1c. Op de lijst, versie nog kiezen
+
+Privacymodus: meer controle (Mick 17 nov):
+- **Wat verbergen** (Mick): Alles (zoals nu) | Alleen totalen (waarde van collectie, sets en decks, de grafiek, Winner of the Week, boosters) | Alleen kaartprijzen (per kaart en in lijsten; de totalen blijven zichtbaar). Stijl (compleated, zegel, schaduw, stippen) en vingerafdruk blijven zoals nu.
+- Technisch: nu is het één schakelaar en verbergen `money()` en `privacyMask()` in `ui/components/Privacy.kt` elk bedrag. Elke plek moet dus gaan zeggen of het een totaal of een kaartprijs is (bijvoorbeeld een soort bij `money()`), en alle schermen moeten worden nagelopen. Meldingen (`PriceWorker`) volgen dezelfde keuze.
+- Extra opties (gekozen door Mick, 17 nov):
+  - Grafiek in procenten: de lijn en de stijging of daling in % blijven zichtbaar, zonder bedragen op de as.
+  - Ook aantallen verbergen (hoeveel kaarten je hebt, per set en in totaal).
+  - Meldingen zonder bedragen: een eigen schakelaar (aan/uit). Aan = bedragen in meldingen altijd verborgen op het vergrendelscherm, ook als de privacymodus uit staat.
+  - Alleen dure kaarten verbergen: kaartprijzen boven een bedrag dat je zelf kiest.
+- Bewust niet (Mick, 17 nov): privacymodus automatisch weer aan (bij start of na een paar minuten), en schermafbeeldingen blokkeren (FLAG_SECURE).
+- Let op: bij "alleen kaartprijzen" zijn kaartprijzen terug te rekenen uit het totaal van een set of deck met weinig kaarten.
 
 ### 2. Kleine verbeteringen (nog geen versie)
 
