@@ -89,7 +89,7 @@ Dit is "de lijst": wat Mick wil dat NineGrid nog krijgt. Een nieuw gesprek begin
 - Kaartscherm: Andere prints › opent de printlijst (plaatje, jaar, prijs per afwerking, goedkoopst, ✓); sorteren Nieuwste | Goedkoopste; tik = nieuw kaartscherm erbovenop, Terug = vorige print.
 - ✎ bij een exemplaar: regel Print › → printlijst; bij ×3 het vak "Voor hoeveel exemplaren"; foil die niet bestaat → Normaal met melding; daarna springt het kaartscherm naar de nieuwe print; ongedaan maken.
 - + Exemplaar toevoegen: afwerkingen met prijs (welke er bestaan komt van Scryfall; zonder internet of met de offline database afgeleid uit de prijzen), aantal, collectie met map/blad/vak of een deck met Deck/Sideboard/Commander.
-- Verlanglijst ✎ → precies deze print → printregel → printlijst; prijs en alarm met die print.
+- ✓ Verlanglijst ✎ → precies deze print → printregel → printlijst; prijs en alarm met die print: nagekeken door Mick, werkt.
 - Bans en reprints: Instellingen → Collectie. De eerste nachtelijke controle legt alleen de stand vast; meldingen pas bij een echte wijziging daarna. Reprints volgt sets die nog niet uit zijn of de laatste 30 dagen uitkwamen. Toestemming voor meldingen (Android 13+) wordt nog alleen bij importeren gevraagd.
 - 4e: plakken naar een deck of scannen vanuit een deck met een banned kaart of een kaart buiten de commanderkleuren → oranje bij Controleer met de reden.
 - Etched heeft bij Cardmarket (via Scryfall) geen eigen prijs: in de printlijst dan de foilprijs, maar alleen als er van die print geen gewone foil bestaat.
