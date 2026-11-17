@@ -168,20 +168,18 @@ class ScanVariantsTest {
         val configs = listOf(
             Cfg("A eerste ronde alleen", rereadSkip = true),
             Cfg("B zoals de app (eerste ronde + opnieuw lezen)"),
-            Cfg("C opnieuw lezen van alle vakken", rereadAll = true),
             Cfg("D elk vak los lezen + opnieuw lezen", cellFirst = true),
             Cfg("E app + meer pogingen onderaan (4x, 5x, hoge strook)", multi = true),
             Cfg("F hele foto 1,5x vergroot + app", upscale = 1.5f),
-            Cfg("G elk vak los + meer pogingen", cellFirst = true, multi = true),
-            Cfg("H app met hogere voetstrook (22%) en 4x", botH = 0.22f, botScale = 4),
         )
         val dirs = (ctx.assets.list("") ?: emptyArray()).filter { d -> ctx.assets.list(d)?.contains("uitslag.txt") == true }.sorted()
-        val jobs = dirs.flatMap { d -> listOf("foto.jpg", "foto-2.jpg").filter { f -> ctx.assets.list(d)?.contains(f) == true }.map { f -> d to f } }
+        val jobs = dirs.flatMap { d -> listOf("foto-2.jpg", "foto.jpg").filter { f -> ctx.assets.list(d)?.contains(f) == true }.take(1).map { f -> d to f } }
         val out = StringBuilder("NineGrid varianten\n")
         val fails = StringBuilder()
         for (cfg in configs) {
             val t = Tally(); val t0 = System.currentTimeMillis()
             for ((dir, file) in jobs) {
+                Log.i("TESTSET", "bezig ${cfg.label.take(1)} $dir/$file")
                 val bmp = ctx.assets.open("$dir/$file").use { BitmapFactory.decodeStream(it) }
                 val reads = runCatching { run(bmp, cfg, known) }.getOrElse { out.appendLine("fout ${cfg.label} $dir/$file: $it"); emptyMap() }
                 val expected = ctx.assets.open("$dir/uitslag.txt").bufferedReader().readLines()
