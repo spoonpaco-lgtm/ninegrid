@@ -63,7 +63,11 @@ class ScanTestsetTest {
             totalOk += ok; total += expected.size
         }
         out.appendLine("\nTotaal: $totalOk van $total vakken goed")
-        Log.i("TESTSET", out.toString())
-        File(ctx.getExternalFilesDir(null) ?: ctx.cacheDir, "testset-uitslag.txt").writeText(out.toString())
+        out.lines().forEach { Log.i("TESTSET", it) }
+        runCatching {
+            val target = InstrumentationRegistry.getInstrumentation().targetContext
+            val dir = (target.getExternalFilesDir(null) ?: target.filesDir).also { it.mkdirs() }
+            File(dir, "testset-uitslag.txt").writeText(out.toString())
+        }
     }
 }

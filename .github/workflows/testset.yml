@@ -33,7 +33,7 @@ jobs:
             ./gradlew --no-daemon connectedDebugAndroidTest 2>&1 | tee testset.log || true
             adb logcat -d -s TESTSET:I > logcat.txt || true
             adb shell 'cat /sdcard/Android/data/nl.spoonpaco.ninegrid.test/files/testset-uitslag.txt' > testset-uitslag.txt || true
-            echo '=====UITSLAG====='; cat testset-uitslag.txt || true; echo '=====EINDE====='
+            echo '=====UITSLAG====='; cat logcat.txt | sed 's/^.*TESTSET *: //' || true; echo '=====EINDE====='
 
       - name: Uitslag in de samenvatting
         if: always()
