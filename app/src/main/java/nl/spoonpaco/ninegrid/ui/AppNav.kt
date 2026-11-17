@@ -195,8 +195,9 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
                 )
             }
             composable("decks") {
-                DecksScreen(vm, onDeck = { nav.navigate("deck/$it") }, onNewDeck = { nav.navigate("paste?asNewDeck=true") })
+                DecksScreen(vm, onDeck = { nav.navigate("deck/$it") }, onNewDeck = { nav.navigate("paste?asNewDeck=true") }, onQr = { nav.navigate("qrscan") })
             }
+            composable("qrscan") { nl.spoonpaco.ninegrid.ui.screens.QrScanScreen(vm, onBack = { nav.popBackStack() }, onNext = { nav.navigate("review") { popUpTo("qrscan") { inclusive = true } } }) }
             composable("scan") { ScanScreen(vm, onBack = { vm.scanDeckId = null; if (!nav.popBackStack()) tab("collection") }, onResult = { nav.navigate("review") }) }
             composable("overview") {
                 OverviewScreen(

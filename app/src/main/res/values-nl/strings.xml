@@ -1121,4 +1121,12 @@
     <string name="export_moxfield_csv_hint">In Moxfield: Collection → Import. Kaarten in decks staan er als losse regels in.</string>
     <string name="export_wants">Kopieer voor Cardmarket</string>
     <string name="export_wants_copied">%d regels gekopieerd. Cardmarket neemt maximaal 150 regels per lijst.</string>
+    <string name="qr_share_deck">Delen via QR-code</string>
+    <string name="qr_share_one">Scan dit met NineGrid op de andere telefoon: Decks → scan-icoon.</string>
+    <string name="qr_share_parts">Code %1$d van %2$d. Scan alle codes op de andere telefoon, in willekeurige volgorde.</string>
+    <string name="qr_share_next">Volgende code</string>
+    <string name="qr_scan_deck">Deck-QR scannen</string>
+    <string name="qr_scan_hint">Richt de camera op de QR-code van een deck dat vanuit NineGrid is gedeeld.</string>
+    <string name="qr_scan_part">Code %1$d van %2$d gescand. Scan de volgende.</string>
+    <string name="qr_scan_wrong">Dit is geen NineGrid-deckcode.</string>
 </resources>

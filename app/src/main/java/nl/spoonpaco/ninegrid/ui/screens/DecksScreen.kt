@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -26,6 +28,8 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.QrCode2
+import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
@@ -105,13 +109,13 @@ fun formatLabel(f: String): String = when (f) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DecksScreen(vm: AppViewModel, onDeck: (Long) -> Unit, onNewDeck: () -> Unit) {
+fun DecksScreen(vm: AppViewModel, onDeck: (Long) -> Unit, onNewDeck: () -> Unit, onQr: () -> Unit = {}) {
     val decks by vm.decks.collectAsState()
     val all by vm.entries.collectAsState()
     val settings by vm.settings.collectAsState()
     val extra = LocalNgExtra.current
     Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.decks), fontWeight = FontWeight.Bold) }, actions = { nl.spoonpaco.ninegrid.ui.components.PrivacyButton(vm); nl.spoonpaco.ninegrid.ui.guide.HelpButton("decks") }) },
+        topBar = { TopAppBar(title = { Text(stringResource(R.string.decks), fontWeight = FontWeight.Bold) }, actions = { IconButton(onClick = onQr) { Icon(Icons.Filled.QrCodeScanner, stringResource(R.string.qr_scan_deck)) }; nl.spoonpaco.ninegrid.ui.components.PrivacyButton(vm); nl.spoonpaco.ninegrid.ui.guide.HelpButton("decks") }) },
         floatingActionButton = {
             FloatingActionButton(onClick = onNewDeck, containerColor = MaterialTheme.colorScheme.primary) { Icon(Icons.Filled.Add, stringResource(R.string.new_deck)) }
         },
@@ -209,6 +213,7 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
     var commanderDialog by remember { mutableStateOf(false) }
     var deleting by remember { mutableStateOf(false) }
     var exporting by remember { mutableStateOf(false) }
+    var qrShown by remember { mutableStateOf(false) }
     var picking by remember { mutableStateOf(false) }
     var tab by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(0) }
     var cardQuery by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf("") }
@@ -219,6 +224,27 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
     val text = Export.deckText(list, d?.format == DeckFormat.COMMANDER)
     val saveLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/plain")) { uri ->
         if (uri != null) vm.writeText(uri, text)
+    }
+
+    if (qrShown) {
+        val codes = remember(text) { nl.spoonpaco.ninegrid.domain.DeckQr.encode(text) }
+        var idx by remember { mutableStateOf(0) }
+        val bmp = remember(codes, idx) { nl.spoonpaco.ninegrid.ui.components.qrBitmap(codes[idx]) }
+        AlertDialog(
+            onDismissRequest = { qrShown = false },
+            title = { Text(d?.name ?: stringResource(R.string.qr_share_deck)) },
+            text = {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    if (bmp != null) androidx.compose.foundation.Image(bmp.asImageBitmap(), null, Modifier.fillMaxWidth().aspectRatio(1f))
+                    Text(
+                        if (codes.size > 1) stringResource(R.string.qr_share_parts, idx + 1, codes.size) else stringResource(R.string.qr_share_one),
+                        fontSize = NgText.body, color = extra.subtle, textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    )
+                }
+            },
+            confirmButton = { if (codes.size > 1) TextButton(onClick = { idx = (idx + 1) % codes.size }) { Text(stringResource(R.string.qr_share_next)) } else TextButton(onClick = { qrShown = false }) { Text(stringResource(R.string.done)) } },
+            dismissButton = { if (codes.size > 1) TextButton(onClick = { qrShown = false }) { Text(stringResource(R.string.done)) } },
+        )
     }
 
     if (exporting) {
@@ -264,6 +290,7 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
                     DropdownMenuItem(text = { Text(stringResource(R.string.change_format)) }, onClick = { menu = false; formatPicker = true })
                     if (d?.format == DeckFormat.COMMANDER) DropdownMenuItem(text = { Text(stringResource(R.string.commander_change)) }, onClick = { menu = false; commanderDialog = true })
                     DropdownMenuItem(text = { Text(stringResource(R.string.export_to_site)) }, leadingIcon = { Icon(Icons.Filled.Share, null) }, onClick = { menu = false; exporting = true })
+                    DropdownMenuItem(text = { Text(stringResource(R.string.qr_share_deck)) }, leadingIcon = { Icon(Icons.Filled.QrCode2, null) }, onClick = { menu = false; qrShown = true })
                     DropdownMenuItem(text = { Text(stringResource(R.string.export_text)) }, leadingIcon = { Icon(Icons.Filled.FileDownload, null) }, onClick = { menu = false; saveLauncher.launch("${d?.name ?: "deck"}.txt") })
                     DropdownMenuItem(text = { Text(stringResource(R.string.delete_deck)) }, leadingIcon = { Icon(Icons.Filled.Delete, null) }, onClick = { menu = false; deleting = true })
                 }

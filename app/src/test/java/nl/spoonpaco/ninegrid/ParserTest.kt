@@ -1076,4 +1076,28 @@ class ParserTest {
         val mox = nl.spoonpaco.ninegrid.domain.Export.deckTextFor(nl.spoonpaco.ninegrid.domain.Export.Site.MOXFIELD, listOf(e(bolt, 1, "foil")), false)
         assertEquals("1 Lightning Bolt (M11) 146 *F*\n", mox)
     }
+
+    /** Een deck als QR-tekst: past in één code, en lange lijsten komen in delen terug in welke volgorde ze ook gescand worden. */
+    @Test
+    fun deckQrRoundTrip() {
+        val short = "Commander\n1 Edgar Markov (INR) 328\n\nDeck\n4 Murder (M20) 109 *F*\n2 Duress (STA) 29 *E*\n"
+        val one = nl.spoonpaco.ninegrid.domain.DeckQr.encode(short)
+        assertEquals(1, one.size)
+        assertEquals(short, nl.spoonpaco.ninegrid.domain.DeckQr.decode(one))
+        // Een commanderdeck met 100 verschillende kaarten past in één code.
+        val rnd = java.util.Random(7)
+        val words = List(300) { (1..rnd.nextInt(8) + 4).map { ('a' + rnd.nextInt(26)) }.joinToString("").replaceFirstChar { it.uppercase() } }
+        val cmdr = "Commander\n1 Edgar Markov (INR) 328\n\nDeck\n" + (1..99).joinToString("\n") { "1 ${words[it]} ${words[it + 100]} (CMM) ${100 + it}" } + "\n"
+        assertEquals(1, nl.spoonpaco.ninegrid.domain.DeckQr.encode(cmdr).size)
+        // Echt lange lijst: meer delen, in willekeurige volgorde.
+        val big = (1..900).joinToString("\n") { "1 ${words[it % 300]} ${words[(it * 7) % 300]} ${it} (SET) ${it}" }
+        val parts = nl.spoonpaco.ninegrid.domain.DeckQr.encode(big)
+        assertTrue(parts.size > 1 && parts.all { it.length <= nl.spoonpaco.ninegrid.domain.DeckQr.MAX_CHARS })
+        val a = nl.spoonpaco.ninegrid.domain.DeckQr.Assembler()
+        parts.reversed().forEach { assertTrue(a.add(it)); a.add(it) }
+        assertTrue(a.complete)
+        assertEquals(big, a.text())
+        assertFalse(nl.spoonpaco.ninegrid.domain.DeckQr.Assembler().add("https://example.com"))
+        assertEquals(null, nl.spoonpaco.ninegrid.domain.DeckQr.decode(listOf("NG1:!!!")))
+    }
 }

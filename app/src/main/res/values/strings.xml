@@ -1122,4 +1122,12 @@
     <string name="export_moxfield_csv_hint">In Moxfield: Collection → Import. Decks are included as separate copies.</string>
     <string name="export_wants">Copy for Cardmarket</string>
     <string name="export_wants_copied">%d wants copied. Cardmarket takes at most 150 lines per list.</string>
+    <string name="qr_share_deck">Share via QR code</string>
+    <string name="qr_share_one">Scan this with NineGrid on the other phone: Decks → scan icon.</string>
+    <string name="qr_share_parts">Code %1$d of %2$d. Scan all codes on the other phone, in any order.</string>
+    <string name="qr_share_next">Next code</string>
+    <string name="qr_scan_deck">Scan a deck QR code</string>
+    <string name="qr_scan_hint">Point the camera at the QR code of a deck shared from NineGrid.</string>
+    <string name="qr_scan_part">Code %1$d of %2$d scanned. Scan the next one.</string>
+    <string name="qr_scan_wrong">This is not a NineGrid deck code.</string>
 </resources>
