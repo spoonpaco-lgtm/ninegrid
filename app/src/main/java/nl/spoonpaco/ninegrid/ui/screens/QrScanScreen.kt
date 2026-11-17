@@ -51,6 +51,7 @@ import nl.spoonpaco.ninegrid.ui.AppViewModel
 import java.util.concurrent.Executors
 
 /** Scant de QR-code(s) van een gedeeld deck. Is het deck compleet, dan gaat het naar het controlescherm, zoals een geplakte lijst. */
+@androidx.annotation.OptIn(androidx.camera.core.ExperimentalGetImage::class)
 @Composable
 fun QrScanScreen(vm: AppViewModel, onBack: () -> Unit, onNext: () -> Unit) {
     val context = LocalContext.current
