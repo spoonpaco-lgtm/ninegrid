@@ -92,6 +92,14 @@ fun PrivacyProvider(vm: AppViewModel, content: @Composable () -> Unit) {
 fun money(v: Double, currency: String, kind: PrivacyKind = PrivacyKind.CARD): String =
     if (LocalPrivacy.current.hides(kind, v)) (if (currency == "USD") "$ ••••" else "€ ••••") else Money.format(v, currency)
 
+/** Een los aantal ("3", of "•" als aantallen verborgen zijn). */
+@Composable
+fun countStr(n: Int): String = if (LocalPrivacy.current.hidesCounts) "•" else n.toString()
+
+/** [text] met het aantal [n] erin vervangen door stippen, als aantallen verborgen zijn. */
+@Composable
+fun maskCount(text: String, n: Int): String = if (LocalPrivacy.current.hidesCounts) text.replace(n.toString(), "•") else text
+
 /** "12 kaarten", of "••• kaarten" als aantallen verborgen zijn. */
 @Composable
 fun cardsText(n: Int): String =

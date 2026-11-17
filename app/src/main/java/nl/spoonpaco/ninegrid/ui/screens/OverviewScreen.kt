@@ -223,7 +223,7 @@ fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}, onSets: () ->
                                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 2.dp)) {
                                     if (nl.spoonpaco.ninegrid.ui.components.LocalEffects.current) nl.spoonpaco.ninegrid.ui.components.LoyaltyShield("+" + nl.spoonpaco.ninegrid.ui.components.money(w.totalGain, cur, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL), up = true)
                                     else Text("▲ " + nl.spoonpaco.ninegrid.ui.components.money(w.totalGain, cur, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL), fontSize = NgText.body, fontWeight = FontWeight.Bold, color = NgColors.Synced)
-                                    if (w.quantity > 1) Text("  ·  " + stringResource(R.string.winner_copies, w.quantity), fontSize = NgText.body, color = extra.subtle)
+                                    if (w.quantity > 1) Text("  ·  " + nl.spoonpaco.ninegrid.ui.components.maskCount(stringResource(R.string.winner_copies, w.quantity), w.quantity), fontSize = NgText.body, color = extra.subtle)
                                 }
                             }
                         }
@@ -670,7 +670,7 @@ private fun PieBlock(slices: List<Slice>, byCount: Boolean, currency: String) {
             Text(sl.label, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
             Text("$pct%", color = extra.subtle, fontSize = NgText.body)
             Spacer(Modifier.width(10.dp))
-            if (byCount) Text(sl.amount.toInt().toString(), fontWeight = FontWeight.Bold)
+            if (byCount) Text(nl.spoonpaco.ninegrid.ui.components.countStr(sl.amount.toInt()), fontWeight = FontWeight.Bold)
             else Text(nl.spoonpaco.ninegrid.ui.components.money(sl.amount, currency, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL), fontWeight = FontWeight.Bold, color = extra.price, modifier = Modifier.then(nl.spoonpaco.ninegrid.ui.components.privacyMask(nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL)))
         }
     }

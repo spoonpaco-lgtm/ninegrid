@@ -217,7 +217,7 @@ fun CardRow(
             Spacer(Modifier.width(8.dp))
             Column(horizontalAlignment = Alignment.End, modifier = Modifier.widthIn(min = 56.dp)) {
                 Text(priceText ?: nl.spoonpaco.ninegrid.ui.components.money(Money.total(entry, print, settings.currency), settings.currency), color = extra.price, fontWeight = FontWeight.Bold, fontSize = NgText.emphasis, maxLines = 1, modifier = Modifier.then(nl.spoonpaco.ninegrid.ui.components.privacyMask(value = Money.total(entry, print, settings.currency))))
-                if (entry.quantity > 1) Text("${entry.quantity}×", color = extra.subtle, fontSize = NgText.body)
+                if (entry.quantity > 1) Text("${nl.spoonpaco.ninegrid.ui.components.countStr(entry.quantity)}×", color = extra.subtle, fontSize = NgText.body)
             }
             trailing?.let { Spacer(Modifier.width(6.dp)); it() }
         }

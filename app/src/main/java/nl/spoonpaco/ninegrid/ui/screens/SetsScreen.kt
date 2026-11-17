@@ -182,7 +182,7 @@ private fun SetRowView(r: SetRow, cur: String, icons: Boolean, vm: AppViewModel,
             }
             Text(
                 nl.spoonpaco.ninegrid.ui.components.cardsText(r.cards) +
-                    if (r.size > 0) "  ·  " + stringResource(R.string.sets_complete, r.owned, r.size, r.pct) else "",
+                    if (r.size > 0) "  ·  " + nl.spoonpaco.ninegrid.ui.components.maskCount(stringResource(R.string.sets_complete, r.owned, r.size, r.pct), r.owned).let { if (nl.spoonpaco.ninegrid.ui.components.LocalPrivacy.current.hidesCounts) it.replace("${r.pct}%", "•%") else it } else "",
                 fontSize = NgText.body, color = extra.subtle,
             )
             if (r.size > 0 && r.owned >= r.size) Row(Modifier.padding(top = 4.dp)) {

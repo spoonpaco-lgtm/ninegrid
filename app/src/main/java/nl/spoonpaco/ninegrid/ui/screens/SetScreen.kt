@@ -253,7 +253,7 @@ private fun SetCardRow(
         "#${c.number}",
         c.rarity.replaceFirstChar { it.uppercase() },
         if (!c.regular) stringResource(R.string.set_variant) else null,
-        if (!missing && qty > 0) "×$qty" + (if (foils > 0) " (" + stringResource(R.string.set_n_foil, foils) + ")" else "") else null,
+        if (!missing && qty > 0) "×${nl.spoonpaco.ninegrid.ui.components.countStr(qty)}" + (if (foils > 0) " (" + nl.spoonpaco.ninegrid.ui.components.maskCount(stringResource(R.string.set_n_foil, foils), foils) + ")" else "") else null,
         places.firstOrNull()?.let { it + if (places.size > 1) " +${places.size - 1}" else "" },
     ).joinToString(" · ")
     Card(
