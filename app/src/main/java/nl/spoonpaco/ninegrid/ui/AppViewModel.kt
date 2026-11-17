@@ -2036,6 +2036,28 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun updateWish(w: nl.spoonpaco.ninegrid.data.db.WishItem, print: CardPrint? = null) = viewModelScope.launch { repo.updateWish(w, print) }
     fun deleteWish(id: Long) = viewModelScope.launch { repo.deleteWish(id) }
 
+    /** Verwijdert de hele regel van de verlanglijst; terugzetten kan vanuit de melding. */
+    fun removeWish(w: nl.spoonpaco.ninegrid.data.db.WishWithPrint) = viewModelScope.launch {
+        repo.deleteWish(w.item.id)
+        messageUndo = true
+        messageUndoLabel = str(R.string.wish_restore)
+        messageAction = { viewModelScope.launch { repo.updateWish(w.item, w.print) } }
+        message = str(R.string.wish_removed, w.item.name)
+    }
+
+    /** Eén minder op de verlanglijst; bij de laatste verdwijnt de regel. Terugzetten kan vanuit de melding. */
+    fun oneLessWish(w: nl.spoonpaco.ninegrid.data.db.WishWithPrint) {
+        val i = w.item
+        if (i.wanted <= 1) { removeWish(w); return }
+        viewModelScope.launch {
+            repo.updateWish(i.copy(wanted = i.wanted - 1, got = i.got.coerceAtMost(i.wanted - 2).coerceAtLeast(0)))
+            messageUndo = true
+            messageUndoLabel = str(R.string.wish_restore)
+            messageAction = { viewModelScope.launch { repo.updateWish(i, w.print) } }
+            message = str(R.string.wish_one_less, i.name, i.wanted - 1)
+        }
+    }
+
     fun boughtWish(w: nl.spoonpaco.ninegrid.data.db.WishWithPrint) = viewModelScope.launch {
         val p = w.print ?: return@launch
         repo.boughtWish(w.item, p, str(R.string.log_wish_bought, p.name))

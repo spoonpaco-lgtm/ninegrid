@@ -27,6 +27,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.ContentPaste
@@ -346,7 +348,7 @@ private fun AllCardsPanel(vm: AppViewModel, query: String, onQuery: (String) -> 
 @Composable
 private fun WishRow(
     vm: AppViewModel, w: nl.spoonpaco.ninegrid.data.db.WishWithPrint, unit: Double?, priceText: String,
-    onOpen: () -> Unit, onEdit: () -> Unit, onBought: () -> Unit, onFriend: (String) -> Unit,
+    onOpen: () -> Unit, onEdit: () -> Unit, onBought: () -> Unit, onFriend: (String) -> Unit, onLess: () -> Unit = {},
 ) {
     val settings by vm.settings.collectAsState()
     val extra = LocalNgExtra.current
@@ -386,8 +388,9 @@ private fun WishRow(
                                 modifier = Modifier.clickable { onFriend(f.id) })
                         }
                     }
-                    if (!i.anyPrint && p != null) parts += { Text(stringResource(R.string.wish_only_print, "${p.setCode} ${p.collectorNumber}") + if (i.foilOnly) " · foil" else "", fontSize = NgText.body, color = extra.subtle, maxLines = 1) }
+                    if (!i.anyPrint && p != null) parts += { Text(stringResource(R.string.wish_only_print, "${p.setName.ifBlank { p.setCode.uppercase() }} · ${p.setCode.uppercase()} ${p.collectorNumber}") + if (i.foilOnly) " · foil" else "", fontSize = NgText.body, color = extra.subtle, maxLines = 1) }
                     else if (i.foilOnly) parts += { Text(stringResource(R.string.wish_only_foil), fontSize = NgText.body, color = extra.subtle, maxLines = 1) }
+                    else parts += { Text(stringResource(R.string.wish_any_print_short), fontSize = NgText.body, color = extra.subtle, maxLines = 1) }
                     parts.forEachIndexed { k, part -> if (k > 0) Text(" · ", fontSize = NgText.body, color = extra.subtle); part() }
                 }
             }
@@ -399,7 +402,13 @@ private fun WishRow(
                     color = extra.price, fontWeight = FontWeight.Bold, fontSize = NgText.emphasis, modifier = nl.spoonpaco.ninegrid.ui.components.privacyMask())
             }
             Spacer(Modifier.width(6.dp))
-            // Bewerken en Gekocht: klein en onder elkaar, zodat de naam ruimte houdt.
+            // Eén minder (alleen bij meer dan één), dan Bewerken en Gekocht: klein, zodat de naam ruimte houdt.
+            if (i.wanted > 1) {
+                androidx.compose.material3.FilledTonalIconButton(onClick = onLess, modifier = Modifier.size(28.dp)) {
+                    Icon(Icons.Filled.Remove, stringResource(R.string.wish_one_less_btn), modifier = Modifier.size(16.dp))
+                }
+                Spacer(Modifier.width(4.dp))
+            }
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 androidx.compose.material3.FilledTonalIconButton(onClick = onEdit, modifier = Modifier.size(28.dp)) {
                     Icon(Icons.Filled.Edit, stringResource(R.string.edit), modifier = Modifier.size(16.dp))
@@ -412,6 +421,7 @@ private fun WishRow(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun WishlistPanel(vm: AppViewModel, onCard: (String) -> Unit, onPaste: () -> Unit, onAll: () -> Unit, onFriend: (String) -> Unit = {}) {
     val settings by vm.settings.collectAsState()
@@ -453,7 +463,15 @@ private fun WishlistPanel(vm: AppViewModel, onCard: (String) -> Unit, onPaste: (
                 else -> nl.spoonpaco.ninegrid.ui.components.money(unitPrice, settings.currency)
             }
             val p = w.print
-            WishRow(vm, w, unitPrice, priceText, onOpen = { if (p != null) { vm.setCardList(shownWishes.mapNotNull { it.print?.id }); vm.openPrint(p, then = onCard) } else edit = w }, onEdit = { edit = w }, onBought = { vm.boughtWish(w) }, onFriend = onFriend)
+            val swipe = androidx.compose.material3.rememberSwipeToDismissBoxState(confirmValueChange = { v ->
+                if (v == androidx.compose.material3.SwipeToDismissBoxValue.EndToStart) { vm.removeWish(w); true } else false
+            })
+            androidx.compose.material3.SwipeToDismissBox(
+                state = swipe, enableDismissFromStartToEnd = false,
+                backgroundContent = { Box(Modifier.fillMaxSize().padding(horizontal = 20.dp), contentAlignment = Alignment.CenterEnd) { Icon(Icons.Filled.Delete, stringResource(R.string.delete), tint = NgColors.Error) } },
+            ) {
+            WishRow(vm, w, unitPrice, priceText, onOpen = { if (p != null) { vm.setCardList(shownWishes.mapNotNull { it.print?.id }); vm.openPrint(p, then = onCard) } else edit = w }, onEdit = { edit = w }, onBought = { vm.boughtWish(w) }, onFriend = onFriend, onLess = { vm.oneLessWish(w) })
+            }
         }
         item { Text(stringResource(R.string.wish_alarm_note), fontSize = NgText.caption, color = extra.subtle, modifier = Modifier.padding(16.dp)) }
     }

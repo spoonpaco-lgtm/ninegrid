@@ -12,6 +12,13 @@ data class ScanMeta(
     val photoWidth: Int,
     val photoHeight: Int,
     val device: String,
+    /** Omstandigheden en instellingen tijdens de scan. */
+    val setField: String = "",
+    val torch: Boolean = false,
+    val autoCapture: Boolean = false,
+    val aiHelp: Boolean = false,
+    val offlineDb: Boolean = false,
+    val language: String = "",
 )
 
 /**
@@ -27,6 +34,7 @@ object ScanReport {
         appendLine("NineGrid scanrapport")
         appendLine("versie: ${meta.version} · toestel: ${meta.device}")
         appendLine("soort: ${if (meta.single) "één kaart" else "blad"} · ${if (meta.fromCamera) "camera" else "galerij"} · foto ${meta.photoWidth}x${meta.photoHeight}")
+        appendLine("instellingen: set ${meta.setField.ifBlank { "leeg (automatisch)" }} · lamp ${if (meta.torch) "aan" else "uit"} · automatisch afdrukken ${if (meta.autoCapture) "aan" else "uit"} · AI-hulp ${if (meta.aiHelp) "aan" else "uit"} · offline database ${if (meta.offlineDb) "aan" else "uit"} · taal ${meta.language.ifBlank { "-" }}")
         appendLine("scherpte: ${"%.1f".format(meta.sharpness)} · dekking: ${"%.2f".format(meta.coverage)} · lezen: ${meta.readMs} ms · opnieuw gelezen: ${meta.rereadSlots}")
         val read = reads.count { it.complete || it.name != null }
         appendLine("vakken met naam of nummer en set: $read van ${reads.size}")

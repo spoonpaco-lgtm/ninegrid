@@ -1130,4 +1130,9 @@
     <string name="qr_scan_hint">Point the camera at the QR code of a deck shared from NineGrid.</string>
     <string name="qr_scan_part">Code %1$d of %2$d scanned. Scan the next one.</string>
     <string name="qr_scan_wrong">This is not a NineGrid deck code.</string>
+    <string name="wish_restore">Put back</string>
+    <string name="wish_removed">%s removed from your wishlist.</string>
+    <string name="wish_one_less">%1$s: now %2$d wanted.</string>
+    <string name="wish_one_less_btn">One less</string>
+    <string name="wish_any_print_short">any print</string>
 </resources>

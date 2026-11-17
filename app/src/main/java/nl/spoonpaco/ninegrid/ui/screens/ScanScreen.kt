@@ -484,6 +484,8 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
                         vm.recordScan(bmp, r.slots, nl.spoonpaco.ninegrid.domain.ScanMeta(
                             nl.spoonpaco.ninegrid.BuildConfig.VERSION_NAME, single, fromCamera, sharp, r.coverage, vm.lastReadMs, reread,
                             bmp.width, bmp.height, android.os.Build.MANUFACTURER + " " + android.os.Build.MODEL,
+                            setField = vm.scanSet.trim().uppercase(), torch = torchOn, autoCapture = auto, aiHelp = settings.aiEnabled,
+                            offlineDb = settings.offlineDb != nl.spoonpaco.ninegrid.data.OfflineDb.OFF, language = java.util.Locale.getDefault().language,
                         ))
                     }
                 }
