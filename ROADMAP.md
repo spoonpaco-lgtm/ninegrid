@@ -76,260 +76,68 @@ Dit is "de lijst": wat Mick wil dat NineGrid nog krijgt. Een nieuw gesprek begin
 | 0.9.10 | Dovin | 8 print kiezen (printlijst, print van een exemplaar wijzigen en splitsen, + Exemplaar toevoegen, verlanglijst), 40 melding bij ban of reprint, 4e past niet in het deck oranje |
 | 0.9.10.1 | Dovin | Menu opgeruimd: Meer in blokken, Back-up en export eigen scherm, Over op één plek, Lijst plakken in Importeren, Wijzigingslog heet Laatste actie ongedaan maken, Instellingen in 8 andere groepen |
 
-### 0.9.10.1 – nog na te kijken op Micks telefoon
+## Nog te doen
 
+Volgorde: eerst wat Mick bij de telefoontest nog open heeft, dan de volgende versie, dan kleine verbeteringen, dan fase 2 en ideeën. Alles wat gebouwd is staat in de tabel hierboven en in RELEASE_NOTES.md.
+
+### 1. Volgende versie: 0.9.11 (naam nog kiezen)
+
+Exporteren naar andere sites en apps (begin met de twee of drie sites die Mick echt gebruikt):
+- Decks: ⋮ → Exporteren met keuze Moxfield, Archidekt, MTG Arena, Deckbox, ManaBox, TCGplayer, Cardmarket (wants-lijst) of Tekst (zoals nu); elk in het formaat dat die site het best leest (Commander/Sideboard goed gelabeld, foil/etched zoals de site verwacht, Arena zonder onbekende setnummers)
+- Kopiëren + site openen: lijst naar het klembord en de importpagina van die site opent; delen en opslaan als bestand blijven
+- Collectie: Meer → Back-up en export → CSV, ook in het eigen formaat van Moxfield, Archidekt, Deckbox, ManaBox of TCGplayer (juiste kolommen, conditie voluit zoals "Near Mint", taal voluit, foil/etched in eigen kolom), zodat uploaden zonder kolommen koppelen werkt
+- Verlanglijst: als wants-lijst voor Cardmarket (en de andere sites waar dat kan)
+- Wat exporteren: alles, alleen losse kaarten, een binder of een set (zelfde keuze als het deelscherm); proxies standaard niet mee
+- Vóór het bouwen de actuele importformaten van elke site nakijken, niet uit het hoofd
+
+### 2. Kleine verbeteringen (nog geen versie)
+
+- Prijsverloop op het kaartscherm: dichtgeklapt "Verschijnt na een week" tonen zolang er minder dan een week aan prijzen is.
+- Taartgrafiek: de gekozen weergave (Lijn of Taart) en splitsing onthouden na het sluiten van de app.
+- Scannen, kaart voor kaart: 39a de set van de vorige kaart als aanname; 39c groene kaarten overslaan op het controlescherm (pas bouwen als de herkenning betrouwbaar is; wacht op een test op de telefoon).
+- Scannen naar een deck: één keuze Deck / Sideboard / Commander voor alle kaarten tegelijk.
+- Prijshistorie ophalen uit MTGJSON (tot 90 dagen terug): formaat en Cardmarket-waarde zijn nog niet nagekeken, en Mick heeft het nog niet bevestigd.
+- Meldingstoestemming (Android 13+) wordt nu alleen bij importeren gevraagd; ook vragen bij het aanzetten van bans en reprints.
+
+### 3. Nog na te kijken op Micks telefoon
+
+Alleen wat Mick nog niet heeft bevestigd.
+
+**0.9.10.1 (menu)**
 - Meer in blokken: Handleiding + Wat is nieuw bovenaan; Collectie (Importeren, Back-up en export, Delen met vrienden, Laatste actie ongedaan maken); App (Instellingen, Over NineGrid).
 - Lijst plakken zit in Importeren (knop onder Bestand kiezen); Collectie → + en een deck hebben hem nog.
-- Back-up en export is een eigen scherm op Meer (back-up, terugzetten, automatische back-up, CSV; onderaan rood Alles wissen). Wijzigingslog heet Laatste actie ongedaan maken.
-- Over NineGrid (Meer) heeft versie, updates, automatisch bijwerken en Wat is nieuw; de groep Over is uit Instellingen.
-- Instellingen: Weergave, Taal en regio, Privacy, Scannen, Kaartgegevens, Collectie, AI-hulp, Ontwikkelaar. Controleer of de ?-knoppen bij elk scherm naar een passend hoofdstuk gaan.
+- Back-up en export is een eigen scherm (back-up, terugzetten, automatische back-up, CSV; onderaan rood Alles wissen).
+- Over NineGrid heeft versie, updates, automatisch bijwerken en Wat is nieuw.
+- Instellingen heeft acht groepen: Weergave, Taal en regio, Privacy, Scannen, Kaartgegevens, Collectie, AI-hulp, Ontwikkelaar. Controleer of de ?-knoppen bij elk scherm naar een passend hoofdstuk gaan.
 
-### 0.9.10 – nog na te kijken op Micks telefoon
-
+**0.9.10 (print kiezen, bans en reprints)**
 - Kaartscherm: Andere prints › opent de printlijst (plaatje, jaar, prijs per afwerking, goedkoopst, ✓); sorteren Nieuwste | Goedkoopste; tik = nieuw kaartscherm erbovenop, Terug = vorige print.
 - ✎ bij een exemplaar: regel Print › → printlijst; bij ×3 het vak "Voor hoeveel exemplaren"; foil die niet bestaat → Normaal met melding; daarna springt het kaartscherm naar de nieuwe print; ongedaan maken.
-- + Exemplaar toevoegen: afwerkingen met prijs (welke er bestaan komt van Scryfall; zonder internet of met de offline database afgeleid uit de prijzen), aantal, collectie met map/blad/vak of een deck met Deck/Sideboard/Commander.
-- ✓ Verlanglijst ✎ → precies deze print → printregel → printlijst; prijs en alarm met die print: nagekeken door Mick, werkt.
-- Bans en reprints: Instellingen → Collectie. De eerste nachtelijke controle legt alleen de stand vast; meldingen pas bij een echte wijziging daarna. Reprints volgt sets die nog niet uit zijn of de laatste 30 dagen uitkwamen. Toestemming voor meldingen (Android 13+) wordt nog alleen bij importeren gevraagd.
-- 4e: plakken naar een deck of scannen vanuit een deck met een banned kaart of een kaart buiten de commanderkleuren → oranje bij Controleer met de reden.
+- + Exemplaar toevoegen: afwerkingen met prijs, aantal, collectie met map/blad/vak of een deck met Deck/Sideboard/Commander.
+- Bans en reprints (Instellingen → Collectie): de eerste nachtelijke controle legt alleen de stand vast; meldingen pas bij een echte wijziging daarna. Reprints volgt sets die nog niet uit zijn of de laatste 30 dagen uitkwamen.
+- Plakken naar een deck of scannen vanuit een deck met een banned kaart of een kaart buiten de commanderkleuren → oranje bij Controleer met de reden.
 - Etched heeft bij Cardmarket (via Scryfall) geen eigen prijs: in de printlijst dan de foilprijs, maar alleen als er van die print geen gewone foil bestaat.
 
-### 0.9.9.2 – nog na te kijken op Micks telefoon
-
-- Scannen van één kaart: fotootje (plaatje van de gevonden kaart) met rand groen/oranje/blauw ★; tik = +1, kruisje = weg; bij plaatjes uit blijft het chipje met de naam.
-- ✓ Kader past tussen de gemeten balken: geen lijn meer dwars door het kader, bij Blad en bij 1 kaart. Het kader is bij 1 kaart iets kleiner geworden. Nagekeken door Mick, werkt.
-- ✓ Controleer-knop onder Opslaan is volledig zichtbaar: nagekeken door Mick, werkt.
-- Nog te doen: bij Prijsverloop (kaartscherm) dichtgeklapt "Verschijnt na een week"; taartkeuze onthouden.
-
-### 0.9.9.1 – nog na te kijken op Micks telefoon
-
-- ✓ Combo's: tikken op een ontbrekende kaart opent nu het kaartscherm (was leeg): nagekeken door Mick, werkt.
-- ✓ Lijnen kiezen: vakje Aantal kaarten, groepen, Sets ingeklapt, setnamen; een set zonder kaarten verdwijnt uit de lijst. Nagekeken door Mick, werkt.
-- ✓ Taart: Lijn | Taart, splitsen per Sets, Rarity of Decks; keuze wordt niet onthouden na sluiten van de app. Nagekeken door Mick, werkt.
-- ✓ Prijsverloop op het kaartscherm (nagekeken door Mick, werkt): schildje verschijnt pas na een week aan prijzen; dichtgeklapt staat er dan nog niets (nog te doen: "Verschijnt na een week" tonen). Alleen kaarten in de collectie hebben bewaarde prijzen.
-- Nog niet op de lijst gezet: prijshistorie ophalen uit MTGJSON (tot 90 dagen terug; formaat en Cardmarket-waarde niet nagekeken).
-
-### 0.9.9 – nog na te kijken op Micks telefoon
-
-- Bladscan: een lege rij of kolom schuift de rest niet meer op (maten TEXT_COLS 2.35, TEXT_ROWS 2.86 en grenzen 1.4/2.1 zijn geschat).
-- Lege hoesjes met glans: grenzen 0.35 en 0.7 in `EmptySlots.decide` zijn geschat.
+**0.9.9.2 en 0.9.9 (scanner)**
+- Scannen van één kaart: fotootje met rand groen/oranje/blauw ★; tik = +1, kruisje = weg; bij plaatjes uit blijft het chipje met de naam.
+- Bladscan: een lege rij of kolom schuift de rest niet meer op (maten TEXT_COLS 2.35, TEXT_ROWS 2.86 en grenzen 1.4/2.1 zijn geschat); lege hoesjes met glans (grenzen 0.35 en 0.7 in `EmptySlots.decide` zijn geschat).
 - Verzonnen setcode of taal valt weg; jaartal telt niet als kaartnummer; de set van het blad wint van één verlezen set.
 - Foil-twijfel is blauw ★ (chips "★ Foil" en "Geen foil"); geeft ML Kit ★ op echte foils?
-- Kaart voor kaart: chips met +1 en kruisje zijn sinds 0.9.9.2 een fotootje van de kaart met een gekleurde rand (zie 0.9.9.2); Opslaan als alles zeker is, Foil als sessiestand.
+- Kaart voor kaart: +1 en kruisje, Opslaan als alles zeker is, Foil als sessiestand.
 - Scannen vanuit een deck (menu Toevoegen → Scannen) en de keuze "uit de collectie halen" (alles / exact dezelfde / niets).
 - Filters en sorteren bij deck, vriend en set; thumbnails bij suggesties; combo-blokken inklappen; segmentbalk Thumbnails | Namen.
-- Nog niet gebouwd: 39a (set van de vorige kaart als aanname), 39c (groene kaarten overslaan, wacht op test), 4e (kleuren/banned meteen oranje), één Deck/Sideboard/Commander-keuze voor alle kaarten.
 
-### 0.9.8 – nog na te kijken op Micks telefoon
+**Ouder**
+- 0.9.8: lampmelding (zie punt 30 in RELEASE_NOTES.md) nog niet nagekeken; een nieuw scanrapport met 0.9.9 of nieuwer is nodig om de geschatte maten te toetsen.
+- 0.9.7: scanner met een blad met foils: leest ML Kit de ster ★ echt? (de hint werkt alleen als de tekstherkenning het teken ★ teruggeeft; zo niet, dan een andere aanpak, bijvoorbeeld op beeld).
+- 0.9.7.1: bladscan leest minder dan in 0.9.6 bij een heel blad in beeld; oorzaak nog niet zeker. Verdachten uit 0.9.7: onderste strook 3× vergroot, contrastpoging, gedeelde tekstherkenner. Nodig: een voorbeeldfoto of scanrapport met de vakken die ontbreken. Zo nodig die punten terugdraaien naar 0.9.6.
+- Lamp (zaklamp-knop): de oorzaak bij Mick was een lage batterij (de telefoon laat de lamp dan niet branden); de code is niet stuk.
 
-- ✓ Vegen op het kaartscherm: nagekeken door Mick, werkt (niet in vrienden- en ruillijsten, niet bij zoeken/scan).
-- ✓ Label NIEUW: nagekeken door Mick, werkt (alleen losse kaarten; ook als een stapel groter wordt).
-- ✓ Commander wijzigen: nagekeken door Mick, werkt. De oude commander die terug naar de collectie gaat wordt los (oude plek niet bewaard); creature-type als deckregel verandert niet vanzelf (alleen een melding).
-- ✓ Fabrieksinstellingen: nagekeken door Mick, werkt (app start daarna opnieuw bij de introductie; terugzetten via Meer → Back-up, niet in de introductie zelf).
-- ✓ Combokaartjes: nagekeken door Mick, werkt (plaatjes van kaarten die je niet hebt komen via Scryfall op naam).
-- ✓ Ontwikkelaar-menu: nagekeken door Mick, werkt. Lampmelding nog niet nagekeken. Scanrapport: de vier rapporten van 11 nov zijn aangeleverd; een nieuw rapport met 0.9.9 is nodig om de geschatte maten te toetsen.
-- Nog open: foil-ster ★ bij echte foils; bladscan met 0.9.7.1; bladscan leest minder dan 0.9.6 (voorbeeldfoto/scanrapport nodig).
+### Bekende beperkingen
 
-### 0.9.7 – nog na te kijken op Micks telefoon
-
-Gebouwd en getest met unittests; dit kan alleen op een echte telefoon gecontroleerd worden:
-
-- **Scanner (25)**: een paar bladen scannen, ook een met foils. Leest ML Kit de ster ★ echt? (De hint werkt alleen als de tekstherkenning het teken ★ teruggeeft; zo niet, dan verandert er niets en moet er een andere aanpak komen, bijvoorbeeld op beeld.)
-- ✓ **Bladweergave (21)**: nagekeken door Mick, klaar (past zonder scrollen, met gebaren én met drie knoppen).
-- ✓ **Melding (23)**: nagekeken door Mick, klaar (Ongedaan maken staat overal boven de navigatiebalk).
-- ✓ **Icoon (20)**: nagekeken door Mick, klaar (het logo past in het rondje).
-- ✓ **Deckimport (22)**: nagekeken door Mick, werkt (verschillende Island-prints komen goed binnen).
-- ✓ **Back-up (14)**: nagekeken door Mick, klaar (volledige back-up maken en terugzetten werkt).
-
-### 0.9.7.1 – nog open na de reparatie
-
-- **Bladscan leest minder dan in 0.9.6** bij een heel blad in beeld: oorzaak nog niet zeker. Verdachten uit 0.9.7: onderste strook 3× vergroot, contrastpoging, gedeelde tekstherkenner. Nodig: een voorbeeldfoto van zo'n blad met de vakken die ontbreken. Als de 0.9.7.1-reparatie niet genoeg blijkt, die punten terugdraaien naar 0.9.6.
-- **Lamp (zaklamp-knop)**: oorzaak gevonden door Mick: batterij te laag (de telefoon laat de lamp dan niet branden). Het icoon veranderde wel. De code is dus niet stuk; er komt een melding, zie punt 30.
-
-### Wat anders uitpakte dan op de lijst stond
-
-- **15b/c Prijsbeweging** bestond al als de knop "Koers" (dagstanden bewaren het koersverschil sinds 0.8.9). De knop heet nu Prijsbeweging; er is niets nieuws voor gebouwd.
-- **17b Filter Game Changers**: de offline database kent geen Game Changers. In de collectie en op de verlanglijst werkt het filter met wat er per kaart bewaard is; bij Alle kaarten zoekt het bij Scryfall (internet nodig).
-- **13d Manakosten in het setscherm**: bij kaarten die je niet hebt pas zichtbaar nadat de setlijst is ververst.
-- **14j Decks na terugzetten**: opgelost volgens Mick (decks komen terug met de nieuwe back-up uit 0.9.7). Wat er eerder misging is nooit gevonden; er is wel een test dat een back-upbestand met decks heel terugkomt.
-
-## Versieplan
-
-| Versie | Naam | Inhoud |
-|---|---|---|
-| 0.9.8 ✔ | Kaito (uitgebracht) | 27 Ontwikkelaar-menu met scanrapport, 26 vegen, 16 NIEUW, 19 commander wijzigen, 2 fabrieksinstellingen, 30 melding bij lamp die niet aangaat, 31 kaartjes bij combo's |
-| 0.9.8.1 ✔ / 0.9.8.2 ✔ | Kaito (uitgebracht) | 32 opgegeven set is een grens, 29 vormgeving gelijk trekken |
-| 0.9.9 ✔ | Vivien (uitgebracht) | Gebouwd: 37, 38, 39 (op 39a, 39c na), 4 (op 4e na), 28, 33–36. Oorspronkelijke volgorde: 37 scanner repareren, 38 foil-twijfel blauw ★, 39 kaart voor kaart scannen stroomlijnen (39c pas na 37), daarna 4 scannen naar een deck (pas als de bladscan weer goed leest), 28 deckimport: één keuze voor uit de collectie halen, 33 filter- en sorteerknoppen bij alle kaartenlijsten, 34 thumbnails bij suggesties en tikken op elke combokaart, 35 inklapbare blokken bij combo's, 36 weergavekeuze Thumbnails \| Namen als segmentbalk. Zet Mick 0.9.9 uiteen in stappen (bv. 0.9.9.1), dan houdt elke stap de naam Vivien |
-| 0.9.9.1 ✔ | Vivien (uitgebracht) | Fix combokaart, lijnenkiezer, taartgrafiek, Prijsverloop op het kaartscherm |
-| 0.9.9.2 ✔ | Vivien (uitgebracht) | Scannen van één kaart: fotootje met gekleurde rand onderin; kader past tussen de gemeten balken; Controleer-knop niet meer afgekapt |
-| 0.9.10 ✔ | Dovin (uitgebracht) | 8 print kiezen (8a–l), 4e kaarten buiten de kleuren of banned meteen oranje bij scannen naar een deck, 40 melding bij ban of reprint. Mick (16 nov): alles in één versie |
-| 0.9.10.1 ✔ | Dovin (uitgebracht) | Menu opgeruimd (zie hieronder) |
-| 0.9.11 | nog kiezen | 3 exporteren (sites nog te kiezen; eerst de actuele importformaten nakijken) |
-| 1.0 | — | Fase 2 |
-
-De nummers hieronder zijn die van de lijst zoals Mick ze kent.
-
-## Nieuwe features (zie Versieplan voor de volgorde)
-
-2. Fabrieksinstellingen (Instellingen → Wissen):
-   a. Geen tweede knop naast Wissen, maar in Wissen een keuze: alleen collectie, of alles (fabrieksinstellingen); rode knop
-   b. Wist alles: collectie, decks, verlanglijst en prijsalarmen, boosters, gedeelde collecties van vrienden, historie, wijzigingslog, alle instellingen, AI-sleutel, deckregels, wachtende scans, offline kaartdatabase en afbeeldingencache
-   c. Daarna start de app opnieuw met de introductie, zoals na een eerste installatie
-   d. Eerst een back-up maken, net als bij Wissen (standaard aan); ongedaan maken kan hierna niet
-   e. Bevestigen door WISSEN te typen; met privacymodus aan ook vingerafdruk
-   f. Vinkje "Kaartdatabase bewaren" (standaard uit), zodat je schoon begint zonder opnieuw te downloaden
-   g. In de introductie na het wissen ook "Terugzetten uit back-up"
-3. Exporteren naar andere sites en apps (eigen versie 0.9.11; begin met de twee of drie sites die Mick echt gebruikt):
-   a. Decks: ⋮ → Exporteren met keuze Moxfield, Archidekt, MTG Arena, Deckbox, ManaBox, TCGplayer, Cardmarket (wants-lijst) of Tekst (zoals nu); elk in het formaat dat die site het best leest (Commander/Sideboard goed gelabeld, foil/etched zoals de site verwacht, Arena zonder onbekende setnummers)
-   b. Kopiëren + site openen: lijst naar het klembord en de importpagina van die site opent; delen en opslaan als bestand blijven
-   c. Collectie: Meer → Exporteren als CSV in het eigen formaat van Moxfield, Archidekt, Deckbox, ManaBox of TCGplayer (juiste kolommen, conditie voluit zoals "Near Mint", taal voluit, foil/etched in eigen kolom), zodat uploaden zonder kolommen koppelen werkt
-   d. Verlanglijst: als wants-lijst voor Cardmarket (en de andere sites waar dat kan)
-   e. Wat exporteren: alles, alleen losse kaarten, een binder of een set (zelfde keuze als het deelscherm); proxies standaard niet mee
-   f. Vóór het bouwen de actuele importformaten van elke site nakijken, niet uit het hoofd
-4. Scannen rechtstreeks naar een deck:
-   a. In een deck: + Toevoegen ▾ → Scannen; de scanner toont bovenin "Naar deck: <naam>" (in plaats van binder/blad); start in 1 kaart, Blad kan ook
-   b. Na Controleer: het controlescherm met het deck al als bestemming, bovenaan keuze Deck / Sideboard / Commander
-   c. Per kaart kijkt de app in je collectie: los in je collectie → verplaatsen naar het deck (standaard), met "Uit collectie · Rood blad 3 vak 5"; zit al in een ander deck → keuze verplaatsen of nieuw; heb je nog niet → nieuw, direct in het deck
-   d. Per kaart nog te wijzigen (verplaatsen of nieuw), en als proxy te markeren
-   e. Kaarten buiten de kleuren van de commander of banned meteen oranje in het controlescherm (gebouwd in 0.9.10, samen met 40)
-   f. Na opslaan terug naar het deck; de scanner vergeet het deck, zodat de volgende gewone scan weer naar de collectie gaat
-   g. Ongedaan maken werkt zoals altijd; verplaatste kaarten gaan terug naar hun oude plek
-   h. Gebruikt de regels van 0.9.7 (domain/DeckTake): basic lands alleen precies dezelfde print
-8. Print kiezen (gebouwd in 0.9.10):
-   a. Verlanglijst → Bewerken: onder "precies deze print" een regel "SLD 1798 · Secret Lair Drop ›"; tik = lijst met alle prints van die kaart
-   b. Per print: klein plaatje, set, nummer en jaar, normale en foilprijs, "goedkoopst" bij de goedkoopste, ✓ bij de huidige
-   c. Tik = die print kiezen; prijs en prijsalarm op de verlanglijst rekenen daarna met die print
-   d. Sorteren: nieuwste eerst of goedkoopste eerst
-   e. Kaartscherm: "Andere prints ›" onder de setregel, met dezelfde lijst; overstappen naar een andere print en die aan collectie of verlanglijst toevoegen
-   f. Print van een exemplaar wijzigen: ✎ bij Jouw exemplaren → bovenaan "Print: SLD 1798 · Secret Lair Drop ›" → dezelfde printlijst; het exemplaar verhuist naar die print en houdt plek (binder/blad/vak of deck), foil, taal, conditie en proxy
-   g. Bij meer exemplaren (×3) kiezen hoeveel er mee verhuizen (alles of bijv. 1)
-   h. Foil die niet bestaat bij de nieuwe print: melding en voorstel Normaal (of etched als dat bestaat); zelfde print op dezelfde plek → samenvoegen tot één stapel
-   i. Daarna springt het kaartscherm naar de nieuwe print; ongedaan maken werkt zoals altijd
-   j. "+ Exemplaar toevoegen" altijd zichtbaar op het kaartscherm, met keuze Normaal | Foil | Etched (alleen wat voor die print bestaat) en meteen de plek; een foil krijgt een eigen regel met de foilprijs
-   k. Afwerking voor een deel van een stapel wijzigen: ✎ → Foil bij ×3 vraagt hoeveel (bijv. 1 foil, 2 blijven normaal, elk een eigen regel)
-   l. In de printlijst per print welke versies er zijn (normaal, foil, etched) met hun prijzen
-16. Label NIEUW voor toegevoegde kaarten:
-   a. Nieuw toegevoegde kaarten krijgen een klein label NIEUW in de collectie, in de bladweergave en op het kaartscherm
-   b. Instellingen: hoelang het label blijft: 1 dag, 3 dagen, 7 dagen (standaard), 14 dagen, 30 dagen of uit
-   c. Filter "Nieuw" en sortering "Nieuwste eerst"
-   d. Wel nieuw: scannen, handmatig toevoegen, een lijst of Sheet importeren, en een extra exemplaar van een kaart die je al had (alleen dat exemplaar krijgt het label)
-   e. Niet nieuw: een kaart van de collectie naar een deck verplaatsen (of terug), en een back-up terugzetten
-   f. Knop "Alles gezien" haalt het label meteen weg
-19. Commander wijzigen in een Commander-deck:
-   a. In het deck: ⋮ → "Commander wijzigen", en op het kaartscherm van een kaart in het deck "Maak commander"
-   b. Nieuwe commander kiezen uit de kaarten in het deck, uit je collectie of via zoeken/scannen; alleen kaarten die commander mogen zijn
-   c. Wat met de oude commander: keuze "Naar het deck" (standaard) of "Terug naar collectie" (naar zijn oude plek)
-   d. Twee commanders waar dat mag (Partner, Friends forever, Choose a Background, Doctor's companion): tweede commander toevoegen of vervangen
-   e. Na het wisselen: kleuren van het deck opnieuw bepaald, kaarten buiten de nieuwe kleuren oranje, bracket en deckregels opnieuw berekend; is er een tribe ingesteld, dan vraagt de app of die mee moet veranderen
-   f. Ongedaan maken werkt zoals altijd
-
-26. Vegen op het kaartscherm (nieuw, 0.9.8):
-   a. Op het kaartscherm links/rechts vegen naar de volgende/vorige kaart
-   b. Volgorde = de lijst waaruit je kwam: collectie of Alle kaarten (met filter en sortering), setscherm (binnen Ontbreekt of Heb ik), deck, verlanglijst, vriend; bij zoeken en scannen geen lijst, dus geen vegen
-   c. Boven in beeld de plek, bijvoorbeeld "12 van 280"; aan begin of einde gebeurt niets
-   d. Past op bestaande horizontale gebaren op het kaartscherm (afbeelding, printlijst); testen op de telefoon
-
-27. Ontwikkelaar-menu (nieuw, 0.9.8):
-   a. Onderaan Instellingen een onderdeel "Ontwikkelaar"; de bestaande instelling "Duur van de herkenning tonen" verhuist erheen
-   b. Scanrapport: na een scan (op het controlescherm) een knop "Scan delen" met de foto en per vak wat gelezen is (setcode, nummer, taal, naam, losse regels, leeg ja/nee, welke leesronde), zodat fouten zonder rondvragen te vinden zijn
-   c. Delen via het deelmenu van Android; geen automatisch versturen
-
-28. Deckimport: één keuze voor "uit de collectie halen" (nieuw, 0.9.9; gekozen door Mick: voorstel 1):
-   a. Alleen bij een deck, bovenaan het controlescherm, een rij met drie knoppen: "Alles wat ik heb" (standaard, zoals nu), "Alleen exact dezelfde print" en "Niets"
-   b. Eén tik zet alle vinkjes "Uit collectie halen" tegelijk; daaronder een samenvatting, bijvoorbeeld "62 uit je collectie · 9 andere print · 29 nieuw"
-   c. Het vinkje per kaart blijft bestaan voor uitzonderingen
-   d. Niet gekozen (kan later): filter op uitzonderingen (Andere print, Tekort, Niet gevonden); standaard voor "andere print" instelbaar en onthouden
-   e. Past op hetzelfde scherm als 4 (scannen naar een deck), vandaar dezelfde versie
-
-29. Vormgeving gelijk trekken over de hele app (nieuw, eigen opmaakversie na 0.9.8):
-   a. Gevonden in de code (nov 2026): titelbalk vet op 7 schermen en gewoon op 6 (Controleren, Importeren, Plakken, Kaart kiezen, Boosters, Sets, Kaartscherm); 13 verschillende hoekafrondingen (2–24 dp); lettergroottes los ingesteld (9–30 sp, vooral 12 en 13); kaartvlakken deels met de eigen kaartkleur (cardSurface: SectionCard, Boosters, Delen) en deels de themastandaard; schermmarge 16 dp op 12 schermen, 12 dp op 5; onderruimte van lijsten 16, 24, 32, 40 of 96 dp
-   b. Doel: overal titel vet (naam van set of deck als tweede regel), vier hoekmaten (klein 6, normaal 12, groot 16, rond voor knoppen en labels), vijf lettermaten (11 bijschrift, 13 tekst, 14 benadrukt, 16 kop, 24 groot), één kaartkleur, één schermmarge (16 dp)
-   c. Eerst de maten als vaste bouwstenen in het thema vastleggen, dan de schermen omzetten
-   d. Niet aanpassen: bladweergave en scanner (eigen maten door de rasters)
-   e. Alleen opmaak; testen met een testbuild die Mick op zijn telefoon bekijkt, per scherm, vóór de release
-   f. Het controle- en deckimportscherm (28) wordt in 0.9.9 al in de nieuwe stijl gebouwd
-
-30. Melding als de lamp niet aangaat (nieuw, 0.9.8; oorzaak bij Mick was een lage batterij):
-   a. Gaat de lamp na tikken niet aan (de camera meldt geen "aan", of enableTorch faalt), dan een korte melding in plaats van stil niets doen
-   b. Is de batterij laag of staat batterijbesparing aan, dan zegt de melding dat: bijvoorbeeld "De lamp gaat niet aan: batterij 8%. De telefoon blokkeert de lamp bij een lage batterij." Anders een algemene melding ("De lamp kon niet aan; sluit andere apps die de camera gebruiken")
-   c. Het icoon springt terug naar uit als de lamp niet aan wil
-   d. Bij het openen van de scanner met lage batterij kan de knop alvast een waarschuwingskleur krijgen (nog te beslissen)
-   e. De drempel per telefoon verschilt en is niet op te vragen; de melding rekent daarom op wat de camera meldt, niet op een vast percentage
-
-31. Kaartjes bij combo's (nieuw, 0.9.8):
-   a. Deck → tabblad Combo's: per combo een rij kleine kaartplaatjes met een + ertussen, in plaats van alleen namen in vakjes
-   b. Tik = kaartscherm, vasthouden = kaart groot; wat de combo oplevert (blauwe labels) en de uitklapbare voorwaarden blijven eronder
-   c. Bijna-combo's: de ontbrekende kaart gedimd met een amberkleurige gestippelde rand; de knoppen (In collectie, Bij vriend, Op verlanglijst) blijven
-   d. Twee kaarten passen naast elkaar; bij drie of meer schuift de rij zijwaarts zodat de plaatjes niet te klein worden
-   e. Bovenaan het tabblad keuze Kaartjes | Namen, onthouden; standaard Kaartjes
-   f. Plaatjes: Spellbook geeft alleen namen. Kaarten in het deck gebruiken Micks print; de ontbrekende kaart wordt via Scryfall opgezocht. Pas laden als ze in beeld komen, kleine afmeting, bestaande plaatjescache; dubbelzijdige kaarten tonen de voorkant
-
-32. Opgegeven set is een grens, geen voorkeur (gebouwd in 0.9.8.1; vereenvoudigd: de zoekroute blijft, maar elke kaart uit een andere set of zonder nummer met meerdere prints is oranje; keuze Mick: oranje met de andere set):
-   a. Heeft Mick op het scanscherm een set ingevuld, dan zoekt de app alleen in die set: `cardByName` valt niet meer terug op een zoekopdracht zonder set, en `betterPrint` neemt geen print met hetzelfde nummer uit een andere set
-   b. Staat de kaart niet in die set, maar wel in een andere, dan komt hij binnen als oranje met de andere set erbij ("niet in MH2, wel in MH1"); Mick kan de set accepteren of de kaart zelf zoeken
-   c. Alleen gelezen of van het blad afgeleide set: buiten de set zoeken mag nog, maar zo'n kaart is altijd oranje met de gevonden set
-   d. Meerdere prints met dezelfde naam in de set (gewoon, borderless, showcase) en geen nummer gelezen: niet de eerste gewone print nemen maar oranje met de kaartfoto-vergelijking
-   e. Test: forced set + kaart die er niet in staat geeft nooit een stille print uit een andere set
-
-33. Filter- en sorteerknoppen bij alle lijsten met kaarten (nieuw, 0.9.9; voorstel Mick, 11 nov):
-   a. Nu al op de gedeelde zoekbalk (FilterSearchBar): Collectie (filter + sorteren), Alle kaarten (filter), Decks en Sets (sorteren), Kies uit collectie (filter), Setscherm (alleen filter op rarity)
-   b. Erbij: kaartenscherm van een vriend (Delen), met dezelfde filters als de collectie en sorteren op set, naam, prijs
-   c. Erbij: setscherm krijgt sorteren (nummer, naam, prijs, rarity)
-   d. Erbij: deck-detail krijgt filteren (kleur, type, rarity) naast het bestaande sorteren
-   e. Bewust niet: kaartzoeker in dialogen (Kaart zoeken, Commander kiezen; zoekopdracht bij Scryfall, max tien treffers), setkiezer bij vrienden en lijnenkiezer in de grafiek (korte keuzelijsten)
-   f. Zelfde bouwsteen, andere opties; filterkeuze per scherm onthouden zoals nu bij Collectie
-
-34. Kaartjes bij suggesties, en combo's gelijk trekken (nieuw, 0.9.9; Mick, 11 nov):
-   a. Deck → tabblad Suggesties (toevoegen, landen, schrappen, vrienden): per kaart een klein kaartplaatje, zoals de combo-kaartjes
-   b. Tik op het plaatje opent het kaartscherm; vasthouden toont de kaart groot. Dezelfde bouwsteen als bij combo's (ComboRow/comboImageUrl in DecksScreen), zodat het overal hetzelfde werkt
-   c. Combo's: nu opent tikken alleen een kaart die je zelf hebt (deck of collectie); een kaart die je niet hebt (de ontbrekende) doet niets. Dat moet ook werken: kaartscherm via Scryfall op naam, zoals bij zoeken
-   d. Keuze Kaartjes | Namen geldt ook voor suggesties (dezelfde onthouden instelling)
-   e. Plaatjes lui laden, kleine afmeting, bestaande cache; dubbelzijdige kaarten tonen de voorkant
-
-35. Inklapbare blokken op het Combo's-tabblad (nieuw, 0.9.9; Mick, 11 nov):
-   a. "Combo's in dit deck" en "Bijna" (almost) krijgen een kopje dat in- en uitklapt, zoals de blokken bij Suggesties al doen (TabCard met `closed`/`onToggle`)
-   b. De aantallen blijven in het kopje zichtbaar als het blok dicht is
-   c. Onthouden per deck, zoals bij Suggesties; standaard open
-   d. Hoort bij 34: dezelfde kaartjes en hetzelfde gedrag op beide tabbladen
-
-36. Weergavekeuze bij Combo's en Suggesties: één segmentbalk (nieuw, 0.9.9; Mick, 11 nov; voorstel A):
-   a. De twee losse chips Cards | Names worden één afgeronde segmentbalk over de volle breedte, zoals Collectie | Alle kaarten | Verlanglijst: **▦ Thumbnails | ☰ Namen**
-   b. Het woord is "Thumbnails" (Mick, 11 nov), in NL en EN, en overal in de app waar nu "kaartjes" staat voor de kleine plaatjes (combo's, suggesties, handleiding, Wat is nieuw)
-   c. Bovenaan het tabblad, op dezelfde plek en met dezelfde marge en afronding op Combo's én Suggesties; de keuze wordt onthouden (nu al: `combo_cards` in deck_ui)
-
-37. Scanner repareren na vier scanrapporten van 11 nov (nieuw, 0.9.9 Vivien, als eerste; voorrang boven 4 en 28):
-   Gevonden in de rapporten (SM-A165F, galerijfoto's 1530x2040, ONE en WOT):
-   a. **Raster uit de tekst (galerijfoto's)**: zonder kader maakt `ScanParser.frameOf` het raster van de omhullende van alle gelezen tekst. Is een rij of kolom leeg, dan wordt het raster uitgerekt en komen de naam en de voet van één kaart in verschillende vakken terecht (foto met één kaart in rij 1 en drie in rij 2: namen in vak 4-6, rest in vak 7-9). Oplossing: raster uit de kaartmaten (kolomafstand × 1,4 voor de rijafstand, verankerd op de voetregels "###/### R" die elke kaart heeft), niet uit de tekstrand
-   b. **Verzonnen setcode en taal uit de voetregel**: "ONE•EN" wordt gelezen als EATUR ES, EXCE PT, INSE TW, CAK ES, MOTEN. Een taalcode die niet EN is stuurt de kaart het buitenlandse pad in (set + nummer + gedrukte naam), en dat mislukt altijd: Kinzu, Bilious Skulldweller, Mondrak en Raid Bombardment kwamen daardoor "niet gevonden" terwijl de Engelse naam goed gelezen was. Oplossing: setcode alleen accepteren als hij in de setlijst staat (`vm.setInfo`); taal alleen als de gelezen naam geen exacte Engelse kaartnaam is; zonder gedrukte naam altijd Engels
-   c. **Jaartal als nummer**: "© 2023 Wizards" levert nummer 2023 (Polluted Bonds, Stab Wound → RVR 93). Oplossing: 2019 t/m 2026 vlak bij ©/Wizards negeren, en een nummer dat niet in de setlijst voorkomt behandelen als niet gelezen (dan beslist de naam)
-   d. **Set van het blad wint niet van een verlezen set**: Infested Fleshcutter las TOK op een ONE-blad. Oplossing: komt de gelezen set niet overeen met de overheersende set van het blad en klopt naam + nummer in de overheersende set, dan die set
-   e. **Lege vakken herkend als kaart** (rij 3 en rij 1 met gestreepte, glimmende hoesjes): de drempel van `EmptySlots` ligt te laag voor dit patroon. Oplossing: drempel per foto uit het verschil tussen vakken met leesbare kaart en de rest
-   f. Hoe de kaarten uit de rapporten er nu voor staan: foto 1 (0.9.8) 6 van 9 goed, foto 3 6 van 8, foto 4 5 van 8 goed (+3 oranje), foto 2 (rij leeg) 3 van 4 goed maar in de verkeerde vakken
-   g0. Mick vult bij het scannen meestal geen set in (11 nov): de app moet de overheersende set van het blad zelf gebruiken (d); een ingevulde set blijft altijd leidend. Tot de reparatie: set invullen helpt tegen verlezen sets, maar niet tegen de verzonnen taalcode (b); galerijfoto's van een blad met een lege rij of kolom geven vakken in de verkeerde rij (a), dus die liever met de camera scannen
-   g. Na de reparatie dezelfde vier foto's als test: de regels als unittests met de gelezen regels uit de rapporten (zonder telefoon te draaien)
-
-38. Foil-twijfel krijgt een eigen kleur: blauw ★ (nieuw, 0.9.9 Vivien, na 37; Mick, 11 nov):
-   a. Oranje is alleen nog voor een echte kaartcheck (naam, set, print onzeker). Foil-twijfel wordt **blauw met ★ en het woord "Foil?"**, zodat het niet alleen op kleur steunt
-   b. Een blauwe kaart is verder zeker: naam en print kloppen, alleen foil niet. Hij wordt opgeslagen met "foil?" in de foilkolom (zoals in de Sheet-afspraken)
-   c. Heeft een kaart zowel een kaartcheck als foil-twijfel, dan blijft hij oranje; eerst de kaart, dan pas de foil
-   d. Op het controlescherm twee aparte groepen: "Controleer (n)" en "Foil checken (n)". Eén tik op het blauwe chipje wisselt normaal/foil, daarna verdwijnt het blauw
-   e. Hoort bij 39c: de oranje groep is dan echt "kijk goed", en foil wordt een snelle ronde op het eind
-
-39. Kaart voor kaart scannen stroomlijnen (nieuw, 0.9.9 Vivien, na 37 en 38; Mick, 11 nov; volgorde en keuze nog te bepalen met Mick):
-   a. **Eén keer instellen per sessie**: kies één keer waar de kaarten heen gaan (map en blad, of deck) en de set (standaard: de set van de vorige kaart); dat blijft staan tot je het wijzigt
-   b. **Kaart blijft in beeld na de foto**: na elke automatische foto een chipje onderin ("Mondrak ✓ ONE 21"); tik om te corrigeren, +1 voor een tweede exemplaar (nu moet je de kaart weghalen en terugleggen)
-   c. **Controleren alleen waar het nodig is**: controlescherm toont alleen de oranje (en blauwe, zie 38) kaarten, bv. "Controleer 3 van 40"; groene gaan rechtstreeks de lijst in, met Ongedaan maken. **Pas bouwen als de herkenning betrouwbaar is (na 37)**, anders slaan fouten als Apostle of Invasion stil op
-   d. **Foil als sessiestand** met duidelijke kleur, plus één tik op het chipje onderweg (sluit aan op 38)
-
-40. Melding bij ban of reprint (nieuw; Mick, 16 nov; gebouwd in 0.9.10, samen met 4e):
-   a. Eén keer per dag een controle op de achtergrond (WorkManager), alleen met internet; Android kan die uitstellen om batterij te sparen, dus geen vast tijdstip. Zonder internet volgt de controle de volgende keer
-   b. **Bans**: de app bewaart per kaart in de collectie de legaliteit per format (Scryfall `legalities`) en haalt dagelijks de nieuwe stand op voor alleen de eigen kaarten (`/cards/collection`, 75 per verzoek). Melding bij banned, restricted en ook bij een unban, met aantal, waarde en in welk deck, bv. "Nadu is gebanned in Modern. Je hebt 2 exemplaren (€ 34), waarvan 1 in deck X"
-   c. Standaard alleen voor formats waarin Mick een deck heeft
-   d. **Reprints**: sets ophalen die sinds de vorige controle bij Scryfall zijn bijgekomen (ook nog niet uitgebrachte sets met spoilers) en kaarten daarin op oracle_id vergelijken met de collectie. Melding met set, releasedatum en de eigen print met waarde, bv. "Doubling Season komt opnieuw uit in [set] (release 14 feb). Jij hebt de FDN-print (€ 41)". In spoilerseizoen kunnen er een paar dagen achter elkaar meldingen komen
-   e. Instellingen: bans en reprints apart aan/uit; waardegrens (bv. alleen kaarten boven € 5), anders een melding voor elke common die terugkomt
-   f. Bij de bestaande prijsalarmen, zodat alle meldingen op één plek staan
-   g. De melding is informatie, geen verkoopadvies: een reprint laat de prijs niet altijd dalen (speciale prints houden vaak hun waarde)
-   h. Geen AI, gratis via Scryfall; gebruikt de offline database die er al is
+- Filter Game Changers: de offline database kent ze niet. In de collectie en op de verlanglijst werkt het filter met wat er per kaart bewaard is; bij Alle kaarten zoekt het bij Scryfall (internet nodig).
+- Manakosten in het setscherm: bij kaarten die je niet hebt pas zichtbaar nadat de setlijst is ververst.
+- Prijsverloop: alleen kaarten in de collectie hebben bewaarde prijzen.
 
 ## Fase 2 (wacht op startsein) → wordt 1.0
 - Sheet-koppeling (deel 2 punt 2, optie A: nieuwe Sheet via drive.file; Google Cloud-project + privacypagina nodig)
