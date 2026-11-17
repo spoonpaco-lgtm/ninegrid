@@ -180,6 +180,15 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit) {
     var group by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf<SettingsGroup?>(null) }
     androidx.activity.compose.BackHandler(enabled = group != null) { group = null }
     val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+    // Meldingen (Android 13+): bij het aanzetten van een melding eenmalig om toestemming vragen.
+    val notifPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
+    val notifContext = androidx.compose.ui.platform.LocalContext.current
+    fun askNotifications() {
+        if (android.os.Build.VERSION.SDK_INT >= 33 &&
+            androidx.core.content.ContextCompat.checkSelfPermission(notifContext, android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            notifPermission.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
     val currentLang = AppCompatDelegate.getApplicationLocales().toLanguageTags().ifBlank { "system" }
     // Privacymodus aan: back-up en CSV (met prijzen) en de privacy-instellingen alleen na vingerafdruk.
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -426,7 +435,7 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit) {
                     Text(stringResource(R.string.breakout_alerts), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(stringResource(R.string.breakout_alerts_explain), fontSize = NgText.body, modifier = Modifier.weight(1f))
-                        Switch(checked = settings.breakoutAlerts, onCheckedChange = { vm.setBreakoutAlerts(it) })
+                        Switch(checked = settings.breakoutAlerts, onCheckedChange = { vm.setBreakoutAlerts(it); if (it) askNotifications() })
                     }
 
                     // Bans en reprints (punt 40): na de dagelijkse prijsupdate, bij de andere meldingen.
@@ -434,7 +443,7 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit) {
                     Text(stringResource(R.string.watch_title), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(stringResource(R.string.watch_bans_explain), fontSize = NgText.body, modifier = Modifier.weight(1f))
-                        Switch(checked = settings.banAlerts, onCheckedChange = { vm.setBanAlerts(it) })
+                        Switch(checked = settings.banAlerts, onCheckedChange = { vm.setBanAlerts(it); if (it) askNotifications() })
                     }
                     if (settings.banAlerts) Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(stringResource(R.string.watch_all_formats), fontSize = NgText.body, modifier = Modifier.weight(1f))
@@ -442,7 +451,7 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit) {
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(stringResource(R.string.watch_reprints_explain), fontSize = NgText.body, modifier = Modifier.weight(1f))
-                        Switch(checked = settings.reprintAlerts, onCheckedChange = { vm.setReprintAlerts(it) })
+                        Switch(checked = settings.reprintAlerts, onCheckedChange = { vm.setReprintAlerts(it); if (it) askNotifications() })
                     }
                     if (settings.reprintAlerts) {
                         var minText by remember { mutableStateOf(String.format(java.util.Locale.getDefault(), "%.2f", settings.reprintMin)) }
