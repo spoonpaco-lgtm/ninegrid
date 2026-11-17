@@ -12,4 +12,4 @@ De foto's zijn de verkleinde versie uit het gesprek (1200x1600 of 1500x2000); he
 | 03-WOT-fraying-sanity | Wilds of Eldraine: Enchanting Tales (WOT), rijen 1 en 3 grotendeels leeg | 11 nov 16:58 | 0.9.8.2 | raster uitgerekt, kaarten in verkeerde vakken |
 | 04-WOT-leyline | WOT, 9 kaarten, eerste kaart Leyline of the Void | 11 nov 16:59 | 0.9.8.2 | Stab Wound als RVR, Raid Bombardment niet gevonden |
 
-Nog toe te voegen per map: `uitslag.txt` met de juiste kaart per vak (de "jij maakte er"-regel).
+Per map staat ook `uitslag.txt`: de juiste kaart per vak, door Claude van de foto gelezen. Mick controleert ze nog; nummers met ? zijn onzeker.
