@@ -1086,11 +1086,14 @@ class ParserTest {
         assertEquals(short, nl.spoonpaco.ninegrid.domain.DeckQr.decode(one))
         // Een commanderdeck met 100 verschillende kaarten past in één code.
         val rnd = java.util.Random(7)
-        val words = List(300) { (1..rnd.nextInt(8) + 4).map { ('a' + rnd.nextInt(26)) }.joinToString("").replaceFirstChar { it.uppercase() } }
-        val cmdr = "Commander\n1 Edgar Markov (INR) 328\n\nDeck\n" + (1..99).joinToString("\n") { "1 ${words[it]} ${words[it + 100]} (CMM) ${100 + it}" } + "\n"
+        val vocab = listOf("Sol", "Ring", "Dark", "Ritual", "Swords", "Plowshares", "Lightning", "Bolt", "Counter", "Spell", "Arcane", "Signet", "Command", "Tower", "Cultivate",
+            "Kodama", "Reach", "Rampant", "Growth", "Birds", "Paradise", "Llanowar", "Elves", "Cyclonic", "Rift", "Smothering", "Tithe", "Rhystic", "Study", "Mystic", "Remora",
+            "Demonic", "Tutor", "Vampiric", "Eternal", "Witness", "Wrath", "God", "Farseek", "Thought", "Vessel", "Phyrexian", "Arena", "Blood", "Crypt", "Temple", "Garden")
+        val words = List(300) { vocab[rnd.nextInt(vocab.size)] + " " + vocab[rnd.nextInt(vocab.size)] }
+        val cmdr = "Commander\n1 Edgar Markov (INR) 328\n\nDeck\n" + (1..99).joinToString("\n") { "1 ${words[it]} (CMM) ${100 + it}" } + "\n"
         assertEquals(1, nl.spoonpaco.ninegrid.domain.DeckQr.encode(cmdr).size)
         // Echt lange lijst: meer delen, in willekeurige volgorde.
-        val big = (1..900).joinToString("\n") { "1 ${words[it % 300]} ${words[(it * 7) % 300]} ${it} (SET) ${it}" }
+        val big = (1..900).joinToString("\n") { "1 ${words[it % 300]} ${it} (SET) ${it}" }
         val parts = nl.spoonpaco.ninegrid.domain.DeckQr.encode(big)
         assertTrue(parts.size > 1 && parts.all { it.length <= nl.spoonpaco.ninegrid.domain.DeckQr.MAX_CHARS })
         val a = nl.spoonpaco.ninegrid.domain.DeckQr.Assembler()
