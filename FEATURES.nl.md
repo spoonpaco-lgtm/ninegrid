@@ -102,3 +102,4 @@ Plannen, geen beloftes. Wat echt in een versie zit, staat in de release notes.
 
 ## Privacy
 Geen account, geen tracking, geen advertenties. Kaartnamen en nummers gaan naar Scryfall; kaartnamen van een deck gaan naar Commander Spellbook als je combo's zoekt. Foto's blijven op je telefoon, tenzij je AI-hulp aanzet: dan gaat alleen de uitsnede van een twijfelvak naar de AI-dienst die je koos.
+- Ontwikkelaar → Testset draaien: de echte scanner leest een map met testbladen (foto + juiste uitslag) op de telefoon en meldt per vak goed of fout.

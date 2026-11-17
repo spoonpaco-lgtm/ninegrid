@@ -1103,4 +1103,17 @@ class ParserTest {
         assertFalse(nl.spoonpaco.ninegrid.domain.DeckQr.Assembler().add("https://example.com"))
         assertEquals(null, nl.spoonpaco.ninegrid.domain.DeckQr.decode(listOf("NG1:!!!")))
     }
+
+    @Test
+    fun testsetScoreJudgesReads() {
+        val exp = nl.spoonpaco.ninegrid.domain.TestsetScore.parse(listOf("# kop", "vak 1: Mondrak, Glory Dominus (ONE 23)", "vak 2: Ossification", "vak 3: leeg"))
+        assertEquals(3, exp.size)
+        assertEquals("ONE", exp[1]!!.set); assertEquals("23", exp[1]!!.number); assertTrue(exp[3]!!.empty)
+        val good = nl.spoonpaco.ninegrid.domain.SlotRead(1, "ONE", "023", null, emptyList(), name = "Mondrak, Glory Dominus")
+        assertTrue(nl.spoonpaco.ninegrid.domain.TestsetScore.judge(exp[1]!!, good).ok)
+        // Een lichte OCR-fout in de naam telt nog goed, een verkeerd nummer niet.
+        assertTrue(nl.spoonpaco.ninegrid.domain.TestsetScore.judge(exp[2]!!, nl.spoonpaco.ninegrid.domain.SlotRead(2, null, null, null, emptyList(), name = "Ossifcation")).ok)
+        assertFalse(nl.spoonpaco.ninegrid.domain.TestsetScore.judge(exp[1]!!, good.copy(collectorNumber = "24")).ok)
+        assertTrue(nl.spoonpaco.ninegrid.domain.TestsetScore.judge(exp[3]!!, null).ok)
+    }
 }

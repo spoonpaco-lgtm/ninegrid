@@ -1135,4 +1135,9 @@
     <string name="wish_one_less">%1$s: now %2$d wanted.</string>
     <string name="wish_one_less_btn">One less</string>
     <string name="wish_any_print_short">any print</string>
+    <string name="dev_testset">Run test set</string>
+    <string name="dev_testset_busy">Reading %1$s…</string>
+    <string name="dev_testset_explain">Choose a folder with test sheets (sub-folders with foto.jpg and uitslag.txt, like testset/ in the repo). The real scanner reads every photo and shows what is right and wrong. Takes a minute or two.</string>
+    <string name="dev_testset_title">Test set result</string>
+    <string name="dev_testset_share">Share</string>
 </resources>

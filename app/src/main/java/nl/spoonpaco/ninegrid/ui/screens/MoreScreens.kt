@@ -66,6 +66,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
@@ -326,6 +327,40 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit) {
                         Text(stringResource(R.string.crash_share_last))
                     }
                     Text(stringResource(if (hasCrash) R.string.crash_explain else R.string.crash_none), fontSize = NgText.body, color = LocalNgExtra.current.subtle)
+                    val tsScope = androidx.compose.runtime.rememberCoroutineScope()
+                    var tsReport by remember { mutableStateOf<String?>(null) }
+                    var tsBusy by remember { mutableStateOf<String?>(null) }
+                    val tsPick = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
+                        if (uri != null) {
+                            tsBusy = ""
+                            tsScope.launch {
+                                tsReport = runCatching {
+                                    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { runTestset(crashCtx, uri, vm.setInfo.keys) { tsBusy = it } }
+                                }.getOrElse { "Fout: ${it.message}" }
+                                tsBusy = null
+                            }
+                        }
+                    }
+                    OutlinedButton(onClick = { tsPick.launch(null) }, enabled = tsBusy == null, modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
+                        Text(stringResource(if (tsBusy == null) R.string.dev_testset else R.string.dev_testset_busy, tsBusy.orEmpty()))
+                    }
+                    Text(stringResource(R.string.dev_testset_explain), fontSize = NgText.body, color = LocalNgExtra.current.subtle)
+                    tsReport?.let { rep ->
+                        AlertDialog(
+                            onDismissRequest = { tsReport = null },
+                            title = { Text(stringResource(R.string.dev_testset_title)) },
+                            text = { Column(Modifier.verticalScroll(androidx.compose.foundation.rememberScrollState())) { Text(rep, fontSize = NgText.body) } },
+                            confirmButton = {
+                                TextButton(onClick = {
+                                    val send = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                                        type = "text/plain"; putExtra(android.content.Intent.EXTRA_TEXT, rep); putExtra(android.content.Intent.EXTRA_SUBJECT, "NineGrid testset")
+                                    }
+                                    crashCtx.startActivity(android.content.Intent.createChooser(send, null).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))
+                                }) { Text(stringResource(R.string.dev_testset_share)) }
+                            },
+                            dismissButton = { TextButton(onClick = { tsReport = null }) { Text(stringResource(R.string.done)) } },
+                        )
+                    }
                 }
                 SettingsGroup.SCAN -> {
                     Text(stringResource(R.string.scanning), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)

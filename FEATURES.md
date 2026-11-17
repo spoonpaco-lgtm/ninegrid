@@ -102,3 +102,4 @@ Plans, not promises. See the release notes for what actually shipped.
 
 ## Privacy
 No account, no tracking, no ads. Card names and numbers go to Scryfall; deck card names go to Commander Spellbook when you search for combos. Photos stay on the phone, unless you turn on AI help: then only the crop of a doubtful slot goes to the AI service you chose.
+- Developer → Run test set: the real scanner reads a folder of test sheets (photo + expected result) on the phone and reports right/wrong per slot.

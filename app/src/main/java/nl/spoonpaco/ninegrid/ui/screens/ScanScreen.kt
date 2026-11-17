@@ -141,7 +141,7 @@ private suspend fun recognize(image: InputImage): MlText = suspendCancellableCor
 }
 
 /** Leest de foto. Met crop telt alleen tekst binnen het kader. */
-private suspend fun readImage(bmp: Bitmap, crop: Area?, single: Boolean): ScanResult {
+internal suspend fun readImage(bmp: Bitmap, crop: Area?, single: Boolean): ScanResult {
     val text = recognize(InputImage.fromBitmap(bmp, 0))
     val lines = text.textBlocks.flatMap { b -> b.lines }.mapNotNull { l ->
         val box = l.boundingBox ?: return@mapNotNull null
@@ -235,7 +235,7 @@ private suspend fun readStrip(bmp: Bitmap, a: Area, highContrast: Boolean = fals
 }
 
 /** Vakken die iets missen opnieuw lezen: de naamstrook bovenaan en de strook met set en nummer onderaan. */
-private suspend fun reread(bmp: Bitmap, result: ScanResult, single: Boolean, knownSets: Set<String> = emptySet()): Pair<ScanResult, Int> {
+internal suspend fun reread(bmp: Bitmap, result: ScanResult, single: Boolean, knownSets: Set<String> = emptySet()): Pair<ScanResult, Int> {
     val f = result.frame ?: return result to 0
     var count = 0
     val slots = result.slots.map { r ->
@@ -302,7 +302,7 @@ private fun cropsFor(bmp: Bitmap, result: ScanResult, single: Boolean): Map<Int,
 }
 
 /** Foto uit de galerij: verkleind ingelezen (scheelt veel geheugen) en rechtop gedraaid volgens de EXIF-gegevens. */
-private fun loadPhoto(context: Context, uri: Uri, maxSide: Int = 4000): Bitmap {
+internal fun loadPhoto(context: Context, uri: Uri, maxSide: Int = 4000): Bitmap {
     val bounds = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
     context.contentResolver.openInputStream(uri)!!.use { android.graphics.BitmapFactory.decodeStream(it, null, bounds) }
     var sample = 1

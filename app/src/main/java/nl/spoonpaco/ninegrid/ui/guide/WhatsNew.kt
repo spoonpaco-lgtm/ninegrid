@@ -33,7 +33,7 @@ object WhatsNew {
         Item("Verlanglijst: eén minder met de −knop, een regel weghalen door naar links te vegen (beide met Terugzetten), en elke regel zegt welke print hij toont of dat het elke print is.", "allcards"),
         Item("Gecrasht? Bij de volgende start vraagt NineGrid of je het crashrapport wilt delen (versie, toestel en foutmelding, geen kaarten). Je kiest zelf of het verstuurd wordt.", "settings"),
         Item("Meldingen: toestemming wordt gevraagd zodra je prijsstijging-, ban- of reprintmeldingen aanzet.", "settings"),
-        Item("Scanrapport (Ontwikkelaar) noemt nu ook wat de app eerst dacht, naast wat jij ervan maakte. Ook staan de instellingen van die scan erin (set, lamp, automatisch afdrukken, AI-hulp, offline database, taal). Er staat een testset van scanbladen in de repo en een emulatortest op GitHub.", "settings"),
+        Item("Scanrapport (Ontwikkelaar) noemt nu ook wat de app eerst dacht, naast wat jij ervan maakte. Ook staan de instellingen van die scan erin (set, lamp, automatisch afdrukken, AI-hulp, offline database, taal). Instellingen → Ontwikkelaar → Testset draaien laat de scanner een map met testbladen op je telefoon lezen en toont wat goed en fout is.", "settings"),
     )
 
     private val EN = listOf(
@@ -42,7 +42,7 @@ object WhatsNew {
         Item("Wishlist: one less with the − button, remove a line by swiping left (both with Put back), and every line says which print it shows or that it is any print.", "allcards"),
         Item("Crashed? On the next start NineGrid asks whether you want to share the crash report (version, phone and error message, no cards). You decide whether it is sent.", "settings"),
         Item("Notifications: permission is asked as soon as you turn on price rise, ban or reprint alerts.", "settings"),
-        Item("The scan report (Developer) now also shows what the app first thought, next to what you made of it. It also lists the settings of that scan (set, torch, auto capture, AI help, offline database, language). A test set of scan sheets is in the repo, with an emulator test on GitHub.", "settings"),
+        Item("The scan report (Developer) now also shows what the app first thought, next to what you made of it. It also lists the settings of that scan (set, torch, auto capture, AI help, offline database, language). A Settings → Developer → Run test set makes the scanner read a folder of test sheets on your phone and shows what is right and wrong.", "settings"),
     )
 }
 

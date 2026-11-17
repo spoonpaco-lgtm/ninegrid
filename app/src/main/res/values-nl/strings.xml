@@ -1134,4 +1134,9 @@
     <string name="wish_one_less">%1$s: nu %2$d gewenst.</string>
     <string name="wish_one_less_btn">Eén minder</string>
     <string name="wish_any_print_short">elke print</string>
+    <string name="dev_testset">Testset draaien</string>
+    <string name="dev_testset_busy">Bezig met %1$s…</string>
+    <string name="dev_testset_explain">Kies een map met testbladen (submappen met foto.jpg en uitslag.txt, zoals testset/ in de repo). De echte scanner leest elke foto en laat zien wat goed en fout is. Duurt een of twee minuten.</string>
+    <string name="dev_testset_title">Uitslag testset</string>
+    <string name="dev_testset_share">Delen</string>
 </resources>

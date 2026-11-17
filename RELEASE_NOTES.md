@@ -26,6 +26,8 @@ Meldingen
 Scanner: testset en beter rapport
 - Het scanrapport noemt per vak ook wat de app eerst dacht ("app dacht eerst: …"), naast wat het werd na jouw correcties. Ook de instellingen van de scan: ingevulde set, lamp, automatisch afdrukken, AI-hulp, offline database en taal.
 - testset/ in de repo heeft vier bladen met foto, scanrapport en uitslag.txt (de juiste kaart per vak). Op GitHub draait Actions → Scanner-testset de scanner op een emulator over die foto's en zet de uitslag in de samenvatting. Alleen op verzoek; de gewone bouw en release blijven ongemoeid. De emulator kan andere uitslagen geven dan de Samsung.
+- testset/ heeft nu elf bladen (zeven nieuwe uit Micks Drive, plus nieuwe scans van de eerste vier), met foto, scanrapport en uitslag.txt.
+- Instellingen → Ontwikkelaar → Testset draaien: kies een map met die bladen op je telefoon (de map testset/ uit de repo, als zip van GitHub uitgepakt). De echte scanner, met opnieuw lezen, leest elke foto en je krijgt per blad te zien wat goed en fout is, met Delen. Dit is de echte meting; de emulator is een benadering en traag.
 
 NineGrid 0.9.10.1 – Dovin
 
