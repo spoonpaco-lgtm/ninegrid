@@ -92,6 +92,7 @@ Exporteren naar andere sites en apps (begin met de twee of drie sites die Mick e
 
 Ook in 0.9.11:
 - Meldingstoestemming (Android 13+) wordt nu alleen bij importeren gevraagd; ook vragen bij het aanzetten van bans en reprints.
+- Grafiek, venster bij tikken (Mick 17 nov, met schermafbeelding; in 0.9.11): de regels in dezelfde volgorde als de lijnen op die dag, hoogste bovenaan (nu de volgorde van de gekozen lijnen, dus rood staat in de grafiek onderaan maar in het venster ergens middenin). De volgorde beweegt mee (Mick 17 nov): schuif je met je vinger naar een andere dag en wisselen lijnen daar van plek, dan wisselen ze in het venster ook. In `ui/overview/HistoryChart.kt` de `rows` (rond regel 184) per gekozen dag opnieuw sorteren op de waarde van die dag, aflopend. De tweede lijn (aantal kaarten) blijft onderaan.
 
 Scanner: testset en beter rapport (voorstel, wacht op startsein; Mick 17 nov: in 0.9.11):
 
@@ -141,7 +142,6 @@ Privacymodus: meer controle (Mick 17 nov):
 ### 2. Kleine verbeteringen (nog geen versie)
 
 - Taartgrafiek: de gekozen weergave (Lijn of Taart) en splitsing onthouden na het sluiten van de app.
-- Grafiek, venster bij tikken (Mick 17 nov, met schermafbeelding): de regels in dezelfde volgorde als de lijnen op die dag, hoogste bovenaan (nu de volgorde van de gekozen lijnen, dus rood staat in de grafiek onderaan maar in het venster ergens middenin). De volgorde beweegt mee (Mick 17 nov): schuif je met je vinger naar een andere dag en wisselen lijnen daar van plek, dan wisselen ze in het venster ook. In `ui/overview/HistoryChart.kt` de `rows` (rond regel 184) per gekozen dag opnieuw sorteren op de waarde van die dag, aflopend. De tweede lijn (aantal kaarten) blijft onderaan.
 - Scannen, kaart voor kaart: 39a de set van de vorige kaart als aanname; 39c groene kaarten overslaan op het controlescherm (pas bouwen als de herkenning betrouwbaar is; wacht op een test op de telefoon).
 - Scannen naar een deck: één keuze Deck / Sideboard / Commander voor alle kaarten tegelijk.
 - Prijshistorie ophalen uit MTGJSON (tot 90 dagen terug): formaat en Cardmarket-waarde zijn nog niet nagekeken, en Mick heeft het nog niet bevestigd.
