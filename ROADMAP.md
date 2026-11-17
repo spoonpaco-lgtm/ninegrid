@@ -134,19 +134,15 @@ Gebouwd (Mick 17 nov): Wat verbergen, grafiek in procenten, aantallen verbergen,
 - Bewust niet (Mick, 17 nov): privacymodus automatisch weer aan (bij start of na een paar minuten), en schermafbeeldingen blokkeren (FLAG_SECURE).
 - Let op: bij "alleen kaartprijzen" zijn kaartprijzen terug te rekenen uit het totaal van een set of deck met weinig kaarten.
 
-### 1d. Privacystijlen erbij (voorstel, wacht op startsein; Mick 17 nov: "bouw wanneer ik het zeg")
+### 1d. Privacystijlen erbij (ontwerp klaar, wacht op startsein; Mick 17 nov: "bouw wanneer ik het zeg")
 
-Gevraagd: een **kleiner zegel** (compacte variant van Zegel, past op kleine prijzen in lijsten).
-Voorstellen om uit te kiezen (elk is een stijl naast Compleated, Zegel, Schaduw en Stippen):
-- **Toxic**: giftig groene gloed met langzaam omhoog borrelende druppels over het bedrag.
-- **Infect**: kleine −1/−1-tellers (zwarte ronde schijfjes) die over het bedrag liggen.
-- **Lightning Bolt**: een snelle bliksemflits die het bedrag wegslaat; blijft daarna als ⚡⚡⚡ staan.
-- **Morph**: het bedrag ligt onder een omgedraaide kaart (kaartrug) met "2/2".
-- **Fog**: een mistsluier die rustig voorbij drijft.
-- **Counterspell**: blauw zegel met "Countered"-streep over het bedrag.
-- **Phasing**: het bedrag is half doorzichtig en flikkert zachtjes ("phased out").
-- **Mana-pips**: bedrag als rij kleurige manasymbolen, in je gekozen gildekleur.
-Alle stijlen houden dezelfde breedte als het bedrag en schakelen over op rustige stippen als Magic-effecten uit staan.
+Gekozen en getekend in schetsen (alle zonder tekst of stippen in het vlak; bij Magic-effecten uit vallen ze terug op rustige stippen):
+- **Toxic**: organische bijna zwarte groene ooze in de lijn van Compleated (`drawOil`): lange veeg over de breedte van het bedrag met zachte golvende randen, dunne helder groene gloed, lange glanslijn, groene oliefilm die meebeweegt, druppels die zonder rand uit de veeg groeien (smalle hals, ronde bol; af en toe valt er een af), lichte gaatjes die opzwellen en knappen met ring en kleine druppels, spatdruppeltjes eromheen. Voorbeeld: Micks foto's van "toxic ooze" (donkere inkt met groene rand en heldere gaatjes).
+- **Lightning Bolt**: een kleine, echte vertakte bliksem in blauw met lichte kern (geen icoon, geen achtergrond), flitst twee keer kort achter elkaar elke paar seconden.
+- **Fog**: losse zachte mistwolken die langs drijven, geen achtergrond.
+- **Pixelized** (was Phasing): raster van kleine vierkante pixels die willekeurig in en uit flikkeren; geen bolletjes, geen leesbaar bedrag.
+- **Kleiner zegel**: compacte variant van Zegel voor kleine prijzen in lijsten (nog te tekenen).
+Technisch: nieuwe waarden bij `PrivacyStyle` in `ui/components/Privacy.kt` (naast compleated, seal, shadow, dots), elk een eigen draw-functie in `privacyMask()`, en de keuze in Instellingen → Privacy (voorbeeldregel per stijl, zoals nu). Animatie via `rememberInfiniteTransition`; alles houdt de breedte van het bedrag.
 
 ### 2. Kleine verbeteringen (nog geen versie)
 
