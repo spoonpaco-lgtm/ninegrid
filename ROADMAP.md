@@ -91,6 +91,8 @@ Exporteren naar andere sites en apps (begin met de twee of drie sites die Mick e
 - Vóór het bouwen de actuele importformaten van elke site nakijken, niet uit het hoofd
 
 Ook in 0.9.11:
+- Verlanglijst: −1 en swipe-verwijderen met terugzetten, elke regel zegt welke print (17 nov, op Micks verzoek in 0.9.11 gebouwd). Open: Mick zag na een printwijziging niet de juiste print of prijs; in de code niet te vinden, eerst vragen wat hij precies ziet.
+- Scanrapport met instellingen (set, lamp, automatisch afdrukken, AI-hulp, offline database, taal).
 - Meldingstoestemming (Android 13+) wordt nu alleen bij importeren gevraagd; ook vragen bij het aanzetten van bans en reprints.
 
 Scanner: testset en beter rapport (voorstel, wacht op startsein; Mick 17 nov: in 0.9.11):
@@ -114,16 +116,6 @@ Deck delen via QR-code (was Route D in Fase 2; Mick 17 nov: in 0.9.11):
 - Zonder internet, zonder account en zonder bestand dat je moet appen; handig als je iemand naast je hebt.
 - Kost: een extra onderdeel om QR-codes te lezen (ML Kit barcode-scanning, ongeveer 2 à 3 MB). Alleen NineGrid begrijpt de code; gewone tekst in de QR zou elke QR-lezer kunnen tonen, maar maakt de code groter en lastiger te scannen (nog te kiezen).
 - Geen koppeling met Moxfield of Archidekt; dat is Exporteren.
-
-### 1b. Volgende versie na 0.9.11 (Mick 17 nov: "in de volgende versie")
-
-Verlanglijst:
-- Een print minder (−1) en snel verwijderen (swipe) met ongedaan maken. Nu kan alleen via ✎ → Verwijderen (hele regel) of het aantal verlagen.
-- Verlanglijstregels per print: dezelfde kaart meerdere keren op de lijst, elk met eigen aantal en prijs (nu één print of "elke print" per regel, dus 2 van print A en 1 van print B kan niet).
-- De regel toont altijd welke print hij vertoont: plaatje, set, nummer en de prijs van díe print (bij "elke print" duidelijk "vanaf"). Mick vindt dat dit na een printwijziging niet goed gaat; eerst uitzoeken wat hij precies ziet.
-
-Scanrapport:
-- Ook de instellingen en omstandigheden van de scan in het rapport: ingevulde set (of leeg), flits aan of uit, automatisch afdrukken of zelf, AI-hulp aan, offline database aan, taalinstelling, enkel blad of één kaart. Nu staan er alleen versie, toestel, soort (blad of één kaart), camera of galerij, scherpte, dekking, leestijd, opnieuw gelezen en fotoformaat in.
 
 ### 2. Kleine verbeteringen (nog geen versie)
 

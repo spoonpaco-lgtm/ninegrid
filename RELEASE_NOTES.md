@@ -15,11 +15,16 @@ Deck delen via QR
 Crashrapport
 - NineGrid bewaart bij een crash een klein rapport (versie, toestel, Android, foutmelding; geen kaarten). Bij de volgende start vraag je of je het wilt delen; het deelmenu van Android doet de rest. Ook te vinden onder Instellingen → Ontwikkelaar → Laatste crashrapport delen.
 
+Verlanglijst
+- Eén minder: de −knop op de regel (bij meer dan één). Een regel weghalen: naar links vegen. Beide met Terugzetten in de melding.
+- Elke regel zegt welke print hij toont (setnaam, set en nummer, de prijs van die print) of dat het elke print is. Dezelfde kaart in verschillende prints kon al als aparte regels; kies bij Verlanglijst toevoegen een print.
+- Een printwijziging in ✎ heb ik in de code nagelopen en zie geen fout; als het bij jou toch de oude print of prijs laat zien, graag precies wat je ziet.
+
 Meldingen
 - Toestemming voor meldingen wordt gevraagd zodra je prijsstijging-, ban- of reprintmeldingen aanzet (Android 13 en hoger).
 
 Scanner: testset en beter rapport
-- Het scanrapport noemt per vak ook wat de app eerst dacht ("app dacht eerst: …"), naast wat het werd na jouw correcties.
+- Het scanrapport noemt per vak ook wat de app eerst dacht ("app dacht eerst: …"), naast wat het werd na jouw correcties. Ook de instellingen van de scan: ingevulde set, lamp, automatisch afdrukken, AI-hulp, offline database en taal.
 - testset/ in de repo heeft vier bladen met foto, scanrapport en uitslag.txt (de juiste kaart per vak). Op GitHub draait Actions → Scanner-testset de scanner op een emulator over die foto's en zet de uitslag in de samenvatting. Alleen op verzoek; de gewone bouw en release blijven ongemoeid. De emulator kan andere uitslagen geven dan de Samsung.
 
 NineGrid 0.9.10.1 – Dovin

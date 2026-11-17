@@ -30,17 +30,19 @@ object WhatsNew {
     private val NL = listOf(
         Item("Exporteren: een deck naar Moxfield, Archidekt of Cardmarket (⋮ → Exporteren naar een site…), de hele collectie als Moxfield-CSV (Meer → Back-up en export) en je verlanglijst als Cardmarket-lijst. De formaten zijn nagekeken bij de sites zelf.", "decks"),
         Item("Deck delen via QR-code: ⋮ → Delen via QR-code in een deck, en op Decks het scan-icoon om er een te ontvangen. Past een commanderdeck in één code.", "decks"),
+        Item("Verlanglijst: eén minder met de −knop, een regel weghalen door naar links te vegen (beide met Terugzetten), en elke regel zegt welke print hij toont of dat het elke print is.", "allcards"),
         Item("Gecrasht? Bij de volgende start vraagt NineGrid of je het crashrapport wilt delen (versie, toestel en foutmelding, geen kaarten). Je kiest zelf of het verstuurd wordt.", "settings"),
         Item("Meldingen: toestemming wordt gevraagd zodra je prijsstijging-, ban- of reprintmeldingen aanzet.", "settings"),
-        Item("Scanrapport (Ontwikkelaar) noemt nu ook wat de app eerst dacht, naast wat jij ervan maakte. Er staat een testset van scanbladen in de repo en een emulatortest op GitHub.", "settings"),
+        Item("Scanrapport (Ontwikkelaar) noemt nu ook wat de app eerst dacht, naast wat jij ervan maakte. Ook staan de instellingen van die scan erin (set, lamp, automatisch afdrukken, AI-hulp, offline database, taal). Er staat een testset van scanbladen in de repo en een emulatortest op GitHub.", "settings"),
     )
 
     private val EN = listOf(
         Item("Export: a deck to Moxfield, Archidekt or Cardmarket (⋮ → Export to a site…), the whole collection as a Moxfield CSV (More → Backup and export) and your wishlist as a Cardmarket list. The formats were checked at the sites themselves.", "decks"),
         Item("Share a deck by QR code: ⋮ → Share via QR code in a deck, and the scan icon on Decks to receive one. A commander deck fits in one code.", "decks"),
+        Item("Wishlist: one less with the − button, remove a line by swiping left (both with Put back), and every line says which print it shows or that it is any print.", "allcards"),
         Item("Crashed? On the next start NineGrid asks whether you want to share the crash report (version, phone and error message, no cards). You decide whether it is sent.", "settings"),
         Item("Notifications: permission is asked as soon as you turn on price rise, ban or reprint alerts.", "settings"),
-        Item("The scan report (Developer) now also shows what the app first thought, next to what you made of it. A test set of scan sheets is in the repo, with an emulator test on GitHub.", "settings"),
+        Item("The scan report (Developer) now also shows what the app first thought, next to what you made of it. It also lists the settings of that scan (set, torch, auto capture, AI help, offline database, language). A test set of scan sheets is in the repo, with an emulator test on GitHub.", "settings"),
     )
 }
 
