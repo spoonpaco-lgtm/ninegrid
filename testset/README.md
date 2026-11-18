@@ -25,9 +25,13 @@ Bron: de map "Scanner ninegrid" in Micks Google Drive.
 
 Per map staat ook `uitslag.txt`: de juiste kaart per vak, door Claude van de foto gelezen. Mick controleert ze nog. Bij de nieuwe bladen (05 t/m 11) alleen namen, zonder set en nummer.
 
-## Kader (sinds 0.9.12)
+## Kader
 
-`kader.txt` (bij `foto-2.jpg`: `kader-2.txt`) bevat "links boven rechts onder" in pixels van de foto: het richtkader van de camera om de 3×3 kaarten heen, zoals Mick het blad in de camera legt. Testset draaien leest daarmee zoals de camera; zonder bestand is het kader de hele foto (het blad vult de foto). Daarnaast leest de testset elke foto ook als galerijfoto (zonder kader).
+Optioneel: `kader.txt` (bij `foto-2.jpg`: `kader-2.txt`) met "links boven rechts onder" in pixels van de foto. Dan leest de testset die foto ook met dat kader. De met de hand gezette kaders van 18 nov maakten het slechter (bijv. AVR 2 van 9 tegen 9 van 9 zonder kader) en zijn weggehaald; als galerijfoto kwam het overeen met wat de camera op dezelfde bladen las.
+
+## Meting 0.9.12 (18 nov, als galerijfoto)
+
+107 van 144 goed (was 98) · groen maar fout 2 (was 8). Grootste verlies: GRN (0 en 1 van 9), DOM 4 van 9, gemengd 3 van 9.
 
 ## Nulmeting 0.9.11 (18 nov, Samsung SM-A165F, als galerijfoto)
 

@@ -45,8 +45,9 @@ internal suspend fun runTestset(ctx: Context, tree: Uri, vm: AppViewModel, progr
                 val kader = dir.findFile(kaderName)?.let { f ->
                     runCatching { ctx.contentResolver.openInputStream(f.uri)!!.bufferedReader().readText().trim().split(Regex("""\s+""")).map { it.toFloat() } }.getOrNull()
                 }?.takeIf { it.size == 4 }?.let { nl.spoonpaco.ninegrid.domain.Area(it[0], it[1], it[2], it[3]) }
-                    ?: nl.spoonpaco.ninegrid.domain.Area(0f, 0f, bmp.width.toFloat(), bmp.height.toFloat())
-                for (camera in listOf(true, false)) {
+                // Standaard als galerijfoto: dat kwam op 18 nov overeen met wat de camera op dezelfde bladen las. Met een
+                // kader.txt ook met dat kader (de met de hand gezette kaders van 18 nov maakten het slechter en zijn weg).
+                for (camera in if (kader != null) listOf(false, true) else listOf(false)) {
                 // 1. lezen, zoals ScanScreen.process
                 val slots = try {
                     val first = readImage(bmp, if (camera) kader else null, false)
@@ -68,7 +69,7 @@ internal suspend fun runTestset(ctx: Context, tree: Uri, vm: AppViewModel, progr
                     val blank = item == null || item.empty || (p == null && item.status != ItemStatus.FOUND)
                     val v = TestsetScore.judge(e, p?.name, p?.setCode, p?.collectorNumber, blank)
                     val sure = item?.confident == true && item.status == ItemStatus.FOUND
-                    if (!camera) {
+                    if (camera) {
                         galleryTotal++
                         if (v.ok) { galleryOk++; good++ }
                         if (!e.empty && sure && !v.ok) gallerySureWrong++
@@ -81,9 +82,9 @@ internal suspend fun runTestset(ctx: Context, tree: Uri, vm: AppViewModel, progr
                         if (!sure && v.ok) checkRight++
                         if (p == null) notFound++
                     }
-                    if (!v.ok) body.appendLine("vak $slot: FOUT · verwacht ${TestsetScore.describe(e)} · kreeg ${if (p == null) "niets" else "${p.name} (${p.setCode.uppercase()} ${p.collectorNumber})"} · ${when { item == null -> "geen vak"; item.confident && item.status == ItemStatus.FOUND -> "groen (zeker)"; item.status == ItemStatus.FOUND -> "oranje"; else -> "niet gevonden" }}")
+                    if (!v.ok) body.appendLine("vak $slot: FOUT · verwacht ${TestsetScore.describe(e)} · kreeg ${if (p == null) "niets" else "${p.name} (${p.setCode.uppercase()} ${p.collectorNumber})"} · ${when { item == null -> "geen vak"; item.confident && item.status == ItemStatus.FOUND -> "groen (zeker)"; item.status == ItemStatus.FOUND -> "oranje"; else -> "niet gevonden" }} + (item?.query?.let { q -> " · las: naam=${q.name ?: "-"} set=${q.setCode ?: "-"} nr=${q.collectorNumber ?: "-"}" + (if (q.altNames.isNotEmpty()) " ook=${q.altNames.take(2).joinToString("/")}" else "") } ?: ""))
                 }
-                if (!camera) { body.appendLine("als galerijfoto: $good van ${expected.size} vakken goed"); continue }
+                if (camera) { body.appendLine("met kader.txt: $good van ${expected.size} vakken goed"); continue }
                 body.appendLine("$good van ${expected.size} vakken goed")
                 }
             }
@@ -96,8 +97,8 @@ internal suspend fun runTestset(ctx: Context, tree: Uri, vm: AppViewModel, progr
         appendLine("NineGrid testset, volledige scanroute (versie ${nl.spoonpaco.ninegrid.BuildConfig.VERSION_NAME}, ${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL})")
         appendLine("Totaal: $total vakken, $ok helemaal goed na opzoeken · $secs s")
         appendLine("Groen maar fout (het ergste): $sureWrong · oranje maar goed: $checkRight · niet gevonden: $notFound")
-        appendLine("Als galerijfoto (zonder kader): $galleryOk van $galleryTotal goed · groen maar fout: $gallerySureWrong")
-        appendLine("Met de set van de mapnaam ingevuld, zoals jij de app gebruikt. Met het kader van de camera (kader.txt, anders de hele foto); daaronder hetzelfde als galerijfoto. Namen tellen goed bij 80% gelijkenis. Heeft internet nodig voor kaarten die de offline database niet kent.")
+        if (galleryTotal > 0) appendLine("Met kader.txt (alleen bladen met dat bestand): $galleryOk van $galleryTotal goed · groen maar fout: $gallerySureWrong")
+        appendLine("Met de set van de mapnaam ingevuld, zoals jij de app gebruikt. Als galerijfoto (zonder kader), wat op 18 nov overeenkwam met de camera. Bij een fout staat erbij wat de scanner las. Namen tellen goed bij 80% gelijkenis. Heeft internet nodig voor kaarten die de offline database niet kent.")
         append(body)
     }
 }
