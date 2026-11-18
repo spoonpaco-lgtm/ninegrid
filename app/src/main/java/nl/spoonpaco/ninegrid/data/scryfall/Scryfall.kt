@@ -149,6 +149,10 @@ data class CardQuery(
     val lang: String? = null,
     /** De gelezen naam op een niet-Engelse kaart; wordt gecontroleerd tegen de gedrukte naam, niet tegen de Engelse. */
     val printedName: String? = null,
+    /** Alle gelezen regels van het vak; bij een bekende set zoekt de app daarin naar een naam uit die set. */
+    val lines: List<String> = emptyList(),
+    /** De naam kwam uit een andere regel dan de naamregel (zie [lines]); zo'n kaart wordt nooit groen. */
+    val nameFromLine: Boolean = false,
 )
 
 class ScryfallException(message: String, val code: Int = 0) : Exception(message)

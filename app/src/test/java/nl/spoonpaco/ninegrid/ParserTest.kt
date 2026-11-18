@@ -1225,4 +1225,20 @@ class ParserTest {
         val right = (0 until 30).map { OcrLine("r$it", 800f + (it % 5) * 20f, 100f + it * 30f) }
         assertEquals(60, ScanParser.mainBlock(left + right, 1080, 1440).size)
     }
+
+    // Testset 18 nov (2): de naam stond in een andere regel dan de naamregel.
+    @Test
+    fun nameFoundInOtherLines() {
+        val M = nl.spoonpaco.ninegrid.domain.NameMatch
+        val grn = listOf("Underrealm Lich", "Knight of Autumn", "Wee Dragonauts", "Boros Challenger", "Nightveil Predator", "Silent Dart",
+            "Discovery // Dispersal", "Maximize Altitude", "Nightveil Sprite", "Dead // Gone", "Thought Erasure", "Boros Guildgate")
+        assertEquals("Boros Challenger", M.bestInLines(listOf("CvatureHuman Soldier", "oros Challenger gets"), grn))
+        assertEquals("Silent Dart", M.bestInLines(listOf("me your library", "Silent Dart It deals", "acceptable to House"), grn))
+        assertEquals("Knight of Autumn", M.bestInLines(listOf("Kynight ofAutumn", "Creature Elf Knight"), grn))
+        assertEquals("Impact Tremors", M.bestInLines(listOf("mpact Tremors"), listOf("Impact Tremors", "Impulsive Charge", "Intruder Alarm")))
+        // Ook de naam van het buurvak in beeld: twee namen even goed, dus geen keuze.
+        assertNull(M.bestInLines(listOf("Wee DragonaubS", "Kynight ofAutumn"), grn))
+        // Alleen regeltekst: niets.
+        assertNull(M.bestInLines(listOf("Rying, deathtouch", "t attackig", "danage to target crearure"), grn))
+    }
 }

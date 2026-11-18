@@ -528,8 +528,13 @@ class Repository(
             // De naam zoals gelezen en zoals verbeterd tegen alle kaartnamen: binnen de set telt de best passende naam,
             // en alleen als hij duidelijk beter past dan de andere namen in de set (anders is het gokken).
             val readNames = listOfNotNull(q0.name, fixedName).distinct()
-            val bestInSet = readNames.firstNotNullOfOrNull { nl.spoonpaco.ninegrid.domain.NameMatch.best(it, setNames) }
-            if (bestInSet != null) q = q.copy(name = bestInSet)
+            val bestOnNameLine = readNames.firstNotNullOfOrNull { nl.spoonpaco.ninegrid.domain.NameMatch.best(it, setNames) }
+            // Niets op de naamregel: zoek in alle andere gelezen regels (vaak staat de naam er wel, maar is regeltekst
+            // als naam genomen: "oros Challenger gets", "mpact Tremors"). Zo'n kaart wordt gevonden maar blijft oranje.
+            val bestInLines = if (bestOnNameLine != null) null
+                else kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { nl.spoonpaco.ninegrid.domain.NameMatch.bestInLines(q0.altNames + q0.lines, setNames) }
+            val bestInSet = bestOnNameLine ?: bestInLines
+            if (bestInSet != null) q = q.copy(name = bestInSet, nameFromLine = bestOnNameLine == null)
             fun byName(): SetCard? {
                 bestInSet?.let { n -> list.cards.filter { it.name == n }.let { m -> (m.firstOrNull { it.regular } ?: m.firstOrNull())?.let { return it } } }
                 // Andere regels: alleen exact.

@@ -255,7 +255,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
             // Niet-Engelse kaart: de gelezen naam is de gedrukte (bijv. Franse) naam. Die mag niet tegen de Engelse
             // namen worden "verbeterd" of gecontroleerd; set en nummer zijn leidend, de naam wordt apart nagekeken.
             val lang = nl.spoonpaco.ninegrid.domain.ScanParser.scryfallLang(r.language)
-            val canLook = (set != null && r.collectorNumber != null) || (lang == null && (r.name != null || (set != null && r.altNames.isNotEmpty())))
+            val canLook = (set != null && r.collectorNumber != null) || (lang == null && (r.name != null || (set != null && (r.altNames.isNotEmpty() || r.lines.isNotEmpty()))))
             val readParts = listOfNotNull(
                 listOfNotNull(r.setCode, r.collectorNumber).joinToString(" ").ifBlank { null },
                 (r.name ?: r.altNames.firstOrNull())?.let { "‘" + it.take(22) + "’" },
@@ -273,7 +273,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                     else if (readParts.isEmpty() && r.lines.isEmpty()) str(R.string.scan_nothing_read)
                     else str(R.string.scan_read_as, (readParts.ifEmpty { r.lines.take(2).map { it.take(22) } }).joinToString(" · ")) +
                         (if (starFoil) " · " + str(R.string.scan_foil_star) else ""),
-                query = if (lang == null) CardQuery(setCode = set, collectorNumber = r.collectorNumber, name = r.name, altNames = r.altNames)
+                query = if (lang == null) CardQuery(setCode = set, collectorNumber = r.collectorNumber, name = r.name, altNames = r.altNames, lines = r.lines)
                     else CardQuery(setCode = set, collectorNumber = r.collectorNumber, lang = lang, printedName = r.name),
                 status = if (canLook) ItemStatus.RESOLVING else ItemStatus.NOT_FOUND,
                 language = r.language ?: "",
@@ -476,8 +476,11 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                     val guessedPrint = scan && card != null && nl.spoonpaco.ninegrid.domain.SetCheck.guessedPrint(q.setCode != null, q.collectorNumber != null)
                     // Groen alleen als de gelezen naam echt op de gevonden kaart lijkt (80%, zoals de testset telt).
                     // Na de setlijst (preResolve met een duidelijke beste naam in de set) telt die naam; anders wat er gelezen is.
-                    val checkName = queries.getOrNull(i)?.takeIf { it.id != null }?.name ?: q.name
-                    val nameStrong = card != null && (checkName == null || q.lang != null || nl.spoonpaco.ninegrid.domain.NameMatch.score(checkName, card.name) >= 0.8)
+                    // Kwam de naam uit een andere regel dan de naamregel (misschien de naam van het buurvak), dan telt de gelezen naam.
+                    val checkName = queries.getOrNull(i)?.takeIf { it.id != null && !it.nameFromLine }?.name ?: q.name
+                    // Groen vraagt een gelezen naam: alleen een nummer is te makkelijk verkeerd gelezen ("9", "43"; testset 18 nov).
+                    val nameStrong = card != null && if (q.lang != null) q.printedName != null
+                        else checkName != null && nl.spoonpaco.ninegrid.domain.NameMatch.score(checkName, card.name) >= 0.8
                     val confident = card != null && printedOk[item.key] != false && (q.name != null || q.collectorNumber != null) &&
                         (checkName == null || repo.namesLookAlike(checkName, card.name)) &&
                         (q.collectorNumber == null || card.collectorNumber.equals(q.collectorNumber, true)) &&

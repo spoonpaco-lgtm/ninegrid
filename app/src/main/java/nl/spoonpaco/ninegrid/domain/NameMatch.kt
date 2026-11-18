@@ -58,4 +58,30 @@ object NameMatch {
         val second = scored.getOrNull(1)?.second ?: 0.0
         return if (top.second - second >= MARGIN || top.second == 1.0 && second < 1.0) top.first else null
     }
+
+    /** Strenger dan [MIN] voor stukjes uit willekeurige regels: daar staan veel woorden die toevallig op een naam lijken. */
+    const val MIN_LINE = 0.8
+
+    /**
+     * Zoekt in alle gelezen regels van een vak naar een kaartnaam uit [names]: elke regel en elk stuk van 1 tot 5
+     * opeenvolgende woorden. Per naam telt het best passende stuk. Alleen een duidelijke winnaar (minstens [MIN_LINE],
+     * en [MARGIN] beter dan de op één na beste naam); twee namen even goed (bijvoorbeeld ook de naam van het buurvak)
+     * geeft null.
+     */
+    fun bestInLines(lines: List<String>, names: Collection<String>): String? {
+        val pieces = lines.flatMap { line ->
+            val words = line.split(Regex("""\s+""")).filter { it.isNotBlank() }
+            (1..minOf(5, words.size)).flatMap { k -> (0..words.size - k).map { words.subList(it, it + k).joinToString(" ") } }
+        }.map(::norm).filter { it.length >= 5 }.distinct()
+        if (pieces.isEmpty()) return null
+        val scored = names.distinct().map { n ->
+            // Per helft van een splitkaart en de hele naam; alleen stukken van ongeveer dezelfde lengte (sneller).
+            val targets = (listOf(n) + if (n.contains("//")) n.split("//") else emptyList()).map(::norm).filter { it.isNotEmpty() }
+            n to targets.maxOf { t -> pieces.filter { it.length * 10 >= t.length * 6 && it.length * 10 <= t.length * 14 }.maxOfOrNull { sim(it, t) } ?: 0.0 }
+        }.sortedByDescending { it.second }
+        val top = scored.firstOrNull() ?: return null
+        if (top.second < MIN_LINE) return null
+        val second = scored.getOrNull(1)?.second ?: 0.0
+        return if (top.second - second >= MARGIN) top.first else null
+    }
 }
