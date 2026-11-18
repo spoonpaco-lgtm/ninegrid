@@ -172,6 +172,11 @@ Op het Overzicht, op de plek van Winner of the Week, één samengevoegd blok "To
 - Winner of the Week = nummer 1 van de weekstijgers: nakijken of de huidige berekening (`computeWinner`) hetzelfde rekent (€ × aantal), zodat blok en widget niet verschillen. Loser of the Week is nieuw (nummer 1 van de dalers).
 - Technisch: rekenwerk in `domain/` met unittest; gegevens uit `price_history` en de exemplaren; handleiding, Wat is nieuw, FEATURES.
 
+### 1f-movers. Volgende versie: Top movers inklapbaar (Mick 18 nov, wacht op startsein)
+
+- Het Top movers-blok wordt inklapbaar. Ingeklapt: alleen de grote kaart (Winner of Loser of the Week/Day, met het effect). Uitgeklapt: de schakelaars Dag/Week en Stijgers/Dalers, de nummers 2 t/m 5 en Toon top 20.
+- Voorstel Claude (nog te bevestigen): standaard ingeklapt; open/dicht onthouden (zoals Lijn/Taart); een pijltje rechts in de titel; ingeklapt blijft de laatst gekozen stand (Week + Stijgers als niets gekozen).
+
 ### 2. Kleine verbeteringen (nog geen versie)
 
 - Scannen, kaart voor kaart: 39a (set van de vorige kaart als aanname) is door Mick afgewezen, 17 nov: scannen wordt er trager van; een set telt alleen als de gebruiker hem zelf opgeeft. 39c groene kaarten overslaan op het controlescherm (pas bouwen als de herkenning betrouwbaar is; wacht op een test op de telefoon).
