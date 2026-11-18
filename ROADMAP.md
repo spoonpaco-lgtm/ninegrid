@@ -78,6 +78,7 @@ Dit is "de lijst": wat Mick wil dat NineGrid nog krijgt. Een nieuw gesprek begin
 | 0.9.10.1 | Dovin | Menu opgeruimd: Meer in blokken, Back-up en export eigen scherm, Over op één plek, Lijst plakken in Importeren, Wijzigingslog heet Laatste actie ongedaan maken, Instellingen in 8 andere groepen |
 | 0.9.11 | Tezzeret | Exporteren (Moxfield, Archidekt, Cardmarket), deck via QR, crashrapport, privacymodus met meer controle, 5 nieuwe privacystijlen + Zegel klein, 9 app-iconen, widgets, testset op de telefoon |
 | 0.9.12 | Kasmina | Scanner betrouwbaarder: strengere naamvergelijking, alleen nummer nooit groen, naam ook in andere regels (oranje), geen print op de gok, voorstel set van het blad, splitkaarten gedraaid, buurpagina weg, jaartal met W; testset 98→109 goed, groen maar fout 8→0 |
+| 0.9.13 | Nissa | Raster op de kaartnamen (galerijfoto met set); testset meldt Scryfall-storingen; testset 88% goed (set ingevuld 91%), 0% groen maar fout, lege vakken 96% |
 
 ## Nog te doen
 
@@ -136,11 +137,19 @@ Mick 18 nov: "bouw alle voorstellen in een branch". Basis: eerste testset-meting
 - Later toegevoegd: alleen een nummer nooit groen; naam ook zoeken in andere regels bij een bekende set (`NameMatch.bestInLines`, altijd oranje; basislanden alleen met typeregel "Basic Land"). Handgezette kaders weggehaald (maakten het slechter); testset leest als galerijfoto en toont wat er gelezen is.
 - Laatste meting (18 nov): 109 van 144 goed, 0 groen maar fout, 28 oranje maar goed, 25 niet gevonden.
 
-### 1c-scan. 0.9.13 (voorstel, wacht op startsein): raster op de namen
+### 1c-scan. 0.9.13 Nissa: uitgebracht 18 nov (Micks "release")
 
-- 22 van de 25 niet gevonden zitten op foto's waar het blad maar een deel van het beeld vult (GRN beide, DOM, gemengd): het raster schuift, vakken lezen de naam van het buurvak.
-- Voorstel: bij een bekende set eerst op de hele foto de regels zoeken die duidelijk een naam uit de set zijn; die staan bovenaan elke kaart, dus hun posities geven kolommen, rijen en kaartgrootte. Het raster daarop zetten in plaats van op de buitenste tekst. Daarvoor heeft `OcrLine` ook de linker- en bovenkant van de regel nodig.
-- Ook bekijken: naamregel niet gelezen bij glans (Intruder Alarm, Vampiric Rites, Oath of Teferi, Raff Capashen); gemengd blad zonder set.
+- Raster op de namen (`domain/NameGrid.kt`), alleen bij galerijfoto met ingevulde set; camera met kader ongewijzigd. Ankers ≥ 85% gelijk, bovenste bij dubbele naam, keuze: binnen de foto → meeste tekst (binnen 10%) → dichtst bij het midden; eindcontrole namen bovenaan het vak.
+- Testset meldt Scryfall-storingen ("LET OP"). Les van 18 nov: Micks offline database stond uit; daardoor ging elke opzoeking via Scryfall en gaven twee runs te lage cijfers. Meten altijd met de offline database aan.
+- Meting (offline database aan): 126 van 144 (88%), groen maar fout 0, niet gevonden 15; set ingevuld 91%; lege vakken 22 van 23.
+- Wat overblijft: gemengd blad zonder set (6 vakken), GRN-splitkaarten (6), losse leesfouten (6: Eternal Wanderer showcase-nummer 2×, Intruder Alarm, Jace's Triumph, Havoc Festival, Raff Capashen).
+
+### 1d-scan. Volgende scannerstappen (voorstel, wacht op startsein)
+
+1. Setlijst uit de offline database halen (`CardCache.setList` haalt hem nu alleen bij Scryfall, een week bewaard); dan werkt kiezen binnen de set, zoeken in andere regels en het raster op de namen zonder internet.
+2. Splitkaarten (GRN rij 3): gedraaid lezen levert nog niets.
+3. Gemengd blad zonder set.
+4. Testset: "kaart als leeg gezien" apart vermelden; testset met losse kaartfoto's (één kaart per foto) om scannen per kaart te meten.
 
 ### 2. Kleine verbeteringen (nog geen versie)
 

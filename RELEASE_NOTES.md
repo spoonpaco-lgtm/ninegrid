@@ -2,8 +2,11 @@ NineGrid 0.9.13 – Nissa
 
 Nissa, die de lijnen in het land ziet: het raster van een blad ligt nu op de kaartnamen zelf.
 
+Testset op Micks telefoon (144 vakken, offline database aan): 88% goed (was 76% in 0.9.12, 68% in 0.9.11), 0% groen maar fout, 10% niet gevonden. Op bladen met een ingevulde set 91%. Lege vakken: 96% goed herkend (100% op bladen met een set).
+
 - Raster op de namen (domain/NameGrid.kt): bij een foto zonder kader (galerij) en een ingevulde set zoekt de app eerst de regels die duidelijk een naam uit die set zijn (minstens 3, geen basislanden). Een naam staat altijd linksboven op de kaart, dus hun posities geven rijen, kolommen en kaartgrootte. Ontbreekt een rij of kolom, dan kiest de app de plek waar de meeste tekst binnen het raster valt, dan een raster binnen de foto, dan het raster het dichtst bij het midden. Lukt het niet (te weinig namen, maten die niet bij 3 x 3 passen), dan het raster uit de tekst zoals voorheen.
 - Waarom: in de testset (18 nov) schoof het raster op GRN, DOM en het gemengde blad een halve rij. De onderste rij splitkaarten leverde geen tekst, de app rekte twee rijen gecentreerd uit tot drie, en vakken lazen de naam van het buurvak (vak 1 kreeg Boros Challenger uit vak 4).
+- Een naam telt als anker alleen als hij bijna letterlijk gelezen is (85%); staat dezelfde naam ook in regeltekst, dan telt de bovenste. Een paar losse regels naast het blad beslissen niet over de plek. Eindcontrole: staan minder dan 3 op de 4 namen bovenaan hun vak, dan het oude raster.
 - Camerascans (met kader) blijven zoals ze waren.
 - Testset draaien: bovenaan "LET OP" als Scryfall in die run niet bereikbaar was of weigerde (een run op 18 nov gaf zo 86 in plaats van 110).
 
