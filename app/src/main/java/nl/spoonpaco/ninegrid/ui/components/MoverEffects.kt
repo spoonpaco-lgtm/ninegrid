@@ -33,7 +33,7 @@ private val Win = Color(0xFF3FB37F)
 private val Lose = Color(0xFFE5484D)
 
 /** Vaste "willekeur" (zelfde vorm elke keer), 0..1. */
-private fun rnd(seed: Int, i: Int): Float {
+private fun moverRnd(seed: Int, i: Int): Float {
     var x = seed * 374761393 + i * 668265263
     x = (x xor (x ushr 13)) * 1274126177
     return ((x xor (x ushr 16)) and 0xFFFF) / 65535f
@@ -104,16 +104,16 @@ private fun DrawScope.drawBlood(p: Float, extra: Float) {
     val n = maxOf(10, (w / 18.dp.toPx()).toInt())
     val path = Path().apply {
         moveTo(0f, bottom)
-        for (i in 0..n) lineTo(w * i / n, bottom - band * (0.45f + 0.55f * rnd(seed, i)))
+        for (i in 0..n) lineTo(w * i / n, bottom - band * (0.45f + 0.55f * moverRnd(seed, i)))
         lineTo(w, bottom + 2.dp.toPx())
-        for (i in n downTo 0) lineTo(w * i / n, bottom + 2.dp.toPx() + 3.dp.toPx() * rnd(seed, i + 40) * p)
+        for (i in n downTo 0) lineTo(w * i / n, bottom + 2.dp.toPx() + 3.dp.toPx() * moverRnd(seed, i + 40) * p)
         close()
     }
     // Druppels: verschillende lengtes, de langste pas aan het eind; elk met een dikke punt onderaan.
     val drips = (0 until 5).map { k ->
-        val x = w * (0.08f + 0.2f * k + 0.1f * rnd(seed, 70 + k))
-        val len = extra * (0.35f + 0.6f * rnd(seed, 80 + k)) * ((p - 0.15f * k / 4f).coerceIn(0f, 1f))
-        Triple(x, len, 2.2.dp.toPx() + 1.6.dp.toPx() * rnd(seed, 90 + k))
+        val x = w * (0.08f + 0.2f * k + 0.1f * moverRnd(seed, 70 + k))
+        val len = extra * (0.35f + 0.6f * moverRnd(seed, 80 + k)) * ((p - 0.15f * k / 4f).coerceIn(0f, 1f))
+        Triple(x, len, 2.2.dp.toPx() + 1.6.dp.toPx() * moverRnd(seed, 90 + k))
     }
     val shadow = Color(0x66000000)
     val dy = 2.5.dp.toPx()
