@@ -2,4 +2,13 @@
 <resources>
     <color name="ng_background">#F1E4C6</color>
     <color name="ic_launcher_background">#130C08</color>
+    <color name="ic_alt_zilver_bg">#0E1014</color>
+    <color name="ic_alt_koper_bg">#140B07</color>
+    <color name="ic_alt_zwartgoud_bg">#0A0A0A</color>
+    <color name="ic_alt_smaragd_bg">#07120D</color>
+    <color name="ic_alt_robijn_bg">#150709</color>
+    <color name="ic_alt_amethist_bg">#0F0A16</color>
+    <color name="ic_alt_perkament_bg">#EFE3C8</color>
+    <color name="ic_alt_inkt_bg">#FFFFFF</color>
+    <color name="ic_alt_neon_bg">#08060F</color>
 </resources>

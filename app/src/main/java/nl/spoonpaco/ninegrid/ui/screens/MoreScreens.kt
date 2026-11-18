@@ -249,6 +249,9 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit) {
                         }
                     }
                     Text(stringResource(R.string.accent_explain), fontSize = NgText.body, color = nl.spoonpaco.ninegrid.ui.theme.LocalNgExtra.current.subtle)
+                    Text(stringResource(R.string.icon_title), modifier = Modifier.padding(top = 8.dp))
+                    nl.spoonpaco.ninegrid.ui.components.AppIconPicker()
+                    Text(stringResource(R.string.icon_explain), fontSize = NgText.body, color = nl.spoonpaco.ninegrid.ui.theme.LocalNgExtra.current.subtle)
                     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
                         Column(Modifier.weight(1f)) {
                             Text(stringResource(R.string.effects))
@@ -733,7 +736,10 @@ private fun settingsSummary(g: SettingsGroup, vm: AppViewModel, st: nl.spoonpaco
 
 @Composable
 private fun privacyStyleLabel(s: String) = when (s) {
-    "zegel" -> stringResource(R.string.privacy_style_seal); "schaduw" -> stringResource(R.string.privacy_style_shadow)
+    "zegel" -> stringResource(R.string.privacy_style_seal); "zegelklein" -> stringResource(R.string.privacy_style_seal_small)
+    "schaduw" -> stringResource(R.string.privacy_style_shadow); "toxic" -> stringResource(R.string.privacy_style_toxic)
+    "lightning" -> stringResource(R.string.privacy_style_lightning); "fog" -> stringResource(R.string.privacy_style_fog)
+    "pixelized" -> stringResource(R.string.privacy_style_pixelized); "countered" -> stringResource(R.string.privacy_style_countered)
     "stippen" -> stringResource(R.string.privacy_style_dots); else -> stringResource(R.string.privacy_style_compleated)
 }
 

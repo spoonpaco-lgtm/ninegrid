@@ -66,11 +66,20 @@ data class PrivacyState(
 enum class PrivacyKind { CARD, TOTAL }
 
 object PrivacyStyle {
+    /** De opgeslagen sleutel blijft "compleated" (bestaande instellingen); de naam op het scherm is Completed. */
     const val COMPLEATED = "compleated"
     const val SEAL = "zegel"
+    const val SEAL_SMALL = "zegelklein"
     const val SHADOW = "schaduw"
+    const val TOXIC = "toxic"
+    const val LIGHTNING = "lightning"
+    const val FOG = "fog"
+    const val PIXELIZED = "pixelized"
+    const val COUNTERED = "countered"
     const val DOTS = "stippen"
-    val all = listOf(COMPLEATED, SEAL, SHADOW, DOTS)
+    val all = listOf(COMPLEATED, SEAL, SEAL_SMALL, SHADOW, TOXIC, LIGHTNING, FOG, PIXELIZED, COUNTERED, DOTS)
+    /** Stijlen met een eigen tijdlijn (0..1 over 6 seconden); zonder Magic-effecten vallen ze terug op rustige stippen. */
+    val timeline = setOf(TOXIC, LIGHTNING, FOG, PIXELIZED, COUNTERED)
 }
 
 val LocalPrivacy = staticCompositionLocalOf { PrivacyState() }
@@ -115,25 +124,36 @@ fun Modifier.privacyMask(kind: PrivacyKind = PrivacyKind.CARD, value: Double? = 
     // Met een grens (alleen dure kaarten) hangt het af van de waarde: een goedkope kaart blijft zichtbaar, een dure krijgt de gekozen stijl.
     if (!p.hides(kind, value) || p.style == PrivacyStyle.DOTS) return@composed this
     val effects = LocalEffects.current
-    val wobble = if (effects && p.style != PrivacyStyle.SEAL) {
+    if (p.style in PrivacyStyle.timeline && !effects) return@composed this
+    val isSeal = p.style == PrivacyStyle.SEAL || p.style == PrivacyStyle.SEAL_SMALL
+    val loop = if (p.style in PrivacyStyle.timeline) {
+        rememberInfiniteTransition(label = "loop").animateFloat(0f, 1f, infiniteRepeatable(tween(6000, easing = LinearEasing), RepeatMode.Restart), label = "l").value
+    } else 0f
+    val wobble = if (effects && !isSeal) {
         rememberInfiniteTransition(label = "mask").animateFloat(0f, 1f, infiniteRepeatable(tween(4000, easing = LinearEasing), RepeatMode.Reverse), label = "w").value
     } else 0f
     // Zegel: om de paar seconden een korte gouden glinstering over de was.
-    val glint = if (effects && p.style == PrivacyStyle.SEAL) {
+    val glint = if (effects && isSeal) {
         rememberInfiniteTransition(label = "glint").animateFloat(0f, 1f, infiniteRepeatable(tween(3600, easing = LinearEasing), RepeatMode.Restart), label = "g").value
     } else -1f
     val measurer = androidx.compose.ui.text.rememberTextMeasurer()
     drawWithContent {
         when (p.style) {
             PrivacyStyle.SEAL -> drawSeal(measurer, glint)
+            PrivacyStyle.SEAL_SMALL -> drawSeal(measurer, glint, small = true)
             PrivacyStyle.SHADOW -> drawShadow(wobble)
+            PrivacyStyle.TOXIC -> drawToxic(loop, wobble)
+            PrivacyStyle.LIGHTNING -> drawLightning(loop)
+            PrivacyStyle.FOG -> drawFog(loop)
+            PrivacyStyle.PIXELIZED -> drawPixelized(loop)
+            PrivacyStyle.COUNTERED -> drawCountered(measurer, loop)
             else -> drawOil(wobble)
         }
     }
 }
 
 /** Vaste "willekeur" (0..1), zodat een vlek op dezelfde plek er altijd hetzelfde uitziet. */
-private fun rnd(seed: Int, i: Int): Float {
+internal fun rnd(seed: Int, i: Int): Float {
     var x = seed * 374761393 + i * 668265263
     x = (x xor (x ushr 13)) * 1274126177
     return ((x xor (x ushr 16)) and 0xFFFF) / 65535f
@@ -178,14 +198,17 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawOil(wobble: Flo
 }
 
 /** Zegel: gouden was met golvende rand, een vierkant met een 9 erin, en een koord door de hele breedte. */
-private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawSeal(measurer: androidx.compose.ui.text.TextMeasurer, glint: Float = -1f) {
+private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawSeal(measurer: androidx.compose.ui.text.TextMeasurer, glint: Float = -1f, small: Boolean = false) {
     val w = size.width; val h = size.height
     val c = Offset(w / 2, h / 2)
-    // Koord.
-    drawLine(Color(0xFF7A5518), Offset(0f, c.y), Offset(w, c.y), h * 0.12f)
-    drawLine(Color(0xFFB08030), Offset(0f, c.y - h * 0.03f), Offset(w, c.y - h * 0.03f), h * 0.035f)
+    // Koord (bij het kleine zegel alleen een stukje aan weerskanten, zodat het in een lijst past).
+    val r0 = if (small) h * 0.5f else h * 0.72f
+    val cx0 = if (small) maxOf(0f, c.x - r0 * 1.9f) else 0f
+    val cx1 = if (small) minOf(w, c.x + r0 * 1.9f) else w
+    drawLine(Color(0xFF7A5518), Offset(cx0, c.y), Offset(cx1, c.y), h * (if (small) 0.09f else 0.12f))
+    drawLine(Color(0xFFB08030), Offset(cx0, c.y - h * 0.03f), Offset(cx1, c.y - h * 0.03f), h * (if (small) 0.026f else 0.035f))
     // Was: 18 punten met een vaste golving, vloeiend verbonden.
-    val r = h * 0.72f
+    val r = r0
     val pts = (0 until 18).map { i ->
         val a = i * 2 * Math.PI / 18
         val rr = r * (0.9f + 0.14f * rnd(5, i))

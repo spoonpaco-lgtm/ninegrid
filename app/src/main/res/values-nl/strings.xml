@@ -891,7 +891,7 @@
     <string name="privacy_mode">Privacymodus</string>
     <string name="privacy_explain">Verbergt alle bedragen, behalve in de ruilmatch. Uitzetten kan alleen met je vingerafdruk of schermvergrendeling.</string>
     <string name="privacy_style">Stijl</string>
-    <string name="privacy_style_compleated">Compleated</string>
+    <string name="privacy_style_compleated">Completed</string>
     <string name="privacy_style_seal">Zegel</string>
     <string name="privacy_style_shadow">Schaduw</string>
     <string name="privacy_style_dots">Stippen</string>
@@ -1153,4 +1153,22 @@
     <string name="privacy_above">Kaartprijzen verbergen boven (%1$s)</string>
     <string name="privacy_above_explain">Leeg = alle kaartprijzen verbergen. Goedkopere kaarten blijven zichtbaar.</string>
     <string name="privacy_above_save">Grens opslaan</string>
+    <string name="privacy_style_seal_small">Zegel klein</string>
+    <string name="privacy_style_toxic">Toxic</string>
+    <string name="privacy_style_lightning">Lightning</string>
+    <string name="privacy_style_fog">Fog</string>
+    <string name="privacy_style_pixelized">Pixelized</string>
+    <string name="privacy_style_countered">Countered</string>
+    <string name="icon_title">App-icoon</string>
+    <string name="icon_explain">Kies een ander icoon voor NineGrid. Je launcher heeft soms een paar seconden nodig om het te tonen.</string>
+    <string name="icon_default">Standaard</string>
+    <string name="icon_zilver">Zilver</string>
+    <string name="icon_koper">Koper</string>
+    <string name="icon_zwartgoud">Zwart-goud</string>
+    <string name="icon_smaragd">Smaragd</string>
+    <string name="icon_robijn">Robijn</string>
+    <string name="icon_amethist">Amethist</string>
+    <string name="icon_perkament">Perkament</string>
+    <string name="icon_inkt">Inkt</string>
+    <string name="icon_neon">Neon</string>
 </resources>

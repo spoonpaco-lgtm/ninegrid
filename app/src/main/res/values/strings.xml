@@ -892,7 +892,7 @@
     <string name="privacy_mode">Privacy mode</string>
     <string name="privacy_explain">Hides all amounts, except in the trade match. Turning it off needs your fingerprint or screen lock.</string>
     <string name="privacy_style">Style</string>
-    <string name="privacy_style_compleated">Compleated</string>
+    <string name="privacy_style_compleated">Completed</string>
     <string name="privacy_style_seal">Seal</string>
     <string name="privacy_style_shadow">Shadow</string>
     <string name="privacy_style_dots">Dots</string>
@@ -1154,4 +1154,22 @@
     <string name="privacy_above">Hide card prices above (%1$s)</string>
     <string name="privacy_above_explain">Empty = hide all card prices. Cheaper cards stay visible.</string>
     <string name="privacy_above_save">Save limit</string>
+    <string name="privacy_style_seal_small">Small seal</string>
+    <string name="privacy_style_toxic">Toxic</string>
+    <string name="privacy_style_lightning">Lightning</string>
+    <string name="privacy_style_fog">Fog</string>
+    <string name="privacy_style_pixelized">Pixelized</string>
+    <string name="privacy_style_countered">Countered</string>
+    <string name="icon_title">App icon</string>
+    <string name="icon_explain">Pick another icon for NineGrid. Your launcher may need a few seconds to show it.</string>
+    <string name="icon_default">Default</string>
+    <string name="icon_zilver">Silver</string>
+    <string name="icon_koper">Copper</string>
+    <string name="icon_zwartgoud">Black gold</string>
+    <string name="icon_smaragd">Emerald</string>
+    <string name="icon_robijn">Ruby</string>
+    <string name="icon_amethist">Amethyst</string>
+    <string name="icon_perkament">Parchment</string>
+    <string name="icon_inkt">Ink</string>
+    <string name="icon_neon">Neon</string>
 </resources>
