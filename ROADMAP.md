@@ -9,6 +9,7 @@ Dit is "de lijst": wat Mick wil dat NineGrid nog krijgt. Een nieuw gesprek begin
 - Denk mee en spreek tegen als iets beter kan; geen ja-knikker.
 - Elke versie krijgt een passende planeswalker-naam. 0.x zijn testversies; 1.0 = fase 2. **Saheeli** is gereserveerd.
 - Bouwen gebeurt alleen in GitHub Actions. Een release ontstaat als `versionNameValue` in `app/build.gradle.kts` verandert op `main`.
+- **Nooit releasen zonder Micks expliciete "ja, release".** Mergen naar `main` met een nieuwe versie = release.
 - Testen zonder release: werk op een branch en start de workflow Build met de hand op die branch (`workflow_dispatch`); pas als die slaagt naar `main`.
 - Keystore, wachtwoorden en de AI-sleutel blijven buiten de repo (GitHub secrets / alleen op de telefoon).
 - Bij elke versie: handleiding (NL/EN), Wat is nieuw, FEATURES.md en FEATURES.nl.md, RELEASE_NOTES.md bijwerken.
@@ -23,7 +24,7 @@ Dit is "de lijst": wat Mick wil dat NineGrid nog krijgt. Een nieuw gesprek begin
 - Werkwijze per versie: nieuwe branch, wijzigen, committen, pushen, workflow met de hand starten op die branch (`gh workflow run build.yml --ref <branch>`), wachten met `gh run watch <id> --exit-status`, fouten lezen met `gh run view <id> --log-failed`. Pas als dat groen is naar `main` mergen. Een release ontstaat vanzelf als `versionNameValue` in `app/build.gradle.kts` op `main` nieuw is; daarna met `gh api repos/spoonpaco-lgtm/ninegrid/releases/tags/vX.Y.Z` controleren of de APK erbij staat.
 - `gh` GraphQL is geblokkeerd: gebruik `gh api repos/...`, `gh run list/view/watch`; `gh release view` werkt dus niet.
 - Opmaakwijzigingen (zoals 0.9.8.2) eerst als testbuild naar Mick, pas na zijn "merge" naar main.
-- Commit-afsluiting: `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>` en de `Claude-Session`-regel van het gesprek.
+- Commit-afsluiting: de `Co-Authored-By`- en `Claude-Session`-regels die het gesprek opgeeft.
 
 **Elke versie**
 - `versionNameValue` (en `versionCodenameValue` bij een nieuwe naam), RELEASE_NOTES.md, handleiding (`ui/guide/GuideContent.kt`, NL en EN), Wat is nieuw (`ui/guide/WhatsNew.kt`, NL en EN), FEATURES.md en FEATURES.nl.md, ROADMAP.md (naar Uitgebracht).
@@ -80,94 +81,45 @@ Dit is "de lijst": wat Mick wil dat NineGrid nog krijgt. Een nieuw gesprek begin
 
 Volgorde: eerst wat Mick bij de telefoontest nog open heeft, dan de volgende versie, dan kleine verbeteringen, dan fase 2 en ideeën. Alles wat gebouwd is staat in de tabel hierboven en in RELEASE_NOTES.md.
 
-### 1. Volgende versie: 0.9.11 (naam nog kiezen)
+### 1. 0.9.11 Tezzeret: gebouwd op branch `tezzeret-0.9.11`, wacht op test en "ja, release"
 
-Exporteren naar andere sites en apps (begin met de twee of drie sites die Mick echt gebruikt):
-- Decks: ⋮ → Exporteren met keuze Moxfield, Archidekt, MTG Arena, Deckbox, ManaBox, TCGplayer, Cardmarket (wants-lijst) of Tekst (zoals nu); elk in het formaat dat die site het best leest (Commander/Sideboard goed gelabeld, foil/etched zoals de site verwacht, Arena zonder onbekende setnummers)
-- Kopiëren + site openen: lijst naar het klembord en de importpagina van die site opent; delen en opslaan als bestand blijven
-- Collectie: Meer → Back-up en export → CSV, ook in het eigen formaat van Moxfield, Archidekt, Deckbox, ManaBox of TCGplayer (juiste kolommen, conditie voluit zoals "Near Mint", taal voluit, foil/etched in eigen kolom), zodat uploaden zonder kolommen koppelen werkt
-- Verlanglijst: als wants-lijst voor Cardmarket (en de andere sites waar dat kan)
-- Wat exporteren: alles, alleen losse kaarten, een binder of een set (zelfde keuze als het deelscherm); proxies standaard niet mee
-- Vóór het bouwen de actuele importformaten van elke site nakijken, niet uit het hoofd
+Stand 18 nov: alles hieronder is gebouwd; laatste groene build https://github.com/spoonpaco-lgtm/ninegrid/actions/runs/44241661769 (commit `abb9f2c`). Niet vrijgegeven: alleen testbuilds. Release pas na Micks expliciete "ja, release" (merge naar `main`, daar wordt `versionNameValue` 0.9.11 nieuw). Volledige lijst in RELEASE_NOTES.md.
 
-Ook in 0.9.11:
-- Gebouwd: grafiekvenster sorteert per dag op waarde; Testset draaien loopt nu de volledige scanroute (inclusief database) voor een eerlijke meting; privacymodus met meer controle (zie 1c).
-- Kleine verbeteringen (17 nov): Lijn/Taart en splitsing onthouden; Alle kaarten naar Deck of Sideboard bij een deck (bij Commander niet; daar is de commander zelf de uitzondering).
-- Verlanglijst: −1 en swipe-verwijderen met terugzetten, elke regel zegt welke print (17 nov, op Micks verzoek in 0.9.11 gebouwd). Open: Mick zag na een printwijziging niet de juiste print of prijs; in de code niet te vinden, eerst vragen wat hij precies ziet.
-- Scanrapport met instellingen (set, lamp, automatisch afdrukken, AI-hulp, offline database, taal).
-- Meldingstoestemming (Android 13+) wordt nu alleen bij importeren gevraagd; ook vragen bij het aanzetten van bans en reprints.
-- Grafiek, venster bij tikken (Mick 17 nov, met schermafbeelding; in 0.9.11): de regels in dezelfde volgorde als de lijnen op die dag, hoogste bovenaan (nu de volgorde van de gekozen lijnen, dus rood staat in de grafiek onderaan maar in het venster ergens middenin). De volgorde beweegt mee (Mick 17 nov): schuif je met je vinger naar een andere dag en wisselen lijnen daar van plek, dan wisselen ze in het venster ook. In `ui/overview/HistoryChart.kt` de `rows` (rond regel 184) per gekozen dag opnieuw sorteren op de waarde van die dag, aflopend. De tweede lijn (aantal kaarten) blijft onderaan.
+**Gebouwd in 0.9.11**
+- Exporteren (3 sites, formaten opgezocht): deck → Moxfield, Archidekt, Cardmarket (kopiëren + site openen); collectie als Moxfield-CSV; verlanglijst als wants-lijst voor Cardmarket (max. 150 regels). Andere sites (Arena, Deckbox, ManaBox, TCGplayer) bewust nog niet.
+- Deck delen via QR-code (ingepakt, lange lijsten in delen; ontvangen via Decks → scan-icoon).
+- Crashrapport: bewaard bij een crash, bij de volgende start delen of niet; ook onder Ontwikkelaar.
+- Verlanglijst: −1, vegen om te verwijderen met terugzetten, print op elke regel.
+- Kleine verbeteringen: Lijn/Taart en splitsing onthouden; Alle kaarten naar Deck of Sideboard bij scannen/plakken naar een deck (niet bij Commander).
+- Grafiekvenster: regels op volgorde van waarde op de gekozen dag, schuift mee.
+- Meldingstoestemming (Android 13+) bij het aanzetten van prijs-, ban- en reprintmeldingen.
+- Scanrapport: "app dacht eerst" per vak en de instellingen van de scan.
+- Testset: 11 bladen in `testset/` (plus `testset.zip`); Ontwikkelaar → Testset draaien op de telefoon met de volledige scanroute; workflow Scanner-testset op de emulator alleen op verzoek.
+- Privacymodus met meer controle: wat verbergen (alles / alleen totalen / alleen kaartprijzen), grafiek in procenten, aantallen verbergen, meldingen zonder bedragen, kaartprijzen boven een grens. Bewust niet: automatisch weer aan, FLAG_SECURE.
+- Privacystijlen (`ui/components/PrivacyStyles.kt` en `Privacy.kt`), 10 sleutels: compleated, zegel, zegelklein, schaduw, toxic, lightning, fog, pixelized, countered, stippen.
+  - Namen: Completed (opgeslagen sleutel blijft "compleated"), Lightning, Countered. Plus Zegel klein voor lijsten.
+  - Toxic: grillige bijna zwarte groene ooze met groene oliefilm, gaten die knappen, bellen, druppels met rand.
+  - Lightning: lus van 24 s, 7 slagen op onregelmatige momenten, elke slag een eigen vorm, knipperen, zwak blauw spoor tussen de slagen.
+  - Fog: zelfde techniek als Schaduw, 6 drijvende wolken.
+  - Pixelized: flikkerend pixelraster dat naar de randen vervaagt. Countered: blauwe stempel die neervalt.
+  - `PrivacyStyle.timeline` (animatie): Toxic, Lightning, Pixelized, Countered; zonder Magic-effecten vallen die terug op stippen. Fog blijft zichtbaar. `privacyMask()` tekent nooit de bedragtekst.
+  - Besloten: The Ooze komt er niet in. Niet gekozen (op de plank): Infect, Morph, Mana-pips.
+- Negen extra app-iconen (activity-alias): Metalen (Zilver, Koper, Zwart-goud), Edelstenen (Smaragd, Robijn, Amethist), Licht en donker (Perkament, Inkt, Neon); Instellingen → Weergave → App-icoon.
+- Widgets (`data/widget/`, gewone `AppWidgetProvider` met getekend plaatje): Waarde, Winner of the Week, Kaart van de dag, Meldingen, Verlanglijst, scanknop breed en klein. Bijwerken na de prijsupdate en bij wisselen van de privacymodus; bij privacy tegeltjes in plaats van bedragen.
 
-Scanner: testset en beter rapport (voorstel, wacht op startsein; Mick 17 nov: in 0.9.11):
+**Nog te testen door Mick (telefoon)**
+- Privacystijlen, vooral Toxic in de kleine voorbeeldrij bij Instellingen → Privacy; Lightning en Fog zoals zijn schetsen.
+- Widgets: schalen de plaatjes goed, werken ze bij na de nachtelijke update en bij privacy.
+- App-iconen: risico dat het startschermicoon na de update verdwijnt door de alias-verplaatsing (staat in de release notes).
+- Exporteren: eerste import op Moxfield, Archidekt en Cardmarket nakijken (foil/etched via *F* en *E*).
+- QR tussen twee telefoons; crashrapport-vraag bij de volgende start.
 
-- Doel: de scanner meetbaar beter maken en oude fouten nooit laten terugkomen.
-- **Scanrapport met de eerste gok:** de app onthoudt direct na de scan wat hij zelf van elk vak maakte. Bij Scan delen staat per vak "app dacht: X" en "jij maakte er: Y" (alleen als die verschillen). Nu staat de uitkomst pas bij het delen en toont dan de door Mick gecorrigeerde kaart; de eerste gok van de app gaat verloren.
-- **Testset met foto's (ongeveer 20):** foto's in de repo, elk met een klein bestand met de juiste kaarten per vak ("jij maakte er" uit het rapport). Basis: de vier rapporten van 11 nov.
-- **Draaien op GitHub:** een aparte workflow met een emulator laat de echte scanner (ML Kit zit in de app, `text-recognition:16.0.1`) alle foto's lezen en toont per foto en vak wat goed of fout is. Duurt ongeveer 10 tot 15 minuten en de herkenning op een emulator kan afwijken van Micks Samsung.
-- **Draaien op de telefoon (gebouwd in 0.9.11):** Ontwikkelaar → Testset draaien: de app leest de foto's uit een map op de telefoon (de map `testset/` uit de repo) met de echte leesstraat en toont goed/fout per vak, met Delen. Dit is de echte meting. De emulator-workflow is te traag voor meer dan één leesronde (de variantentest haalde de 75 minuten niet); gebruik die alleen voor de eerste leesronde.
-- **Scanner verbeteren (volgende stap):** met de telefoonmeting varianten vergelijken (elk vak los lezen, meer pogingen op de voetstrook, hele foto vergroot). Nog niet gemeten; `ScanVariantsTest` staat klaar voor een kleinere run.
-- **Waar:** de map `testset/` in de repo (Mick, 17 nov: in de repo, zodat ze altijd bij de hand zijn). Nu 11 bladen (zie `testset/README.md`), elk met `foto.jpg`, `scanrapport.txt` en `uitslag.txt` (door Claude van de foto gelezen, set en nummer uit het rapport waar de app zeker was; Mick controleert nog). De repo is publiek en kaartfoto's zijn Wizards-materiaal: alleen foto's van eigen bladen. Nieuwe bladen: foto en rapport in een nieuwe map `NN-set-kaart`. De foto's zijn verkleinde versies; originelen zijn beter.
-
-Crashrapport verzenden (nieuw; Mick 17 nov: in 0.9.11):
-- Stort de app in, dan bewaart hij een klein rapport op de telefoon: versie, toestel, Android-versie, de foutmelding met de regels code, en het scherm waar het gebeurde. Geen kaarten, namen of andere gegevens van de gebruiker.
-- Bij de eerstvolgende start vraagt de app: "NineGrid is gestopt. Rapport delen?" met Delen (Android-deelmenu, net als Scan delen) en Niet nu. Er wordt niets automatisch verstuurd.
-- Ook te vinden onder Ontwikkelaar → Laatste crashrapport delen.
-- Zo kan Mick een crash zonder uitleg doorsturen en vindt de oorzaak snel.
-
-Deck delen via QR-code (was Route D in Fase 2; Mick 17 nov: in 0.9.11):
-- Deck → ⋮ → Delen via QR: op het scherm een QR-code met de decklijst. De ontvanger opent in NineGrid de scanner, richt de camera op het scherm en krijgt de lijst in hetzelfde controlescherm als bij Lijst plakken; hij kiest zelf wat hij toevoegt.
-- Compact: per kaart aantal, set en kaartnummer (bijvoorbeeld `1 MH2 123`), Commander en Sideboard gemarkeerd; de namen haalt de ontvanger zelf op uit de offline database of bij Scryfall. Een QR-code houdt ongeveer 2.900 bytes; een Commander-deck van 100 kaarten is ongeveer 1 KB, ingepakt minder. Een heel groot deck kan over twee of drie codes na elkaar.
-- Zonder internet, zonder account en zonder bestand dat je moet appen; handig als je iemand naast je hebt.
-- Kost: een extra onderdeel om QR-codes te lezen (ML Kit barcode-scanning, ongeveer 2 à 3 MB). Alleen NineGrid begrijpt de code; gewone tekst in de QR zou elke QR-lezer kunnen tonen, maar maakt de code groter en lastiger te scannen (nog te kiezen).
-- Geen koppeling met Moxfield of Archidekt; dat is Exporteren.
-
-### 1c. Privacymodus: meer controle (gebouwd in 0.9.11, wacht op test en "ja, release")
-
-Gebouwd (Mick 17 nov): Wat verbergen, grafiek in procenten, aantallen verbergen, meldingen zonder bedragen, kaartprijzen boven een grens. Totalen en kaartprijzen zijn in alle schermen gemarkeerd. Oorspronkelijke wensen:
-- **Wat verbergen** (Mick): Alles (zoals nu) | Alleen totalen (waarde van collectie, sets en decks, de grafiek, Winner of the Week, boosters) | Alleen kaartprijzen (per kaart en in lijsten; de totalen blijven zichtbaar). Stijl (compleated, zegel, schaduw, stippen) en vingerafdruk blijven zoals nu.
-- Technisch: nu is het één schakelaar en verbergen `money()` en `privacyMask()` in `ui/components/Privacy.kt` elk bedrag. Elke plek moet dus gaan zeggen of het een totaal of een kaartprijs is (bijvoorbeeld een soort bij `money()`), en alle schermen moeten worden nagelopen. Meldingen (`PriceWorker`) volgen dezelfde keuze.
-- Extra opties (gekozen door Mick, 17 nov):
-  - Grafiek in procenten: de lijn en de stijging of daling in % blijven zichtbaar, zonder bedragen op de as.
-  - Ook aantallen verbergen (hoeveel kaarten je hebt, per set en in totaal).
-  - Meldingen zonder bedragen: een eigen schakelaar (aan/uit). Aan = bedragen in meldingen altijd verborgen op het vergrendelscherm, ook als de privacymodus uit staat.
-  - Alleen dure kaarten verbergen: kaartprijzen boven een bedrag dat je zelf kiest.
-- Bewust niet (Mick, 17 nov): privacymodus automatisch weer aan (bij start of na een paar minuten), en schermafbeeldingen blokkeren (FLAG_SECURE).
-- Let op: bij "alleen kaartprijzen" zijn kaartprijzen terug te rekenen uit het totaal van een set of deck met weinig kaarten.
-
-### 1d. Privacystijlen en extra app-iconen erbij (gebouwd in 0.9.11 op 18 nov, wacht op test en "ja, release")
-
-**Namen (Mick, 18 nov):** Compleated heet voortaan **Completed** (alleen de weergegeven naam in Instellingen, handleiding en Wat is nieuw; nog te bouwen), Lightning Bolt wordt **Lightning**, Counterspell wordt **Countered**.
-
-Vijf nieuwe stijlen, gekozen en getekend in schetsen (zonder tekst of stippen in het vlak; bij Magic-effecten uit vallen ze terug op rustige stippen):
-- **Toxic**: organische bijna zwarte groene ooze in de lijn van Completed (`drawOil`): lange veeg over de breedte van het bedrag met zachte golvende randen, dunne helder groene gloed, lange glanslijn, groene oliefilm die meebeweegt, druppels die zonder rand uit de veeg groeien (smalle hals, ronde bol; af en toe valt er een af), lichte gaatjes die opzwellen en knappen met ring en kleine druppels, spatdruppeltjes eromheen. Voorbeeld: Micks foto's van "toxic ooze" (donkere inkt met groene rand en heldere gaatjes).
-- **Lightning** (was Lightning Bolt): blauwe elektrische stroom van links naar rechts (gekarteld spoor met lichte kern dat over het vlak schiet, daarna flitst de hele boog twee keer kort na met kleine takjes en vonkjes rechts). Geen icoon, geen achtergrond.
-- **Fog**: losse zachte mistwolken die langs drijven, geen achtergrond.
-- **Pixelized** (was Phasing): raster van kleine vierkante pixels dat willekeurig in en uit flikkert en naar de randen toe vervaagt (zodat het beter blendt); geen bolletjes, geen leesbaar bedrag.
-- **Countered** (was Counterspell): blauwe stempel "COUNTERED" in de stijl van de Legaal-stempel bij EDH-decks (`Stamp` in `ui/components/Effects.kt`: schuin −8°, dubbele afgeronde rand, vette hoofdletters met letterafstand), maar met een dichte vulling zodat het bedrag er niet doorheen schijnt. Valt met een stempelbeweging neer (groot naar klein, korte terugveer) met een blauwe rimpelring; lichte ruwe inktrand.
-Ook gevraagd: een **kleiner zegel** (compacte variant van Zegel voor kleine prijzen in lijsten; nog te tekenen).
-Voorstellen die Mick niet koos (geschetst, blijven op de plank): Infect (−1/−1-tellers), Morph (omgedraaide kaart met 2/2), Mana-pips (manasymbolen in gildekleur).
-Technisch: nieuwe waarden bij `PrivacyStyle` in `ui/components/Privacy.kt` (naast compleated, seal, shadow, dots; de opgeslagen sleutel "compleated" blijft, anders raken bestaande instellingen kwijt), elk een eigen draw-functie in `privacyMask()`, en de keuze in Instellingen → Privacy (voorbeeldregel per stijl, zoals nu). Animatie via `rememberInfiniteTransition`; alles houdt de breedte van het bedrag.
-
-**Extra app-iconen (drie sets van drie, geschetst 18 nov)**: zelfde raster als het logo (donkere achtergrond, rand, 3×3 tegels met NINEGRID, de 9 in het midden), alleen andere kleuren. Geen Magic-materiaal.
-- Set 1 Metalen: Zilver (rand #C9CED6), Koper (#C27A4A), Zwart-goud (#E0A93B op bijna zwart).
-- Set 2 Edelstenen: Smaragd (#3DB887), Robijn (#D8465A), Amethist (#9A6BD6).
-- Set 3 Licht en donker: Perkament (lichte achtergrond #EFE3C8, rand #7A5A2B), Inkt (wit met zwart), Neon (cyaan rand #19E3FF, paarse tegels, roze 9).
-Technisch: per icoon een `activity-alias` in het manifest met eigen adaptief icoon (voorgrond-png plus achtergrondkleur; monochroom blijft het bestaande thema-icoon), keuzerij in Instellingen met `PackageManager.setComponentEnabledSetting` (DONT_KILL_APP). Let op: het icoon op het startscherm kan bij wisselen even verspringen.
-
-### 1e. Widgets voor het startscherm (gebouwd in 0.9.11 op 18 nov, wacht op test en "ja, release")
-
-Zes voorstellen; Mick zag de schetsen van 1 en 3 en zei "build alles": alle zes zijn gebouwd (zeven widgets: scan breed en klein apart). Technisch: `data/widget/` (Widgets.kt providers, WidgetArt.kt tekenwerk met Canvas, WidgetData.kt, AlertLog.kt voor de laatste meldingen); geen Glance, gewone `AppWidgetProvider` met een getekend plaatje. Bijwerken na de prijsupdate (`PriceWorker`) en bij het wisselen van de privacymodus. Nog op de telefoon te zien: of de plaatjes goed schalen, en of het startpictogram na de update op het startscherm blijft (het zit nu in een activity-alias).
-1. **Waarde-widget (2×1)**: totale collectiewaarde, verandering sinds gisteren, minilijntje van 30 dagen. Basis.
-2. **Winner of the Week (2×2)**: kaartplaatje, naam en winst van de week; tik opent het kaartscherm.
-3. **Scan-snelknop (1×1 of 2×1)**: één tik naar de scanner, bladscan of één kaart tegelijk.
-4. **Alarmen (4×2)**: laatste meldingen (breakout, ban, reprint, verlanglijst-alarm) op een rij.
-5. **Verlanglijst-prijzen (4×2)**: de drie kaarten het dichtst bij je alarmprijs.
-6. **Dagkaart**: elke dag een willekeurige kaart uit je collectie met prijs (gimmick).
-Technisch en let op:
-- Widgets draaien buiten de app (Glance of RemoteViews): geen animatie en geen Compleated-effect. Privacymodus = vaste afdekking (voorstel: rijtje donkerblauwe logo-tegeltjes in plaats van het bedrag; het lijntje weg of alleen in procenten). Schakelt de modus om, dan werkt het widget met een kleine vertraging bij.
-- Alleen de prijzen van de laatste nachtelijke update; geen live prijzen.
-- Gegevens komen uit wat de app al bewaart (collectiewaarde, Historie, Winner of the Week); het widget leest, het rekent niet zelf.
-- Zelfde stijl als het logo (donker, gouden rand, donkerblauwe tegels).
+**Open vragen bij 0.9.11**
+- Testset opnieuw draaien op de telefoon en `uitslag.txt` per blad controleren (door Claude van de foto gelezen; Mick moet nog nakijken).
+- Verlanglijst: Mick zag na een printwijziging niet de juiste print of prijs; in de code niet te vinden, eerst vragen wat hij precies ziet.
+- Scanner verbeteren (volgende stap): met de telefoonmeting varianten vergelijken (elk vak los lezen, meer pogingen op de voetstrook, hele foto vergroot). Nog niet gemeten; `ScanVariantsTest` staat klaar voor een kleinere run. De emulator is te traag voor meer dan één leesronde.
+- Supporter-/donatielocking (stijlen of iconen alleen voor supporters): nog niet besloten.
+- Testset-regels: alleen foto's van Micks eigen bladen (repo is publiek); nieuwe bladen in een map `NN-set-kaart` met foto en rapport, liefst originelen.
 
 ### 2. Kleine verbeteringen (nog geen versie)
 
@@ -220,8 +172,7 @@ Alleen wat Mick nog niet heeft bevestigd.
 ## Later (idee, geen versie)
 - Verkoopalarm voor kaarten die je hebt: "meld als Ragavan boven € 60 komt" (omgekeerde prijsalarm, lijkt op Breakout)
 - Jaaroverzicht in december: "Jouw jaar in Magic" (kaarten toegevoegd, duurste vondst, meest gescande set, groei in waarde, beste ruil), te delen als afbeelding, privacymodus respecteren
-- Widget op het startscherm: zie 1e (uitgewerkt)
-- Supporter-variant: app blijft helemaal gratis (alle kaartgegevens, prijzen, zoeken, ruilmatch, offline database: nooit achter betaling — Scryfall verbiedt paywall, Wizards Fan Content Policy verbiedt betaalde toegang); vrijwillige steun via Google Play Billing (15% kosten) met extra's zonder kaartgegevens of Magic-materiaal: extra thema's/kleuren, andere app-iconen in NineGrid-stijl, supporter-badge bij Over
+- Supporter-variant (nog niet besloten): app blijft helemaal gratis (alle kaartgegevens, prijzen, zoeken, ruilmatch, offline database: nooit achter betaling — Scryfall verbiedt paywall, Wizards Fan Content Policy verbiedt betaalde toegang); vrijwillige steun via Google Play Billing (15% kosten) met extra's zonder kaartgegevens of Magic-materiaal: extra thema's/kleuren, andere app-iconen in NineGrid-stijl, supporter-badge bij Over
   - Phyrexisch lettertype nooit als betaald extra (materiaal van Wizards)
   - Betaalde Sheet-synchronisatie: eerst schriftelijk navragen bij Scryfall
   - Voor echt verkopen: vooraf toestemming Scryfall en eventueel licentie Wizards; inkomsten via eigen bedrijf (btw → boekhouder)
