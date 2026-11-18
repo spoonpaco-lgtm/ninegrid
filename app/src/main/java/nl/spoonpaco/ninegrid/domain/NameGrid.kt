@@ -10,6 +10,8 @@ package nl.spoonpaco.ninegrid.domain
  * rijen, de kolommen en de kaartgrootte, en ligt het raster ook vast waar niets gelezen is.
  */
 object NameGrid {
+    /** Zo goed moet een regel op een naam lijken om als anker te tellen. */
+    const val ANCHOR_MIN = 0.85
     /** Minstens zoveel namen nodig, anders het oude raster. */
     const val MIN_ANCHORS = 3
     /** Rij- en kolomafstand ten opzichte van elkaar (kaart 88 x 63 mm). */
@@ -27,7 +29,9 @@ object NameGrid {
         if (names.isEmpty()) return emptyList()
         return lines.mapNotNull { l ->
             if (l.text.count { it.isLetter() } < 4 || l.text.length > 40) return@mapNotNull null
-            NameMatch.best(l.text, names)?.let { Anchor(it, l.left, l.top) }
+            // Strenger dan voor het herkennen zelf: een anker moet bijna letterlijk een naam zijn, anders kan een
+            // kort stukje regeltekst ("graveyard", "Draw a card") op een naam lijken en het raster verschuiven.
+            NameMatch.best(l.text, names)?.takeIf { NameMatch.score(l.text, it) >= ANCHOR_MIN }?.let { Anchor(it, l.left, l.top) }
         }
     }
 
@@ -47,7 +51,8 @@ object NameGrid {
      * of maten die niet bij een blad van 3 x 3 kaarten passen.
      */
     fun frame(lines: List<OcrLine>, setNames: Collection<String>, width: Int, height: Int): Area? {
-        val anchors = anchors(lines, setNames).distinctBy { it.name }
+        // Een naam kan ook in regeltekst staan ("Sacrifice Compulsion: Draw a card"); de naamregel is dan de bovenste.
+        val anchors = anchors(lines, setNames).groupBy { it.name }.map { (_, a) -> a.minByOrNull { it.top }!! }
         if (anchors.size < MIN_ANCHORS) return null
         val rows = cluster(anchors.map { it.top }, height * 0.05f)
         val cols = cluster(anchors.map { it.left }, width * 0.05f)
@@ -68,14 +73,25 @@ object NameGrid {
         val rowIdx = rows.map { Math.round((it - rows.first()) / py) }
         val colIdx = cols.map { Math.round((it - cols.first()) / px) }
         if (rowIdx.last() > 2 || colIdx.last() > 2) return null
-        // Welke rij is de eerste groep? Eerst de plek waarbij de meeste tekst binnen het raster valt; dan een raster
-        // dat binnen de foto blijft; dan het raster dat het dichtst bij het midden van de foto ligt (je richt op het blad).
+        // Welke rij en kolom is de eerste groep? Alleen rasters binnen de foto (als dat kan). Daarna het raster waar de
+        // meeste tekst in valt, maar een paar losse regels naast het blad (een logo, de rand van de map) mogen niet
+        // beslissen: binnen 10% van het maximum wint het raster dat het dichtst bij het midden van de foto ligt.
         fun inside(a: Area) = lines.count { a.contains(it.centerX, it.centerY) }
-        fun outside(a: Area) = (a.left < -width * 0.03f || a.top < -height * 0.03f || a.right > width * 1.03f || a.bottom > height * 1.03f)
+        fun outside(a: Area) = a.left < -width * 0.03f || a.top < -height * 0.03f || a.right > width * 1.03f || a.bottom > height * 1.03f
         fun offCentre(a: Area) = Math.abs((a.left + a.right) / 2f - width / 2f) + Math.abs((a.top + a.bottom) / 2f - height / 2f)
         val tops = (0..(2 - rowIdx.last())).map { k -> rows.first() - k * py - NAME_TOP * py }
         val lefts = (0..(2 - colIdx.last())).map { k -> cols.first() - k * px - NAME_LEFT * px }
-        val options = tops.flatMap { t -> lefts.map { l -> Area(l, t, l + 3 * px, t + 3 * py) } }
-        return options.sortedWith(compareByDescending<Area> { inside(it) }.thenBy { outside(it) }.thenBy { offCentre(it) }).firstOrNull()
+        val all = tops.flatMap { t -> lefts.map { l -> Area(l, t, l + 3 * px, t + 3 * py) } }
+        val options = all.filterNot(::outside).ifEmpty { all }
+        val most = options.maxOf { inside(it) }
+        val chosen = options.filter { inside(it) >= most * 0.9f }.minByOrNull(::offCentre) ?: return null
+        // Controle: elke naam hoort bovenaan zijn vak te staan. Klopt dat voor minder dan 3 op de 4, dan liever het oude raster.
+        val cellW = chosen.width / 3f; val cellH = chosen.height / 3f
+        val fitting = anchors.count { a ->
+            val inCell = (a.top - chosen.top) - Math.floor(((a.top - chosen.top) / cellH).toDouble()).toFloat() * cellH
+            val inCellX = (a.left - chosen.left) - Math.floor(((a.left - chosen.left) / cellW).toDouble()).toFloat() * cellW
+            inCell < cellH * 0.3f && inCellX < cellW * 0.4f
+        }
+        return chosen.takeIf { fitting * 4 >= anchors.size * 3 }
     }
 }

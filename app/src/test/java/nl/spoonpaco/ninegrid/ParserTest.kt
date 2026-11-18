@@ -1287,4 +1287,19 @@ class ParserTest {
         // Te weinig namen: geen raster op namen.
         assertNull(nl.spoonpaco.ninegrid.domain.NameGrid.frame(sheetLines(mapOf(1 to "Silent Dart", 2 to "Wee Dragonauts")), set, 1080, 1440))
     }
+
+    @Test
+    fun nameGridIgnoresRulesTextAndStrayLines() {
+        val set = listOf("Wizard's Lightning", "Goblin Barrage", "Wild Onslaught", "Oath of Teferi", "Raff Capashen, Ship's Mage", "Compulsion", "Intruder Alarm")
+        // DOM: kolom 3 leeg, links naast het blad een paar losse regels (rand van de map). Het blad ligt midden in de foto.
+        val dom = sheetLines(mapOf(1 to "Wizard's Lightning", 2 to "Goblin Barrage", 4 to "Wild Onslaught", 7 to "Oath of Teferi", 8 to "Raff Capashen, Ship's Mage"), left = 240f, top = 170f, px = 200f, py = 280f) +
+            listOf(OcrLine("EOo", 120f, 300f), OcrLine("MAGIC", 110f, 700f))
+        val f = nl.spoonpaco.ninegrid.domain.NameGrid.frame(dom, set, 1080, 1440)!!
+        assertEquals(240f, f.left, 3f)
+        // WOT: de naam Compulsion staat ook in de regeltekst van dezelfde kaart; de bovenste telt.
+        val wot = sheetLines(mapOf(3 to "Intruder Alarm", 4 to "Wild Onslaught", 5 to "Compulsion", 6 to "Goblin Barrage"), left = 160f, top = 160f, px = 420f, py = 585f) +
+            OcrLine("Sacrifice Compulsion: Draw a card", 160f + 420f + 200f, 160f + 585f + 450f, 160f + 420f + 40f, 160f + 585f + 440f)
+        val g = nl.spoonpaco.ninegrid.domain.NameGrid.frame(wot, set, 1500, 2000)!!
+        assertEquals(160f, g.top, 5f); assertEquals(160f, g.left, 5f)
+    }
 }
