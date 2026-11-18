@@ -82,7 +82,12 @@ internal suspend fun runTestset(ctx: Context, tree: Uri, vm: AppViewModel, progr
                         if (!sure && v.ok) checkRight++
                         if (p == null) notFound++
                     }
-                    if (!v.ok) body.appendLine("vak $slot: FOUT · verwacht ${TestsetScore.describe(e)} · kreeg ${if (p == null) "niets" else "${p.name} (${p.setCode.uppercase()} ${p.collectorNumber})"} · ${when { item == null -> "geen vak"; item.confident && item.status == ItemStatus.FOUND -> "groen (zeker)"; item.status == ItemStatus.FOUND -> "oranje"; else -> "niet gevonden" }} + (item?.query?.let { q -> " · las: naam=${q.name ?: "-"} set=${q.setCode ?: "-"} nr=${q.collectorNumber ?: "-"}" + (if (q.altNames.isNotEmpty()) " ook=${q.altNames.take(2).joinToString("/")}" else "") } ?: ""))
+                    if (!v.ok) {
+                        val status = when { item == null -> "geen vak"; item.confident && item.status == ItemStatus.FOUND -> "groen (zeker)"; item.status == ItemStatus.FOUND -> "oranje"; else -> "niet gevonden" }
+                        val got = if (p == null) "niets" else "${p.name} (${p.setCode.uppercase()} ${p.collectorNumber})"
+                        val read = item?.query?.let { q -> " · las: naam=${q.name ?: "-"} set=${q.setCode ?: "-"} nr=${q.collectorNumber ?: "-"}" + (if (q.altNames.isNotEmpty()) " ook=${q.altNames.take(2).joinToString("/")}" else "") } ?: ""
+                        body.appendLine("vak $slot: FOUT · verwacht ${TestsetScore.describe(e)} · kreeg $got · $status$read")
+                    }
                 }
                 if (camera) { body.appendLine("met kader.txt: $good van ${expected.size} vakken goed"); continue }
                 body.appendLine("$good van ${expected.size} vakken goed")
