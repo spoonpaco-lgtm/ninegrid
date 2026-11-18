@@ -157,13 +157,13 @@ Mick 18 nov: "bouw alle voorstellen in een branch". Basis: eerste testset-meting
 
 **Top movers:**
 
-Op het Overzicht, onder Winner of the Week, een blok "Top movers": de 5 meest gestegen en gedaalde kaarten.
+Op het Overzicht, op de plek van Winner of the Week, één samengevoegd blok "Top movers" (Mick 18 nov: samenvoegen). Bovenaan de grote kaart met plaatje, met duidelijk erboven wat het is: **Winner of the Week** bij Stijgers, **Loser of the Week** bij Dalers (bij Dag: Winner/Loser of the Day). Daaronder de schakelaars en de lijst met de nummers 2 t/m 5 (de grote kaart is nummer 1, niet dubbel). De widget Winner of the Week blijft zoals hij is.
 - **Alleen de eigen collectie** (Mick): collectie en decks samen, proxies niet; elke print één keer, foil apart. Niet de hele markt (Scryfall heeft geen prijshistorie; dagelijks alle ~100.000 prijzen bewaren is te zwaar) en niet de verlanglijst.
 - **Schakelaars:** Dag | Week (standaard Week: dagbewegingen zijn vaak ruis van een paar verkopen) en Stijgers | Dalers.
 - **Rekenen:** Dag = tegen gisteren, Week = tegen 7 dagen geleden (prijshistorie in `price_history`, elke nacht gevuld). Kaarten zonder prijs van toen tellen niet. **Rangschikken op valuta (Mick):** verandering in € × aantal dat je hebt; het percentage staat er alleen bij.
-- **Per regel:** plaatje, naam, set, ★ bij foil, oude → nieuwe prijs, verandering in € en %, aantal. Tik = kaartscherm. 5 regels, "Meer" voor de top 20.
+- **Per regel:** plaatje, naam, set, ★ bij foil, oude → nieuwe prijs, verandering in € en %, aantal. Tik = kaartscherm. Grote kaart + 4 regels, "Meer" voor de top 20.
 - **Privacymodus:** bedragen verborgen → alleen percentages en pijltjes (volgt "wat verbergen").
-- Winner of the Week is dan nummer 1 van de weekstijgers: nakijken of die hetzelfde rekent (€ × aantal), zodat ze niet verschillen.
+- Winner of the Week = nummer 1 van de weekstijgers: nakijken of de huidige berekening (`computeWinner`) hetzelfde rekent (€ × aantal), zodat blok en widget niet verschillen. Loser of the Week is nieuw (nummer 1 van de dalers).
 - Technisch: rekenwerk in `domain/` met unittest; gegevens uit `price_history` en de exemplaren; handleiding, Wat is nieuw, FEATURES.
 
 ### 2. Kleine verbeteringen (nog geen versie)
