@@ -134,14 +134,16 @@ Gebouwd (Mick 17 nov): Wat verbergen, grafiek in procenten, aantallen verbergen,
 - Bewust niet (Mick, 17 nov): privacymodus automatisch weer aan (bij start of na een paar minuten), en schermafbeeldingen blokkeren (FLAG_SECURE).
 - Let op: bij "alleen kaartprijzen" zijn kaartprijzen terug te rekenen uit het totaal van een set of deck met weinig kaarten.
 
-### 1d. Privacystijlen erbij (ontwerp klaar, wacht op startsein; Mick 17 nov: "bouw wanneer ik het zeg")
+### 1d. Privacystijlen erbij (ontwerp klaar, wacht op startsein; Mick 17-18 nov: "bouw wanneer ik het zeg")
 
-Gekozen en getekend in schetsen (alle zonder tekst of stippen in het vlak; bij Magic-effecten uit vallen ze terug op rustige stippen):
+Vijf nieuwe stijlen, gekozen en getekend in schetsen (zonder tekst of stippen in het vlak; bij Magic-effecten uit vallen ze terug op rustige stippen):
 - **Toxic**: organische bijna zwarte groene ooze in de lijn van Compleated (`drawOil`): lange veeg over de breedte van het bedrag met zachte golvende randen, dunne helder groene gloed, lange glanslijn, groene oliefilm die meebeweegt, druppels die zonder rand uit de veeg groeien (smalle hals, ronde bol; af en toe valt er een af), lichte gaatjes die opzwellen en knappen met ring en kleine druppels, spatdruppeltjes eromheen. Voorbeeld: Micks foto's van "toxic ooze" (donkere inkt met groene rand en heldere gaatjes).
-- **Lightning Bolt**: een kleine, echte vertakte bliksem in blauw met lichte kern (geen icoon, geen achtergrond), flitst twee keer kort achter elkaar elke paar seconden.
+- **Lightning Bolt**: blauwe elektrische stroom van links naar rechts (gekarteld spoor met lichte kern dat over het vlak schiet, daarna flitst de hele boog twee keer kort na met kleine takjes en vonkjes rechts). Geen icoon, geen achtergrond.
 - **Fog**: losse zachte mistwolken die langs drijven, geen achtergrond.
-- **Pixelized** (was Phasing): raster van kleine vierkante pixels die willekeurig in en uit flikkeren; geen bolletjes, geen leesbaar bedrag.
-- **Kleiner zegel**: compacte variant van Zegel voor kleine prijzen in lijsten (nog te tekenen).
+- **Pixelized** (was Phasing): raster van kleine vierkante pixels dat willekeurig in en uit flikkert en naar de randen toe vervaagt (zodat het beter blendt); geen bolletjes, geen leesbaar bedrag.
+- **Counterspell**: blauwe stempel "COUNTERED" in de stijl van de Legaal-stempel bij EDH-decks (`Stamp` in `ui/components/Effects.kt`: schuin −8°, dubbele afgeronde rand, vette hoofdletters met letterafstand), maar met een dichte vulling zodat het bedrag er niet doorheen schijnt. Valt met een stempelbeweging neer (groot naar klein, korte terugveer) met een blauwe rimpelring; lichte ruwe inktrand.
+Ook gevraagd: een **kleiner zegel** (compacte variant van Zegel voor kleine prijzen in lijsten; nog te tekenen).
+Voorstellen die Mick niet koos (geschetst, blijven op de plank): Infect (−1/−1-tellers), Morph (omgedraaide kaart met 2/2), Mana-pips (manasymbolen in gildekleur).
 Technisch: nieuwe waarden bij `PrivacyStyle` in `ui/components/Privacy.kt` (naast compleated, seal, shadow, dots), elk een eigen draw-functie in `privacyMask()`, en de keuze in Instellingen → Privacy (voorbeeldregel per stijl, zoals nu). Animatie via `rememberInfiniteTransition`; alles houdt de breedte van het bedrag.
 
 ### 2. Kleine verbeteringen (nog geen versie)
