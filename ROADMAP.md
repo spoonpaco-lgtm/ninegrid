@@ -76,14 +76,15 @@ Dit is "de lijst": wat Mick wil dat NineGrid nog krijgt. Een nieuw gesprek begin
 | 0.9.9.2 | Vivien | Scannen van één kaart: fotootje met gekleurde rand onderin; kader past tussen de gemeten balken; Controleer-knop niet meer afgekapt |
 | 0.9.10 | Dovin | 8 print kiezen (printlijst, print van een exemplaar wijzigen en splitsen, + Exemplaar toevoegen, verlanglijst), 40 melding bij ban of reprint, 4e past niet in het deck oranje |
 | 0.9.10.1 | Dovin | Menu opgeruimd: Meer in blokken, Back-up en export eigen scherm, Over op één plek, Lijst plakken in Importeren, Wijzigingslog heet Laatste actie ongedaan maken, Instellingen in 8 andere groepen |
+| 0.9.11 | Tezzeret | Exporteren (Moxfield, Archidekt, Cardmarket), deck via QR, crashrapport, privacymodus met meer controle, 5 nieuwe privacystijlen + Zegel klein, 9 app-iconen, widgets, testset op de telefoon |
 
 ## Nog te doen
 
 Volgorde: eerst wat Mick bij de telefoontest nog open heeft, dan de volgende versie, dan kleine verbeteringen, dan fase 2 en ideeën. Alles wat gebouwd is staat in de tabel hierboven en in RELEASE_NOTES.md.
 
-### 1. 0.9.11 Tezzeret: gebouwd op branch `tezzeret-0.9.11`, wacht op test en "ja, release"
+### 1. 0.9.11 Tezzeret: uitgebracht 18 nov (Micks "ja, release"), nog te testen op de telefoon
 
-Stand 18 nov: alles hieronder is gebouwd; laatste groene build https://github.com/spoonpaco-lgtm/ninegrid/actions/runs/44241661769 (commit `abb9f2c`). Niet vrijgegeven: alleen testbuilds. Release pas na Micks expliciete "ja, release" (merge naar `main`, daar wordt `versionNameValue` 0.9.11 nieuw). Volledige lijst in RELEASE_NOTES.md.
+Uitgebracht 18 nov na Micks "ja, release", zonder eerdere telefoontest; de punten hieronder zijn dus nog niet bevestigd. Volledige lijst in RELEASE_NOTES.md.
 
 **Gebouwd in 0.9.11**
 - Exporteren (3 sites, formaten opgezocht): deck → Moxfield, Archidekt, Cardmarket (kopiëren + site openen); collectie als Moxfield-CSV; verlanglijst als wants-lijst voor Cardmarket (max. 150 regels). Andere sites (Arena, Deckbox, ManaBox, TCGplayer) bewust nog niet.
