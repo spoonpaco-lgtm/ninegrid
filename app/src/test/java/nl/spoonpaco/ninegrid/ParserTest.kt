@@ -1118,6 +1118,16 @@ class ParserTest {
     }
 
     @org.junit.Test
+    fun privacyStylesAreConsistent() {
+        val all = nl.spoonpaco.ninegrid.ui.components.PrivacyStyle.all
+        org.junit.Assert.assertEquals(all.size, all.toSet().size)
+        // De opgeslagen sleutel van Completed blijft "compleated", anders raken bestaande instellingen kwijt.
+        org.junit.Assert.assertTrue(all.contains("compleated"))
+        org.junit.Assert.assertTrue(all.containsAll(nl.spoonpaco.ninegrid.ui.components.PrivacyStyle.timeline))
+        org.junit.Assert.assertEquals(10, all.size)
+    }
+
+    @org.junit.Test
     fun privacyRules() {
         fun P(hidden: Boolean = false, scope: String = "all", above: Double = 0.0, counts: Boolean = false) =
             nl.spoonpaco.ninegrid.ui.components.PrivacyState(hidden = hidden, scope = scope, above = above, counts = counts)

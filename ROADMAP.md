@@ -134,7 +134,7 @@ Gebouwd (Mick 17 nov): Wat verbergen, grafiek in procenten, aantallen verbergen,
 - Bewust niet (Mick, 17 nov): privacymodus automatisch weer aan (bij start of na een paar minuten), en schermafbeeldingen blokkeren (FLAG_SECURE).
 - Let op: bij "alleen kaartprijzen" zijn kaartprijzen terug te rekenen uit het totaal van een set of deck met weinig kaarten.
 
-### 1d. Privacystijlen en extra app-iconen erbij (ontwerp klaar, wacht op startsein; Mick 17-18 nov: "bouw wanneer ik het zeg")
+### 1d. Privacystijlen en extra app-iconen erbij (gebouwd in 0.9.11 op 18 nov, wacht op test en "ja, release")
 
 **Namen (Mick, 18 nov):** Compleated heet voortaan **Completed** (alleen de weergegeven naam in Instellingen, handleiding en Wat is nieuw; nog te bouwen), Lightning Bolt wordt **Lightning**, Counterspell wordt **Countered**.
 
@@ -154,9 +154,9 @@ Technisch: nieuwe waarden bij `PrivacyStyle` in `ui/components/Privacy.kt` (naas
 - Set 3 Licht en donker: Perkament (lichte achtergrond #EFE3C8, rand #7A5A2B), Inkt (wit met zwart), Neon (cyaan rand #19E3FF, paarse tegels, roze 9).
 Technisch: per icoon een `activity-alias` in het manifest met eigen adaptief icoon (voorgrond-png plus achtergrondkleur; monochroom blijft het bestaande thema-icoon), keuzerij in Instellingen met `PackageManager.setComponentEnabledSetting` (DONT_KILL_APP). Let op: het icoon op het startscherm kan bij wisselen even verspringen.
 
-### 1e. Widgets voor het startscherm (voorstellen, wacht op startsein; Mick 18 nov)
+### 1e. Widgets voor het startscherm (gebouwd in 0.9.11 op 18 nov, wacht op test en "ja, release")
 
-Zes voorstellen, in volgorde van wat ik zou bouwen. Mick zag de schetsen van 1 en 3.
+Zes voorstellen; Mick zag de schetsen van 1 en 3 en zei "build alles": alle zes zijn gebouwd (zeven widgets: scan breed en klein apart). Technisch: `data/widget/` (Widgets.kt providers, WidgetArt.kt tekenwerk met Canvas, WidgetData.kt, AlertLog.kt voor de laatste meldingen); geen Glance, gewone `AppWidgetProvider` met een getekend plaatje. Bijwerken na de prijsupdate (`PriceWorker`) en bij het wisselen van de privacymodus. Nog op de telefoon te zien: of de plaatjes goed schalen, en of het startpictogram na de update op het startscherm blijft (het zit nu in een activity-alias).
 1. **Waarde-widget (2×1)**: totale collectiewaarde, verandering sinds gisteren, minilijntje van 30 dagen. Basis.
 2. **Winner of the Week (2×2)**: kaartplaatje, naam en winst van de week; tik opent het kaartscherm.
 3. **Scan-snelknop (1×1 of 2×1)**: één tik naar de scanner, bladscan of één kaart tegelijk.

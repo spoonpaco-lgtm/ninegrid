@@ -202,9 +202,18 @@ object Guide {
                 "Even kijken: houd het oog ingedrukt en bevestig; 15 seconden zie je de bedragen.",
                 "Zolang hij aan staat vragen back-up en CSV-export (die bevatten prijzen) ook om je vingerafdruk, en meldingen tonen geen bedragen.",
                 "Onder Instellingen → Privacy kies je ook wat verborgen wordt (alles, alleen totalen of alleen kaartprijzen), of de grafiek in procenten blijft, of aantallen ook verdwijnen, of meldingen altijd zonder bedragen zijn en vanaf welk bedrag kaartprijzen verborgen worden. Let op: bij alleen kaartprijzen verbergen is een prijs terug te rekenen uit het totaal van een set of deck met weinig kaarten.",
-                "Kies de stijl onder Instellingen → Privacy: Compleated (standaard), Zegel, Schaduw of Stippen (rustig). De stijl wijzigen vraagt ook om je vingerafdruk.",
+                "Kies de stijl onder Instellingen → Privacy: Completed (standaard), Zegel, Zegel klein, Schaduw, Toxic, Lightning, Fog, Pixelized, Countered of Stippen (rustig). Toxic, Lightning, Fog, Pixelized en Countered bewegen; staan de Magic-effecten uit, dan zie je rustige stippen. De stijl wijzigen vraagt ook om je vingerafdruk.",
             )),
             Note("Heeft je telefoon geen schermvergrendeling, dan kan de app niets vragen: dan werkt het oog zonder bevestiging."),
+        )),
+        Chapter("widgets", "Widgets en app-icoon", "Widgets op je startscherm en een ander icoon voor NineGrid.", listOf(
+            P("Houd een lege plek op je startscherm ingedrukt, kies Widgets en zoek NineGrid. Er zijn zeven: Waarde (collectiewaarde met het verschil met gisteren en een lijntje van 30 dagen), Winner of the Week, Kaart van de dag, Meldingen (de laatste vier), Verlanglijst (de drie kaarten het dichtst bij je alarmprijs) en twee scanknoppen."),
+            Steps(listOf(
+                "Scan (breed) heeft twee knoppen: Blad voor een blad van 9 kaarten en Kaart voor één kaart tegelijk. Scan (klein) opent de scanner zoals hij stond.",
+                "Staat de privacymodus aan, dan vervangen donkerblauwe tegeltjes de bedragen, en het lijntje blijft alleen als vorm. Meldingen zonder bedragen telt ook voor het meldingen-widget.",
+                "De widgets werken bij na de nachtelijke prijsupdate en zodra je de privacymodus wisselt. Ze tonen dus geen live prijzen.",
+                "Ander icoon: Instellingen → Weergave → App-icoon. Kies uit negen extra's (Zilver, Koper, Zwart-goud, Smaragd, Robijn, Amethist, Perkament, Inkt en Neon). Je telefoon heeft soms een paar seconden nodig om het te tonen.",
+            )),
         )),
         Chapter("decks", "Decks", "Decks maken, vullen vanuit je collectie en controleren.", listOf(
             H("Een nieuw deck"),
@@ -564,9 +573,18 @@ object Guide {
                 "A quick look: hold the eye and confirm; you see the amounts for 15 seconds.",
                 "While it is on, backup and CSV export (which contain prices) also ask for your fingerprint, and notifications show no amounts.",
                 "Under Settings → Privacy you also choose what is hidden (everything, only totals or only card prices), whether the chart shows percentages, whether counts disappear too, whether notifications always omit amounts and above which amount card prices are hidden. Note: with only card prices hidden, a price can be worked out from the total of a set or deck with few cards.",
-                "Pick the style under Settings → Privacy: Compleated (default), Seal, Shadow or Dots (calm). Changing the style also asks for your fingerprint.",
+                "Pick the style under Settings → Privacy: Completed (default), Seal, Small seal, Shadow, Toxic, Lightning, Fog, Pixelized, Countered or Dots (calm). Toxic, Lightning, Fog, Pixelized and Countered move; with Magic effects off you see calm dots. Changing the style also asks for your fingerprint.",
             )),
             Note("If your phone has no screen lock, the app cannot ask anything: the eye then works without confirmation."),
+        )),
+        Chapter("widgets", "Widgets and app icon", "Home screen widgets and another icon for NineGrid.", listOf(
+            P("Long-press an empty spot on your home screen, choose Widgets and look for NineGrid. There are seven: Value (collection value with the change since yesterday and a 30-day line), Winner of the Week, Card of the day, Alerts (the latest four), Wishlist (the three cards closest to your alarm price) and two scan buttons."),
+            Steps(listOf(
+                "Scan (wide) has two buttons: Sheet for a sheet of 9 cards and Card for one card at a time. Scan (small) opens the scanner as you left it.",
+                "With privacy mode on, dark blue tiles replace the amounts, and the line stays only as a shape. Notifications without amounts also applies to the alerts widget.",
+                "The widgets update after the nightly price update and as soon as you switch privacy mode. They do not show live prices.",
+                "Another icon: Settings → Display → App icon. Choose from nine extras (Silver, Copper, Black gold, Emerald, Ruby, Amethyst, Parchment, Ink and Neon). Your phone may need a few seconds to show it.",
+            )),
         )),
         Chapter("decks", "Decks", "Making decks, filling them from your collection and checking them.", listOf(
             H("A new deck"),

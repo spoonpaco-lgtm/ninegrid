@@ -17,6 +17,7 @@ Current version: **0.9.11 – Tezzeret**. Every version is named after a planesw
 - **Track boosters.** What you paid versus what came out, also without bulk, per box and per set.
 - **Privacy mode with your fingerprint.** Amounts hidden from whoever picks up your phone, in a style of your choice, and only visible again with your fingerprint.
 - **Privacy mode: more control.** Choose what is hidden (everything, totals or card prices), chart in percentages, hide counts, notifications without amounts, and hide only expensive cards.
+- **More privacy styles, extra app icons and widgets.** Toxic, Lightning, Fog, Pixelized, Countered and Small seal; nine extra app icons in three sets; widgets for value, Winner of the Week, card of the day, alerts, wishlist and scanning.
 - **AI with your own key.** Choose from eight services; every AI result is checked at Scryfall before it reaches your collection.
 - **Free, no limits, no account.** No caps on decks or exports, no subscription, no tracking. Your collection lives on your own phone.
 
@@ -87,7 +88,7 @@ Current version: **0.9.11 – Tezzeret**. Every version is named after a planesw
 - **Change log with undo**: every change, also a whole import or a whole deck, can be undone.
 - **Backup** by hand or weekly to a folder of your choice; restore on a new phone, everything or separate parts, with a summary of what is inside; CSV export.
 - **Update from the app**: daily check, background download (wifi by default), one tap to install.
-- **Privacy mode**: all amounts hidden except in the trade match; turning off, peeking, backup and export only with your fingerprint; styles compleated, seal, shadow and dots.
+- **Privacy mode**: all amounts hidden except in the trade match; turning off, peeking, backup and export only with your fingerprint; styles Completed, Seal, Small seal, Shadow, Toxic, Lightning, Fog, Pixelized, Countered and Dots.
 - Settings in eight groups; date and time format of your choice; day and night (sun and moon); **guild colours**; Magic effects (foil shine when tilting, exile, stamps) can be turned off; English and Dutch. Back-up and export has its own screen on More.
 - The backup is complete: cards, decks and deck rules, history, wishlist and price alerts, boosters, friends, change log and settings (not: AI key, offline database, images).
 - **Guide** in the app with search, a ? on every screen, and **What's new** after an update.

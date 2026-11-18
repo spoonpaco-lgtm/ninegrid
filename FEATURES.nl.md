@@ -17,6 +17,7 @@ Huidige versie: **0.9.11 – Tezzeret**. Elke versie heeft de naam van een plane
 - **Boosters bijhouden.** Wat je betaalde tegenover wat eruit kwam, ook zonder bulk, per box en per set.
 - **Privacymodus met je vingerafdruk.** Bedragen verborgen voor wie je telefoon pakt, in een eigen stijl, en alleen met je vingerafdruk weer zichtbaar.
 - **Privacymodus: meer controle.** Kies wat verborgen wordt (alles, totalen of kaartprijzen), grafiek in procenten, aantallen verbergen, meldingen zonder bedragen en alleen dure kaarten verbergen.
+- **Meer privacystijlen, extra app-iconen en widgets.** Toxic, Lightning, Fog, Pixelized, Countered en Zegel klein; negen extra app-iconen in drie sets; widgets voor waarde, Winner of the Week, kaart van de dag, meldingen, verlanglijst en scannen.
 - **AI met je eigen sleutel.** Kies uit acht diensten; elke uitkomst van de AI wordt bij Scryfall gecontroleerd voordat hij in je collectie komt.
 - **Gratis, zonder grenzen, zonder account.** Geen maximum aan decks of exports, geen abonnement, geen tracking. Je collectie staat op je eigen telefoon.
 
@@ -87,7 +88,7 @@ Huidige versie: **0.9.11 – Tezzeret**. Elke versie heeft de naam van een plane
 - **Wijzigingslog met ongedaan maken**: elke wijziging, ook een hele import of een heel deck, kun je terugdraaien.
 - **Back-up** met de hand of elke week naar een map naar keuze; terugzetten op een nieuwe telefoon, alles of losse delen, met een samenvatting van wat erin zit; export als CSV.
 - **Bijwerken vanuit de app**: dagelijks kijken, op de achtergrond downloaden (standaard via wifi), één tik om te installeren.
-- **Privacymodus**: alle bedragen verborgen behalve in de ruilmatch; uitzetten, even kijken, back-up en export alleen met vingerafdruk; stijlen compleated, zegel, schaduw en stippen.
+- **Privacymodus**: alle bedragen verborgen behalve in de ruilmatch; uitzetten, even kijken, back-up en export alleen met vingerafdruk; stijlen Completed, Zegel, Zegel klein, Schaduw, Toxic, Lightning, Fog, Pixelized, Countered en Stippen.
 - Instellingen in acht groepen; datum- en tijdformaat naar keuze; dag en nacht (zon en maan); **gildekleuren**; Magic-effecten (foil-glans bij kantelen, verbannen, stempels) uit te zetten; Nederlands en Engels. Back-up en export heeft een eigen scherm op Meer.
 - De back-up is compleet: kaarten, decks en deckregels, historie, verlanglijst en prijsalarmen, boosters, vrienden, wijzigingslog en instellingen (niet: AI-sleutel, offline database, plaatjes).
 - **Handleiding** in de app met zoeken, een ? op elk scherm, en **Wat is nieuw** na een update.

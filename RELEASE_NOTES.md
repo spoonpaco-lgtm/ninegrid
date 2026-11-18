@@ -28,6 +28,19 @@ Privacymodus: meer controle
 - Wat verbergen: alles, alleen totalen of alleen kaartprijzen.
 - Grafiek in procenten, aantallen kaarten ook verbergen, meldingen altijd zonder bedragen, en alleen kaartprijzen boven een zelf gekozen bedrag verbergen.
 
+Privacystijlen erbij
+- Toxic (organische groene ooze met gaten die knappen en druppels), Lightning (blauwe bliksem van links naar rechts), Fog (losse mist), Pixelized (flikkerend pixelraster dat naar de randen vervaagt) en Countered (blauwe stempel die neervalt). Plus Zegel klein voor prijzen in lijsten.
+- Compleated heet nu Completed (alleen de naam; je gekozen stijl blijft staan).
+- Staan de Magic-effecten uit, dan vallen de bewegende stijlen terug op rustige stippen.
+
+Negen extra app-iconen
+- Drie sets: Metalen (Zilver, Koper, Zwart-goud), Edelstenen (Smaragd, Robijn, Amethist) en Licht en donker (Perkament, Inkt, Neon). Instellingen → Weergave → App-icoon.
+- Let op: het startpictogram zit nu in een alias. Na deze update kan het icoon van het startscherm verdwijnen; zet het dan opnieuw neer vanuit je appmenu.
+
+Widgets voor het startscherm
+- Waarde, Winner of the Week, Kaart van de dag, Meldingen, Verlanglijst en twee scanknoppen (breed met Blad en Kaart, klein zoals de scanner stond).
+- Ze werken bij na de nachtelijke prijsupdate en bij het wisselen van de privacymodus. Bij privacymodus vervangen tegeltjes de bedragen.
+
 Grafiek en testset
 - Het venster bij tikken op de grafiek toont de lijnen op volgorde van waarde op die dag.
 - Testset draaien gebruikt nu de hele scanroute, zodat de meting klopt met de app.
