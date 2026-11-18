@@ -134,7 +134,7 @@ Gebouwd (Mick 17 nov): Wat verbergen, grafiek in procenten, aantallen verbergen,
 - Bewust niet (Mick, 17 nov): privacymodus automatisch weer aan (bij start of na een paar minuten), en schermafbeeldingen blokkeren (FLAG_SECURE).
 - Let op: bij "alleen kaartprijzen" zijn kaartprijzen terug te rekenen uit het totaal van een set of deck met weinig kaarten.
 
-### 1d. Privacystijlen erbij (ontwerp klaar, wacht op startsein; Mick 17-18 nov: "bouw wanneer ik het zeg")
+### 1d. Privacystijlen en extra app-iconen erbij (ontwerp klaar, wacht op startsein; Mick 17-18 nov: "bouw wanneer ik het zeg")
 
 Vijf nieuwe stijlen, gekozen en getekend in schetsen (zonder tekst of stippen in het vlak; bij Magic-effecten uit vallen ze terug op rustige stippen):
 - **Toxic**: organische bijna zwarte groene ooze in de lijn van Compleated (`drawOil`): lange veeg over de breedte van het bedrag met zachte golvende randen, dunne helder groene gloed, lange glanslijn, groene oliefilm die meebeweegt, druppels die zonder rand uit de veeg groeien (smalle hals, ronde bol; af en toe valt er een af), lichte gaatjes die opzwellen en knappen met ring en kleine druppels, spatdruppeltjes eromheen. Voorbeeld: Micks foto's van "toxic ooze" (donkere inkt met groene rand en heldere gaatjes).
@@ -145,6 +145,13 @@ Vijf nieuwe stijlen, gekozen en getekend in schetsen (zonder tekst of stippen in
 Ook gevraagd: een **kleiner zegel** (compacte variant van Zegel voor kleine prijzen in lijsten; nog te tekenen).
 Voorstellen die Mick niet koos (geschetst, blijven op de plank): Infect (−1/−1-tellers), Morph (omgedraaide kaart met 2/2), Mana-pips (manasymbolen in gildekleur).
 Technisch: nieuwe waarden bij `PrivacyStyle` in `ui/components/Privacy.kt` (naast compleated, seal, shadow, dots), elk een eigen draw-functie in `privacyMask()`, en de keuze in Instellingen → Privacy (voorbeeldregel per stijl, zoals nu). Animatie via `rememberInfiniteTransition`; alles houdt de breedte van het bedrag.
+
+**Extra app-iconen (drie sets van drie, geschetst 18 nov)**: zelfde raster als het logo (donkere achtergrond, rand, 3×3 tegels met NINEGRID, de 9 in het midden), alleen andere kleuren. Geen Magic-materiaal.
+- Set 1 Metalen: Zilver (rand #C9CED6), Koper (#C27A4A), Zwart-goud (#E0A93B op bijna zwart).
+- Set 2 Edelstenen: Smaragd (#3DB887), Robijn (#D8465A), Amethist (#9A6BD6).
+- Set 3 Licht en donker: Perkament (lichte achtergrond #EFE3C8, rand #7A5A2B), Inkt (wit met zwart), Neon (cyaan rand #19E3FF, paarse tegels, roze 9).
+Technisch: per icoon een `activity-alias` in het manifest met eigen adaptief icoon (voorgrond-png plus achtergrondkleur; monochroom blijft het bestaande thema-icoon), keuzerij in Instellingen met `PackageManager.setComponentEnabledSetting` (DONT_KILL_APP). Let op: het icoon op het startscherm kan bij wisselen even verspringen.
+**Supporter-extra's**: deze iconen en de nieuwe privacystijlen zijn bedoeld als betaalde supporter-extra's (alleen cosmetica; privacymodus zelf, Stippen en één basisstijl blijven gratis). Dat hoort bij de Supporter-variant onder "Later" en vraagt Google Play Billing; tot die er is, staan ze voor testbuilds gewoon open. Kanttekening: vier stijlen lijken op Magic-dingen (Compleated, Counterspell, Lightning Bolt), dus eigen namen of duidelijk eigen tekenwerk voordat ze betaald worden.
 
 ### 2. Kleine verbeteringen (nog geen versie)
 
