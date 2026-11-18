@@ -167,6 +167,11 @@ Alleen wat Mick nog niet heeft bevestigd.
 - Prijsverloop: alleen kaarten in de collectie hebben bewaarde prijzen.
 
 ## Fase 2 (wacht op startsein) → wordt 1.0
+- **Must vóór de release van 1.0: volledige codereview** (Mick, 18 nov). Op een eigen branch, na de release van 0.9.11, niet door een testbuild heen. In drie stappen:
+  1. Spelling en taal: alle teksten in `res/values/strings.xml` en `res/values-nl/strings.xml` (ongeveer 1.200 elk), handleiding (`GuideContent.kt`) en Wat is nieuw (`WhatsNew.kt`), NL en EN. Ongeveer een uur plus testbuild.
+  2. Gerichte bugreview van de zwaarste plekken: `ui/AppViewModel.kt` (ongeveer 2.200 regels), de scanner (`ScanParser.kt`, `ScanScreen.kt`, `EmptySlots`) en `data/Repository.kt`: crashes, dataverlies, foute prijzen.
+  3. De rest van de code (in totaal ongeveer 22.400 regels in 89 bestanden), bestand voor bestand, over twee à drie gesprekken.
+  - Claude kan de app niet draaien: vondsten zijn "mogelijk fout" tot Mick ze op de telefoon bevestigt. Elke reparatie apart en klein, met unittest waar dat kan.
 - Sheet-koppeling (deel 2 punt 2, optie A: nieuwe Sheet via drive.file; Google Cloud-project + privacypagina nodig)
 
 ## Later (idee, geen versie)
