@@ -200,7 +200,16 @@ class ScryfallClient {
 
     private fun isSlow(url: String) = listOf("/cards/search", "/cards/named", "/cards/random", "/cards/collection").any { url.contains(it) }
 
-    private suspend fun call(request: Request): String? = withContext(Dispatchers.IO) {
+    /** Hoe vaak een verzoek mislukte (geen internet, weigering, serverfout). De testset meldt het als dit oploopt. */
+    @Volatile var failures = 0
+        private set
+
+    private suspend fun call(request: Request): String? = try { callOnce(request) } catch (e: Exception) {
+        if (e !is kotlinx.coroutines.CancellationException) failures++
+        throw e
+    }
+
+    private suspend fun callOnce(request: Request): String? = withContext(Dispatchers.IO) {
         val waits = if (patient.get() > 0) listOf(30_000L, 60_000L, 120_000L, 120_000L, 240_000L) else listOf(30_000L)
         for (attempt in 0..waits.size) {
             val slow = isSlow(request.url.encodedPath)

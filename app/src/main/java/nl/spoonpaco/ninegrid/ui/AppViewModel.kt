@@ -290,6 +290,9 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         resolveAll()
     }
 
+    /** De kaartnamen van een set (uit de setlijst op de telefoon), voor het raster op de namen. Leeg zonder set. */
+    suspend fun setNames(set: String?): List<String> = if (set.isNullOrBlank()) emptyList() else repo.setNames(set)
+
     /** Voorstel "Alles uit set X?" op het controlescherm: code en naam van de set, of null. */
     var setSuggestion by mutableStateOf<Pair<String, String>?>(null)
         private set

@@ -28,20 +28,14 @@ object WhatsNew {
     fun items(dutch: Boolean): List<Item> = if (dutch) NL else EN
 
     private val NL = listOf(
-        Item("Scanner: groen is weer te vertrouwen. Een stukje naam (\"Keyrune\", \"Gloom\") is niet meer genoeg voor een kaart; de app kiest de naam die binnen de set het best past, en alleen als die duidelijk beter past dan de rest. Alleen een gelezen nummer is niet meer genoeg voor groen.", "review"),
-        Item("Staat de naam niet bovenaan gelezen, dan zoekt de app in de andere regels van de kaart naar een naam uit de set. Zo'n kaart komt oranje binnen, zodat je hem even nakijkt.", "review"),
-        Item("Geen set ingevuld en geen nummer gelezen? Dan kiest de app niet meer op de gok een print, maar staat de kaart oranje. Bestaan alle kaarten van het blad samen in één set, dan vraagt het controlescherm: die set gebruiken? Pas na jouw tik telt hij.", "review"),
-        Item("Splitkaarten (zoals Discovery // Dispersal) worden gedraaid gelezen. Een foto uit de galerij met een stuk van de buurpagina erop schuift de vakken niet meer op. Jaartallen als 2025W tellen niet meer als kaartnummer.", "add"),
-        Item("Testset draaien (Ontwikkelaar) zet bij elke fout wat de scanner las.", "settings"),
+        Item("Scanner: bij een foto uit de galerij met een ingevulde set legt de app het raster op de gevonden kaartnamen. Staat het blad klein in beeld, of is een rij niet te lezen (splitkaarten op hun kant), dan schuiven de vakken niet meer op en leest een vak niet meer de naam van zijn buurman.", "add"),
+        Item("Testset draaien (Ontwikkelaar) meldt het bovenaan als Scryfall niet bereikbaar was, zodat je een te lage uitslag herkent.", "settings"),
 
     )
 
     private val EN = listOf(
-        Item("Scanner: green can be trusted again. Part of a name (\"Keyrune\", \"Gloom\") is no longer enough for a card; the app picks the name that fits best within the set, and only if it clearly fits better than the others. A number read on its own is no longer enough for green.", "review"),
-        Item("If the name at the top was not read, the app looks for a name from the set in the other lines of the card. Such a card comes in orange, so you take a quick look.", "review"),
-        Item("No set entered and no number read? The app no longer guesses a print; the card shows orange. If all cards on the page exist together in one set, the review screen asks: use that set? It only counts after you tap.", "review"),
-        Item("Split cards (like Discovery // Dispersal) are read sideways. A gallery photo with part of the neighbouring page no longer shifts the slots. Years like 2025W no longer count as a card number.", "add"),
-        Item("Run test set (Developer) shows what the scanner read for every miss.", "settings"),
+        Item("Scanner: for a gallery photo with a set entered, the app lays the grid on the card names it finds. If the page is small in the picture, or a row cannot be read (split cards on their side), the slots no longer shift and a slot no longer reads its neighbour's name.", "add"),
+        Item("Run test set (Developer) says at the top when Scryfall could not be reached, so you recognise a result that is too low.", "settings"),
 
     )
 }

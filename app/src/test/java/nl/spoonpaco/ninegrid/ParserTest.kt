@@ -1254,4 +1254,37 @@ class ParserTest {
         // De naamregel zelf ("Forest") gaat via best(), daar verandert niets.
         assertEquals("Forest", M.best("Forest", set))
     }
+
+    // 0.9.13: raster op de namen. Blad op x 250..850, y 150..990 (kaart 200 x 280), rij 3 zonder tekst (splitkaarten).
+    private fun sheetLines(names: Map<Int, String>, left: Float = 250f, top: Float = 150f, px: Float = 200f, py: Float = 280f): List<OcrLine> =
+        names.flatMap { (slot, name) ->
+            val col = (slot - 1) % 3; val row = (slot - 1) / 3
+            val cl = left + col * px; val ct = top + row * py
+            listOf(
+                OcrLine(name, cl + px * 0.07f + 50f, ct + py * 0.05f + 8f, cl + px * 0.07f, ct + py * 0.05f),
+                OcrLine("Creature — Human Soldier", cl + px * 0.45f, ct + py * 0.58f, cl + px * 0.07f, ct + py * 0.56f),
+                OcrLine("deals 2 damage to any target", cl + px * 0.5f, ct + py * 0.7f, cl + px * 0.08f, ct + py * 0.68f),
+                OcrLine("183/259 U", cl + px * 0.2f, ct + py * 0.95f, cl + px * 0.07f, ct + py * 0.94f),
+            )
+        }
+
+    @Test
+    fun nameGridFromNames() {
+        val set = listOf("Underrealm Lich", "Knight of Autumn", "Wee Dragonauts", "Boros Challenger", "Nightveil Predator", "Silent Dart",
+            "Discovery // Dispersal", "Integrity // Intervention", "Flower // Flourish", "Maximize Altitude", "Forest")
+        val lines = sheetLines(mapOf(1 to "Underrealm Lich", 2 to "Knight of Autumn", 3 to "Wee Dragonauts", 4 to "Boros Challenger", 5 to "Nightveil Predator", 6 to "Silent Dart"))
+        val f = nl.spoonpaco.ninegrid.domain.NameGrid.frame(lines, set, 1080, 1440)!!
+        assertEquals(250f, f.left, 3f); assertEquals(150f, f.top, 3f); assertEquals(850f, f.right, 3f); assertEquals(990f, f.bottom, 3f)
+        // Het hele blad: vak 4 krijgt Boros Challenger, niet vak 1 (vroeger schoof het raster een halve rij).
+        val r = ScanParser.analyze(lines, 1080, 1440, null, set)
+        assertEquals("Boros Challenger", r.slots[3].name)
+        assertEquals("Underrealm Lich", r.slots[0].name)
+        // Rij 1 leeg, namen in rij 2 en 3, blad midden in de foto (y 300..1140): of rij 1 boven of rij 3 onder ontbreekt,
+        // zegt de tekst niet; dan het raster dat het dichtst bij het midden van de foto ligt.
+        val low = sheetLines(mapOf(4 to "Boros Challenger", 5 to "Nightveil Predator", 7 to "Silent Dart", 8 to "Knight of Autumn"), top = 300f)
+        val g = nl.spoonpaco.ninegrid.domain.NameGrid.frame(low, set, 1080, 1440)!!
+        assertEquals(300f, g.top, 3f)
+        // Te weinig namen: geen raster op namen.
+        assertNull(nl.spoonpaco.ninegrid.domain.NameGrid.frame(sheetLines(mapOf(1 to "Silent Dart", 2 to "Wee Dragonauts")), set, 1080, 1440))
+    }
 }

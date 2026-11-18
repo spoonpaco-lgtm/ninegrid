@@ -1,7 +1,7 @@
 package nl.spoonpaco.ninegrid.domain
 
-/** Een stuk herkende tekst met zijn positie op de foto (middelpunt, in pixels). */
-data class OcrLine(val text: String, val centerX: Float, val centerY: Float)
+/** Een stuk herkende tekst met zijn positie op de foto (middelpunt, en linker- en bovenkant, in pixels). */
+data class OcrLine(val text: String, val centerX: Float, val centerY: Float, val left: Float = centerX, val top: Float = centerY)
 
 /** Een rechthoek op de foto, in pixels. */
 data class Area(val left: Float, val top: Float, val right: Float, val bottom: Float) {
@@ -192,7 +192,11 @@ object ScanParser {
      * Leest een foto. Met [crop] telt alleen tekst binnen het richtkader mee, zodat een half zichtbaar
      * volgend blad de vakken niet verschuift.
      */
-    fun analyze(all: List<OcrLine>, width: Int, height: Int, crop: Area? = null): ScanResult {
+    /**
+     * [setNames]: de namen van de opgegeven set (leeg als er geen set is). Bij een foto zonder kader leggen die het
+     * raster op de gevonden namen (zie [NameGrid]); lukt dat niet, dan het raster uit de tekst zoals voorheen.
+     */
+    fun analyze(all: List<OcrLine>, width: Int, height: Int, crop: Area? = null, setNames: Collection<String> = emptyList()): ScanResult {
         val lines = if (crop != null) all.filter { crop.contains(it.centerX, it.centerY) } else mainBlock(all, width, height)
         val area = crop ?: Area(0f, 0f, width.toFloat(), height.toFloat())
         val coverage = if (lines.size < 2) 0f else {
@@ -200,7 +204,8 @@ object ScanParser {
             val h = (lines.maxOf { it.centerY } - lines.minOf { it.centerY }) / area.height
             (w.coerceIn(0f, 1f) * h.coerceIn(0f, 1f))
         }
-        val (slots, frame) = parseWithFrame(lines, width, height, crop)
+        val named = if (crop == null && setNames.isNotEmpty()) NameGrid.frame(lines, setNames, width, height) else null
+        val (slots, frame) = parseWithFrame(lines, width, height, crop, named)
         return ScanResult(slots, coverage, lines.size, frame)
     }
 
@@ -257,8 +262,8 @@ object ScanParser {
 
     fun parse(lines: List<OcrLine>, width: Int, height: Int, crop: Area? = null): List<SlotRead> = parseWithFrame(lines, width, height, crop).first
 
-    private fun parseWithFrame(lines: List<OcrLine>, width: Int, height: Int, crop: Area?): Pair<List<SlotRead>, Area> {
-        val frame = frameOf(lines, width, height, crop)
+    private fun parseWithFrame(lines: List<OcrLine>, width: Int, height: Int, crop: Area?, named: Area? = null): Pair<List<SlotRead>, Area> {
+        val frame = named?.let { Frame(it.left, it.top, it.right, it.bottom) } ?: frameOf(lines, width, height, crop)
         val cellH = (frame.bottom - frame.top) / 3f
         val bySlot = lines.groupBy { slotIn(frame, it.centerX, it.centerY) }
         val slots = (1..9).map { slot ->

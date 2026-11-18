@@ -141,14 +141,14 @@ private suspend fun recognize(image: InputImage): MlText = suspendCancellableCor
 }
 
 /** Leest de foto. Met crop telt alleen tekst binnen het kader. */
-internal suspend fun readImage(bmp: Bitmap, crop: Area?, single: Boolean): ScanResult {
+internal suspend fun readImage(bmp: Bitmap, crop: Area?, single: Boolean, setNames: Collection<String> = emptyList()): ScanResult {
     val text = recognize(InputImage.fromBitmap(bmp, 0))
     val lines = text.textBlocks.flatMap { b -> b.lines }.mapNotNull { l ->
         val box = l.boundingBox ?: return@mapNotNull null
-        OcrLine(l.text, box.exactCenterX(), box.exactCenterY())
+        OcrLine(l.text, box.exactCenterX(), box.exactCenterY(), box.left.toFloat(), box.top.toFloat())
     }
     return if (single) ScanParser.analyzeSingle(lines, bmp.width, bmp.height, crop)
-    else ScanParser.analyze(lines, bmp.width, bmp.height, crop)
+    else ScanParser.analyze(lines, bmp.width, bmp.height, crop, setNames)
 }
 
 private const val CARD_RATIO = 63f / 88f
@@ -500,7 +500,9 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
             runCatching {
                 val t0 = System.currentTimeMillis()
                 val sharp = withContext(Dispatchers.Default) { runCatching { sharpness(bmp, crop) }.getOrDefault(100.0) }
-                val first = readImage(bmp, crop, single)
+                // Een foto uit de galerij met een opgegeven set: het raster op de gevonden namen leggen (NameGrid).
+                val setNames = if (crop == null && !single) vm.setNames(vm.scanSet) else emptyList()
+                val first = readImage(bmp, crop, single, setNames)
                 val (r00, reread) = reread(bmp, first, single, vm.setInfo.keys)
                 // Verzonnen setcodes en talen eruit, en de set van het blad boven een verlezen set.
                 val r0 = tidy(r00, single)

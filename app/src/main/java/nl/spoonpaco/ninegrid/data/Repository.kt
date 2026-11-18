@@ -560,6 +560,13 @@ class Repository(
         return out
     }
 
+    /** De namen in een setlijst (van de telefoon of Scryfall), voor het raster op de namen. */
+    suspend fun setNames(set: String): List<String> {
+        val c = cache ?: return emptyList()
+        val list = runCatching { c.setList(set) }.getOrNull() ?: c.cachedSetList(set) ?: return emptyList()
+        return list.cards.map { it.name }.distinct()
+    }
+
     /** Is dit letterlijk een Engelse kaartnaam? Dan is de kaart Engels, wat de voetregel ook lijkt te zeggen. */
     suspend fun isEnglishName(name: String): Boolean {
         val c = cache ?: return false

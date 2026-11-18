@@ -27,6 +27,7 @@ internal suspend fun runTestset(ctx: Context, tree: Uri, vm: AppViewModel, progr
     // Ook als galerijfoto (zonder kader), alleen het totaal: zo blijft zichtbaar of een galerijfoto met een stuk buurpagina werkt.
     var galleryOk = 0; var galleryTotal = 0; var gallerySureWrong = 0
     val t0 = System.currentTimeMillis()
+    val failsBefore = vm.repo.scryfall.failures
     val prevSet = vm.scanSet
     try {
         for (dir in dirs) {
@@ -50,7 +51,7 @@ internal suspend fun runTestset(ctx: Context, tree: Uri, vm: AppViewModel, progr
                 for (camera in if (kader != null) listOf(false, true) else listOf(false)) {
                 // 1. lezen, zoals ScanScreen.process
                 val slots = try {
-                    val first = readImage(bmp, if (camera) kader else null, false)
+                    val first = readImage(bmp, if (camera) kader else null, false, if (camera) emptyList() else vm.setNames(folderSet))
                     val (r00, _) = reread(bmp, first, false, vm.setInfo.keys)
                     val r0 = tidyReads(vm, r00, false)
                     markEmpty(bmp, r0).slots
@@ -100,6 +101,8 @@ internal suspend fun runTestset(ctx: Context, tree: Uri, vm: AppViewModel, progr
     val secs = (System.currentTimeMillis() - t0) / 1000
     return buildString {
         appendLine("NineGrid testset, volledige scanroute (versie ${nl.spoonpaco.ninegrid.BuildConfig.VERSION_NAME}, ${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL})")
+        val fails = vm.repo.scryfall.failures - failsBefore
+        if (fails > 0) appendLine("LET OP: $fails keer kon Scryfall niet bereikt worden (geen internet of tijdelijk geweigerd). Deze uitslag is dan te laag; draai later opnieuw.")
         appendLine("Totaal: $total vakken, $ok helemaal goed na opzoeken · $secs s")
         appendLine("Groen maar fout (het ergste): $sureWrong · oranje maar goed: $checkRight · niet gevonden: $notFound")
         if (galleryTotal > 0) appendLine("Met kader.txt (alleen bladen met dat bestand): $galleryOk van $galleryTotal goed · groen maar fout: $gallerySureWrong")

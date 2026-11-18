@@ -1,3 +1,12 @@
+NineGrid 0.9.13 – Nissa
+
+Nissa, die de lijnen in het land ziet: het raster van een blad ligt nu op de kaartnamen zelf.
+
+- Raster op de namen (domain/NameGrid.kt): bij een foto zonder kader (galerij) en een ingevulde set zoekt de app eerst de regels die duidelijk een naam uit die set zijn (minstens 3, geen basislanden). Een naam staat altijd linksboven op de kaart, dus hun posities geven rijen, kolommen en kaartgrootte. Ontbreekt een rij of kolom, dan kiest de app de plek waar de meeste tekst binnen het raster valt, dan een raster binnen de foto, dan het raster het dichtst bij het midden. Lukt het niet (te weinig namen, maten die niet bij 3 x 3 passen), dan het raster uit de tekst zoals voorheen.
+- Waarom: in de testset (18 nov) schoof het raster op GRN, DOM en het gemengde blad een halve rij. De onderste rij splitkaarten leverde geen tekst, de app rekte twee rijen gecentreerd uit tot drie, en vakken lazen de naam van het buurvak (vak 1 kreeg Boros Challenger uit vak 4).
+- Camerascans (met kader) blijven zoals ze waren.
+- Testset draaien: bovenaan "LET OP" als Scryfall in die run niet bereikbaar was of weigerde (een run op 18 nov gaf zo 86 in plaats van 110).
+
 NineGrid 0.9.12 – Kasmina
 
 Kasmina, die ziet wat anderen missen: een versie om de scanner betrouwbaarder te maken, gemeten met de testset op Micks telefoon (11 bladen, 144 vakken). Voor: 98 goed, 8 groen maar fout, 33 niet gevonden. Na: 109 goed, 0 groen maar fout, 25 niet gevonden.
