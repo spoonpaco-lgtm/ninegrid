@@ -122,6 +122,18 @@ Uitgebracht 18 nov na Micks "ja, release", zonder eerdere telefoontest; de punte
 - Supporter-/donatielocking (stijlen of iconen alleen voor supporters): nog niet besloten.
 - Testset-regels: alleen foto's van Micks eigen bladen (repo is publiek); nieuwe bladen in een map `NN-set-kaart` met foto en rapport, liefst originelen.
 
+### 1b. 0.9.12 Kasmina: scanner betrouwbaarder (gebouwd op branch `scanner-0.9.12` op 18 nov, wacht op testset en "ja, release")
+
+Mick 18 nov: "bouw alle voorstellen in een branch". Basis: eerste testset-meting op de telefoon (0.9.11, 98 van 144 goed, 8 groen maar fout, 33 niet gevonden; zie `testset/README.md`). Groene build: https://github.com/spoonpaco-lgtm/ninegrid/actions/runs/44250039457. Naam Kasmina gekozen door Claude; Mick mag hem veranderen.
+- Strengere naamvergelijking (`domain/NameMatch.kt`): beste naam binnen de set met marge 0,12, drempel 0,7; groen vraagt 80%; een gelezen nummer telt alleen als die kaart ook de best passende naam is. De 8 paren uit de testset als unittest.
+- Geen set en geen nummer: oranje (`SetCheck.guessedPrint`), geen gok-print meer.
+- Voorstel "Alles uit set X?" (`domain/SheetSet.kt`, `AppViewModel.suggestSheetSet`): alle gevonden kaarten (min. 3) bestaan samen in één set → chip op het controlescherm; telt pas na Micks tik (zo past het bij "een set telt alleen als de gebruiker hem opgeeft"). Oudste set bij meerdere.
+- Splitkaarten: vak zonder naam een kwartslag gedraaid lezen (`rotatedNames` in ScanScreen.kt), eis twee namen.
+- Galerijfoto: kleine tekstgroepjes links/rechts van het blad (buurpagina) tellen niet mee (`ScanParser.mainBlock`, alleen horizontaal: verticaal zou de illustratie-gaten de namen laten wegvallen).
+- Jaartal met W ("2025W", "202W") is geen nummer, ook na opnieuw lezen (`sanitize`).
+- Testset draaien: met camerakader (`kader.txt` per blad, door Claude op de foto's gezet) en daarnaast als galerijfoto.
+- Nog te doen door Mick: testset.zip opnieuw op de telefoon zetten (heeft nu kader.txt), Testset draaien met de testbuild, uitslag delen. Doel: groen maar fout 0, en minder dan 33 niet gevonden.
+
 ### 2. Kleine verbeteringen (nog geen versie)
 
 - Scannen, kaart voor kaart: 39a (set van de vorige kaart als aanname) is door Mick afgewezen, 17 nov: scannen wordt er trager van; een set telt alleen als de gebruiker hem zelf opgeeft. 39c groene kaarten overslaan op het controlescherm (pas bouwen als de herkenning betrouwbaar is; wacht op een test op de telefoon).
