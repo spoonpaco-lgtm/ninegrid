@@ -523,7 +523,7 @@ class Repository(
             val alts = if (c.namesLoaded) q0.altNames.filter { c.isExactName(it) } else emptyList()
             var q = q0.copy(name = fixedName ?: q0.name, altNames = alts)
             val set = q.setCode ?: return@map q
-            val list = runCatching { c.setList(set) }.getOrNull() ?: c.cachedSetList(set) ?: return@map q
+            val list = c.scanList(set) ?: return@map q
             val setNames = list.cards.map { it.name }.distinct()
             // De naam zoals gelezen en zoals verbeterd tegen alle kaartnamen: binnen de set telt de best passende naam,
             // en alleen als hij duidelijk beter past dan de andere namen in de set (anders is het gokken).
@@ -563,7 +563,7 @@ class Repository(
     /** De namen in een setlijst (van de telefoon of Scryfall), voor het raster op de namen. */
     suspend fun setNames(set: String): List<String> {
         val c = cache ?: return emptyList()
-        val list = runCatching { c.setList(set) }.getOrNull() ?: c.cachedSetList(set) ?: return emptyList()
+        val list = c.scanList(set) ?: return emptyList()
         return list.cards.map { it.name }.distinct()
     }
 
@@ -577,7 +577,7 @@ class Repository(
     /** Staat een kaart met deze naam (en dit nummer, als dat bekend is) in de setlijst? Voor de set van een blad. */
     suspend fun fitsSet(set: String, name: String?, number: String?): Boolean {
         val c = cache ?: return false
-        val list = runCatching { c.setList(set) }.getOrNull() ?: c.cachedSetList(set) ?: return false
+        val list = c.scanList(set) ?: return false
         return list.cards.any { card ->
             (name == null || namesLookAlike(name, card.name)) && (number == null || card.number.equals(number, true)) && (name != null || number != null)
         }
@@ -831,6 +831,8 @@ class Repository(
     suspend fun pricesAsOf(day: String) = db.prices().asOf(day).associateBy { it.printId }
 
     suspend fun firstPriceDay() = db.prices().firstDay()
+    suspend fun lastPriceDay() = db.prices().lastDay()
+    suspend fun priceDayBefore(day: String) = db.prices().dayBefore(day)
     suspend fun priceHistoryFor(printId: String) = db.prices().forPrint(printId)
 
     /** De grootste uitschieter van vandaag tegenover de laatst bekende prijs vóór vandaag (of null). */

@@ -1043,27 +1043,49 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     var winnerWeek by mutableStateOf<java.time.LocalDate?>(null)
     private var winnerKey = ""
 
+    /** Top movers van de week: zelfde periode als Winner of the Week (maandag tegen de maandag ervoor), alle kaarten met een beweging. */
+    var moversWeek by mutableStateOf<List<nl.spoonpaco.ninegrid.domain.Mover>>(emptyList())
+        private set
+    /** Top movers van de dag: de laatste prijsdag tegen de prijsdag daarvoor. */
+    var moversDay by mutableStateOf<List<nl.spoonpaco.ninegrid.domain.Mover>>(emptyList())
+        private set
+    /** Welke twee prijsdagen de dag-lijst vergelijkt (van, tot). */
+    var moversDayRange by mutableStateOf<Pair<String, String>?>(null)
+        private set
+
     fun computeWinner() = viewModelScope.launch {
         val cur = settings.value.currency
         // De week begint op de dag uit de instellingen (standaard volgens de telefoon).
         val monday = java.time.LocalDate.now().with(java.time.temporal.TemporalAdjusters.previousOrSame(nl.spoonpaco.ninegrid.domain.Dates.weekStart(settings.value.dateStyle)))
-        val key = monday.toString() + cur + entries.value.size
+        val last = repo.lastPriceDay()
+        val key = monday.toString() + cur + entries.value.size + last
         if (key == winnerKey) return@launch
         winnerKey = key
-        val first = repo.firstPriceDay()
-        if (first == null || first > monday.minusDays(7).toString()) { winner = null; return@launch }
-        val then = repo.pricesAsOf(monday.minusDays(7).toString())
-        val now = repo.pricesAsOf(monday.toString())
-        // Prijzen van maandag als "nu", zodat de winnaar de hele week dezelfde blijft.
-        val list = entries.value.mapNotNull { e ->
+        fun withPrices(now: Map<String, nl.spoonpaco.ninegrid.data.db.PricePoint>) = entries.value.mapNotNull { e ->
             val p = e.print ?: return@mapNotNull null
             val n = now[p.id] ?: return@mapNotNull null
             e.entry to p.copy(eur = n.eur, eurFoil = n.eurFoil, usd = n.usd, usdFoil = n.usdFoil, usdEtched = n.usdEtched)
         }
-        winner = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
-            nl.spoonpaco.ninegrid.domain.PriceMovers.winner(nl.spoonpaco.ninegrid.domain.PriceMovers.movers(list, then, cur))
+        val first = repo.firstPriceDay()
+        // Week: prijzen van maandag als "nu", zodat de winnaar (en de lijst) de hele week dezelfde blijven.
+        if (first == null || first > monday.minusDays(7).toString()) { winner = null; moversWeek = emptyList() }
+        else {
+            val then = repo.pricesAsOf(monday.minusDays(7).toString())
+            val now = repo.pricesAsOf(monday.toString())
+            val list = withPrices(now)
+            moversWeek = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { nl.spoonpaco.ninegrid.domain.PriceMovers.movers(list, then, cur) }
+            winner = nl.spoonpaco.ninegrid.domain.PriceMovers.winner(moversWeek)
+            winnerWeek = monday
         }
-        winnerWeek = monday
+        // Dag: de laatste prijsdag tegen de dag daarvoor.
+        val prev = last?.let { repo.priceDayBefore(it) }
+        if (last == null || prev == null) { moversDay = emptyList(); moversDayRange = null }
+        else {
+            val then = repo.pricesAsOf(prev)
+            val list = withPrices(repo.pricesAsOf(last))
+            moversDay = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { nl.spoonpaco.ninegrid.domain.PriceMovers.movers(list, then, cur) }
+            moversDayRange = prev to last
+        }
     }
     fun setBreakoutAlerts(v: Boolean) = viewModelScope.launch { settingsStore.setBreakoutAlerts(v) }
     fun setBanAlerts(v: Boolean) = viewModelScope.launch { settingsStore.setBanAlerts(v) }

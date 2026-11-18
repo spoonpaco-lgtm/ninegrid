@@ -1302,4 +1302,28 @@ class ParserTest {
         val g = nl.spoonpaco.ninegrid.domain.NameGrid.frame(wot, set, 1500, 2000)!!
         assertEquals(160f, g.top, 5f); assertEquals(160f, g.left, 5f)
     }
+
+    // 0.9.14: Top movers. Op geld (per stuk maal aantal), niet op procenten.
+    @Test
+    fun topMoversByMoney() {
+        val M = nl.spoonpaco.ninegrid.domain.PriceMovers
+        fun pr(id: String) = nl.spoonpaco.ninegrid.data.db.CardPrint(id = id, name = id, setCode = "X", collectorNumber = "1")
+        fun mv(id: String, qty: Int, old: Double, new: Double) = nl.spoonpaco.ninegrid.domain.Mover(pr(id), "nonfoil", qty, old, new)
+        val list = listOf(
+            mv("bulk", 1, 0.10, 0.30),      // +200%, maar +€0,20
+            mv("ragavan", 1, 50.0, 58.0),   // +€8
+            mv("vier", 4, 3.0, 5.0),        // +€2 per stuk, 4 stuks = +€8, +67%
+            mv("zakker", 1, 20.0, 12.0),    // −€8
+            mv("klein", 2, 1.0, 0.5),       // −€1
+            mv("stil", 3, 2.0, 2.0),        // geen beweging
+        )
+        val up = M.top(list, rising = true)
+        // Gelijk in geld (€8): grootste procent eerst.
+        assertEquals(listOf("vier", "ragavan", "bulk"), up.map { it.print.id })
+        assertEquals(listOf("zakker", "klein"), M.top(list, rising = false).map { it.print.id })
+        assertEquals("vier", M.winner(list)?.print?.id)
+        assertEquals("zakker", M.loser(list)?.print?.id)
+        assertEquals(1, M.top(list, rising = true, n = 1).size)
+        assertNull(M.loser(listOf(mv("stil", 1, 2.0, 2.0))))
+    }
 }

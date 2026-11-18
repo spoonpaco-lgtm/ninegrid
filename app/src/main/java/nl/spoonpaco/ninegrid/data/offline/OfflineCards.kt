@@ -163,6 +163,15 @@ class OfflineCards(private val context: Context) {
         return runCatching { open().cards().searchRaw(androidx.sqlite.db.SimpleSQLiteQuery(sql, args.toTypedArray())).map { it.toSfCard() } }.getOrDefault(emptyList())
     }
 
+    /** Alle kaarten van één set (voor de scanner: namen en nummers), zonder internet. Leeg als de database uit staat. */
+    suspend fun setCards(code: String): List<SfCard> {
+        if (!ready()) return emptyList()
+        return runCatching {
+            open().cards().searchRaw(androidx.sqlite.db.SimpleSQLiteQuery("SELECT * FROM cards WHERE setCode = ?", arrayOf(code.lowercase())))
+                .map { it.toSfCard() }
+        }.getOrDefault(emptyList())
+    }
+
     /** Alle prints van een kaart (voor de goedkoopste prijs), zonder internet. */
     suspend fun printsOf(name: String): List<SfCard> {
         if (!ready()) return emptyList()

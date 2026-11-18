@@ -1205,4 +1205,12 @@
     <string name="w_desc_alerts">De laatste meldingen: breakout, prijsalarm, ban en reprint.</string>
     <string name="w_desc_wish">De verlanglijstkaarten die het dichtst bij hun alarmprijs zitten.</string>
     <string name="w_desc_daily">Elke dag een andere kaart uit je collectie.</string>
+    <string name="movers_day">Dag</string>
+    <string name="movers_week">Week</string>
+    <string name="movers_up">Stijgers</string>
+    <string name="movers_down">Dalers</string>
+    <string name="movers_none_up">Niets gestegen in deze periode.</string>
+    <string name="movers_none_down">Niets gedaald in deze periode.</string>
+    <string name="movers_more">Toon top %1$d</string>
+    <string name="movers_less">Minder tonen</string>
 </resources>

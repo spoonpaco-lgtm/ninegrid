@@ -1206,4 +1206,12 @@
     <string name="w_desc_alerts">The latest alerts: breakout, price alarm, ban and reprint.</string>
     <string name="w_desc_wish">The wishlist cards closest to their alarm price.</string>
     <string name="w_desc_daily">A different card from your collection every day.</string>
+    <string name="movers_day">Day</string>
+    <string name="movers_week">Week</string>
+    <string name="movers_up">Risers</string>
+    <string name="movers_down">Fallers</string>
+    <string name="movers_none_up">Nothing rose in this period.</string>
+    <string name="movers_none_down">Nothing fell in this period.</string>
+    <string name="movers_more">Show top %1$d</string>
+    <string name="movers_less">Show less</string>
 </resources>

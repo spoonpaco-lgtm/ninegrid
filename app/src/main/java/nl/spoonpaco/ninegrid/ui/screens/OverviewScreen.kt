@@ -203,29 +203,69 @@ fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}, onSets: () ->
                 }
             }
 
-            // Winner of the Week: één kaart, de grootste stijging in geld over je eigen exemplaren.
-            vm.winner?.let { w ->
+            // Top movers, samen met Winner of the Week: bovenaan de grootste beweger als grote kaart (Winner of the Week,
+            // Loser of the Week, of of the Day), daaronder de nummers 2 t/m 5 en met Meer de top 20. Op geld, niet op procenten.
+            if (vm.moversWeek.isNotEmpty() || vm.moversDay.isNotEmpty()) {
                 item {
+                    var week by rememberSaveable { mutableStateOf(true) }
+                    var rising by rememberSaveable { mutableStateOf(true) }
+                    var more by rememberSaveable { mutableStateOf(false) }
+                    val source = if (week) vm.moversWeek else vm.moversDay
+                    val list = remember(source, rising) { nl.spoonpaco.ninegrid.domain.PriceMovers.top(source, rising, 20) }
+                    val P = nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL
+                    @androidx.compose.runtime.Composable fun m(v: Double) = nl.spoonpaco.ninegrid.ui.components.money(v, cur, P)
+                    fun pct(v: Double) = String.format(java.util.Locale.getDefault(), "%+.0f%%", v)
                     Panel {
-                        Text("Winner of the Week", fontWeight = FontWeight.Bold, color = extra.price)
-                        vm.winnerWeek?.let { mon ->
-                            val ds = settings.dateStyle
-                            Text(stringResource(R.string.winner_week, nl.spoonpaco.ninegrid.domain.Dates.date(mon.minusDays(7), ds), nl.spoonpaco.ninegrid.domain.Dates.date(mon, ds)), fontSize = NgText.caption, color = extra.subtle)
+                        Text((if (rising) "Winner" else "Loser") + " of the " + (if (week) "Week" else "Day"), fontWeight = FontWeight.Bold, color = if (rising) extra.price else NgColors.Error)
+                        val ds = settings.dateStyle
+                        val range = if (week) vm.winnerWeek?.let { it.minusDays(7) to it } else vm.moversDayRange?.let { java.time.LocalDate.parse(it.first) to java.time.LocalDate.parse(it.second) }
+                        range?.let { (from, to) -> Text(stringResource(R.string.winner_week, nl.spoonpaco.ninegrid.domain.Dates.date(from, ds), nl.spoonpaco.ninegrid.domain.Dates.date(to, ds)), fontSize = NgText.caption, color = extra.subtle) }
+                        Spacer(Modifier.height(6.dp))
+                        SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                            SegmentedButton(selected = !week, onClick = { week = false; more = false }, shape = SegmentedButtonDefaults.itemShape(0, 2)) { Text(stringResource(R.string.movers_day)) }
+                            SegmentedButton(selected = week, onClick = { week = true; more = false }, shape = SegmentedButtonDefaults.itemShape(1, 2)) { Text(stringResource(R.string.movers_week)) }
+                        }
+                        Spacer(Modifier.height(4.dp))
+                        SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                            SegmentedButton(selected = rising, onClick = { rising = true; more = false }, shape = SegmentedButtonDefaults.itemShape(0, 2)) { Text(stringResource(R.string.movers_up)) }
+                            SegmentedButton(selected = !rising, onClick = { rising = false; more = false }, shape = SegmentedButtonDefaults.itemShape(1, 2)) { Text(stringResource(R.string.movers_down)) }
                         }
                         Spacer(Modifier.height(8.dp))
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            nl.spoonpaco.ninegrid.ui.components.CardThumb(w.print, vm.images, settings, width = 64)
-                            Spacer(Modifier.width(12.dp))
-                            Column(Modifier.weight(1f)) {
-                                Text(w.print.name + if (w.finish != nl.spoonpaco.ninegrid.data.db.Finish.NONFOIL) " (${w.finish})" else "", fontWeight = FontWeight.Bold)
-                                Text("${w.print.setCode} ${w.print.collectorNumber}", fontSize = NgText.body, color = extra.subtle)
-                                Text(nl.spoonpaco.ninegrid.ui.components.money(w.oldUnit, cur, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL) + " → " + nl.spoonpaco.ninegrid.ui.components.money(w.newUnit, cur, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL) + String.format(java.util.Locale.getDefault(), "  (%+.0f%%)", w.pct), fontSize = NgText.body)
-                                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 2.dp)) {
-                                    if (nl.spoonpaco.ninegrid.ui.components.LocalEffects.current) nl.spoonpaco.ninegrid.ui.components.LoyaltyShield("+" + nl.spoonpaco.ninegrid.ui.components.money(w.totalGain, cur, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL), up = true)
-                                    else Text("▲ " + nl.spoonpaco.ninegrid.ui.components.money(w.totalGain, cur, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL), fontSize = NgText.body, fontWeight = FontWeight.Bold, color = NgColors.Synced)
-                                    if (w.quantity > 1) Text("  ·  " + nl.spoonpaco.ninegrid.ui.components.maskCount(stringResource(R.string.winner_copies, w.quantity), w.quantity), fontSize = NgText.body, color = extra.subtle)
+                        val top = list.firstOrNull()
+                        if (top == null) {
+                            Text(stringResource(if (rising) R.string.movers_none_up else R.string.movers_none_down), fontSize = NgText.body, color = extra.subtle)
+                        } else {
+                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().clickable { vm.openCardRequest = top.print.id }) {
+                                nl.spoonpaco.ninegrid.ui.components.CardThumb(top.print, vm.images, settings, width = 64)
+                                Spacer(Modifier.width(12.dp))
+                                Column(Modifier.weight(1f)) {
+                                    Text(top.print.name + if (top.finish != nl.spoonpaco.ninegrid.data.db.Finish.NONFOIL) " (${top.finish})" else "", fontWeight = FontWeight.Bold)
+                                    Text("${top.print.setCode} ${top.print.collectorNumber}", fontSize = NgText.body, color = extra.subtle)
+                                    Text(m(top.oldUnit) + " → " + m(top.newUnit) + "  (" + pct(top.pct) + ")", fontSize = NgText.body)
+                                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 2.dp)) {
+                                        if (rising && nl.spoonpaco.ninegrid.ui.components.LocalEffects.current) nl.spoonpaco.ninegrid.ui.components.LoyaltyShield("+" + m(top.totalGain), up = true)
+                                        else Text((if (rising) "▲ +" else "▼ −") + m(Math.abs(top.totalGain)), fontSize = NgText.body, fontWeight = FontWeight.Bold, color = if (rising) NgColors.Synced else NgColors.Error)
+                                        if (top.quantity > 1) Text("  ·  " + nl.spoonpaco.ninegrid.ui.components.maskCount(stringResource(R.string.winner_copies, top.quantity), top.quantity), fontSize = NgText.body, color = extra.subtle)
+                                    }
                                 }
                             }
+                            val rest = list.drop(1).take(if (more) 19 else 4)
+                            rest.forEachIndexed { i, mv ->
+                                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().clickable { vm.openCardRequest = mv.print.id }.padding(top = 8.dp)) {
+                                    Text("${i + 2}", fontSize = NgText.caption, color = extra.subtle, modifier = Modifier.width(20.dp))
+                                    nl.spoonpaco.ninegrid.ui.components.CardThumb(mv.print, vm.images, settings, width = 32)
+                                    Spacer(Modifier.width(8.dp))
+                                    Column(Modifier.weight(1f)) {
+                                        Text(mv.print.name + if (mv.finish != nl.spoonpaco.ninegrid.data.db.Finish.NONFOIL) " ★" else "", fontSize = NgText.body, maxLines = 1)
+                                        Text("${mv.print.setCode} ${mv.print.collectorNumber} · " + m(mv.oldUnit) + " → " + m(mv.newUnit) + (if (mv.quantity > 1) " · ×" + nl.spoonpaco.ninegrid.ui.components.maskCount(mv.quantity.toString(), mv.quantity) else ""), fontSize = NgText.caption, color = extra.subtle, maxLines = 1)
+                                    }
+                                    Column(horizontalAlignment = Alignment.End) {
+                                        Text((if (rising) "+" else "−") + m(Math.abs(mv.totalGain)), fontSize = NgText.body, fontWeight = FontWeight.Bold, color = if (rising) NgColors.Synced else NgColors.Error)
+                                        Text(pct(mv.pct), fontSize = NgText.caption, color = extra.subtle)
+                                    }
+                                }
+                            }
+                            if (list.size > 5) TextButton(onClick = { more = !more }) { Text(stringResource(if (more) R.string.movers_less else R.string.movers_more, minOf(20, list.size))) }
                         }
                     }
                 }

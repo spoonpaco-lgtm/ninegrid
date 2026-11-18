@@ -39,7 +39,21 @@ object PriceMovers {
             }
 
     /** De grootste stijging in geld over je eigen exemplaren; niets gestegen = geen winnaar. */
-    fun winner(movers: List<Mover>): Mover? = movers.filter { it.totalGain > 0.005 }.maxByOrNull { it.totalGain }
+    fun winner(movers: List<Mover>): Mover? = top(movers, rising = true, n = 1).firstOrNull()
+
+    /** De grootste daling in geld over je eigen exemplaren; niets gedaald = geen verliezer. */
+    fun loser(movers: List<Mover>): Mover? = top(movers, rising = false, n = 1).firstOrNull()
+
+    /**
+     * Top movers: de [n] kaarten die het meest stegen ([rising]) of daalden, gerangschikt op geld (verandering
+     * per stuk maal je aantal), niet op procenten: anders wint altijd bulk van €0,10 naar €0,30. Bij gelijke
+     * bedragen de grootste procentuele beweging eerst, dan op naam (vaste volgorde).
+     */
+    fun top(movers: List<Mover>, rising: Boolean, n: Int = 20): List<Mover> =
+        movers.filter { if (rising) it.totalGain > 0.005 else it.totalGain < -0.005 }
+            .sortedWith(compareByDescending<Mover> { if (rising) it.totalGain else -it.totalGain }
+                .thenByDescending { Math.abs(it.pct) }.thenBy { it.print.name })
+            .take(n)
 
     /** Een kaart die per stuk minstens €3 én 25% steeg; de grootste uitschieter. */
     fun breakout(movers: List<Mover>): Mover? =

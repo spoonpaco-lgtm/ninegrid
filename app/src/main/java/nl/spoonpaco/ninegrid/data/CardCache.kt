@@ -75,6 +75,36 @@ class CardCache(private val context: Context, private val scryfall: ScryfallClie
         list
     }
 
+    /**
+     * De setlijst voor de scanner: namen, nummers en id's tellen, prijzen niet. Eerst wat al op de telefoon staat
+     * (minder dan een week oud), dan de offline kaartdatabase, pas dan Scryfall. Zo werkt kiezen binnen de set,
+     * zoeken in andere regels en het raster op de namen ook zonder internet, met minder verzoeken aan Scryfall.
+     * Een lijst uit de offline database wordt niet als bestand bewaard: de prijzen daarin zijn van de downloaddag,
+     * en het setscherm moet de echte lijst van Scryfall blijven halen.
+     */
+    suspend fun scanList(code: String): SetList? {
+        val key = code.lowercase()
+        sets[key]?.takeIf { System.currentTimeMillis() - it.fetchedAt < week }?.let { return it }
+        cachedSetList(key)?.takeIf { System.currentTimeMillis() - it.fetchedAt < week }?.let { return it }
+        offlineSets[key]?.let { return it }
+        val cards = scryfall.offline?.setCards(key).orEmpty().filter { !it.digital }
+        if (cards.isNotEmpty()) {
+            val info = runCatching { setInfo()[key.uppercase()] }.getOrNull()
+            val printed = info?.printedSize ?: info?.cardCount ?: cards.size
+            val list = SetList(
+                code = key.uppercase(), name = info?.name ?: cards.first().setName, printedSize = printed, fetchedAt = System.currentTimeMillis(),
+                cards = cards.map { c ->
+                    val p = c.toPrint()
+                    SetCard(c.id, c.name, c.collectorNumber, c.rarity, p.eur, p.usd, p.imageSmall, isRegular(c, printed), p.manaCost)
+                },
+            )
+            offlineSets[key] = list
+            return list
+        }
+        return runCatching { setList(code) }.getOrNull() ?: cachedSetList(key)
+    }
+    private val offlineSets = java.util.concurrent.ConcurrentHashMap<String, SetList>()
+
     /** Alleen wat al op de telefoon staat (geen internet). */
     fun cachedSetList(code: String): SetList? = sets[code.lowercase()] ?: runCatching {
         json.decodeFromString(SetList.serializer(), File(dir, "set-${code.lowercase()}.json").readText())

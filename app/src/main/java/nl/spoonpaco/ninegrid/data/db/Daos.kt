@@ -259,6 +259,13 @@ interface PriceDao {
     @Query("SELECT MIN(day) FROM price_history")
     suspend fun firstDay(): String?
 
+    @Query("SELECT MAX(day) FROM price_history")
+    suspend fun lastDay(): String?
+
+    /** De laatste dag met prijzen vóór [day]. */
+    @Query("SELECT MAX(day) FROM price_history WHERE day < :day")
+    suspend fun dayBefore(day: String): String?
+
     /** Ouder dan een maand: alleen de eerste meting van elke maand bewaren. */
     @Query("DELETE FROM price_history WHERE day < :cutoff AND day NOT IN (SELECT MIN(q.day) FROM price_history q WHERE q.printId = price_history.printId GROUP BY substr(q.day, 1, 7))")
     suspend fun thin(cutoff: String)
