@@ -1241,4 +1241,17 @@ class ParserTest {
         // Alleen regeltekst: niets.
         assertNull(M.bestInLines(listOf("Rying, deathtouch", "t attackig", "danage to target crearure"), grn))
     }
+
+    @Test
+    fun basicLandsOnlyWithTypeLine() {
+        val M = nl.spoonpaco.ninegrid.domain.NameMatch
+        val set = listOf("Silent Dart", "Forest", "Island", "Knight of Autumn")
+        // "forest" in regeltekst van een andere kaart: geen Forest.
+        assertNull(M.bestInLines(listOf("hoe ters are aoeptahle", "search your library for a Forest"), set))
+        // De typeregel van een basisland gelezen: wel.
+        assertEquals("Forest", M.bestInLines(listOf("Basic Land — Forest"), set))
+        assertTrue(M.isBasicLand("Snow-Covered Island") && M.isBasicLand("Forest") && !M.isBasicLand("Forest Bear"))
+        // De naamregel zelf ("Forest") gaat via best(), daar verandert niets.
+        assertEquals("Forest", M.best("Forest", set))
+    }
 }

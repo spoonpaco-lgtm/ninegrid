@@ -68,7 +68,18 @@ object NameMatch {
      * en [MARGIN] beter dan de op één na beste naam); twee namen even goed (bijvoorbeeld ook de naam van het buurvak)
      * geeft null.
      */
+    private val BASICS = setOf("plains", "island", "swamp", "mountain", "forest", "wastes")
+
+    /** Een basisland (ook Snow-Covered). */
+    fun isBasicLand(name: String): Boolean = name.lowercase().removePrefix("snow-covered ").trim() in BASICS
+
+    /**
+     * Basislanden tellen alleen als er in het vak ook "Basic Land" gelezen is (de typeregel). Anders zou het woord
+     * "forest" of "island" in de regeltekst van een andere kaart een basisland opleveren (testset 18 nov: Silent Dart → Forest).
+     */
     fun bestInLines(lines: List<String>, names: Collection<String>): String? {
+        val basicTypeLine = lines.any { l -> norm(l).let { it.contains("basicland") || it.contains("basicsnow") } }
+        @Suppress("NAME_SHADOWING") val names = if (basicTypeLine) names else names.filterNot(::isBasicLand)
         val pieces = lines.flatMap { line ->
             val words = line.split(Regex("""\s+""")).filter { it.isNotBlank() }
             (1..minOf(5, words.size)).flatMap { k -> (0..words.size - k).map { words.subList(it, it + k).joinToString(" ") } }

@@ -1,10 +1,11 @@
 NineGrid 0.9.12 – Kasmina
 
-Kasmina, die ziet wat anderen missen: een versie om de scanner betrouwbaarder te maken, op basis van de eerste testset-meting op de telefoon (18 nov: 98 van 144 vakken goed, 8 groen maar fout, 33 niet gevonden). Gebouwd en getest met unittests; nog niet op een echte telefoon geprobeerd.
+Kasmina, die ziet wat anderen missen: een versie om de scanner betrouwbaarder te maken, gemeten met de testset op Micks telefoon (11 bladen, 144 vakken). Voor: 98 goed, 8 groen maar fout, 33 niet gevonden. Na: 109 goed, 0 groen maar fout, 25 niet gevonden.
 
 Groen is weer te vertrouwen
 - Nieuwe naamvergelijking (domain/NameMatch.kt). Vroeger telde een naam al als gelijk als het gelezen stuk erin zat ("Keyrune" → Azorius Keyrune) of de helft van de letters klopte, en won de eerste kaart die paste. Nu kiest de app binnen de set de naam die het best past, alleen als die duidelijk beter past dan de op één na beste, en het gelezen nummer telt alleen als de kaart bij dat nummer ook de best passende naam is.
-- Groen vraagt een naam die voor 80% lijkt (zoals de testset telt).
+- Groen vraagt een gelezen naam die voor 80% lijkt (zoals de testset telt). Alleen een nummer is nooit genoeg voor groen: een los cijfer is te makkelijk verkeerd gelezen ("9" werd Defiant Strike, "43" Maximize Altitude).
+- Staat de naam niet op de naamregel, dan zoekt de app bij een bekende set in alle gelezen regels naar een naam uit die set ("oros Challenger gets" → Boros Challenger, "mpact Tremors" → Impact Tremors). Zo'n kaart komt altijd oranje binnen; staan er twee namen even goed in (de naam van het buurvak), dan geen keuze. Basislanden alleen als ook de typeregel "Basic Land" gelezen is, anders zou "forest" in regeltekst een Forest geven.
 - De 8 gevallen uit de testset (Gloomwidow/Gloom Surgeon, Golgari/Azorius Keyrune, Selesnya Keyrune/Sentry, Raid/Goblin Bombardment, Nightveil Predator/Sprite, Knight of Autumn, Feed the Infection) staan als unittest.
 
 Geen print meer op de gok
@@ -17,8 +18,8 @@ Lezen
 - Jaartallen met de W van Wizards ("2025W", "202W") tellen niet als kaartnummer.
 
 Testset
-- Testset draaien meet met het kader van de camera: kader.txt per blad (links boven rechts onder, in pixels van de foto), anders de hele foto. Daarnaast hetzelfde als galerijfoto, met het totaal bovenaan.
-- testset/: kader.txt voor de bladen waar het blad maar een deel van de foto beslaat.
+- Testset draaien leest als galerijfoto (dat kwam overeen met de camera op dezelfde bladen) en zet bij elke fout wat de scanner las. Optioneel kader.txt per blad.
+- Bekend: als het blad maar een deel van de foto vult (GRN, DOM, het gemengde blad), schuift het raster en lezen vakken de naam van het buurvak. Dat is de volgende stap (0.9.13: het raster op de gevonden namen leggen).
 
 NineGrid 0.9.11 – Tezzeret
 

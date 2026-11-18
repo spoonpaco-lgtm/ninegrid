@@ -77,6 +77,7 @@ Dit is "de lijst": wat Mick wil dat NineGrid nog krijgt. Een nieuw gesprek begin
 | 0.9.10 | Dovin | 8 print kiezen (printlijst, print van een exemplaar wijzigen en splitsen, + Exemplaar toevoegen, verlanglijst), 40 melding bij ban of reprint, 4e past niet in het deck oranje |
 | 0.9.10.1 | Dovin | Menu opgeruimd: Meer in blokken, Back-up en export eigen scherm, Over op één plek, Lijst plakken in Importeren, Wijzigingslog heet Laatste actie ongedaan maken, Instellingen in 8 andere groepen |
 | 0.9.11 | Tezzeret | Exporteren (Moxfield, Archidekt, Cardmarket), deck via QR, crashrapport, privacymodus met meer controle, 5 nieuwe privacystijlen + Zegel klein, 9 app-iconen, widgets, testset op de telefoon |
+| 0.9.12 | Kasmina | Scanner betrouwbaarder: strengere naamvergelijking, alleen nummer nooit groen, naam ook in andere regels (oranje), geen print op de gok, voorstel set van het blad, splitkaarten gedraaid, buurpagina weg, jaartal met W; testset 98→109 goed, groen maar fout 8→0 |
 
 ## Nog te doen
 
@@ -122,7 +123,7 @@ Uitgebracht 18 nov na Micks "ja, release", zonder eerdere telefoontest; de punte
 - Supporter-/donatielocking (stijlen of iconen alleen voor supporters): nog niet besloten.
 - Testset-regels: alleen foto's van Micks eigen bladen (repo is publiek); nieuwe bladen in een map `NN-set-kaart` met foto en rapport, liefst originelen.
 
-### 1b. 0.9.12 Kasmina: scanner betrouwbaarder (gebouwd op branch `scanner-0.9.12` op 18 nov, wacht op testset en "ja, release")
+### 1b. 0.9.12 Kasmina: uitgebracht 18 nov (Micks "ja, release")
 
 Mick 18 nov: "bouw alle voorstellen in een branch". Basis: eerste testset-meting op de telefoon (0.9.11, 98 van 144 goed, 8 groen maar fout, 33 niet gevonden; zie `testset/README.md`). Groene build: https://github.com/spoonpaco-lgtm/ninegrid/actions/runs/44250039457. Naam Kasmina gekozen door Claude; Mick mag hem veranderen.
 - Strengere naamvergelijking (`domain/NameMatch.kt`): beste naam binnen de set met marge 0,12, drempel 0,7; groen vraagt 80%; een gelezen nummer telt alleen als die kaart ook de best passende naam is. De 8 paren uit de testset als unittest.
@@ -132,7 +133,14 @@ Mick 18 nov: "bouw alle voorstellen in een branch". Basis: eerste testset-meting
 - Galerijfoto: kleine tekstgroepjes links/rechts van het blad (buurpagina) tellen niet mee (`ScanParser.mainBlock`, alleen horizontaal: verticaal zou de illustratie-gaten de namen laten wegvallen).
 - Jaartal met W ("2025W", "202W") is geen nummer, ook na opnieuw lezen (`sanitize`).
 - Testset draaien: met camerakader (`kader.txt` per blad, door Claude op de foto's gezet) en daarnaast als galerijfoto.
-- Nog te doen door Mick: testset.zip opnieuw op de telefoon zetten (heeft nu kader.txt), Testset draaien met de testbuild, uitslag delen. Doel: groen maar fout 0, en minder dan 33 niet gevonden.
+- Later toegevoegd: alleen een nummer nooit groen; naam ook zoeken in andere regels bij een bekende set (`NameMatch.bestInLines`, altijd oranje; basislanden alleen met typeregel "Basic Land"). Handgezette kaders weggehaald (maakten het slechter); testset leest als galerijfoto en toont wat er gelezen is.
+- Laatste meting (18 nov): 109 van 144 goed, 0 groen maar fout, 28 oranje maar goed, 25 niet gevonden.
+
+### 1c-scan. 0.9.13 (voorstel, wacht op startsein): raster op de namen
+
+- 22 van de 25 niet gevonden zitten op foto's waar het blad maar een deel van het beeld vult (GRN beide, DOM, gemengd): het raster schuift, vakken lezen de naam van het buurvak.
+- Voorstel: bij een bekende set eerst op de hele foto de regels zoeken die duidelijk een naam uit de set zijn; die staan bovenaan elke kaart, dus hun posities geven kolommen, rijen en kaartgrootte. Het raster daarop zetten in plaats van op de buitenste tekst. Daarvoor heeft `OcrLine` ook de linker- en bovenkant van de regel nodig.
+- Ook bekijken: naamregel niet gelezen bij glans (Intruder Alarm, Vampiric Rites, Oath of Teferi, Raff Capashen); gemengd blad zonder set.
 
 ### 2. Kleine verbeteringen (nog geen versie)
 
