@@ -154,6 +154,21 @@ Technisch: nieuwe waarden bij `PrivacyStyle` in `ui/components/Privacy.kt` (naas
 - Set 3 Licht en donker: Perkament (lichte achtergrond #EFE3C8, rand #7A5A2B), Inkt (wit met zwart), Neon (cyaan rand #19E3FF, paarse tegels, roze 9).
 Technisch: per icoon een `activity-alias` in het manifest met eigen adaptief icoon (voorgrond-png plus achtergrondkleur; monochroom blijft het bestaande thema-icoon), keuzerij in Instellingen met `PackageManager.setComponentEnabledSetting` (DONT_KILL_APP). Let op: het icoon op het startscherm kan bij wisselen even verspringen.
 
+### 1e. Widgets voor het startscherm (voorstellen, wacht op startsein; Mick 18 nov)
+
+Zes voorstellen, in volgorde van wat ik zou bouwen. Mick zag de schetsen van 1 en 3.
+1. **Waarde-widget (2×1)**: totale collectiewaarde, verandering sinds gisteren, minilijntje van 30 dagen. Basis.
+2. **Winner of the Week (2×2)**: kaartplaatje, naam en winst van de week; tik opent het kaartscherm.
+3. **Scan-snelknop (1×1 of 2×1)**: één tik naar de scanner, bladscan of één kaart tegelijk.
+4. **Alarmen (4×2)**: laatste meldingen (breakout, ban, reprint, verlanglijst-alarm) op een rij.
+5. **Verlanglijst-prijzen (4×2)**: de drie kaarten het dichtst bij je alarmprijs.
+6. **Dagkaart**: elke dag een willekeurige kaart uit je collectie met prijs (gimmick).
+Technisch en let op:
+- Widgets draaien buiten de app (Glance of RemoteViews): geen animatie en geen Compleated-effect. Privacymodus = vaste afdekking (voorstel: rijtje donkerblauwe logo-tegeltjes in plaats van het bedrag; het lijntje weg of alleen in procenten). Schakelt de modus om, dan werkt het widget met een kleine vertraging bij.
+- Alleen de prijzen van de laatste nachtelijke update; geen live prijzen.
+- Gegevens komen uit wat de app al bewaart (collectiewaarde, Historie, Winner of the Week); het widget leest, het rekent niet zelf.
+- Zelfde stijl als het logo (donker, gouden rand, donkerblauwe tegels).
+
 ### 2. Kleine verbeteringen (nog geen versie)
 
 - Scannen, kaart voor kaart: 39a (set van de vorige kaart als aanname) is door Mick afgewezen, 17 nov: scannen wordt er trager van; een set telt alleen als de gebruiker hem zelf opgeeft. 39c groene kaarten overslaan op het controlescherm (pas bouwen als de herkenning betrouwbaar is; wacht op een test op de telefoon).
@@ -205,7 +220,7 @@ Alleen wat Mick nog niet heeft bevestigd.
 ## Later (idee, geen versie)
 - Verkoopalarm voor kaarten die je hebt: "meld als Ragavan boven € 60 komt" (omgekeerde prijsalarm, lijkt op Breakout)
 - Jaaroverzicht in december: "Jouw jaar in Magic" (kaarten toegevoegd, duurste vondst, meest gescande set, groei in waarde, beste ruil), te delen als afbeelding, privacymodus respecteren
-- Widget op het startscherm: waarde collectie en Winner of the Week in logostijl; bedekt als de privacymodus aan staat
+- Widget op het startscherm: zie 1e (uitgewerkt)
 - Supporter-variant: app blijft helemaal gratis (alle kaartgegevens, prijzen, zoeken, ruilmatch, offline database: nooit achter betaling — Scryfall verbiedt paywall, Wizards Fan Content Policy verbiedt betaalde toegang); vrijwillige steun via Google Play Billing (15% kosten) met extra's zonder kaartgegevens of Magic-materiaal: extra thema's/kleuren, andere app-iconen in NineGrid-stijl, supporter-badge bij Over
   - Phyrexisch lettertype nooit als betaald extra (materiaal van Wizards)
   - Betaalde Sheet-synchronisatie: eerst schriftelijk navragen bij Scryfall
