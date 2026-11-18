@@ -151,7 +151,6 @@ Technisch: nieuwe waarden bij `PrivacyStyle` in `ui/components/Privacy.kt` (naas
 - Set 2 Edelstenen: Smaragd (#3DB887), Robijn (#D8465A), Amethist (#9A6BD6).
 - Set 3 Licht en donker: Perkament (lichte achtergrond #EFE3C8, rand #7A5A2B), Inkt (wit met zwart), Neon (cyaan rand #19E3FF, paarse tegels, roze 9).
 Technisch: per icoon een `activity-alias` in het manifest met eigen adaptief icoon (voorgrond-png plus achtergrondkleur; monochroom blijft het bestaande thema-icoon), keuzerij in Instellingen met `PackageManager.setComponentEnabledSetting` (DONT_KILL_APP). Let op: het icoon op het startscherm kan bij wisselen even verspringen.
-**Supporter-extra's**: deze iconen en de nieuwe privacystijlen zijn bedoeld als betaalde supporter-extra's (alleen cosmetica; privacymodus zelf, Stippen en één basisstijl blijven gratis). Dat hoort bij de Supporter-variant onder "Later" en vraagt Google Play Billing; tot die er is, staan ze voor testbuilds gewoon open. Kanttekening: vier stijlen lijken op Magic-dingen (Compleated, Counterspell, Lightning Bolt), dus eigen namen of duidelijk eigen tekenwerk voordat ze betaald worden.
 
 ### 2. Kleine verbeteringen (nog geen versie)
 
