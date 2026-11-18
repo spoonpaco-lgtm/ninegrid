@@ -177,6 +177,12 @@ Op het Overzicht, op de plek van Winner of the Week, één samengevoegd blok "To
 - Het Top movers-blok wordt inklapbaar. Ingeklapt: alleen de grote kaart (Winner of Loser of the Week/Day, met het effect). Uitgeklapt: de schakelaars Dag/Week en Stijgers/Dalers, de nummers 2 t/m 5 en Toon top 20.
 - Gebouwd: standaard ingeklapt; tik op de titel (pijltje rechts); Week/Dag, Stijgers/Dalers en open/dicht onthouden in de instelling `moversView` ("week,up,closed").
 
+### 1g-movers. Ook in deze branch (Mick 18 nov), gebouwd 18 nov
+
+- Toxic dezelfde makeover als het bloed: schaduw eronder (verschoven), glanzende vulling licht→diep donker met donkere onderrand, druppels met hals, bol en glimlicht, gaten met schaduw van binnen, rand licht boven en donker onder, bellen die eerst opzwellen.
+- Elk Magic-effect een eigen schakelaar (`domain/FxSet.kt`, instelling `fxOff`, `LocalFx`): foil, exile, stamps, shields, movers, privacy. Hoofdschakelaar blijft; de losse schakelaars staan eronder als hij aan staat. Stempels uit raakt de WINNER/DESTROYED-stempel niet (die hoort bij Winner en Loser).
+- Fix: Dalers had geen schildje op de grote kaart (alleen bij Stijgers getekend); nu ▼ rood.
+
 ### 2. Kleine verbeteringen (nog geen versie)
 
 - Scannen, kaart voor kaart: 39a (set van de vorige kaart als aanname) is door Mick afgewezen, 17 nov: scannen wordt er trager van; een set telt alleen als de gebruiker hem zelf opgeeft. 39c groene kaarten overslaan op het controlescherm (pas bouwen als de herkenning betrouwbaar is; wacht op een test op de telefoon).

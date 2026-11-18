@@ -114,6 +114,8 @@ data class AppSettings(
     val privacyStyle: String = "compleated",
     /** Effect op Winner/Loser of the Week: "glow" (gloed en bloed) of "stamp" (stempels). */
     val moverEffect: String = "glow",
+    /** Magic-effecten die los zijn uitgezet (komma's): foil, exile, stamps, shields, movers, privacy. Leeg = alles aan. */
+    val fxOff: String = "",
     /** Top movers op het Overzicht: "week"/"day", "up"/"down", "open"/"closed" (standaard Week, Stijgers, ingeklapt). */
     val moversView: String = "week,up,closed",
     /** Wat de privacymodus verbergt: "all", "totals" (alleen totalen) of "cards" (alleen kaartprijzen). */
@@ -209,6 +211,7 @@ class SettingsStore(private val context: Context) {
         val privacy = booleanPreferencesKey("privacy")
         val privacyStyle = stringPreferencesKey("privacy_style")
         val moverEffect = stringPreferencesKey("mover_effect")
+        val fxOff = stringPreferencesKey("fx_off")
         val moversView = stringPreferencesKey("movers_view")
         val privacyScope = stringPreferencesKey("privacy_scope")
         val privacyPercent = booleanPreferencesKey("privacy_percent")
@@ -319,6 +322,7 @@ class SettingsStore(private val context: Context) {
         privacy = this[K.privacy] ?: false,
         privacyStyle = this[K.privacyStyle] ?: "compleated",
         moverEffect = this[K.moverEffect] ?: "glow",
+        fxOff = this[K.fxOff] ?: "",
         moversView = this[K.moversView] ?: "week,up,closed",
         privacyScope = this[K.privacyScope] ?: "all",
         privacyPercent = this[K.privacyPercent] ?: false,
@@ -434,6 +438,7 @@ class SettingsStore(private val context: Context) {
     suspend fun setPrivacy(v: Boolean) = context.dataStore.edit { it[K.privacy] = v }
     suspend fun setPrivacyStyle(v: String) = context.dataStore.edit { it[K.privacyStyle] = v }
     suspend fun setMoverEffect(v: String) = context.dataStore.edit { it[K.moverEffect] = v }
+    suspend fun setFxOff(v: String) = context.dataStore.edit { it[K.fxOff] = v }
     suspend fun setMoversView(v: String) = context.dataStore.edit { it[K.moversView] = v }
     suspend fun setPrivacyScope(v: String) = context.dataStore.edit { it[K.privacyScope] = v }
     suspend fun setPrivacyPercent(v: Boolean) = context.dataStore.edit { it[K.privacyPercent] = v }

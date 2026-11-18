@@ -1326,4 +1326,18 @@ class ParserTest {
         assertEquals(1, M.top(list, rising = true, n = 1).size)
         assertNull(M.loser(listOf(mv("stil", 1, 2.0, 2.0))))
     }
+
+    @Test
+    fun fxTogglesSeparately() {
+        val F = nl.spoonpaco.ninegrid.domain.FxSet
+        // Leeg = alles aan; hoofdschakelaar uit = alles uit.
+        assertTrue(F.parse(true, "").on(F.FOIL))
+        assertFalse(F.parse(false, "").on(F.FOIL))
+        // Los uitzetten raakt alleen dat effect; vaste volgorde bij bewaren.
+        val off = F.toggle(F.toggle("", F.PRIVACY, false), F.FOIL, false)
+        assertEquals("foil,privacy", off)
+        val fx = F.parse(true, off)
+        assertFalse(fx.on(F.FOIL)); assertFalse(fx.on(F.PRIVACY)); assertTrue(fx.on(F.SHIELDS))
+        assertEquals("privacy", F.toggle(off, F.FOIL, true))
+    }
 }

@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.scale
+import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
@@ -48,7 +49,11 @@ private fun smoothClosed(pts: List<Offset>): Path {
     return p
 }
 
-/** Toxic: organische bijna zwarte groene ooze met grillige rand, groene oliefilm, gaten die zwellen, bellen die knappen en druppels met rand die uit de veeg groeien. */
+/**
+ * Toxic: organische bijna zwarte groene ooze met grillige rand, in dezelfde opbouw als het bloed bij Loser of the Week:
+ * een zachte schaduw eronder, een glanzende vulling die van boven licht naar onder diep donker loopt, druppels met een
+ * dikke bol en een glimlicht, gaten met een schaduwrand van binnen, bellen die knappen en een groene oliefilm.
+ */
 internal fun DrawScope.drawToxic(t: Float, wobble: Float) {
     val w = size.width; val h = size.height
     val seed = seedOf(w, h)
@@ -67,7 +72,7 @@ internal fun DrawScope.drawToxic(t: Float, wobble: Float) {
         pts.add(Offset(w * u, h * (0.86f - lump) + sin((wobble + i * 0.27f) * 6.2832f) * h * 0.025f))
     }
     val body = smoothClosed(pts)
-    // Gaten: de achtergrond schijnt erdoorheen (even-odd); ze zwellen en slinken. Dazu een paar kleine bellen.
+    // Gaten: de achtergrond schijnt erdoorheen (even-odd); ze zwellen en slinken.
     body.fillType = PathFillType.EvenOdd
     val holes = ArrayList<Pair<Offset, Float>>()
     for (k in 0 until 4) {
@@ -78,66 +83,117 @@ internal fun DrawScope.drawToxic(t: Float, wobble: Float) {
         holes.add(c to r)
         body.addOval(Rect(c, r))
     }
+    val deep = Color(0xFF010604)
     val dark = Color(0xFF04120A)
+    val mid = Color(0xFF0E4A25)
     val green = Color(0xFF1FD655)
-    // Druppels die uit de veeg groeien (smalle hals, ronde bol, groene rand); ze vallen af en groeien opnieuw.
-    for (k in 0 until 2) {
+    val shadow = Color(0x70000000)
+    val dx = h * 0.05f; val dy = h * 0.13f
+
+    // Druppels die uit de veeg groeien (smalle hals, ronde bol); ze vallen af en groeien opnieuw.
+    class Drip(val x: Float, val top: Float, val bulb: Offset, val r: Float, val alpha: Float, val attached: Boolean)
+    val y0 = h * 0.8f
+    val drips = (0 until 2).map { k ->
         val x = w * (0.18f + 0.42f * k + 0.2f * rnd(seed, 90 + k))
         val p = (t + k * 0.5f) % 1f
-        val y0 = h * 0.8f
+        val r = h * 0.105f
         if (p < 0.72f) {
             val len = h * 0.55f * smooth(p / 0.62f)
-            drawLine(green, Offset(x, y0), Offset(x, y0 + len), h * 0.1f, StrokeCap.Round)
-            drawCircle(green, h * 0.115f, Offset(x, y0 + len))
-            drawLine(dark, Offset(x, y0), Offset(x, y0 + len), h * 0.06f, StrokeCap.Round)
-            drawCircle(dark, h * 0.09f, Offset(x, y0 + len))
+            Drip(x, y0, Offset(x, y0 + len), r, 1f, true)
         } else {
             val f = (p - 0.72f) / 0.28f
-            val c = Offset(x, y0 + h * 0.55f + f * h * 0.4f)
-            drawCircle(green.copy(alpha = 1f - f), h * 0.115f, c)
-            drawCircle(dark.copy(alpha = 1f - f), h * 0.09f, c)
+            Drip(x, y0, Offset(x, y0 + h * 0.55f + f * h * 0.4f), r, 1f - f, false)
         }
     }
     // Spatjes rond de veeg.
-    for (i in 0 until 10) {
+    val splats = (0 until 10).map { i ->
         val x = w * rnd(seed, 120 + i)
         val y = if (i % 2 == 0) h * (-0.16f + 0.18f * rnd(seed, 140 + i)) else h * (0.98f + 0.16f * rnd(seed, 140 + i))
-        drawCircle(dark, h * (0.015f + 0.045f * rnd(seed, 160 + i)), Offset(x, y))
+        Offset(x, y) to h * (0.015f + 0.045f * rnd(seed, 160 + i))
     }
-    // Gloed, vulling en rand.
-    drawPath(body, Color(0x382BE06A), style = Stroke(h * 0.18f))
-    drawPath(body, Brush.verticalGradient(0f to Color(0xFF0B2616), 0.5f to Color(0xFF04120A), 1f to Color(0xFF020A05)))
-    // Groene oliefilm die over de veeg schuift.
+
+    // 1. Schaduw eerst, een stukje lager en naar rechts, zodat de ooze boven de ondergrond lijkt te hangen.
+    translate(left = dx, top = dy) {
+        drawPath(body, shadow)
+        drips.forEach { d ->
+            if (d.attached) drawLine(shadow.copy(alpha = 0.44f * d.alpha), Offset(d.x, d.top), d.bulb, d.r * 1.1f, StrokeCap.Round)
+            drawCircle(shadow.copy(alpha = 0.44f * d.alpha), d.r * 1.15f, d.bulb)
+        }
+        splats.forEach { (c, r) -> drawCircle(shadow, r, c) }
+    }
+    // 2. Gloed om de veeg.
+    drawPath(body, Color(0x302BE06A), style = Stroke(h * 0.18f))
+    // 3. Druppels achter de veeg: hals met ronde zijkanten (licht in het midden), bol met diepte en een glimlicht.
+    drips.forEach { d ->
+        if (d.attached) {
+            drawLine(Brush.horizontalGradient(listOf(deep, mid, deep), startX = d.x - d.r, endX = d.x + d.r), Offset(d.x, d.top), d.bulb, d.r * 0.95f, StrokeCap.Round)
+        }
+        drawCircle(
+            Brush.radialGradient(listOf(Color(0xFF2FA85A), mid, deep), Offset(d.bulb.x - d.r * 0.35f, d.bulb.y - d.r * 0.35f), d.r * 1.6f),
+            d.r, d.bulb, alpha = d.alpha,
+        )
+        drawCircle(green.copy(alpha = 0.7f * d.alpha), d.r, d.bulb, style = Stroke(h * 0.02f))
+        drawCircle(Color(0xCCE2FFE9).copy(alpha = 0.8f * d.alpha), d.r * 0.28f, Offset(d.bulb.x - d.r * 0.38f, d.bulb.y - d.r * 0.42f))
+    }
+    splats.forEach { (c, r) ->
+        drawCircle(Brush.radialGradient(listOf(mid, dark, deep), Offset(c.x - r * 0.3f, c.y - r * 0.3f), r * 1.5f), r, c)
+        if (r > h * 0.035f) drawCircle(Color(0x99CCFFDD), r * 0.25f, Offset(c.x - r * 0.35f, c.y - r * 0.35f))
+    }
+    // 4. Vulling: boven licht (waar het licht valt), onder diep donker; daarna een donkere onderrand voor volume.
+    drawPath(body, Brush.verticalGradient(0f to Color(0xFF17592F), 0.28f to Color(0xFF0B3019), 0.62f to dark, 1f to deep))
     clipPath(body) {
+        drawRect(Brush.verticalGradient(0.55f to Color.Transparent, 1f to Color(0xAA000000), startY = 0f, endY = h))
+        // Groene oliefilm die over de veeg schuift.
         val shift = wobble * w * 0.5f
         val film = Brush.horizontalGradient(
             listOf(Color.Transparent, Color(0x8838E87A), Color(0xBB7DF0A8), Color(0x6638E87A), Color.Transparent),
             startX = -w * 0.3f + shift, endX = w * 0.55f + shift,
         )
         val sheen = Path().apply {
-            moveTo(w * 0.04f, h * 0.4f)
-            quadraticBezierTo(w * 0.45f, h * (0.28f + 0.07f * sin(wobble * 6.2832f)), w * 0.92f, h * 0.4f)
+            moveTo(w * 0.04f, h * 0.36f)
+            quadraticBezierTo(w * 0.45f, h * (0.24f + 0.07f * sin(wobble * 6.2832f)), w * 0.92f, h * 0.36f)
         }
-        drawPath(sheen, film, style = Stroke(h * 0.09f, cap = StrokeCap.Round))
+        drawPath(sheen, film, style = Stroke(h * 0.08f, cap = StrokeCap.Round))
         val sheen2 = Path().apply {
             moveTo(w * 0.2f, h * 0.68f)
             quadraticBezierTo(w * 0.5f, h * 0.76f, w * 0.78f, h * 0.66f)
         }
-        drawPath(sheen2, film, alpha = 0.55f, style = Stroke(h * 0.05f, cap = StrokeCap.Round))
+        drawPath(sheen2, film, alpha = 0.4f, style = Stroke(h * 0.05f, cap = StrokeCap.Round))
+        // Gaten: van binnen een schaduw aan de bovenkant (de ooze is dik) en licht op de onderrand.
+        holes.forEach { (c, r) ->
+            drawCircle(Brush.verticalGradient(0f to Color(0xCC000000), 0.55f to Color.Transparent, startY = c.y - r * 1.4f, endY = c.y + r), r * 1.4f, c, style = Stroke(r * 0.8f))
+        }
     }
-    drawPath(body, green, style = Stroke(h * 0.045f))
-    // Bellen die knappen: een ring die groeit en vervaagt, met kleine druppels.
+    // 5. Rand: licht aan de bovenkant, donkerder groen onderaan.
+    drawPath(body, Brush.verticalGradient(0f to Color(0xFF7DFFAA), 0.5f to green, 1f to Color(0xFF0C7A32)), style = Stroke(h * 0.045f))
+    holes.forEach { (c, r) ->
+        drawCircle(Brush.verticalGradient(0f to Color(0xFF0C7A32), 1f to Color(0xFF7DFFAA), startY = c.y - r, endY = c.y + r), r, c, style = Stroke(h * 0.022f))
+    }
+    // 6. Glimlichten op de bulten van de bovenkant: kleine natte plekjes.
+    for (k in 0 until 3) {
+        val x = w * (0.15f + 0.3f * k + 0.1f * rnd(seed, 230 + k))
+        val y = h * (0.22f + 0.08f * rnd(seed, 240 + k))
+        drawOval(Color(0x88E2FFE9), Offset(x - h * 0.08f, y - h * 0.025f), Size(h * 0.16f, h * 0.05f))
+    }
+    // 7. Bellen die knappen: eerst een bolletje met glimlicht, dan een ring die groeit en vervaagt, met kleine druppels.
     for (k in 0 until 3) {
         val p = (t * 2f + k / 3f) % 1f
         val c = Offset(w * (0.12f + 0.76f * rnd(seed, 200 + k)), h * (0.34f + 0.32f * rnd(seed, 210 + k)))
-        drawCircle(Color(0xFF7DF0A8).copy(alpha = 0.9f * (1f - p)), h * 0.18f * p, c, style = Stroke(h * 0.022f))
-        if (p > 0.35f) for (j in 0 until 4) {
-            val ang = j * 1.5708f + k
-            val d = h * 0.26f * p
-            drawCircle(Color(0xFF7DF0A8).copy(alpha = 0.8f * (1f - p)), h * 0.02f, Offset(c.x + kotlin.math.cos(ang) * d, c.y + sin(ang) * d))
+        if (p < 0.3f) {
+            val r = h * 0.07f * smooth(p / 0.3f)
+            drawCircle(Brush.radialGradient(listOf(Color(0x664BE88A), Color(0x22104A25)), c, r.coerceAtLeast(0.1f)), r, c)
+            drawCircle(Color(0xAA7DF0A8), r, c, style = Stroke(h * 0.015f))
+            drawCircle(Color(0xCCE2FFE9), r * 0.3f, Offset(c.x - r * 0.35f, c.y - r * 0.4f))
+        } else {
+            val q = (p - 0.3f) / 0.7f
+            drawCircle(Color(0xFF7DF0A8).copy(alpha = 0.9f * (1f - q)), h * 0.07f + h * 0.12f * q, c, style = Stroke(h * 0.022f))
+            for (j in 0 until 4) {
+                val ang = j * 1.5708f + k
+                val d = h * 0.26f * q
+                drawCircle(Color(0xFF7DF0A8).copy(alpha = 0.8f * (1f - q)), h * 0.02f, Offset(c.x + kotlin.math.cos(ang) * d, c.y + sin(ang) * d))
+            }
         }
     }
-    holes.forEach { (c, r) -> drawCircle(Color(0xFF47E884), r, c, style = Stroke(h * 0.022f)) }
 }
 
 /** Lightning: echte bliksem. Een paar keer per halve minuut, op onregelmatige momenten (soms twee vlak na elkaar), elke keer met een andere vorm en een knipperende nagloed. */

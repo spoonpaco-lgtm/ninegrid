@@ -1,5 +1,7 @@
 package nl.spoonpaco.ninegrid.ui.components
 
+import nl.spoonpaco.ninegrid.domain.FxSet
+
 import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorEvent
@@ -49,14 +51,20 @@ import androidx.compose.ui.unit.sp
 val LocalEffects = staticCompositionLocalOf { true }
 
 /** Hoe ver de telefoon gekanteld is, van −1 (links) tot 1 (rechts). Alleen gelezen tijdens het tekenen. */
+/** Welke Magic-effecten los aan staan (hoofdschakelaar en per effect). */
+val LocalFx = staticCompositionLocalOf { FxSet() }
+
 val LocalTilt = staticCompositionLocalOf<State<Float>> { mutableFloatStateOf(0f) }
 
 /** Leest de bewegingssensor zolang de app op het scherm staat (alleen als de effecten aan staan). */
 @Composable
-fun EffectsProvider(enabled: Boolean, content: @Composable () -> Unit) {
+fun EffectsProvider(enabled: Boolean, fxOff: String = "", content: @Composable () -> Unit) {
+    val fx = remember(enabled, fxOff) { FxSet.parse(enabled, fxOff) }
+    // Alleen de foil-glans gebruikt de kantelsensor.
+    val sensing = fx.on(FxSet.FOIL)
     val tilt = remember { mutableFloatStateOf(0f) }
     val context = LocalContext.current
-    DisposableEffect(enabled) {
+    DisposableEffect(sensing) {
         val sm = context.getSystemService(Context.SENSOR_SERVICE) as? SensorManager
         val sensor = sm?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
         val listener = object : SensorEventListener {
@@ -67,15 +75,15 @@ fun EffectsProvider(enabled: Boolean, content: @Composable () -> Unit) {
             }
             override fun onAccuracyChanged(s: Sensor?, a: Int) {}
         }
-        if (enabled && sensor != null) sm.registerListener(listener, sensor, SensorManager.SENSOR_DELAY_UI)
+        if (sensing && sensor != null) sm.registerListener(listener, sensor, SensorManager.SENSOR_DELAY_UI)
         onDispose { sm?.unregisterListener(listener) }
     }
-    CompositionLocalProvider(LocalEffects provides enabled, LocalTilt provides tilt, content = content)
+    CompositionLocalProvider(LocalEffects provides enabled, LocalFx provides fx, LocalTilt provides tilt, content = content)
 }
 
 /** Regenboogglans over een foil die meebeweegt als je de telefoon kantelt. */
 fun Modifier.foilShine(on: Boolean, strength: Float = 1f): Modifier = if (!on) this else composed {
-    val effects = LocalEffects.current
+    val effects = LocalFx.current.on(FxSet.FOIL)
     val tilt = LocalTilt.current
     if (!effects) this else drawWithContent {
         drawContent()
@@ -99,7 +107,7 @@ fun Modifier.foilShine(on: Boolean, strength: Float = 1f): Modifier = if (!on) t
  */
 @Composable
 fun ExileSwirl(onDone: () -> Unit) {
-    val effects = LocalEffects.current
+    val effects = LocalFx.current.on(FxSet.EXILE)
     val t = remember { Animatable(0f) }
     LaunchedEffect(Unit) {
         if (effects) t.animateTo(1f, tween(800, easing = LinearEasing))
@@ -147,8 +155,9 @@ fun LoyaltyShield(text: String, up: Boolean) {
 
 /** Een stempel: schuin, met dubbele rand, bijv. "Legaal" (groen), "Banned" (rood) of "Compleet". */
 @Composable
-fun Stamp(text: String, color: Color, icon: String? = null, angle: Float = -8f) {
-    if (!LocalEffects.current) {
+fun Stamp(text: String, color: Color, icon: String? = null, angle: Float = -8f, fancy: Boolean? = null) {
+    // [fancy] laat een ander effect (Winner/Loser) zelf beslissen; anders volgt de stempel de schakelaar Stempels.
+    if (!(fancy ?: LocalFx.current.on(FxSet.STAMPS))) {
         Text((icon?.let { "$it " } ?: "") + text, color = color, fontWeight = FontWeight.Bold, fontSize = 13.sp)
         return
     }

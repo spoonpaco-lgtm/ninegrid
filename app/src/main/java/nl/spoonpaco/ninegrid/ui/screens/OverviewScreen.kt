@@ -195,7 +195,7 @@ fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}, onSets: () ->
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 1.dp)) {
                             Text(stringResource(if (pc.days <= 7) R.string.price_change_week else R.string.price_change_month), fontSize = NgText.body, modifier = Modifier.weight(1f))
                             val amount = nl.spoonpaco.ninegrid.ui.components.money(kotlin.math.abs(pc.diff), cur) + String.format(java.util.Locale.getDefault(), " (%+.1f%%)", pc.pct)
-                            if (nl.spoonpaco.ninegrid.ui.components.LocalEffects.current) nl.spoonpaco.ninegrid.ui.components.LoyaltyShield((if (up) "+" else "−") + amount, up)
+                            if (nl.spoonpaco.ninegrid.ui.components.LocalFx.current.on(nl.spoonpaco.ninegrid.domain.FxSet.SHIELDS)) nl.spoonpaco.ninegrid.ui.components.LoyaltyShield((if (up) "+" else "−") + amount, up)
                             else Text((if (up) "▲ " else "▼ ") + amount, fontSize = NgText.body, fontWeight = FontWeight.Bold, color = if (up) NgColors.Synced else NgColors.Error)
                         }
                     }
@@ -253,7 +253,7 @@ fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}, onSets: () ->
                                     Text("${top.print.setCode} ${top.print.collectorNumber}", fontSize = NgText.body, color = extra.subtle)
                                     Text(m(top.oldUnit) + " → " + m(top.newUnit) + "  (" + pct(top.pct) + ")", fontSize = NgText.body)
                                     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 2.dp)) {
-                                        if (rising && nl.spoonpaco.ninegrid.ui.components.LocalEffects.current) nl.spoonpaco.ninegrid.ui.components.LoyaltyShield("+" + m(top.totalGain), up = true)
+                                        if (nl.spoonpaco.ninegrid.ui.components.LocalFx.current.on(nl.spoonpaco.ninegrid.domain.FxSet.SHIELDS)) nl.spoonpaco.ninegrid.ui.components.LoyaltyShield((if (rising) "+" else "−") + m(Math.abs(top.totalGain)), up = rising)
                                         else Text((if (rising) "▲ +" else "▼ −") + m(Math.abs(top.totalGain)), fontSize = NgText.body, fontWeight = FontWeight.Bold, color = if (rising) NgColors.Synced else NgColors.Error)
                                         if (top.quantity > 1) Text("  ·  " + nl.spoonpaco.ninegrid.ui.components.maskCount(stringResource(R.string.winner_copies, top.quantity), top.quantity), fontSize = NgText.body, color = extra.subtle)
                                     }

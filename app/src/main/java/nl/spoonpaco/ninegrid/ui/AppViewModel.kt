@@ -856,6 +856,10 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun setAccent(v: String) = viewModelScope.launch { settingsStore.setAccent(v) }
     fun setPrivacyStyle(v: String) = viewModelScope.launch { settingsStore.setPrivacyStyle(v) }
     fun setMoverEffect(v: String) = viewModelScope.launch { settingsStore.setMoverEffect(v) }
+    /** Eén Magic-effect los aan of uit ([id]: foil, exile, stamps, shields, movers, privacy). */
+    fun setFx(current: String, id: String, on: Boolean) = viewModelScope.launch {
+        settingsStore.setFxOff(nl.spoonpaco.ninegrid.domain.FxSet.toggle(current, id, on))
+    }
     /** Stand van Top movers onthouden: Week of Dag, Stijgers of Dalers, open of dicht. */
     fun setMoversView(week: Boolean, rising: Boolean, open: Boolean) = viewModelScope.launch {
         settingsStore.setMoversView(listOf(if (week) "week" else "day", if (rising) "up" else "down", if (open) "open" else "closed").joinToString(","))

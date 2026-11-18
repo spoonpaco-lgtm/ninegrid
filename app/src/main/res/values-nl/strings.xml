@@ -879,7 +879,13 @@
     <string name="accent_color">Gildekleur</string>
     <string name="accent_explain">Knoppen en grafieken in een manakleur of een combinatie van twee. Het logo blijft hetzelfde.</string>
     <string name="effects">Magic-effecten</string>
-    <string name="effects_explain">Foil-glans bij kantelen, verbannen-animatie en stempels.</string>
+    <string name="effects_explain">Alles in één keer aan of uit. Staat het aan, dan kun je hieronder elk effect los uitzetten.</string>
+    <string name="fx_foil">Foil-glans bij kantelen</string>
+    <string name="fx_exile">Verbannen-animatie bij verwijderen</string>
+    <string name="fx_stamps">Stempels (Legaal, Banned, Compleet)</string>
+    <string name="fx_shields">Loyalty-schildjes bij prijsbewegingen</string>
+    <string name="fx_movers">Winner en Loser of the Week</string>
+    <string name="fx_privacy">Bewegende privacystijlen</string>
     <string name="privacy_gate_title">Bevestig dat jij het bent</string>
     <string name="privacy_gate_off">Privacymodus uitzetten</string>
     <string name="privacy_gate_peek">Bedragen 15 seconden tonen</string>

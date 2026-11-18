@@ -123,7 +123,7 @@ fun Modifier.privacyMask(kind: PrivacyKind = PrivacyKind.CARD, value: Double? = 
     val p = LocalPrivacy.current
     // Met een grens (alleen dure kaarten) hangt het af van de waarde: een goedkope kaart blijft zichtbaar, een dure krijgt de gekozen stijl.
     if (!p.hides(kind, value) || p.style == PrivacyStyle.DOTS) return@composed this
-    val effects = LocalEffects.current
+    val effects = LocalFx.current.on(nl.spoonpaco.ninegrid.domain.FxSet.PRIVACY)
     if (p.style in PrivacyStyle.timeline && !effects) return@composed this
     val isSeal = p.style == PrivacyStyle.SEAL || p.style == PrivacyStyle.SEAL_SMALL
     val loop = if (p.style in PrivacyStyle.timeline) {

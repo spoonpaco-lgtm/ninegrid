@@ -30,6 +30,8 @@ object WhatsNew {
     private val NL = listOf(
         Item("Top movers op het Overzicht: welke kaarten van jou het meest stegen of daalden, per dag of per week, op geld (prijsverandering maal je aantal). Winner of the Week staat bovenaan, en nu is er ook Loser of the Week. Ingeklapt zie je alleen die; tik op de titel voor de hele lijst.", "overview"),
         Item("Effecten op Winner en Loser: een mythic-gloed en bloed dat van de verliezer afdruipt, of een stempel WINNER en DESTROYED. Kies onder Instellingen → Weergave.", "overview"),
+        Item("Magic-effecten per effect: naast de hoofdschakelaar zet je nu elk effect los aan of uit (foil-glans, verbannen, stempels, schildjes, Winner en Loser, bewegende privacystijlen).", "settings"),
+        Item("Toxic heeft diepte gekregen: schaduw, glanzende ooze en druppels met een glimlicht, zoals het bloed bij Loser of the Week.", "privacy"),
         Item("Scanner: de setlijst komt eerst uit de offline kaartdatabase. Kiezen binnen de set en het raster op de namen werken zo ook zonder internet.", "add"),
 
     )
@@ -37,6 +39,8 @@ object WhatsNew {
     private val EN = listOf(
         Item("Top movers on the Overview: which of your cards rose or fell the most, per day or per week, by money (price change times your copies). Winner of the Week sits on top, and there is now a Loser of the Week too. Collapsed you only see that one; tap the title for the full list.", "overview"),
         Item("Effects on Winner and Loser: a mythic glow and blood dripping off the loser, or a WINNER and DESTROYED stamp. Choose under Settings → View.", "overview"),
+        Item("Magic effects per effect: next to the main switch you can now turn each effect on or off (foil shine, exile, stamps, shields, Winner and Loser, animated privacy styles).", "settings"),
+        Item("Toxic got depth: a shadow, glossy ooze and drops with a highlight, like the blood on Loser of the Week.", "privacy"),
         Item("Scanner: the set list now comes from the offline card database first, so picking within the set and the grid on the names also work without internet.", "add"),
 
     )

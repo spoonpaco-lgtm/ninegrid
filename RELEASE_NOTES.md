@@ -7,6 +7,9 @@ Ob Nixilis, die van winst en verlies leeft: Top movers op het Overzicht, met Win
 - Week = maandag tegen de maandag ervoor (zelfde als Winner of the Week en de widget, blijft de hele week gelijk). Dag = laatste nachtelijke prijsupdate tegen die daarvoor.
 - Privacymodus: bedragen verborgen, percentages zichtbaar.
 - Effecten op de grote kaart (Instellingen → Weergave): Gloed en bloed (mythic-gloed om de winnaar; bloed dat van de onderkant van de verliezer afdruipt, in de stijl van de Completed-olie, met schaduw) of Stempels (WINNER goud, DESTROYED rood). Speelt één keer bij openen of wisselen. Zonder Magic-effecten een groen of rood randje.
+- Magic-effecten per effect (Instellingen → Weergave): de hoofdschakelaar zet alles in één keer aan of uit; staat hij aan, dan zet je elk effect los uit: foil-glans, verbannen-animatie, stempels, loyalty-schildjes, Winner en Loser of the Week, bewegende privacystijlen.
+- Toxic (privacystijl) vernieuwd in de stijl van het bloed bij Loser: schaduw eronder, glanzende vulling van licht naar diep donker, druppels met bol en glimlicht, gaten met een schaduwrand, bellen die eerst opzwellen en dan knappen.
+- Fix: bij Dalers had de grote kaart geen schildje; nu een rood ▼-schildje, zoals het groene ▲ bij Stijgers.
 - Scanner: de setlijst (namen en nummers) komt eerst uit de offline kaartdatabase, dan pas van Scryfall. Kiezen binnen de set, zoeken in andere regels en het raster op de namen werken zo zonder internet, met minder verzoeken aan Scryfall. Het setscherm haalt zijn prijzen nog bij Scryfall.
 
 NineGrid 0.9.13 – Nissa

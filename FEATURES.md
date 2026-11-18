@@ -89,7 +89,7 @@ Current version: **0.9.11 – Tezzeret**. Every version is named after a planesw
 - **Backup** by hand or weekly to a folder of your choice; restore on a new phone, everything or separate parts, with a summary of what is inside; CSV export.
 - **Update from the app**: daily check, background download (wifi by default), one tap to install.
 - **Privacy mode**: all amounts hidden except in the trade match; turning off, peeking, backup and export only with your fingerprint; styles Completed, Seal, Small seal, Shadow, Toxic, Lightning, Fog, Pixelized, Countered and Dots.
-- Settings in eight groups; date and time format of your choice; day and night (sun and moon); **guild colours**; Magic effects (foil shine when tilting, exile, stamps) can be turned off; English and Dutch. Back-up and export has its own screen on More.
+- Settings in eight groups; date and time format of your choice; day and night (sun and moon); **guild colours**; Magic effects (foil shine when tilting, exile, stamps, shields, Winner and Loser, animated privacy styles) can be turned off together or one by one; English and Dutch. Back-up and export has its own screen on More.
 - The backup is complete: cards, decks and deck rules, history, wishlist and price alerts, boosters, friends, change log and settings (not: AI key, offline database, images).
 - **Guide** in the app with search, a ? on every screen, and **What's new** after an update.
 

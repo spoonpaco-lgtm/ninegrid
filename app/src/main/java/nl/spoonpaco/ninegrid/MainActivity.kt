@@ -81,7 +81,7 @@ class MainActivity : AppCompatActivity() {
             val loaded: AppSettings? by vm.settingsStore.flow.collectAsState(initial = null)
             val s = loaded
             NineGridTheme(themeMode = s?.theme ?: "system", accent = s?.accent ?: "") {
-                nl.spoonpaco.ninegrid.ui.components.EffectsProvider(s?.effects ?: true) {
+                nl.spoonpaco.ninegrid.ui.components.EffectsProvider(s?.effects ?: true, s?.fxOff ?: "") {
                     nl.spoonpaco.ninegrid.ui.components.PrivacyProvider(vm) {
                         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                             if (s != null) {

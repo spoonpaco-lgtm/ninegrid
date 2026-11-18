@@ -880,7 +880,13 @@
     <string name="accent_color">Guild colour</string>
     <string name="accent_explain">Buttons and charts in a mana colour or a pair of two. The logo stays the same.</string>
     <string name="effects">Magic effects</string>
-    <string name="effects_explain">Foil shine when you tilt, exile animation and stamps.</string>
+    <string name="effects_explain">Everything on or off at once. When on, you can turn each effect off separately below.</string>
+    <string name="fx_foil">Foil shine when tilting</string>
+    <string name="fx_exile">Exile animation when removing</string>
+    <string name="fx_stamps">Stamps (Legal, Banned, Complete)</string>
+    <string name="fx_shields">Loyalty shields on price moves</string>
+    <string name="fx_movers">Winner and Loser of the Week</string>
+    <string name="fx_privacy">Animated privacy styles</string>
     <string name="privacy_gate_title">Confirm it\'s you</string>
     <string name="privacy_gate_off">Turn off privacy mode</string>
     <string name="privacy_gate_peek">Show amounts for 15 seconds</string>

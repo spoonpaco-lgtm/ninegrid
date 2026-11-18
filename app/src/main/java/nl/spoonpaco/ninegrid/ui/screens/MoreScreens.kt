@@ -259,13 +259,33 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit) {
                         }
                         Switch(checked = settings.effects, onCheckedChange = { vm.setEffects(it) })
                     }
+                    // Elk effect los aan of uit; alleen zichtbaar als de hoofdschakelaar aan staat.
+                    val fx = nl.spoonpaco.ninegrid.domain.FxSet.parse(settings.effects, settings.fxOff)
+                    if (settings.effects) {
+                        val fxLabels = mapOf(
+                            nl.spoonpaco.ninegrid.domain.FxSet.FOIL to R.string.fx_foil,
+                            nl.spoonpaco.ninegrid.domain.FxSet.EXILE to R.string.fx_exile,
+                            nl.spoonpaco.ninegrid.domain.FxSet.STAMPS to R.string.fx_stamps,
+                            nl.spoonpaco.ninegrid.domain.FxSet.SHIELDS to R.string.fx_shields,
+                            nl.spoonpaco.ninegrid.domain.FxSet.MOVERS to R.string.fx_movers,
+                            nl.spoonpaco.ninegrid.domain.FxSet.PRIVACY to R.string.fx_privacy,
+                        )
+                        nl.spoonpaco.ninegrid.domain.FxSet.all.forEach { id ->
+                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(start = 16.dp)) {
+                                Text(stringResource(fxLabels.getValue(id)), fontSize = NgText.body, modifier = Modifier.weight(1f))
+                                Switch(checked = fx.on(id), onCheckedChange = { vm.setFx(settings.fxOff, id, it) })
+                            }
+                        }
+                    }
                     // Effect op Winner/Loser of the Week (Overzicht): gloed en bloed, of stempels.
+                    if (fx.on(nl.spoonpaco.ninegrid.domain.FxSet.MOVERS)) {
                     Text(stringResource(R.string.mover_effect_title), modifier = Modifier.padding(top = 8.dp))
                     androidx.compose.material3.SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
                         SegmentedButton(selected = settings.moverEffect != "stamp", onClick = { vm.setMoverEffect("glow") }, shape = androidx.compose.material3.SegmentedButtonDefaults.itemShape(0, 2)) { Text(stringResource(R.string.mover_effect_glow)) }
                         SegmentedButton(selected = settings.moverEffect == "stamp", onClick = { vm.setMoverEffect("stamp") }, shape = androidx.compose.material3.SegmentedButtonDefaults.itemShape(1, 2)) { Text(stringResource(R.string.mover_effect_stamp)) }
                     }
                     Text(stringResource(R.string.mover_effect_explain), fontSize = NgText.body, color = nl.spoonpaco.ninegrid.ui.theme.LocalNgExtra.current.subtle)
+                    }
                 }
                 SettingsGroup.PRIVACY -> {
                     // Privacymodus: aanzetten mag altijd, uitzetten en de stijl wijzigen alleen na vingerafdruk.

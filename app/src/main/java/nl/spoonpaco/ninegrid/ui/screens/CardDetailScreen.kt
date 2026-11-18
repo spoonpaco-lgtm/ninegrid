@@ -461,7 +461,7 @@ private fun PriceHistoryBlock(vm: AppViewModel, printId: String, hasFoilCopy: Bo
                     val up = diff >= 0
                     val text = (if (up) "+" else "−") + nl.spoonpaco.ninegrid.ui.components.money(kotlin.math.abs(diff), cur) +
                         (pct?.let { String.format(java.util.Locale.getDefault(), " (%+.1f%%)", it) } ?: "")
-                    if (nl.spoonpaco.ninegrid.ui.components.LocalEffects.current) nl.spoonpaco.ninegrid.ui.components.LoyaltyShield(text, up)
+                    if (nl.spoonpaco.ninegrid.ui.components.LocalFx.current.on(nl.spoonpaco.ninegrid.domain.FxSet.SHIELDS)) nl.spoonpaco.ninegrid.ui.components.LoyaltyShield(text, up)
                     else Text((if (up) "▲ " else "▼ ") + text, fontSize = NgText.body, fontWeight = FontWeight.Bold, color = if (up) NgColors.Synced else NgColors.Error)
                 }
                 Text(if (open) "  ▾" else "  ▸", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)

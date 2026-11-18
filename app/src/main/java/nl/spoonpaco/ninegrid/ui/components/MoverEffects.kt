@@ -50,7 +50,7 @@ private fun moverRnd(seed: Int, i: Int): Float {
 @Composable
 fun MoverFrame(rising: Boolean, style: String, playKey: Any, content: @Composable () -> Unit) {
     val shape = RoundedCornerShape(10.dp)
-    if (!LocalEffects.current) {
+    if (!LocalFx.current.on(nl.spoonpaco.ninegrid.domain.FxSet.MOVERS)) {
         Box(Modifier.border(1.dp, if (rising) Win else Lose, shape).padding(8.dp)) { content() }
         return
     }
@@ -63,7 +63,7 @@ fun MoverFrame(rising: Boolean, style: String, playKey: Any, content: @Composabl
             val t = ((p.value - 0.2f) / 0.4f).coerceIn(0f, 1f)
             val scale = if (t < 0.7f) 2.4f - (2.4f - 0.92f) * (t / 0.7f) else 0.92f + 0.08f * ((t - 0.7f) / 0.3f)
             if (t > 0f) Box(Modifier.align(Alignment.CenterEnd).graphicsLayer { scaleX = scale; scaleY = scale; alpha = (t * 1.6f).coerceAtMost(1f) }) {
-                Stamp(if (rising) "Winner" else "Destroyed", if (rising) Gold else Lose, angle = -10f)
+                Stamp(if (rising) "Winner" else "Destroyed", if (rising) Gold else Lose, angle = -10f, fancy = true)
             }
         }
         rising -> Box(
