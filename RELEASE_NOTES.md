@@ -1,3 +1,25 @@
+NineGrid 0.9.12 – Kasmina
+
+Kasmina, die ziet wat anderen missen: een versie om de scanner betrouwbaarder te maken, op basis van de eerste testset-meting op de telefoon (18 nov: 98 van 144 vakken goed, 8 groen maar fout, 33 niet gevonden). Gebouwd en getest met unittests; nog niet op een echte telefoon geprobeerd.
+
+Groen is weer te vertrouwen
+- Nieuwe naamvergelijking (domain/NameMatch.kt). Vroeger telde een naam al als gelijk als het gelezen stuk erin zat ("Keyrune" → Azorius Keyrune) of de helft van de letters klopte, en won de eerste kaart die paste. Nu kiest de app binnen de set de naam die het best past, alleen als die duidelijk beter past dan de op één na beste, en het gelezen nummer telt alleen als de kaart bij dat nummer ook de best passende naam is.
+- Groen vraagt een naam die voor 80% lijkt (zoals de testset telt).
+- De 8 gevallen uit de testset (Gloomwidow/Gloom Surgeon, Golgari/Azorius Keyrune, Selesnya Keyrune/Sentry, Raid/Goblin Bombardment, Nightveil Predator/Sprite, Knight of Autumn, Feed the Infection) staan als unittest.
+
+Geen print meer op de gok
+- Geen set ingevuld en geen nummer gelezen: de kaart staat oranje ("geen set of nummer gelezen: kijk welke print"), in plaats van een willekeurige print in het groen (Shock werd MSC 809, Lightning Mauler INR 399).
+- Bestaan alle gevonden kaarten van het blad samen in één set (minstens 3), dan vraagt het controlescherm: "Alle kaarten op dit blad bestaan in Avacyn Restored (AVR). Die set gebruiken?" Pas na een tik op Ja, gebruiken telt die set en wordt alles opnieuw opgezocht, alsof je hem in de scanner had ingevuld. Bij twee gezamenlijke sets de oudste.
+
+Lezen
+- Splitkaarten (Discovery // Dispersal): een vak zonder naam wordt een kwartslag gedraaid gelezen; twee namen = een splitkaart.
+- Galerijfoto met een stuk buurpagina (kaartruggen links): tekst die met een gat van het blad gescheiden is en weinig regels heeft, telt niet mee voor het raster.
+- Jaartallen met de W van Wizards ("2025W", "202W") tellen niet als kaartnummer.
+
+Testset
+- Testset draaien meet met het kader van de camera: kader.txt per blad (links boven rechts onder, in pixels van de foto), anders de hele foto. Daarnaast hetzelfde als galerijfoto, met het totaal bovenaan.
+- testset/: kader.txt voor de bladen waar het blad maar een deel van de foto beslaat.
+
 NineGrid 0.9.11 – Tezzeret
 
 Tezzeret, de uitvinder die alles met alles verbindt: een versie om je lijsten de deur uit te krijgen en om crashes en scanfouten beter te kunnen zien. Gebouwd en getest met unittests; nog niet op een echte telefoon geprobeerd.

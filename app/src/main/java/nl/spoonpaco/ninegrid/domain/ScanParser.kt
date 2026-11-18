@@ -74,7 +74,12 @@ object ScanParser {
     }
 
     /** Een jaartal van de copyrightregel: vier cijfers tussen 2000 en 2030. */
-    fun isCopyrightYear(n: String) = n.length == 4 && n.all { it.isDigit() } && n.toInt() in 2000..2030
+    fun isCopyrightYear(n: String): Boolean {
+        // "2025W" en "202W": het jaartal met de W van Wizards erachter (testset 17 nov).
+        val digits = n.trimEnd('W', 'w')
+        if (digits.length == 4 && digits.all { it.isDigit() } && digits.toInt() in 2000..2030) return true
+        return digits.length < n.length && digits.length == 3 && digits.startsWith("20") && digits.all { it.isDigit() }
+    }
 
     /** Setcode zonder taal ("MH2" alleen op een regel), of null. */
     private fun bareSetIn(t: String): String? = bareSet.matchEntire(t)?.groupValues?.get(1)?.takeIf { it !in notASet }?.let(::fixSetCode)
@@ -188,7 +193,7 @@ object ScanParser {
      * volgend blad de vakken niet verschuift.
      */
     fun analyze(all: List<OcrLine>, width: Int, height: Int, crop: Area? = null): ScanResult {
-        val lines = if (crop != null) all.filter { crop.contains(it.centerX, it.centerY) } else all
+        val lines = if (crop != null) all.filter { crop.contains(it.centerX, it.centerY) } else mainBlock(all, width, height)
         val area = crop ?: Area(0f, 0f, width.toFloat(), height.toFloat())
         val coverage = if (lines.size < 2) 0f else {
             val w = (lines.maxOf { it.centerX } - lines.minOf { it.centerX }) / area.width
@@ -198,6 +203,42 @@ object ScanParser {
         val (slots, frame) = parseWithFrame(lines, width, height, crop)
         return ScanResult(slots, coverage, lines.size, frame)
     }
+
+    /**
+     * Een foto zonder kader (galerij): alleen het blok tekst van het blad zelf. Tekst die door een lege strook van
+     * het blad gescheiden is en weinig regels heeft (kaartruggen van de buurpagina, een stukje volgend blad), telt
+     * niet mee; anders trekt die het raster scheef en komen namen in de verkeerde vakken (testset 18 nov, WAR-blad).
+     * Een lege kolom midden op het blad blijft staan: aan beide kanten zit dan veel tekst.
+     */
+    fun mainBlock(lines: List<OcrLine>, width: Int, height: Int): List<OcrLine> {
+        if (lines.size < 12) return lines
+        // Alleen links en rechts (de buurpagina in een map). Boven en onder niet: tussen de naam en de typeregel
+        // van een kaart zit de illustratie zonder tekst, en dat gat zou de namen van de bovenste rij laten wegvallen.
+        return trimEdges(lines, width * GAP_SHARE) { it.centerX }
+    }
+
+    /** Losse tekst moet minstens zo ver van het blad liggen (deel van de foto) om weg te vallen. */
+    private const val GAP_SHARE = 0.06f
+    /** En hoogstens zo'n deel van alle regels hebben. */
+    private const val EDGE_SHARE = 0.15f
+
+    /** Verdeelt de regels langs één as in groepen gescheiden door een gat groter dan [gap]; kleine groepen aan de rand vallen weg. */
+    internal fun trimEdges(lines: List<OcrLine>, gap: Float, pos: (OcrLine) -> Float): List<OcrLine> {
+        val sorted = lines.sortedBy(pos)
+        val groups = mutableListOf(mutableListOf(sorted.first()))
+        for (i in 1 until sorted.size) {
+            if (pos(sorted[i]) - pos(sorted[i - 1]) > gap) groups += mutableListOf<OcrLine>()
+            groups.last() += sorted[i]
+        }
+        if (groups.size < 2) return lines
+        var from = 0; var to = groups.size - 1
+        while (from < to && groups[from].size < lines.size * EDGE_SHARE) from++
+        while (to > from && groups[to].size < lines.size * EDGE_SHARE) to--
+        return groups.subList(from, to + 1).flatten()
+    }
+
+    /** De regels die op een kaartnaam lijken, in volgorde (voor een gedraaid gelezen vak). */
+    fun nameLines(lines: List<String>): List<String> = lines.mapNotNull { nameCandidate(it) }.distinct()
 
     private fun looseName(raw: String): String? {
         val t = raw.replace(Regex("""[^\p{L} ,'/\-]"""), " ").replace(Regex("""\s+"""), " ").trim()
@@ -297,6 +338,8 @@ object ScanParser {
     fun sanitize(r: SlotRead, knownSets: Set<String>, nameIsEnglish: Boolean): SlotRead {
         var set = r.setCode; var lang = r.language
         if (knownSets.isNotEmpty() && set != null && set !in knownSets) { set = null; lang = null }
+        // Een jaartal van de copyrightregel is geen kaartnummer, ook niet als het via de tweede leespoging binnenkwam.
+        if (r.collectorNumber != null && isCopyrightYear(r.collectorNumber)) return r.copy(setCode = set, language = lang, collectorNumber = null).let { sanitize(it, knownSets, nameIsEnglish) }
         if (!lang.isNullOrEmpty()) {
             if (nameIsEnglish) lang = null
             else if (r.name == null && !(set != null && r.collectorNumber != null)) lang = null
@@ -320,7 +363,7 @@ object ScanParser {
 
     /** Eén losse kaart in het kader: alle tekst hoort bij die kaart. */
     fun analyzeSingle(all: List<OcrLine>, width: Int, height: Int, crop: Area?): ScanResult {
-        val lines = if (crop != null) all.filter { crop.contains(it.centerX, it.centerY) } else all
+        val lines = if (crop != null) all.filter { crop.contains(it.centerX, it.centerY) } else mainBlock(all, width, height)
         val area = crop ?: Area(0f, 0f, width.toFloat(), height.toFloat())
         if (lines.isEmpty()) return ScanResult(listOf(SlotRead(1, null, null, null, emptyList())), 0f, 0, area)
         // De kaart zelf: van de bovenste tot de onderste regel, iets ruimer.

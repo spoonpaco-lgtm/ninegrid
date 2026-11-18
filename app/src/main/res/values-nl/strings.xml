@@ -1035,6 +1035,7 @@
     <string name="combos_view_names">Namen</string>
     <string name="scan_other_set">niet in %1$s, wel in %2$s</string>
     <string name="scan_ambiguous_print">meerdere prints, kijk welke het is</string>
+    <string name="scan_guessed_print">geen set of nummer gelezen: kijk welke print</string>
     <string name="review_group_check">Controleer (%1$d)</string>
     <string name="review_group_foil">Foil checken (%1$d)</string>
     <string name="review_group_ok">Zeker (%1$d)</string>
@@ -1140,6 +1141,8 @@
     <string name="dev_testset_title">Uitslag testset</string>
     <string name="dev_testset_share">Delen</string>
     <string name="review_all_to">Alle kaarten naar:</string>
+    <string name="review_set_suggestion">Alle kaarten op dit blad bestaan in %1$s (%2$s). Die set gebruiken?</string>
+    <string name="review_set_suggestion_yes">Ja, gebruiken</string>
     <string name="privacy_scope">Wat verbergen</string>
     <string name="privacy_scope_all">Alles</string>
     <string name="privacy_scope_totals">Alleen totalen</string>

@@ -257,9 +257,37 @@ internal suspend fun reread(bmp: Bitmap, result: ScanResult, single: Boolean, kn
         if (enriched.setCode == null || enriched.collectorNumber == null) {
             enriched = ScanParser.enrich(enriched, emptyList(), runCatching { readStrip(bmp, bottomArea, highContrast = true, scale = 3) }.getOrDefault(emptyList()), knownSets)
         }
+        // Nog steeds geen naam: misschien een splitkaart (Discovery // Dispersal), die ligt gedraaid in het hoesje.
+        // Lees het vak een kwartslag gedraaid, beide kanten op, en neem de namen bovenaan elke helft.
+        if (!single && enriched.name == null && !enriched.complete) {
+            val names = runCatching { rotatedNames(bmp, cell) }.getOrDefault(emptyList())
+            if (names.isNotEmpty()) enriched = enriched.copy(name = names.first(), altNames = (names.drop(1) + enriched.altNames).distinct())
+        }
         enriched
     }
     return result.copy(slots = slots) to count
+}
+
+/**
+ * Een vak een kwartslag gedraaid lezen (eerst linksom, dan rechtsom) en de regels die op een kaartnaam lijken
+ * teruggeven, bovenste eerst. Voor splitkaarten, waarvan de tekst in het hoesje op zijn kant staat.
+ */
+private suspend fun rotatedNames(bmp: Bitmap, cell: Area): List<String> {
+    val l = cell.left.toInt().coerceIn(0, bmp.width - 1); val t = cell.top.toInt().coerceIn(0, bmp.height - 1)
+    val w = cell.width.toInt().coerceIn(1, bmp.width - l); val h = cell.height.toInt().coerceIn(1, bmp.height - t)
+    val part = Bitmap.createBitmap(bmp, l, t, w, h)
+    val factor = minOf(2f, 2400f / maxOf(w, h)).coerceAtLeast(1f)
+    val big = Bitmap.createScaledBitmap(part, (w * factor).toInt().coerceAtLeast(1), (h * factor).toInt().coerceAtLeast(1), true)
+    for (deg in listOf(-90f, 90f)) {
+        val m = android.graphics.Matrix().apply { postRotate(deg) }
+        val turned = Bitmap.createBitmap(big, 0, 0, big.width, big.height, m, true)
+        val lines = recognize(InputImage.fromBitmap(turned, 0)).textBlocks.flatMap { it.lines }
+            .sortedBy { it.boundingBox?.top ?: 0 }.map { it.text }
+        // Een splitkaart heeft twee namen; eis er minstens twee, zodat een leeg hoesje met wat glans geen "naam" krijgt.
+        val names = ScanParser.nameLines(lines).filter { n -> n.count { it.isLetter() } >= 4 }
+        if (names.size >= 2) return names.take(3)
+    }
+    return emptyList()
 }
 
 /** Ruimt wat de voetregel verkeerd gaf op, zie ScanParser.sanitize en ScanParser.alignToPage. Ook gebruikt door Testset draaien. */

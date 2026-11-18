@@ -24,6 +24,8 @@ internal suspend fun runTestset(ctx: Context, tree: Uri, vm: AppViewModel, progr
     if (dirs.isEmpty()) return "Geen bladen gevonden. Kies de map met submappen die een uitslag.txt en foto.jpg bevatten (zoals testset/ in de repo)."
     val body = StringBuilder()
     var ok = 0; var total = 0; var sureWrong = 0; var checkRight = 0; var notFound = 0; var rawOk = 0
+    // Ook als galerijfoto (zonder kader), alleen het totaal: zo blijft zichtbaar of een galerijfoto met een stuk buurpagina werkt.
+    var galleryOk = 0; var galleryTotal = 0; var gallerySureWrong = 0
     val t0 = System.currentTimeMillis()
     val prevSet = vm.scanSet
     try {
@@ -36,10 +38,18 @@ internal suspend fun runTestset(ctx: Context, tree: Uri, vm: AppViewModel, progr
                 val file = dir.findFile(fname) ?: continue
                 progress("${dir.name}/$fname")
                 body.appendLine("\n== ${dir.name}/$fname")
+                // Het kader zoals de camera het geeft: kader.txt (bij foto-2: kader-2.txt) met "links boven rechts onder" in pixels
+                // van de foto, om het blad heen. Zonder bestand vult het blad de foto en is het kader de hele foto.
+                val bmp = try { loadPhoto(ctx, file.uri) } catch (e: Exception) { body.appendLine("fout: ${e.message}"); continue }
+                val kaderName = if (fname == "foto.jpg") "kader.txt" else "kader-2.txt"
+                val kader = dir.findFile(kaderName)?.let { f ->
+                    runCatching { ctx.contentResolver.openInputStream(f.uri)!!.bufferedReader().readText().trim().split(Regex("""\s+""")).map { it.toFloat() } }.getOrNull()
+                }?.takeIf { it.size == 4 }?.let { nl.spoonpaco.ninegrid.domain.Area(it[0], it[1], it[2], it[3]) }
+                    ?: nl.spoonpaco.ninegrid.domain.Area(0f, 0f, bmp.width.toFloat(), bmp.height.toFloat())
+                for (camera in listOf(true, false)) {
                 // 1. lezen, zoals ScanScreen.process
                 val slots = try {
-                    val bmp = loadPhoto(ctx, file.uri)
-                    val first = readImage(bmp, null, false)
+                    val first = readImage(bmp, if (camera) kader else null, false)
                     val (r00, _) = reread(bmp, first, false, vm.setInfo.keys)
                     val r0 = tidyReads(vm, r00, false)
                     markEmpty(bmp, r0).slots
@@ -57,17 +67,25 @@ internal suspend fun runTestset(ctx: Context, tree: Uri, vm: AppViewModel, progr
                     val p = item?.print
                     val blank = item == null || item.empty || (p == null && item.status != ItemStatus.FOUND)
                     val v = TestsetScore.judge(e, p?.name, p?.setCode, p?.collectorNumber, blank)
+                    val sure = item?.confident == true && item.status == ItemStatus.FOUND
+                    if (!camera) {
+                        galleryTotal++
+                        if (v.ok) { galleryOk++; good++ }
+                        if (!e.empty && sure && !v.ok) gallerySureWrong++
+                        continue
+                    }
                     total++
                     if (v.ok) { ok++; good++ }
                     if (!e.empty) {
-                        val sure = item?.confident == true && item.status == ItemStatus.FOUND
                         if (sure && !v.ok) sureWrong++
                         if (!sure && v.ok) checkRight++
                         if (p == null) notFound++
                     }
                     if (!v.ok) body.appendLine("vak $slot: FOUT · verwacht ${TestsetScore.describe(e)} · kreeg ${if (p == null) "niets" else "${p.name} (${p.setCode.uppercase()} ${p.collectorNumber})"} · ${when { item == null -> "geen vak"; item.confident && item.status == ItemStatus.FOUND -> "groen (zeker)"; item.status == ItemStatus.FOUND -> "oranje"; else -> "niet gevonden" }}")
                 }
+                if (!camera) { body.appendLine("als galerijfoto: $good van ${expected.size} vakken goed"); continue }
                 body.appendLine("$good van ${expected.size} vakken goed")
+                }
             }
         }
     } finally {
@@ -78,7 +96,8 @@ internal suspend fun runTestset(ctx: Context, tree: Uri, vm: AppViewModel, progr
         appendLine("NineGrid testset, volledige scanroute (versie ${nl.spoonpaco.ninegrid.BuildConfig.VERSION_NAME}, ${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL})")
         appendLine("Totaal: $total vakken, $ok helemaal goed na opzoeken · $secs s")
         appendLine("Groen maar fout (het ergste): $sureWrong · oranje maar goed: $checkRight · niet gevonden: $notFound")
-        appendLine("Met de set van de mapnaam ingevuld, zoals jij de app gebruikt. Zoals een scan uit de galerij (zonder kader van de camera). Namen tellen goed bij 80% gelijkenis. Heeft internet nodig voor kaarten die de offline database niet kent.")
+        appendLine("Als galerijfoto (zonder kader): $galleryOk van $galleryTotal goed · groen maar fout: $gallerySureWrong")
+        appendLine("Met de set van de mapnaam ingevuld, zoals jij de app gebruikt. Met het kader van de camera (kader.txt, anders de hele foto); daaronder hetzelfde als galerijfoto. Namen tellen goed bij 80% gelijkenis. Heeft internet nodig voor kaarten die de offline database niet kent.")
         append(body)
     }
 }

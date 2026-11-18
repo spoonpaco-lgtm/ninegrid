@@ -1036,6 +1036,7 @@
     <string name="combos_view_names">Names</string>
     <string name="scan_other_set">not in %1$s, found in %2$s</string>
     <string name="scan_ambiguous_print">several prints, check which one</string>
+    <string name="scan_guessed_print">no set or number read: check which print</string>
     <string name="review_group_check">Check (%1$d)</string>
     <string name="review_group_foil">Check foil (%1$d)</string>
     <string name="review_group_ok">Sure (%1$d)</string>
@@ -1141,6 +1142,8 @@
     <string name="dev_testset_title">Test set result</string>
     <string name="dev_testset_share">Share</string>
     <string name="review_all_to">All cards to:</string>
+    <string name="review_set_suggestion">All cards on this page exist in %1$s (%2$s). Use that set?</string>
+    <string name="review_set_suggestion_yes">Yes, use it</string>
     <string name="privacy_scope">What to hide</string>
     <string name="privacy_scope_all">Everything</string>
     <string name="privacy_scope_totals">Only totals</string>

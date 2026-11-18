@@ -1141,4 +1141,88 @@ class ParserTest {
         assertFalse(above.hides(C, 9.99)); assertTrue(above.hides(C, 10.01)); assertTrue(above.hides(T, 1.0))
         assertTrue(P(hidden = true, counts = true).hidesCounts && !P(hidden = true).hidesCounts && !P(hidden = false, counts = true).hidesCounts)
     }
+
+    // 0.9.12: groen maar fout uit de testset van 18 nov mag nooit meer. Het stuk dat gelezen werd, mag niet
+    // genoeg zijn voor de verkeerde kaart, en een volledige naam moet de goede kaart kiezen.
+    @Test
+    fun nameMatchTestsetPairs() {
+        val M = nl.spoonpaco.ninegrid.domain.NameMatch
+        // Een stuk naam dat in twee kaarten past: geen keuze (oranje of niet gevonden, nooit de verkeerde).
+        assertNull(M.best("Gloom", listOf("Gloomwidow", "Gloom Surgeon")))
+        assertNull(M.best("Keyrune", listOf("Golgari Keyrune", "Azorius Keyrune", "Selesnya Keyrune")))
+        assertNull(M.best("Selesnya", listOf("Selesnya Keyrune", "Selesnya Sentry")))
+        assertNull(M.best("Bombardment", listOf("Raid Bombardment", "Goblin Bombardment")))
+        assertNull(M.best("Nightveil", listOf("Nightveil Predator", "Nightveil Sprite")))
+        // Goed gelezen of met leesfouten: de juiste kaart.
+        assertEquals("Gloomwidow", M.best("Gloomwidow", listOf("Gloomwidow", "Gloom Surgeon")))
+        assertEquals("Golgari Keyrune", M.best("Goari keyrune", listOf("Golgari Keyrune", "Azorius Keyrune", "Selesnya Keyrune")))
+        assertEquals("Selesnya Keyrune", M.best("(Selesnya Keyrune", listOf("Selesnya Keyrune", "Selesnya Sentry")))
+        assertEquals("Raid Bombardment", M.best("Raid Bombardment", listOf("Raid Bombardment", "Goblin Bombardment")))
+        assertEquals("Nightveil Predator", M.best("Nightveil Predator", listOf("Nightveil Predator", "Nightveil Sprite")))
+        assertEquals("Feed the Infection", M.best("Feed the Infection", listOf("Feed the Infection", "Reject Imperfection")))
+        assertEquals("Knight of Autumn", M.best("Knight of Autumn", listOf("Knight of Autumn", "Maximize Altitude")))
+        assertEquals("Jace's Triumph", M.best("lace's Triumph", listOf("Jace's Triumph", "Liliana's Triumph")))
+        assertEquals("Liliana's Triumph", M.best("iliana's Iriumph", listOf("Jace's Triumph", "Liliana's Triumph")))
+        assertEquals("Lightning Mauler", M.best("Liehtning Mauler", listOf("Lightning Mauler", "Lightning Mare")))
+        // Splitkaart: één helft gelezen.
+        assertEquals("Discovery // Dispersal", M.best("Discovery", listOf("Discovery // Dispersal", "Disperse")))
+        // De oude ruime vergelijking zag deze als gelijk; nu niet meer.
+        assertFalse(M.alike("Keyrune", "Azorius Keyrune"))
+        assertFalse(M.alike("Gloom", "Gloom Surgeon"))
+        assertFalse(M.alike("Knight of Autumn", "Maximize Altitude"))
+        assertTrue(M.alike("Liehtning Mauler", "Lightning Mauler"))
+        // Groen vraagt 80%: Raid Bombardment lijkt voor 71% op Goblin Bombardment, dat is niet genoeg.
+        assertTrue(M.score("Raid Bombardment", "Goblin Bombardment") < 0.8)
+    }
+
+    @Test
+    fun guessedPrintWithoutSetOrNumber() {
+        val C = nl.spoonpaco.ninegrid.domain.SetCheck
+        assertTrue(C.guessedPrint(setKnown = false, numberRead = false))
+        assertFalse(C.guessedPrint(setKnown = true, numberRead = false))
+        assertFalse(C.guessedPrint(setKnown = false, numberRead = true))
+    }
+
+    @Test
+    fun sheetSetCommon() {
+        val S = nl.spoonpaco.ninegrid.domain.SheetSet
+        val avr = listOf(
+            mapOf("avr" to "2012-05-04", "inr" to "2025-01-24"),
+            mapOf("avr" to "2012-05-04", "sld" to "2023-01-01"),
+            mapOf("avr" to "2012-05-04", "soi" to "2016-04-08", "inr" to "2025-01-24"),
+        )
+        assertEquals("avr", S.common(avr))
+        // Gemengd blad: geen gezamenlijke set.
+        assertNull(S.common(listOf(mapOf("sta" to "2021"), mapOf("dtk" to "2015"), mapOf("soi" to "2016"))))
+        // Te weinig kaarten.
+        assertNull(S.common(avr.take(2)))
+        // Twee gezamenlijke sets: de oudste.
+        assertEquals("rtr", S.common(List(3) { mapOf("rtr" to "2012-10-05", "gk1" to "2018-11-16") }))
+    }
+
+    @Test
+    fun copyrightYearWithW() {
+        assertTrue(ScanParser.isCopyrightYear("2025W"))
+        assertTrue(ScanParser.isCopyrightYear("202W"))
+        assertTrue(ScanParser.isCopyrightYear("2023"))
+        assertFalse(ScanParser.isCopyrightYear("202"))
+        assertFalse(ScanParser.isCopyrightYear("15A"))
+        assertFalse(ScanParser.isCopyrightYear("374"))
+        val r = ScanParser.sanitize(nl.spoonpaco.ninegrid.domain.SlotRead(1, "ONE", "2025W", null, emptyList(), name = "Necrosquito"), emptySet(), true)
+        assertNull(r.collectorNumber)
+    }
+
+    @Test
+    fun mainBlockDropsNeighbourPage() {
+        // Blad rechts in beeld (x 250..850), links drie kaartruggen van de buurpagina (x 60).
+        val sheet = (0 until 60).map { i -> OcrLine("regel $i", 250f + (i % 30) * 20f, 150f + i * 14f) }
+        val backs = listOf(OcrLine("MAGIC", 60f, 250f), OcrLine("The Gathering", 70f, 270f), OcrLine("KMASTER", 60f, 400f),
+            OcrLine("MAGIC", 60f, 550f), OcrLine("MAGIC", 60f, 850f))
+        val kept = ScanParser.mainBlock(sheet + backs, 1080, 1440)
+        assertEquals(60, kept.size)
+        // Een lege middelste kolom: beide kanten houden veel tekst, niets valt weg.
+        val left = (0 until 30).map { OcrLine("l$it", 100f + (it % 5) * 20f, 100f + it * 30f) }
+        val right = (0 until 30).map { OcrLine("r$it", 800f + (it % 5) * 20f, 100f + it * 30f) }
+        assertEquals(60, ScanParser.mainBlock(left + right, 1080, 1440).size)
+    }
 }

@@ -238,7 +238,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
      */
     fun startScan(reads: List<SlotRead>, slotCrops: Map<Int, android.graphics.Bitmap> = emptyMap(), single: Boolean = false) {
         val append = single && importSource == ImportSource.SCAN && pending.isNotEmpty() && pending.all { it.slot == null }
-        if (!append) { pending.clear(); crops.clear(); aiMarks.clear() }
+        if (!append) { pending.clear(); crops.clear(); aiMarks.clear(); suggestJob?.cancel(); setSuggestion = null }
         importSource = ImportSource.SCAN
         unreadableLines = emptyList()
         // Vanuit een deck gescand: de bestemming is dat deck; anders de collectie.
@@ -290,6 +290,44 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         resolveAll()
     }
 
+    /** Voorstel "Alles uit set X?" op het controlescherm: code en naam van de set, of null. */
+    var setSuggestion by mutableStateOf<Pair<String, String>?>(null)
+        private set
+    private var suggestJob: kotlinx.coroutines.Job? = null
+
+    private fun suggestSheetSet() {
+        suggestJob?.cancel()
+        setSuggestion = null
+        if (scanSet.isNotBlank()) return
+        val noSet = pending.filter { it.slot != null && !it.empty && it.query.setCode == null && it.status == ItemStatus.FOUND && it.print != null }
+        val names = noSet.mapNotNull { it.print?.name }.distinct()
+        if (names.size < nl.spoonpaco.ninegrid.domain.SheetSet.MIN_CARDS) return
+        suggestJob = viewModelScope.launch {
+            val sets = names.map { n ->
+                runCatching { repo.scryfall.printsOf(n) }.getOrNull()?.filter { !it.digital }?.associate { it.set to it.releasedAt } ?: return@launch
+            }
+            val code = nl.spoonpaco.ninegrid.domain.SheetSet.common(sets) ?: return@launch
+            // Staat alles al in die set, dan valt er niets te kiezen.
+            if (noSet.all { it.print?.setCode.equals(code, true) }) return@launch
+            val name = setInfo[code]?.name ?: setInfo[code.uppercase()]?.name ?: code.uppercase()
+            if (importSource == ImportSource.SCAN) setSuggestion = code.uppercase() to name
+        }
+    }
+
+    /** Tik op "Alles uit set X?": die set geldt nu voor dit blad, alsof je hem had ingevuld, en alles wordt opnieuw opgezocht. */
+    fun applySetSuggestion() {
+        val (code, _) = setSuggestion ?: return
+        setSuggestion = null
+        pending.indices.forEach { i ->
+            val p = pending[i]
+            if (p.slot == null || p.empty) return@forEach
+            val q = p.query
+            if (q.name == null && q.altNames.isEmpty() && q.collectorNumber == null) return@forEach
+            pending[i] = p.copy(query = q.copy(setCode = code, id = null), status = ItemStatus.RESOLVING, print = null, confident = false)
+        }
+        resolveAll()
+    }
+
     private fun android.graphics.Bitmap.asImageBitmapSafe() = this.asImageBitmap()
 
     /** Stand van de laatste scan, voor de balk op het camerascherm. */
@@ -315,7 +353,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     /** Scannen met dit deck als bestemming (vanuit het deck). */
     fun scanIntoDeck(deckId: Long) { scanDeckId = deckId; targetDeckId = deckId }
 
-    fun clearPending() { pending.clear(); crops.clear(); aiMarks.clear(); clearSavedPending() }
+    fun clearPending() { pending.clear(); crops.clear(); aiMarks.clear(); clearSavedPending(); suggestJob?.cancel(); setSuggestion = null }
 
     private val pendingFile get() = java.io.File(getApplication<Application>().filesDir, "pending.json")
     private val pendingJson = kotlinx.serialization.json.Json { ignoreUnknownKeys = true }
@@ -420,7 +458,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                 val q = item.query; val card = found[i] ?: return@forEachIndexed
                 if (q.lang == null || q.printedName == null) return@forEachIndexed
                 val printed = runCatching { repo.scryfall.printedName(card.set, card.collectorNumber, q.lang) }
-                printed.onSuccess { n -> printedOk[item.key] = n != null && repo.namesLookAlike(q.printedName, n) }
+                printed.onSuccess { n -> printedOk[item.key] = n != null && repo.namesLookAlikeLoose(q.printedName, n) }
                 // Geen internet: set en nummer kloppen, dat is genoeg.
             }
             if (scan) repo.scryfall.releaseForeground()
@@ -434,22 +472,31 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                     val otherSet = scan && card != null && nl.spoonpaco.ninegrid.domain.SetCheck.otherSet(q.setCode, card.set)
                     // Geen nummer gelezen en meerdere prints met die naam in de set (gewoon, borderless, showcase): dat is gokken, dus controleren.
                     val ambiguous = scan && card != null && nl.spoonpaco.ninegrid.domain.SetCheck.ambiguous(q.collectorNumber != null, repo.printCandidates(card.name, q.setCode ?: card.set).size)
+                    // Geen set (niet opgegeven, niet gelezen) en geen nummer: welke print het is, is een gok. Dan nooit groen.
+                    val guessedPrint = scan && card != null && nl.spoonpaco.ninegrid.domain.SetCheck.guessedPrint(q.setCode != null, q.collectorNumber != null)
+                    // Groen alleen als de gelezen naam echt op de gevonden kaart lijkt (80%, zoals de testset telt).
+                    // Na de setlijst (preResolve met een duidelijke beste naam in de set) telt die naam; anders wat er gelezen is.
+                    val checkName = queries.getOrNull(i)?.takeIf { it.id != null }?.name ?: q.name
+                    val nameStrong = card != null && (checkName == null || q.lang != null || nl.spoonpaco.ninegrid.domain.NameMatch.score(checkName, card.name) >= 0.8)
                     val confident = card != null && printedOk[item.key] != false && (q.name != null || q.collectorNumber != null) &&
-                        (q.name == null || repo.namesLookAlike(q.name, card.name)) &&
+                        (checkName == null || repo.namesLookAlike(checkName, card.name)) &&
                         (q.collectorNumber == null || card.collectorNumber.equals(q.collectorNumber, true)) &&
-                        !otherSet && !ambiguous
+                        !otherSet && !ambiguous && !guessedPrint
                     pending[idx] = pending[idx].copy(
-                        label = if (otherSet) pending[idx].label + " · " + str(R.string.scan_other_set, q.setCode!!.uppercase(), card!!.set.uppercase())
+                        label = if (guessedPrint) pending[idx].label + " · " + str(R.string.scan_guessed_print)
+                            else if (otherSet) pending[idx].label + " · " + str(R.string.scan_other_set, q.setCode!!.uppercase(), card!!.set.uppercase())
                             else if (ambiguous) pending[idx].label + " · " + str(R.string.scan_ambiguous_print) else pending[idx].label,
                         print = card?.toPrint(),
                         status = if (card != null) ItemStatus.FOUND else ItemStatus.NOT_FOUND,
-                        confident = confident || q.id != null,
+                        confident = (confident || q.id != null) && nameStrong && !guessedPrint,
                     )
                 }
             }
             if (pending.none { it.status == ItemStatus.WAITING }) clearSavedPending()
             // Voor het scanrapport: wat de app er zelf van maakte, vóór AI-hulp en vóór correcties van de gebruiker.
             if (scan) firstGuess = pending.filter { it.slot != null }.associate { it.slot!! to scanOutcome(it) }
+            // Geen set opgegeven of gelezen: in welke set bestaan alle kaarten van dit blad samen? (voorstel, zie SheetSet)
+            if (scan && pending.any { it.slot != null }) suggestSheetSet()
             // AI-hulp bij twijfel (als aan): de oranje en niet gevonden vakjes van deze scan.
             if (scan) aiAssist(todo.mapNotNull { t -> pending.firstOrNull { it.key == t.key } })
             // Losse kaarten: dezelfde kaart nog eens = één erbij in plaats van een nieuwe regel.

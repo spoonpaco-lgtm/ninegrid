@@ -180,6 +180,15 @@ fun ReviewScreen(vm: AppViewModel, onBack: () -> Unit, onSaved: (Long?) -> Unit)
                     Text(stringResource(R.string.take_summary, same, other, fresh), fontSize = NgText.body, color = extra.subtle)
                 }
             }
+            // Geen set opgegeven of gelezen, maar alle kaarten bestaan samen in één set: voorstel, telt pas na een tik.
+            vm.setSuggestion?.let { (code, setName) ->
+                if (vm.importSource == ImportSource.SCAN) item(key = "set_suggestion") {
+                    Row(Modifier.padding(horizontal = 16.dp, vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text(stringResource(R.string.review_set_suggestion, setName, code), fontSize = NgText.body, modifier = Modifier.weight(1f))
+                        FilterChip(selected = false, onClick = { vm.applySetSuggestion() }, label = { Text(stringResource(R.string.review_set_suggestion_yes)) })
+                    }
+                }
+            }
             // Naar een deck: alle kaarten in één keer naar Deck of Sideboard (niet bij Commander: daar is alles Deck, behalve de commander zelf).
             if (vm.destination != Destination.COLLECTION && !isCommander && items.count { it.print != null } > 1 &&
                 !(vm.destination == Destination.EXISTING_DECK && decks.firstOrNull { it.id == vm.targetDeckId }?.format == DeckFormat.COMMANDER)) item(key = "all_sections") {

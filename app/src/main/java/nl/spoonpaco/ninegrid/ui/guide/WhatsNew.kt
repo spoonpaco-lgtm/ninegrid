@@ -28,33 +28,19 @@ object WhatsNew {
     fun items(dutch: Boolean): List<Item> = if (dutch) NL else EN
 
     private val NL = listOf(
-        Item("Exporteren: een deck naar Moxfield, Archidekt of Cardmarket (⋮ → Exporteren naar een site…), de hele collectie als Moxfield-CSV (Meer → Back-up en export) en je verlanglijst als Cardmarket-lijst. De formaten zijn nagekeken bij de sites zelf.", "decks"),
-        Item("Deck delen via QR-code: ⋮ → Delen via QR-code in een deck, en op Decks het scan-icoon om er een te ontvangen. Past een commanderdeck in één code.", "decks"),
-        Item("Verlanglijst: eén minder met de −knop, een regel weghalen door naar links te vegen (beide met Terugzetten), en elke regel zegt welke print hij toont of dat het elke print is.", "allcards"),
-        Item("Gecrasht? Bij de volgende start vraagt NineGrid of je het crashrapport wilt delen (versie, toestel en foutmelding, geen kaarten). Je kiest zelf of het verstuurd wordt.", "settings"),
-        Item("Kleine verbeteringen: Lijn of Taart op het Overzicht blijft onthouden; naar een deck scannen of plakken kan met Alle kaarten naar Deck of Sideboard.", "decks"),
-        Item("Privacymodus met meer controle: kies wat verborgen wordt (alles, alleen totalen of alleen kaartprijzen), toon de grafiek in procenten, verberg ook aantallen, zet meldingen zonder bedragen en verberg alleen kaartprijzen boven een bedrag naar keuze. Instellingen → Privacy.", "settings"),
-        Item("Privacystijlen erbij: Toxic, Lightning, Fog, Pixelized en Countered, plus Zegel klein voor prijzen in lijsten. Compleated heet nu Completed. Kies ze onder Instellingen → Privacy.", "privacy"),
-        Item("Negen extra app-iconen in drie sets (Metalen, Edelstenen, Licht en donker): Instellingen → Weergave → App-icoon.", "widgets"),
-        Item("Widgets voor je startscherm: waarde, Winner of the Week, kaart van de dag, meldingen, verlanglijst en twee scanknoppen (blad of één kaart). Bij privacymodus vervangen tegeltjes de bedragen.", "widgets"),
-        Item("Grafiek: het venster bij tikken toont de lijnen op volgorde van waarde op die dag. Testset draaien (Ontwikkelaar) doorloopt nu de hele scanroute.", "settings"),
-        Item("Meldingen: toestemming wordt gevraagd zodra je prijsstijging-, ban- of reprintmeldingen aanzet.", "settings"),
-        Item("Scanrapport (Ontwikkelaar) noemt nu ook wat de app eerst dacht, naast wat jij ervan maakte. Ook staan de instellingen van die scan erin (set, lamp, automatisch afdrukken, AI-hulp, offline database, taal). Instellingen → Ontwikkelaar → Testset draaien laat de scanner een map met testbladen op je telefoon lezen en toont wat goed en fout is.", "settings"),
+        Item("Scanner: groen is weer te vertrouwen. Een stukje naam (\"Keyrune\", \"Gloom\") is niet meer genoeg voor een kaart; de app kiest de naam die binnen de set het best past, en alleen als die duidelijk beter past dan de rest.", "review"),
+        Item("Geen set ingevuld en geen nummer gelezen? Dan kiest de app niet meer op de gok een print, maar staat de kaart oranje. Bestaan alle kaarten van het blad samen in één set, dan vraagt het controlescherm: die set gebruiken? Pas na jouw tik telt hij.", "review"),
+        Item("Splitkaarten (zoals Discovery // Dispersal) worden gedraaid gelezen. Een foto uit de galerij met een stuk van de buurpagina erop schuift de vakken niet meer op. Jaartallen als 2025W tellen niet meer als kaartnummer.", "add"),
+        Item("Testset draaien (Ontwikkelaar) meet nu met het kader van de camera, en daarnaast als galerijfoto.", "settings"),
+
     )
 
     private val EN = listOf(
-        Item("Export: a deck to Moxfield, Archidekt or Cardmarket (⋮ → Export to a site…), the whole collection as a Moxfield CSV (More → Backup and export) and your wishlist as a Cardmarket list. The formats were checked at the sites themselves.", "decks"),
-        Item("Share a deck by QR code: ⋮ → Share via QR code in a deck, and the scan icon on Decks to receive one. A commander deck fits in one code.", "decks"),
-        Item("Wishlist: one less with the − button, remove a line by swiping left (both with Put back), and every line says which print it shows or that it is any print.", "allcards"),
-        Item("Crashed? On the next start NineGrid asks whether you want to share the crash report (version, phone and error message, no cards). You decide whether it is sent.", "settings"),
-        Item("Small improvements: Line or Pie on the Overview is remembered; scanning or pasting into a deck has All cards to Deck or Sideboard.", "decks"),
-        Item("Privacy mode with more control: choose what is hidden (everything, only totals or only card prices), show the chart in percentages, hide card counts too, turn on notifications without amounts and hide only card prices above an amount you choose. Settings → Privacy.", "settings"),
-        Item("More privacy styles: Toxic, Lightning, Fog, Pixelized and Countered, plus Small seal for prices in lists. Compleated is now called Completed. Pick them under Settings → Privacy.", "privacy"),
-        Item("Nine extra app icons in three sets (Metals, Gems, Light and dark): Settings → Display → App icon.", "widgets"),
-        Item("Home screen widgets: value, Winner of the Week, card of the day, alerts, wishlist and two scan buttons (sheet or one card). With privacy mode, tiles replace the amounts.", "widgets"),
-        Item("Chart: the box when you tap shows the lines in order of value on that day. Run test (Developer) now goes through the whole scan route.", "settings"),
-        Item("Notifications: permission is asked as soon as you turn on price rise, ban or reprint alerts.", "settings"),
-        Item("The scan report (Developer) now also shows what the app first thought, next to what you made of it. It also lists the settings of that scan (set, torch, auto capture, AI help, offline database, language). A Settings → Developer → Run test set makes the scanner read a folder of test sheets on your phone and shows what is right and wrong.", "settings"),
+        Item("Scanner: green can be trusted again. Part of a name (\"Keyrune\", \"Gloom\") is no longer enough for a card; the app picks the name that fits best within the set, and only if it clearly fits better than the others.", "review"),
+        Item("No set entered and no number read? The app no longer guesses a print; the card shows orange. If all cards on the page exist together in one set, the review screen asks: use that set? It only counts after you tap.", "review"),
+        Item("Split cards (like Discovery // Dispersal) are read sideways. A gallery photo with part of the neighbouring page no longer shifts the slots. Years like 2025W no longer count as a card number.", "add"),
+        Item("Run test set (Developer) now measures with the camera frame, and also as a gallery photo.", "settings"),
+
     )
 }
 

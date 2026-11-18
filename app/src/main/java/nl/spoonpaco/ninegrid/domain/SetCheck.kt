@@ -7,4 +7,7 @@ object SetCheck {
 
     /** Geen nummer gelezen en meerdere prints met die naam in de set: de gekozen print is een gok. */
     fun ambiguous(numberRead: Boolean, printsWithName: Int): Boolean = !numberRead && printsWithName >= 2
+
+    /** Geen set (niet opgegeven en niet gelezen) en geen nummer: de app weet niet welke print het is. */
+    fun guessedPrint(setKnown: Boolean, numberRead: Boolean): Boolean = !setKnown && !numberRead
 }

@@ -24,3 +24,11 @@ De bladen 01 t/m 04 hebben ook `foto-2.jpg` en `scanrapport-2.txt`: dezelfde pag
 Bron: de map "Scanner ninegrid" in Micks Google Drive.
 
 Per map staat ook `uitslag.txt`: de juiste kaart per vak, door Claude van de foto gelezen. Mick controleert ze nog. Bij de nieuwe bladen (05 t/m 11) alleen namen, zonder set en nummer.
+
+## Kader (sinds 0.9.12)
+
+`kader.txt` (bij `foto-2.jpg`: `kader-2.txt`) bevat "links boven rechts onder" in pixels van de foto: het richtkader van de camera om de 3×3 kaarten heen, zoals Mick het blad in de camera legt. Testset draaien leest daarmee zoals de camera; zonder bestand is het kader de hele foto (het blad vult de foto). Daarnaast leest de testset elke foto ook als galerijfoto (zonder kader).
+
+## Nulmeting 0.9.11 (18 nov, Samsung SM-A165F, als galerijfoto)
+
+98 van 144 vakken goed · groen maar fout 8 · oranje maar goed 24 · niet gevonden 33. Groen maar fout: Raid/Goblin Bombardment, Gloomwidow/Gloom Surgeon, Golgari/Azorius Keyrune, Selesnya Keyrune/Sentry, Knight of Autumn/Maximize Altitude, Nightveil Predator/Sprite, Feed the Infection/Reject Imperfection, Shock STA/MSC. 29 van de 33 niet gevonden op DOM, WAR, GRN en het gemengde blad.

@@ -524,16 +524,25 @@ class Repository(
             var q = q0.copy(name = fixedName ?: q0.name, altNames = alts)
             val set = q.setCode ?: return@map q
             val list = runCatching { c.setList(set) }.getOrNull() ?: c.cachedSetList(set) ?: return@map q
+            val setNames = list.cards.map { it.name }.distinct()
+            // De naam zoals gelezen en zoals verbeterd tegen alle kaartnamen: binnen de set telt de best passende naam,
+            // en alleen als hij duidelijk beter past dan de andere namen in de set (anders is het gokken).
+            val readNames = listOfNotNull(q0.name, fixedName).distinct()
+            val bestInSet = readNames.firstNotNullOfOrNull { nl.spoonpaco.ninegrid.domain.NameMatch.best(it, setNames) }
+            if (bestInSet != null) q = q.copy(name = bestInSet)
             fun byName(): SetCard? {
-                q.name?.let { n -> list.cards.filter { namesLookAlike(n, it.name) }.let { m -> (m.firstOrNull { it.regular } ?: m.firstOrNull())?.let { return it } } }
+                bestInSet?.let { n -> list.cards.filter { it.name == n }.let { m -> (m.firstOrNull { it.regular } ?: m.firstOrNull())?.let { return it } } }
                 // Andere regels: alleen exact.
                 return q.altNames.firstNotNullOfOrNull { a -> list.cards.firstOrNull { it.name.equals(a, true) } }
             }
-            val names = listOfNotNull(q.name) + q.altNames
             val byNumber = q.collectorNumber?.let { nr -> list.cards.firstOrNull { it.number.equals(nr, true) } }
+            // Nummer en naam moeten samen kloppen: de kaart bij het nummer moet ook de best passende naam in de set zijn.
+            val numberFits = byNumber != null && (readNames.isEmpty() && q.altNames.isEmpty() ||
+                bestInSet == byNumber.name || q.altNames.any { it.equals(byNumber.name, true) } ||
+                (bestInSet == null && readNames.any { n -> nl.spoonpaco.ninegrid.domain.NameMatch.alike(n, byNumber.name) &&
+                    setNames.none { o -> o != byNumber.name && nl.spoonpaco.ninegrid.domain.NameMatch.score(n, o) >= nl.spoonpaco.ninegrid.domain.NameMatch.score(n, byNumber.name) } }))
             val pick = when {
-                // Nummer en naam kloppen samen: zeker.
-                byNumber != null && (names.isEmpty() || names.any { namesLookAlike(it, byNumber.name) }) -> byNumber
+                numberFits -> byNumber
                 // Naam staat in de set, nummer niet of verkeerd gelezen: kies de print met dezelfde naam, het liefst met het gelezen nummer.
                 else -> byName()?.let { found ->
                     list.cards.firstOrNull { it.name == found.name && it.number.equals(q.collectorNumber, true) } ?: found
@@ -1047,17 +1056,15 @@ class Repository(
         if (!o.images && removed.isNotEmpty()) onPrintsRemoved(removed)
     }
 
-    fun namesLookAlike(read: String, real: String): Boolean {
+    /** Dezelfde kaartnaam, met leesfouten (streng sinds 0.9.12: zie [nl.spoonpaco.ninegrid.domain.NameMatch]). */
+    fun namesLookAlike(read: String, real: String): Boolean = nl.spoonpaco.ninegrid.domain.NameMatch.alike(read, real)
+
+    /** De ruime vergelijking van vroeger, alleen voor gedrukte namen in een andere taal (accenten, andere letters). */
+    fun namesLookAlikeLoose(read: String, real: String): Boolean {
         fun norm(x: String) = x.lowercase().filter { it.isLetter() }
         val a = norm(read); val b = norm(real.substringBefore(" // "))
         if (a.isEmpty() || b.isEmpty()) return true
         if (b.contains(a) || a.contains(b)) return true
-        val d = Array(a.length + 1) { IntArray(b.length + 1) }
-        for (x in 0..a.length) d[x][0] = x
-        for (y in 0..b.length) d[0][y] = y
-        for (x in 1..a.length) for (y in 1..b.length) {
-            d[x][y] = minOf(d[x - 1][y] + 1, d[x][y - 1] + 1, d[x - 1][y - 1] + if (a[x - 1] == b[y - 1]) 0 else 1)
-        }
-        return d[a.length][b.length] <= maxOf(a.length, b.length) / 2
+        return nl.spoonpaco.ninegrid.domain.NameMatch.distance(a, b) <= maxOf(a.length, b.length) / 2
     }
 }
