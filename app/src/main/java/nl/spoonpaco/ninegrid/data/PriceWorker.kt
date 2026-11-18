@@ -30,6 +30,7 @@ class PriceWorker(context: Context, params: WorkerParameters) : CoroutineWorker(
             runCatching { notifyWishAlarms(c) }
             runCatching { notifyWatch(c) }
             runCatching { checkOfflineDb(c) }
+            runCatching { nl.spoonpaco.ninegrid.data.widget.Widgets.updateAll(applicationContext) }
             Result.success()
         }.getOrElse { if (runAttemptCount < 3) Result.retry() else Result.success() }
     }
@@ -59,6 +60,8 @@ class PriceWorker(context: Context, params: WorkerParameters) : CoroutineWorker(
             .setContentIntent(open).setAutoCancel(true)
             .build()
         nm.notify(BREAKOUT_ID, n)
+        val pctText = String.format(java.util.Locale.getDefault(), "%+.0f%%", m.pct)
+        nl.spoonpaco.ninegrid.data.widget.AlertLog.add(ctx, "breakout", m.print.name + " +" + nl.spoonpaco.ninegrid.domain.Money.format(m.unitGain, s.currency) + " (" + pctText + ")", m.print.name + " " + pctText)
         c.settings.setLastBreakoutDay(today)
     }
 
@@ -86,6 +89,7 @@ class PriceWorker(context: Context, params: WorkerParameters) : CoroutineWorker(
             .setContentIntent(open).setAutoCancel(true)
             .build()
         nm.notify(WISH_ID, n)
+        nl.spoonpaco.ninegrid.data.widget.AlertLog.add(ctx, "wish", title + ": " + hits.joinToString(" · ") { (x, p) -> x.name + " " + nl.spoonpaco.ninegrid.domain.Money.format(p, x.alarmCurrency) }, title)
     }
 
     /**
@@ -115,6 +119,7 @@ class PriceWorker(context: Context, params: WorkerParameters) : CoroutineWorker(
                 .setContentIntent(open).setAutoCancel(true)
                 .build()
             nm.notify(id, n)
+            nl.spoonpaco.ninegrid.data.widget.AlertLog.add(ctx, if (id == WATCH_LEGAL_ID) "ban" else "reprint", lines.first(), title)
         }
         if (r.legal.isNotEmpty()) {
             val heads = r.legal.map { a ->

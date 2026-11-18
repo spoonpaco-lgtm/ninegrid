@@ -802,7 +802,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun setEffects(v: Boolean) = viewModelScope.launch { settingsStore.setEffects(v) }
     fun setAccent(v: String) = viewModelScope.launch { settingsStore.setAccent(v) }
     fun setPrivacyStyle(v: String) = viewModelScope.launch { settingsStore.setPrivacyStyle(v) }
-    fun setPrivacy(v: Boolean) = viewModelScope.launch { settingsStore.setPrivacy(v) }
+    fun setPrivacy(v: Boolean) = viewModelScope.launch { settingsStore.setPrivacy(v); nl.spoonpaco.ninegrid.data.widget.Widgets.updateAll(getApplication()) }
     /** Even kijken in de privacymodus: tot dit moment zijn de bedragen zichtbaar. */
     var peekUntil by mutableStateOf(0L)
         private set
@@ -814,7 +814,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun setPrivacyScope(v: String) = viewModelScope.launch { settingsStore.setPrivacyScope(v) }
     fun setPrivacyPercent(v: Boolean) = viewModelScope.launch { settingsStore.setPrivacyPercent(v) }
     fun setPrivacyCounts(v: Boolean) = viewModelScope.launch { settingsStore.setPrivacyCounts(v) }
-    fun setPrivacyNotify(v: Boolean) = viewModelScope.launch { settingsStore.setPrivacyNotify(v) }
+    fun setPrivacyNotify(v: Boolean) = viewModelScope.launch { settingsStore.setPrivacyNotify(v); nl.spoonpaco.ninegrid.data.widget.Widgets.updateAll(getApplication()) }
     fun setPrivacyAbove(v: Double) = viewModelScope.launch { settingsStore.setPrivacyAbove(v) }
     fun setPieMode(v: Boolean) = viewModelScope.launch { settingsStore.setPieMode(v) }
     fun setPieSplit(v: String) = viewModelScope.launch { settingsStore.setPieSplit(v) }
@@ -1912,6 +1912,8 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     /** Vanuit een melding: deze kaart openen, of Collectie in een bepaalde stand. */
     var openCardRequest by mutableStateOf<String?>(null)
     var collectionModeRequest by mutableStateOf<String?>(null)
+    /** Een widget vroeg om de scanner. */
+    var scanRequest by mutableStateOf(false)
 
     /** Scannen voor één vak in de bladweergave: stand 1 kaart, met binder, blad en vak ingevuld. */
     var forcedSlot: Int? = null

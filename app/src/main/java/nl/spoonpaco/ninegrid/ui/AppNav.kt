@@ -127,6 +127,7 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
         restoreState = true
     }
     LaunchedEffect(vm.collectionModeRequest) { if (vm.collectionModeRequest != null) tab("collection") }
+    LaunchedEffect(vm.scanRequest) { if (vm.scanRequest) { vm.scanRequest = false; tab("scan") } }
 
     CompositionLocalProvider(LocalHelp provides { id: String -> nav.navigate("guide/$id") }) {
     Scaffold(

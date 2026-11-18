@@ -176,6 +176,85 @@
             </intent-filter>
         </activity-alias>
 
+        <!-- Widgets voor het startscherm -->
+        <receiver
+            android:name=".data.widget.ValueWidget"
+            android:exported="false"
+            android:label="@string/w_name_value">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_value" />
+        </receiver>
+        <receiver
+            android:name=".data.widget.WinnerWidget"
+            android:exported="false"
+            android:label="@string/w_name_winner">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_winner" />
+        </receiver>
+        <receiver
+            android:name=".data.widget.ScanWidget"
+            android:exported="false"
+            android:label="@string/w_name_scan">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_scan" />
+        </receiver>
+        <receiver
+            android:name=".data.widget.ScanSmallWidget"
+            android:exported="false"
+            android:label="@string/w_name_scan_small">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_scan_small" />
+        </receiver>
+        <receiver
+            android:name=".data.widget.AlertsWidget"
+            android:exported="false"
+            android:label="@string/w_name_alerts">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_alerts" />
+        </receiver>
+        <receiver
+            android:name=".data.widget.WishWidget"
+            android:exported="false"
+            android:label="@string/w_name_wish">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_wish" />
+        </receiver>
+        <receiver
+            android:name=".data.widget.DailyWidget"
+            android:exported="false"
+            android:label="@string/w_name_daily">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_daily" />
+        </receiver>
+
         <!-- Uitkomst van een update-installatie -->
         <receiver android:name=".data.InstallReceiver" android:exported="false" />
 

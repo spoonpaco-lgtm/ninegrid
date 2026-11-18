@@ -36,6 +36,8 @@ class MainActivity : AppCompatActivity() {
     private fun openFromAlarm(i: android.content.Intent?) {
         i?.getStringExtra(nl.spoonpaco.ninegrid.data.PriceWorker.EXTRA_OPEN_CARD)?.let { vm.openCardRequest = it }
         if (i?.getBooleanExtra(nl.spoonpaco.ninegrid.data.PriceWorker.EXTRA_OPEN_WISH, false) == true) vm.collectionModeRequest = "wish"
+        // Getikt op de scanknop van een widget: de scanner, in de gekozen stand (leeg = zoals hij stond).
+        i?.getStringExtra(nl.spoonpaco.ninegrid.data.widget.Widgets.EXTRA_SCAN)?.let { mode -> if (mode.isNotEmpty()) vm.setScanMode(mode); vm.scanRequest = true }
     }
 
     /** Een gedeelde collectie die vanuit een andere app (WhatsApp, Bestanden …) is geopend of gestuurd. */
