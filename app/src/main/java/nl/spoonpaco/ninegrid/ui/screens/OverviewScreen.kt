@@ -235,6 +235,7 @@ fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}, onSets: () ->
                         if (top == null) {
                             Text(stringResource(if (rising) R.string.movers_none_up else R.string.movers_none_down), fontSize = NgText.body, color = extra.subtle)
                         } else {
+                            nl.spoonpaco.ninegrid.ui.components.MoverFrame(rising, settings.moverEffect, playKey = "$week$rising") {
                             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().clickable { vm.openCardRequest = top.print.id }) {
                                 nl.spoonpaco.ninegrid.ui.components.CardThumb(top.print, vm.images, settings, width = 64)
                                 Spacer(Modifier.width(12.dp))
@@ -248,6 +249,7 @@ fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}, onSets: () ->
                                         if (top.quantity > 1) Text("  ·  " + nl.spoonpaco.ninegrid.ui.components.maskCount(stringResource(R.string.winner_copies, top.quantity), top.quantity), fontSize = NgText.body, color = extra.subtle)
                                     }
                                 }
+                            }
                             }
                             val rest = list.drop(1).take(if (more) 19 else 4)
                             rest.forEachIndexed { i, mv ->

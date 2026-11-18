@@ -259,6 +259,13 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit) {
                         }
                         Switch(checked = settings.effects, onCheckedChange = { vm.setEffects(it) })
                     }
+                    // Effect op Winner/Loser of the Week (Overzicht): gloed en bloed, of stempels.
+                    Text(stringResource(R.string.mover_effect_title), modifier = Modifier.padding(top = 8.dp))
+                    androidx.compose.material3.SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                        androidx.compose.material3.SegmentedButton(selected = settings.moverEffect != "stamp", onClick = { vm.setMoverEffect("glow") }, shape = androidx.compose.material3.SegmentedButtonDefaults.itemShape(0, 2)) { Text(stringResource(R.string.mover_effect_glow)) }
+                        androidx.compose.material3.SegmentedButton(selected = settings.moverEffect == "stamp", onClick = { vm.setMoverEffect("stamp") }, shape = androidx.compose.material3.SegmentedButtonDefaults.itemShape(1, 2)) { Text(stringResource(R.string.mover_effect_stamp)) }
+                    }
+                    Text(stringResource(R.string.mover_effect_explain), fontSize = NgText.body, color = nl.spoonpaco.ninegrid.ui.theme.LocalNgExtra.current.subtle)
                 }
                 SettingsGroup.PRIVACY -> {
                     // Privacymodus: aanzetten mag altijd, uitzetten en de stijl wijzigen alleen na vingerafdruk.

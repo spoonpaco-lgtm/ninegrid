@@ -1213,4 +1213,8 @@
     <string name="movers_none_down">Niets gedaald in deze periode.</string>
     <string name="movers_more">Toon top %1$d</string>
     <string name="movers_less">Minder tonen</string>
+    <string name="mover_effect_title">Winner en Loser of the Week</string>
+    <string name="mover_effect_glow">Gloed en bloed</string>
+    <string name="mover_effect_stamp">Stempels</string>
+    <string name="mover_effect_explain">Op het Overzicht: een mythic-gloed om de winnaar en bloed dat van de verliezer afdruipt, of een stempel WINNER en DESTROYED. Speelt één keer bij openen of wisselen. Alleen met Magic-effecten aan.</string>
 </resources>

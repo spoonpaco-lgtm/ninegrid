@@ -1214,4 +1214,8 @@
     <string name="movers_none_down">Nothing fell in this period.</string>
     <string name="movers_more">Show top %1$d</string>
     <string name="movers_less">Show less</string>
+    <string name="mover_effect_title">Winner and Loser of the Week</string>
+    <string name="mover_effect_glow">Glow and blood</string>
+    <string name="mover_effect_stamp">Stamps</string>
+    <string name="mover_effect_explain">On the Overview: a mythic glow for the winner and blood dripping off the loser, or a WINNER and DESTROYED stamp. Plays once when you open the Overview or switch. Only with Magic effects on.</string>
 </resources>

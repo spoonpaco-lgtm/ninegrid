@@ -855,6 +855,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun setEffects(v: Boolean) = viewModelScope.launch { settingsStore.setEffects(v) }
     fun setAccent(v: String) = viewModelScope.launch { settingsStore.setAccent(v) }
     fun setPrivacyStyle(v: String) = viewModelScope.launch { settingsStore.setPrivacyStyle(v) }
+    fun setMoverEffect(v: String) = viewModelScope.launch { settingsStore.setMoverEffect(v) }
     fun setPrivacy(v: Boolean) = viewModelScope.launch { settingsStore.setPrivacy(v); nl.spoonpaco.ninegrid.data.widget.Widgets.updateAll(getApplication()) }
     /** Even kijken in de privacymodus: tot dit moment zijn de bedragen zichtbaar. */
     var peekUntil by mutableStateOf(0L)
