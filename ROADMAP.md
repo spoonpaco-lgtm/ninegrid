@@ -146,12 +146,16 @@ Mick 18 nov: "bouw alle voorstellen in een branch". Basis: eerste testset-meting
 
 ### 1d-scan. Volgende scannerstappen (voorstel, wacht op startsein)
 
-1. Setlijst uit de offline database halen (`CardCache.setList` haalt hem nu alleen bij Scryfall, een week bewaard); dan werkt kiezen binnen de set, zoeken in andere regels en het raster op de namen zonder internet.
+1. Setlijst uit de offline database halen: gaat mee in de Top movers-branch (zie 1e-movers).
 2. Splitkaarten (GRN rij 3): gedraaid lezen levert nog niets.
 3. Gemengd blad zonder set.
 4. Testset: "kaart als leeg gezien" apart vermelden; testset met losse kaartfoto's (één kaart per foto) om scannen per kaart te meten.
 
-### 1e-movers. Volgende branch: Top movers (Mick 18 nov, wacht op startsein)
+### 1e-movers. Volgende branch: Top movers + setlijst uit de offline database (Mick 18 nov, wacht op startsein)
+
+**Ook in deze branch (Mick 18 nov):** scannerstap 1 uit 1d-scan: de setlijst uit de offline database halen (nieuwe query per set in `OfflineCards`, `CardCache.setList` eerst offline, dan Scryfall). Dan werken kiezen binnen de set, zoeken in andere regels en het raster op de namen ook zonder internet, met minder verzoeken aan Scryfall.
+
+**Top movers:**
 
 Op het Overzicht, onder Winner of the Week, een blok "Top movers": de 5 meest gestegen en gedaalde kaarten.
 - **Alleen de eigen collectie** (Mick): collectie en decks samen, proxies niet; elke print één keer, foil apart. Niet de hele markt (Scryfall heeft geen prijshistorie; dagelijks alle ~100.000 prijzen bewaren is te zwaar) en niet de verlanglijst.
