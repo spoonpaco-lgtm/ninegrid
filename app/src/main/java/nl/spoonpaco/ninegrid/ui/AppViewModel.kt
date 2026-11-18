@@ -856,6 +856,10 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun setAccent(v: String) = viewModelScope.launch { settingsStore.setAccent(v) }
     fun setPrivacyStyle(v: String) = viewModelScope.launch { settingsStore.setPrivacyStyle(v) }
     fun setMoverEffect(v: String) = viewModelScope.launch { settingsStore.setMoverEffect(v) }
+    /** Stand van Top movers onthouden: Week of Dag, Stijgers of Dalers, open of dicht. */
+    fun setMoversView(week: Boolean, rising: Boolean, open: Boolean) = viewModelScope.launch {
+        settingsStore.setMoversView(listOf(if (week) "week" else "day", if (rising) "up" else "down", if (open) "open" else "closed").joinToString(","))
+    }
     fun setPrivacy(v: Boolean) = viewModelScope.launch { settingsStore.setPrivacy(v); nl.spoonpaco.ninegrid.data.widget.Widgets.updateAll(getApplication()) }
     /** Even kijken in de privacymodus: tot dit moment zijn de bedragen zichtbaar. */
     var peekUntil by mutableStateOf(0L)

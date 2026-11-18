@@ -28,14 +28,14 @@ object WhatsNew {
     fun items(dutch: Boolean): List<Item> = if (dutch) NL else EN
 
     private val NL = listOf(
-        Item("Top movers op het Overzicht: welke kaarten van jou het meest stegen of daalden, per dag of per week, op geld (prijsverandering maal je aantal). Winner of the Week staat bovenaan, en nu is er ook Loser of the Week.", "overview"),
+        Item("Top movers op het Overzicht: welke kaarten van jou het meest stegen of daalden, per dag of per week, op geld (prijsverandering maal je aantal). Winner of the Week staat bovenaan, en nu is er ook Loser of the Week. Ingeklapt zie je alleen die; tik op de titel voor de hele lijst.", "overview"),
         Item("Effecten op Winner en Loser: een mythic-gloed en bloed dat van de verliezer afdruipt, of een stempel WINNER en DESTROYED. Kies onder Instellingen → Weergave.", "overview"),
         Item("Scanner: de setlijst komt eerst uit de offline kaartdatabase. Kiezen binnen de set en het raster op de namen werken zo ook zonder internet.", "add"),
 
     )
 
     private val EN = listOf(
-        Item("Top movers on the Overview: which of your cards rose or fell the most, per day or per week, by money (price change times your copies). Winner of the Week sits on top, and there is now a Loser of the Week too.", "overview"),
+        Item("Top movers on the Overview: which of your cards rose or fell the most, per day or per week, by money (price change times your copies). Winner of the Week sits on top, and there is now a Loser of the Week too. Collapsed you only see that one; tap the title for the full list.", "overview"),
         Item("Effects on Winner and Loser: a mythic glow and blood dripping off the loser, or a WINNER and DESTROYED stamp. Choose under Settings → View.", "overview"),
         Item("Scanner: the set list now comes from the offline card database first, so picking within the set and the grid on the names also work without internet.", "add"),
 

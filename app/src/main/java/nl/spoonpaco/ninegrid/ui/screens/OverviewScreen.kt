@@ -207,8 +207,11 @@ fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}, onSets: () ->
             // Loser of the Week, of of the Day), daaronder de nummers 2 t/m 5 en met Meer de top 20. Op geld, niet op procenten.
             if (vm.moversWeek.isNotEmpty() || vm.moversDay.isNotEmpty()) {
                 item {
-                    var week by rememberSaveable { mutableStateOf(true) }
-                    var rising by rememberSaveable { mutableStateOf(true) }
+                    // Stand uit de instellingen: Week/Dag, Stijgers/Dalers en open/dicht blijven bewaard.
+                    val view = settings.moversView.split(",")
+                    val week = "day" !in view
+                    val rising = "down" !in view
+                    val open = "open" in view
                     var more by rememberSaveable { mutableStateOf(false) }
                     val source = if (week) vm.moversWeek else vm.moversDay
                     val list = remember(source, rising) { nl.spoonpaco.ninegrid.domain.PriceMovers.top(source, rising, 20) }
@@ -216,19 +219,25 @@ fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}, onSets: () ->
                     @androidx.compose.runtime.Composable fun m(v: Double) = nl.spoonpaco.ninegrid.ui.components.money(v, cur, P)
                     fun pct(v: Double) = String.format(java.util.Locale.getDefault(), "%+.0f%%", v)
                     Panel {
-                        Text((if (rising) "Winner" else "Loser") + " of the " + (if (week) "Week" else "Day"), fontWeight = FontWeight.Bold, color = if (rising) extra.price else NgColors.Error)
+                        // Titel met pijltje: tik om in of uit te klappen. Ingeklapt alleen de grote kaart.
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().clickable { vm.setMoversView(week, rising, !open); more = false }) {
+                            Text((if (rising) "Winner" else "Loser") + " of the " + (if (week) "Week" else "Day"), fontWeight = FontWeight.Bold, color = if (rising) extra.price else NgColors.Error, modifier = Modifier.weight(1f))
+                            Text(if (open) "▲" else "▼", color = extra.subtle)
+                        }
                         val ds = settings.dateStyle
                         val range = if (week) vm.winnerWeek?.let { it.minusDays(7) to it } else vm.moversDayRange?.let { java.time.LocalDate.parse(it.first) to java.time.LocalDate.parse(it.second) }
                         range?.let { (from, to) -> Text(stringResource(R.string.winner_week, nl.spoonpaco.ninegrid.domain.Dates.date(from, ds), nl.spoonpaco.ninegrid.domain.Dates.date(to, ds)), fontSize = NgText.caption, color = extra.subtle) }
+                        if (open) {
                         Spacer(Modifier.height(6.dp))
                         SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-                            SegmentedButton(selected = !week, onClick = { week = false; more = false }, shape = SegmentedButtonDefaults.itemShape(0, 2)) { Text(stringResource(R.string.movers_day)) }
-                            SegmentedButton(selected = week, onClick = { week = true; more = false }, shape = SegmentedButtonDefaults.itemShape(1, 2)) { Text(stringResource(R.string.movers_week)) }
+                            SegmentedButton(selected = !week, onClick = { vm.setMoversView(false, rising, open); more = false }, shape = SegmentedButtonDefaults.itemShape(0, 2)) { Text(stringResource(R.string.movers_day)) }
+                            SegmentedButton(selected = week, onClick = { vm.setMoversView(true, rising, open); more = false }, shape = SegmentedButtonDefaults.itemShape(1, 2)) { Text(stringResource(R.string.movers_week)) }
                         }
                         Spacer(Modifier.height(4.dp))
                         SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-                            SegmentedButton(selected = rising, onClick = { rising = true; more = false }, shape = SegmentedButtonDefaults.itemShape(0, 2)) { Text(stringResource(R.string.movers_up)) }
-                            SegmentedButton(selected = !rising, onClick = { rising = false; more = false }, shape = SegmentedButtonDefaults.itemShape(1, 2)) { Text(stringResource(R.string.movers_down)) }
+                            SegmentedButton(selected = rising, onClick = { vm.setMoversView(week, true, open); more = false }, shape = SegmentedButtonDefaults.itemShape(0, 2)) { Text(stringResource(R.string.movers_up)) }
+                            SegmentedButton(selected = !rising, onClick = { vm.setMoversView(week, false, open); more = false }, shape = SegmentedButtonDefaults.itemShape(1, 2)) { Text(stringResource(R.string.movers_down)) }
+                        }
                         }
                         Spacer(Modifier.height(8.dp))
                         val top = list.firstOrNull()
@@ -251,7 +260,7 @@ fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}, onSets: () ->
                                 }
                             }
                             }
-                            val rest = list.drop(1).take(if (more) 19 else 4)
+                            val rest = if (!open) emptyList() else list.drop(1).take(if (more) 19 else 4)
                             rest.forEachIndexed { i, mv ->
                                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().clickable { vm.openCardRequest = mv.print.id }.padding(top = 8.dp)) {
                                     Text("${i + 2}", fontSize = NgText.caption, color = extra.subtle, modifier = Modifier.width(20.dp))
@@ -267,7 +276,7 @@ fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}, onSets: () ->
                                     }
                                 }
                             }
-                            if (list.size > 5) TextButton(onClick = { more = !more }) { Text(stringResource(if (more) R.string.movers_less else R.string.movers_more, minOf(20, list.size))) }
+                            if (open && list.size > 5) TextButton(onClick = { more = !more }) { Text(stringResource(if (more) R.string.movers_less else R.string.movers_more, minOf(20, list.size))) }
                         }
                     }
                 }
