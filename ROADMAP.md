@@ -163,9 +163,9 @@ Op het Overzicht, op de plek van Winner of the Week, één samengevoegd blok "To
 - **Rekenen:** Dag = tegen gisteren, Week = tegen 7 dagen geleden (prijshistorie in `price_history`, elke nacht gevuld). Kaarten zonder prijs van toen tellen niet. **Rangschikken op valuta (Mick):** verandering in € × aantal dat je hebt; het percentage staat er alleen bij.
 - **Per regel:** plaatje, naam, set, ★ bij foil, oude → nieuwe prijs, verandering in € en %, aantal. Tik = kaartscherm. Grote kaart + 4 regels, "Meer" voor de top 20.
 - **Privacymodus:** bedragen verborgen → alleen percentages en pijltjes (volgt "wat verbergen").
-- **Magic-effecten op de grote kaart (Mick 18 nov: optie 3 + 4):**
-  - Winner: oranje mythic-gloed rond de rand + gouden stempel "WINNER" die neerkomt (zoals de Legaal-stempel, `Stamp` in `ui/components/Effects.kt`).
-  - Loser: olie "rood als bloed" die van onder de kaart in kruipt (techniek van Completed/`drawOil`, maar donkerrood) + stempel "DESTROYED". Voorstel Claude: de stempel niet ook rood (valt weg op het rood), maar donker/botwit; nog te bevestigen.
+- **Magic-effecten op de grote kaart (Mick 18 nov): twee aparte stijlen, te kiezen** (zoals de privacystijlen; plek voorstel: Instellingen → Weergave, naast Magic-effecten):
+  - **Gloed en bloed:** Winner = oranje mythic-gloed rond de rand; Loser = olie "rood als bloed" die van onder de kaart in kruipt (techniek van Completed/`drawOil`, maar donkerrood).
+  - **Stempels:** Winner = gouden stempel "WINNER"; Loser = rode stempel "DESTROYED" (zoals de Legaal-stempel, `Stamp` in `ui/components/Effects.kt`).
   - Speelt één keer bij openen of wisselen (~1,5 s), daarna stil. Magic-effecten uit → alleen een rustig groen of rood randje. Eigen tekenwerk, geen Wizards-materiaal. Eerst schetsen tonen.
 - Winner of the Week = nummer 1 van de weekstijgers: nakijken of de huidige berekening (`computeWinner`) hetzelfde rekent (€ × aantal), zodat blok en widget niet verschillen. Loser of the Week is nieuw (nummer 1 van de dalers).
 - Technisch: rekenwerk in `domain/` met unittest; gegevens uit `price_history` en de exemplaren; handleiding, Wat is nieuw, FEATURES.
