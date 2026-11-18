@@ -31,7 +31,8 @@ Privacymodus: meer controle
 Privacystijlen erbij
 - Toxic (organische groene ooze met gaten die knappen en druppels), Lightning (blauwe bliksem van links naar rechts), Fog (losse mist), Pixelized (flikkerend pixelraster dat naar de randen vervaagt) en Countered (blauwe stempel die neervalt). Plus Zegel klein voor prijzen in lijsten.
 - Compleated heet nu Completed (alleen de naam; je gekozen stijl blijft staan).
-- Staan de Magic-effecten uit, dan vallen de bewegende stijlen terug op rustige stippen.
+- Lightning slaat onregelmatig in (een paar keer per halve minuut, soms twee vlak na elkaar), telkens met een andere vorm en een knipperende nagloed. Fog drijft langzaam, zoals Schaduw. Toxic heeft een grilliger rand, een groene oliefilm en druppels met rand.
+- Staan de Magic-effecten uit, dan vallen Toxic, Lightning, Pixelized en Countered terug op rustige stippen.
 
 Negen extra app-iconen
 - Drie sets: Metalen (Zilver, Koper, Zwart-goud), Edelstenen (Smaragd, Robijn, Amethist) en Licht en donker (Perkament, Inkt, Neon). Instellingen → Weergave → App-icoon.

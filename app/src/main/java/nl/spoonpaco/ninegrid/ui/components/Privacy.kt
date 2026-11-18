@@ -79,7 +79,7 @@ object PrivacyStyle {
     const val DOTS = "stippen"
     val all = listOf(COMPLEATED, SEAL, SEAL_SMALL, SHADOW, TOXIC, LIGHTNING, FOG, PIXELIZED, COUNTERED, DOTS)
     /** Stijlen met een eigen tijdlijn (0..1 over 6 seconden); zonder Magic-effecten vallen ze terug op rustige stippen. */
-    val timeline = setOf(TOXIC, LIGHTNING, FOG, PIXELIZED, COUNTERED)
+    val timeline = setOf(TOXIC, LIGHTNING, PIXELIZED, COUNTERED)
 }
 
 val LocalPrivacy = staticCompositionLocalOf { PrivacyState() }
@@ -127,7 +127,7 @@ fun Modifier.privacyMask(kind: PrivacyKind = PrivacyKind.CARD, value: Double? = 
     if (p.style in PrivacyStyle.timeline && !effects) return@composed this
     val isSeal = p.style == PrivacyStyle.SEAL || p.style == PrivacyStyle.SEAL_SMALL
     val loop = if (p.style in PrivacyStyle.timeline) {
-        rememberInfiniteTransition(label = "loop").animateFloat(0f, 1f, infiniteRepeatable(tween(6000, easing = LinearEasing), RepeatMode.Restart), label = "l").value
+        rememberInfiniteTransition(label = "loop").animateFloat(0f, 1f, infiniteRepeatable(tween(if (p.style == PrivacyStyle.LIGHTNING) 24000 else 6000, easing = LinearEasing), RepeatMode.Restart), label = "l").value
     } else 0f
     val wobble = if (effects && !isSeal) {
         rememberInfiniteTransition(label = "mask").animateFloat(0f, 1f, infiniteRepeatable(tween(4000, easing = LinearEasing), RepeatMode.Reverse), label = "w").value
@@ -144,7 +144,7 @@ fun Modifier.privacyMask(kind: PrivacyKind = PrivacyKind.CARD, value: Double? = 
             PrivacyStyle.SHADOW -> drawShadow(wobble)
             PrivacyStyle.TOXIC -> drawToxic(loop, wobble)
             PrivacyStyle.LIGHTNING -> drawLightning(loop)
-            PrivacyStyle.FOG -> drawFog(loop)
+            PrivacyStyle.FOG -> drawFog(wobble)
             PrivacyStyle.PIXELIZED -> drawPixelized(loop)
             PrivacyStyle.COUNTERED -> drawCountered(measurer, loop)
             else -> drawOil(wobble)
