@@ -151,7 +151,7 @@ Mick 18 nov: "bouw alle voorstellen in een branch". Basis: eerste testset-meting
 3. Gemengd blad zonder set.
 4. Testset: "kaart als leeg gezien" apart vermelden; testset met losse kaartfoto's (één kaart per foto) om scannen per kaart te meten.
 
-### 1e-movers. Volgende branch: Top movers + setlijst uit de offline database (Mick 18 nov, wacht op startsein)
+### 1e-movers. 0.9.14 Ob Nixilis: Top movers + setlijst uit de offline database (gebouwd op branch `movers-0.9.14` op 18 nov, wacht op test en "ja, release")
 
 **Ook in deze branch (Mick 18 nov):** scannerstap 1 uit 1d-scan: de setlijst uit de offline database halen (nieuwe query per set in `OfflineCards`, `CardCache.setList` eerst offline, dan Scryfall). Dan werken kiezen binnen de set, zoeken in andere regels en het raster op de namen ook zonder internet, met minder verzoeken aan Scryfall.
 
@@ -166,7 +166,9 @@ Op het Overzicht, op de plek van Winner of the Week, één samengevoegd blok "To
 - **Magic-effecten op de grote kaart (Mick 18 nov): twee aparte stijlen, te kiezen** (zoals de privacystijlen; plek voorstel: Instellingen → Weergave, naast Magic-effecten):
   - **Gloed en bloed:** Winner = oranje mythic-gloed rond de rand; Loser = olie "rood als bloed" die van onder de kaart in kruipt (techniek van Completed/`drawOil`, maar donkerrood).
   - **Stempels:** Winner = gouden stempel "WINNER"; Loser = rode stempel "DESTROYED" (zoals de Legaal-stempel, `Stamp` in `ui/components/Effects.kt`).
-  - Speelt één keer bij openen of wisselen (~1,5 s), daarna stil. Magic-effecten uit → alleen een rustig groen of rood randje. Eigen tekenwerk, geen Wizards-materiaal. Eerst schetsen tonen.
+  - Speelt één keer bij openen of wisselen (~1,5 s), daarna stil. Magic-effecten uit → alleen een rustig groen of rood randje. Eigen tekenwerk, geen Wizards-materiaal.
+  - Schetsen getoond 18 nov; Mick: het bloed moet van de onderkant van de kaart afdruipen, in dezelfde stijl als de Completed-olie, met schaduw (niet plat). Zo gebouwd in `ui/components/MoverEffects.kt` (`MoverFrame`).
+- Gebouwd: Week = maandag tegen de maandag ervoor (zoals Winner of the Week en de widget); Dag = laatste prijsdag tegen de dag ervoor (`PriceDao.lastDay`/`dayBefore`). `PriceMovers.top/loser` met unittest. Scanner: `CardCache.scanList` (offline database eerst, niet als bestand bewaard).
 - Winner of the Week = nummer 1 van de weekstijgers: nakijken of de huidige berekening (`computeWinner`) hetzelfde rekent (€ × aantal), zodat blok en widget niet verschillen. Loser of the Week is nieuw (nummer 1 van de dalers).
 - Technisch: rekenwerk in `domain/` met unittest; gegevens uit `price_history` en de exemplaren; handleiding, Wat is nieuw, FEATURES.
 

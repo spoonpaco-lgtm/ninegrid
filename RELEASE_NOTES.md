@@ -1,3 +1,14 @@
+NineGrid 0.9.14 – Ob Nixilis
+
+Ob Nixilis, die van winst en verlies leeft: Top movers op het Overzicht, met Winner én Loser of the Week.
+
+- Top movers (samen met Winner of the Week): de kaarten die het meest stegen of daalden, alleen je eigen collectie (collectie en decks, geen proxies, foil apart). Schakelaars Dag | Week en Stijgers | Dalers. Bovenaan de grootste als grote kaart (Winner/Loser of the Week of of the Day), daaronder 2 t/m 5, met Toon top 20 de rest. Tik = kaartscherm.
+- Volgorde op geld: prijsverandering per stuk maal je aantal; bij gelijk bedrag de grootste procentuele beweging eerst. Het percentage staat erbij.
+- Week = maandag tegen de maandag ervoor (zelfde als Winner of the Week en de widget, blijft de hele week gelijk). Dag = laatste nachtelijke prijsupdate tegen die daarvoor.
+- Privacymodus: bedragen verborgen, percentages zichtbaar.
+- Effecten op de grote kaart (Instellingen → Weergave): Gloed en bloed (mythic-gloed om de winnaar; bloed dat van de onderkant van de verliezer afdruipt, in de stijl van de Completed-olie, met schaduw) of Stempels (WINNER goud, DESTROYED rood). Speelt één keer bij openen of wisselen. Zonder Magic-effecten een groen of rood randje.
+- Scanner: de setlijst (namen en nummers) komt eerst uit de offline kaartdatabase, dan pas van Scryfall. Kiezen binnen de set, zoeken in andere regels en het raster op de namen werken zo zonder internet, met minder verzoeken aan Scryfall. Het setscherm haalt zijn prijzen nog bij Scryfall.
+
 NineGrid 0.9.13 – Nissa
 
 Nissa, die de lijnen in het land ziet: het raster van een blad ligt nu op de kaartnamen zelf.

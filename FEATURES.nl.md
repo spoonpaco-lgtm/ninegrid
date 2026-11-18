@@ -64,7 +64,7 @@ Huidige versie: **0.9.11 – Tezzeret**. Elke versie heeft de naam van een plane
 - Prijzen van **Cardmarket (EUR)** of **TCGplayer (USD)** via Scryfall, elke dag op de achtergrond bijgewerkt.
 - **Waarde over tijd** vanaf dag één, per lijn: totaal, sets, decks, één deck of set; ook de **prijsbeweging** zonder toevoegen en weghalen. De as volgt de waarden (kleine veranderingen zichtbaar) en het aantal kaarten loopt mee als tweede lijn.
 - Bij de grafiek een schakelaar **Lijn | Taart**: de verdeling van nu per set, rarity of deck. Op het kaartscherm een inklapbaar blok **Prijsverloop** per kaart.
-- **Winner of the Week**: de kaart die je het meeste opleverde.
+- **Top movers**: je grootste stijgers en dalers per dag of week, op geld (Winner en Loser of the Week bovenaan, met gloed en bloed of stempels).
 - **Breakout**-melding: een kaart van jou stijgt op één dag minstens €3 en 25%.
 - Melding bij **ban of reprint**: een kaart van jou wordt gebanned, restricted of weer toegestaan in een format van je decks, of komt opnieuw uit in een nieuwe set (ook tijdens de spoilers), met wat je hebt en wat het waard is.
 - Prijsbewegingen als loyalty-schildjes (▲ +6 / ▼ −3).

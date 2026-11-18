@@ -28,14 +28,16 @@ object WhatsNew {
     fun items(dutch: Boolean): List<Item> = if (dutch) NL else EN
 
     private val NL = listOf(
-        Item("Scanner: bij een foto uit de galerij met een ingevulde set legt de app het raster op de gevonden kaartnamen. Staat het blad klein in beeld, of is een rij niet te lezen (splitkaarten op hun kant), dan schuiven de vakken niet meer op en leest een vak niet meer de naam van zijn buurman.", "add"),
-        Item("Testset draaien (Ontwikkelaar) meldt het bovenaan als Scryfall niet bereikbaar was, zodat je een te lage uitslag herkent.", "settings"),
+        Item("Top movers op het Overzicht: welke kaarten van jou het meest stegen of daalden, per dag of per week, op geld (prijsverandering maal je aantal). Winner of the Week staat bovenaan, en nu is er ook Loser of the Week.", "overview"),
+        Item("Effecten op Winner en Loser: een mythic-gloed en bloed dat van de verliezer afdruipt, of een stempel WINNER en DESTROYED. Kies onder Instellingen → Weergave.", "overview"),
+        Item("Scanner: de setlijst komt eerst uit de offline kaartdatabase. Kiezen binnen de set en het raster op de namen werken zo ook zonder internet.", "add"),
 
     )
 
     private val EN = listOf(
-        Item("Scanner: for a gallery photo with a set entered, the app lays the grid on the card names it finds. If the page is small in the picture, or a row cannot be read (split cards on their side), the slots no longer shift and a slot no longer reads its neighbour's name.", "add"),
-        Item("Run test set (Developer) says at the top when Scryfall could not be reached, so you recognise a result that is too low.", "settings"),
+        Item("Top movers on the Overview: which of your cards rose or fell the most, per day or per week, by money (price change times your copies). Winner of the Week sits on top, and there is now a Loser of the Week too.", "overview"),
+        Item("Effects on Winner and Loser: a mythic glow and blood dripping off the loser, or a WINNER and DESTROYED stamp. Choose under Settings → View.", "overview"),
+        Item("Scanner: the set list now comes from the offline card database first, so picking within the set and the grid on the names also work without internet.", "add"),
 
     )
 }

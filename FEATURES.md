@@ -64,7 +64,7 @@ Current version: **0.9.11 – Tezzeret**. Every version is named after a planesw
 - Prices from **Cardmarket (EUR)** or **TCGplayer (USD)** via Scryfall, refreshed daily in the background.
 - **Value over time** from day one, per line: total, sets, decks, a single deck or set; also the **price movement** without additions and removals. The axis follows the values (small changes show) and the number of cards runs along as a second line.
 - A **Line | Pie** switch at the chart: how things are divided right now by set, rarity or deck. On the card screen a collapsible **Price history** block per card.
-- **Winner of the Week**: the card that gained you the most.
+- **Top movers**: your biggest risers and fallers per day or week, by money (Winner and Loser of the Week on top, with a glow-and-blood or stamp effect).
 - **Breakout** alert: a card you own rises at least €3 and 25% in a day.
 - Alert on a **ban or reprint**: a card you own is banned, restricted or allowed again in a format of your decks, or comes out again in a new set (already during spoilers), with what you have and what it is worth.
 - Price movements as loyalty shields (▲ +6 / ▼ −3).
