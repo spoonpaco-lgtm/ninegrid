@@ -151,6 +151,17 @@ Mick 18 nov: "bouw alle voorstellen in een branch". Basis: eerste testset-meting
 3. Gemengd blad zonder set.
 4. Testset: "kaart als leeg gezien" apart vermelden; testset met losse kaartfoto's (één kaart per foto) om scannen per kaart te meten.
 
+### 1e-movers. Volgende branch: Top movers (Mick 18 nov, wacht op startsein)
+
+Op het Overzicht, onder Winner of the Week, een blok "Top movers": de 5 meest gestegen en gedaalde kaarten.
+- **Alleen de eigen collectie** (Mick): collectie en decks samen, proxies niet; elke print één keer, foil apart. Niet de hele markt (Scryfall heeft geen prijshistorie; dagelijks alle ~100.000 prijzen bewaren is te zwaar) en niet de verlanglijst.
+- **Schakelaars:** Dag | Week (standaard Week: dagbewegingen zijn vaak ruis van een paar verkopen) en Stijgers | Dalers.
+- **Rekenen:** Dag = tegen gisteren, Week = tegen 7 dagen geleden (prijshistorie in `price_history`, elke nacht gevuld). Kaarten zonder prijs van toen tellen niet. **Rangschikken op valuta (Mick):** verandering in € × aantal dat je hebt; het percentage staat er alleen bij.
+- **Per regel:** plaatje, naam, set, ★ bij foil, oude → nieuwe prijs, verandering in € en %, aantal. Tik = kaartscherm. 5 regels, "Meer" voor de top 20.
+- **Privacymodus:** bedragen verborgen → alleen percentages en pijltjes (volgt "wat verbergen").
+- Winner of the Week is dan nummer 1 van de weekstijgers: nakijken of die hetzelfde rekent (€ × aantal), zodat ze niet verschillen.
+- Technisch: rekenwerk in `domain/` met unittest; gegevens uit `price_history` en de exemplaren; handleiding, Wat is nieuw, FEATURES.
+
 ### 2. Kleine verbeteringen (nog geen versie)
 
 - Scannen, kaart voor kaart: 39a (set van de vorige kaart als aanname) is door Mick afgewezen, 17 nov: scannen wordt er trager van; een set telt alleen als de gebruiker hem zelf opgeeft. 39c groene kaarten overslaan op het controlescherm (pas bouwen als de herkenning betrouwbaar is; wacht op een test op de telefoon).
