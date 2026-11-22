@@ -630,8 +630,11 @@ class Repository(
      */
     /** Mogelijke prints van een kaart voor het vergelijken van plaatjes: in de gelezen set, anders de nieuwste 8. */
     /** Prints met dezelfde naam in de setlijst op de telefoon (bijv. gewoon en extended art): id en klein plaatje. */
-    fun printCandidates(name: String, set: String?): List<SetCard> {
-        val list = set?.let { cache?.cachedSetList(it) } ?: return emptyList()
+    suspend fun printCandidates(name: String, set: String?): List<SetCard> {
+        // De setlijst van de scanner (offline database eerst). Alleen het bestand van het setscherm was niet genoeg:
+        // sinds 0.9.14 wordt de scannerlijst niet als bestand bewaard, en dan zag de app bij een nieuwe set nul prints
+        // (testset 22 nov: Huatli LCI 189 groen terwijl het 339 was).
+        val list = set?.let { s -> cache?.let { runCatching { it.scanList(s) }.getOrNull() } ?: cache?.cachedSetList(s) } ?: return emptyList()
         return list.cards.filter { it.name == name }
     }
 
@@ -639,7 +642,8 @@ class Repository(
         val number = q.collectorNumber ?: return c
         if (c.collectorNumber.equals(number, true) && (q.setCode == null || c.set.equals(q.setCode, true))) return c
         // Eerst de setlijst op de telefoon: geen zoekopdracht bij Scryfall nodig.
-        cache?.cachedSetList(q.setCode ?: c.set)?.cards?.firstOrNull { it.name == c.name && it.number.equals(number, true) }?.let { hit ->
+        (cache?.let { cc -> runCatching { cc.scanList(q.setCode ?: c.set) }.getOrNull() } ?: cache?.cachedSetList(q.setCode ?: c.set))
+            ?.cards?.firstOrNull { it.name == c.name && it.number.equals(number, true) }?.let { hit ->
             if (hit.id == c.id) return c
             soft { scryfall.cardById(hit.id) }?.let { return it }
         }

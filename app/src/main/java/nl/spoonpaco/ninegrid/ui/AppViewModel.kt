@@ -575,13 +575,12 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                     if (picOther && pic != null) {
                         // Alleen aanvullen als de tekst niets vond of geen naam las: een gelezen naam overschrijft het plaatje
                         // nooit (testset 22 nov: Impact Tremors en Feed the Infection werden zo fout). Wel oranje als het twijfelt.
-                        if (!textSure && (card == null || noName)) {
+                        // Las de tekst geen naam (alleen een nummer, Mondrak 22 nov), dan telt dat niet als zeker.
+                        if (card == null || noName) {
                             byPicture(pic)?.let { useCard = it; picNote = str(R.string.scan_by_picture) }
                         } else if (textSure) picNote = str(R.string.scan_picture_differs, pic.name)
-                    } else if (pic != null && card != null && sameName && pic.printSure && !card.collectorNumber.equals(pic.number, true) &&
-                        (q.collectorNumber == null || !card.collectorNumber.equals(q.collectorNumber, true))) {
-                        // Zelfde naam, maar het gelezen nummer klopt niet met de print: het plaatje kiest de print (oranje).
-                        byPicture(pic)?.let { useCard = it; picNote = str(R.string.scan_picture_print) }
+                        // Het plaatje kiest geen print tussen prints met dezelfde naam: testset 22 nov koos het Kinzu 411 in plaats
+                        // van 406, met marge 0,15. Twijfel over de print blijft oranje.
                     } else if (pic != null && card == null && noName && q.collectorNumber == null && pic.looseGuess) {
                         // De tekst las helemaal niets (splitkaart): de beste gok van het plaatje als oranje voorstel.
                         byPicture(pic)?.let { useCard = it; picNote = str(R.string.scan_picture_guess) }

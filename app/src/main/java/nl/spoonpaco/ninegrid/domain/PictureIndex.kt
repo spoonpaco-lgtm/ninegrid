@@ -23,7 +23,7 @@ data class PictureGuess(
     fun describe() = "$name #$number " + String.format(java.util.Locale.ROOT, "%.2f/%.2f", score, margin) +
         (if (printMargin < 1f) String.format(java.util.Locale.ROOT, " print %.2f", printMargin) else "") + (runnerUp?.let { " (2e: $it)" } ?: "")
 
-    /** Mag het plaatje kiezen tussen prints met dezelfde naam? */
+    /** Mag het plaatje kiezen tussen prints met dezelfde naam? Wordt in de app niet gebruikt (testset 22 nov: niet betrouwbaar); staat in het rapport. */
     val printSure get() = sure && printMargin >= PictureIndex.MIN_PRINT_MARGIN
 
     /** Losse gok voor een vak waar de tekst niets las (oranje, "controleer"). */
