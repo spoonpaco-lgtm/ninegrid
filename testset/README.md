@@ -1,4 +1,4 @@
-# NineGrid scanner-testset (11 bladen, 11 en 17 november 2026)
+# NineGrid scanner-testset (16 bladen, 11, 17 en 22 november 2026)
 
 Staat in de repo in `testset/`. Een nieuw gesprek vindt de bladen hier.
 
@@ -18,6 +18,13 @@ De foto's zijn de verkleinde versie uit het gesprek (1200x1600 of 1500x2000); he
 | 09-WAR-fblthp | War of the Spark, 9 kaarten | 17 nov 12:38 | 0.9.11 | |
 | 10-GRN-underrealm-lich | Guilds of Ravnica, 9 kaarten waaronder 3 splitkaarten | 17 nov 13:05 en 13:07 | 0.9.11 | foto-2 is dezelfde pagina; vak 9 in foto 1 leeg gelezen |
 | 11-ONE-mirrex-landen | ONE en WOE landen, vak 7 leeg | 17 nov 13:17 | 0.9.11 | |
+| 12-LCI-huatli | Lost Caverns of Ixalan, 7 kaarten, vak 3 en 6 leeg | 22 nov 13:50 | 0.9.15 | Huatli showcase, twee foils zonder leesbaar nummer |
+| 13-LCI-belligerent | LCI, 7 kaarten, vak 2 en 3 leeg | 22 nov 13:51 (zonder set) en 13:52 (set LCI) | 0.9.15 | twee keer Caparocti Sunborn: foil gewone print en showcase |
+| 14-DGM-gaze-of-granite | Dragon's Maze, 9 kaarten, twee splitkaarten (vak 2 en 9) | 22 nov 13:55 | 0.9.15 | splitkaarten op hun kant |
+| 15-GTC-hold-the-gates | Gatecrash, 6 kaarten, vak 2, 5 en 6 leeg | 22 nov 13:59 | 0.9.15 | Realmwright foil |
+| 16-XLN-sanctum-seeker | Ixalan, 8 kaarten, vak 6 leeg | 22 nov 14:01 | 0.9.15 | lamp aan |
+
+Bladen 12 t/m 16 (22 nov) zijn camerafoto's van 1080x1440 uit het scanrapport. Nog te komen: DOM (History of Benalia, 2 scans) en DMR (Denizen of the Deep).
 
 De bladen 01 t/m 04 hebben ook `foto-2.jpg` en `scanrapport-2.txt`: dezelfde pagina's, op 17 nov gescand met 0.9.11 (rapporten van 13:11 tot 13:15).
 

@@ -1,0 +1,125 @@
+NineGrid scanrapport
+versie: 0.9.15 · toestel: samsung SM-A165F
+soort: blad · camera · foto 1080x1440
+instellingen: set leeg (automatisch) · lamp uit · automatisch afdrukken uit · AI-hulp uit · offline database aan · taal en · plaatje aan, geen vingerafdrukken voor deze set
+scherpte: 1189.6 · dekking: 0.77 · lezen: 1778 ms · opnieuw gelezen: 7
+vakken met naam of nummer en set: 7 van 9
+
+vak 1: gevonden: The Belligerent (LCI 225) [controleren]
+  set=- nummer=- taal=- naam=The Belligerent
+  > The Belligerent
+  > Legendar Artifact - Vehlele
+  > Whenever The Belligerent attacks
+  > turn, you may look at the ton card of
+  > nlay land nd
+  > may
+  > top of your library.
+  > Crew 3
+  > S/5
+  > The Belligerent
+  > Crew 3
+  > loary.
+  > 5/5
+  > Crew 3
+  > lloary.
+  > 5/5
+vak 2: leeg vak
+  set=- nummer=- taal=- naam=- leeg?
+vak 3: leeg vak
+  set=- nummer=- taal=- naam=- leeg?
+vak 4: gevonden: Caparocti Sunborn (LCI 302) [controleren]
+  set=- nummer=414 taal=- naam=Caparocri Sunborn
+  > Caparocri Sunborn
+  > eature-Human
+  > 414
+  > Caparocti Sunborn
+  > Bet th rest on the
+  > AoCov m d ramdot erder)
+  > 414)
+  > tnto jr hand Bt th rest on the
+  > bochem m a ramdem erder)
+  > 414 )
+vak 5: gevonden: Caparocti Sunborn (LCI 302) [controleren]
+  set=- nummer=- taal=- naam=Caparoci Suphorn
+  > Caparoci Suphorn
+  > Legendary Creature Human Soldie
+  > Whenever Caparocti Sunborn
+  > ned
+  > arifacts and/or creatures you soptrol
+  > f you do, dscover
+  > 4/4
+  > Caparocti Surkorn
+  > 2
+  > 4/4
+  > 4/4
+vak 6: gevonden: Akawalli, the Seething Tower (LCI 220) [controleren]
+  set=- nummer=2 taal=- naam=Akawalli, the Seething Tower U
+  > Akawalli, the Seething Tower U
+  > Legendary Creafure- Fungus
+  > Dacend As long as there ane four
+  > Aawall, the Seething Tower gCES
+  > Descend & As long as there are eigh
+  > Akawalli gets an sddicional +2/+2 and
+  > Akawalli, the Seething Tower
+  > Akawalli gets an addiconal +242 and
+  > can't be blocked by more than cne
+  > Creature.
+  > LCFEN
+  > 3/3
+  > Akawalli gets an addidonal +2/42 and
+  > can't be blocked by more than ene
+  > Creature.
+  > CEEN
+  > 3/3
+vak 7: gevonden: Hoverstone Pilgrim (LCI 254) [controleren]
+  set=UMA nummer=- taal=- naam=Hoverstone Pilgrim
+  > (Hoverstone Pilgrim
+  > (Artifact Creature -Golem
+  > Fying
+  > reahere becO the
+  > pet card from a graveyard on th
+  > 2/5
+  > Hoverstone Pilgrim
+  > Thy cour far ere anplacet too dưtat or
+  > Cangers for aumars
+  > trea
+  > 2/5
+  > Zhy cour r seeri
+  > Lanperosu or umaru
+  > placet too duant or
+  > ad
+  > 2/5
+vak 8: gevonden: Scampering Surveyor (LCI 260) [controleren]
+  set=- nummer=149 taal=- naam=Scampering Surveyor
+  > Scampering Surveyor
+  > ((Artifact Creature - Gnome
+  > When Scampering Surveyor enters the
+  > banle
+  > leield, search your library for a basie
+  > batlefield tanned, ben hu
+  > It koer the length, ptch, and orienta
+  > f ery tunel tt has eer Iratene
+  > 3/2
+  > Scampering Surveyor
+  > of eery unnel it has eeer tratersed
+  > 3/2
+  > of ery tumnel ie has eer tratered.
+  > 149
+  > CNeu
+  > 3/2
+vak 9: gevonden: Careening Mine Cart (LCI 247) [controleren]
+  set=- nummer=- taal=- naam=Careening Mine Cart
+  > (Careening Mine Cart
+  > Artiact - Vehicle
+  > nine MMineCart
+  > attacks, c
+  > ( an arnact tace
+  > Crew 1 (Tap ary number of creatercs
+  > Th lehucle becomes an artlaKt cneanure
+  > nl end of ern.)
+  > 3/3
+  > Careening Mine Cart
+  > nt end of tern
+  > 3/3
+  > ntl end of turn)
+  > 3/3

@@ -1,0 +1,127 @@
+NineGrid scanrapport
+versie: 0.9.15 · toestel: samsung SM-A165F
+soort: blad · camera · foto 1080x1440
+instellingen: set leeg (automatisch) · lamp aan · automatisch afdrukken uit · AI-hulp uit · offline database aan · taal en · plaatje aan, geen vingerafdrukken voor deze set
+scherpte: 806.7 · dekking: 0.82 · lezen: 1778 ms · opnieuw gelezen: 8
+vakken met naam of nummer en set: 8 van 9
+
+vak 1: gevonden: Sanctum Seeker (XLN 120) [controleren]
+  app dacht eerst: gevonden: Sanctum Seeker (J25 485) [controleren]
+  set=- nummer=30 taal=- naam=Sanctum Seeker
+  > Sanctum Seeker
+  > Creature-Yamplre Knight
+  > Whenever a Vampire you control
+  > S, cach opponent loses I life
+  > The Sanctm Seckers vre th
+  > the knightly onders to cros the sa and
+  > are sill the most zealous.
+  > 3/4
+  > Sanctum Seeker
+  > 30/319
+  > the mo Eealol
+  > 3/4
+vak 2: gevonden: Ruthless Knave (XLN 119) [controleren]
+  app dacht eerst: gevonden: Ruthless Knave (J25 483) [controleren]
+  set=- nummer=- taal=- naam=Ruthless Knave
+  > Ruthless Knave
+  > 24
+  > CreatureOre Pirate
+  > a, Sacrifice a creature: Create two
+  > with
+  > aure arct tOkens wi
+  > mana of any color to your mana pool."
+  > Sacrifice three Treasures: Draw a card.
+  > "This scum is barely oorth the trvu
+  > 3/2)
+  > Ruthless Knave
+  > 24
+  > This scu is barely oorth the rouble
+  > 3/2)
+  > "This sc is baely coorth the trouble
+  > 3/2)
+vak 3: gevonden: Vona, Butcher of Magan (XLN 231) [controleren]
+  app dacht eerst: gevonden: Vona, Butcher of Magan (SLD 1413) [controleren]
+  set=- nummer=- taal=- naam=Vons, Butcher of Magan
+  > Vons, Butcher of Magan
+  > Legendary Creature -Vampire Knlghr )
+  > Vigilance, lifelink
+  > e, Pay 7 life: Destroy target nonland
+  > durine sre this ability only
+  > "Fvr four hundred year, I hae led armie
+  > 4/4
+  > (Vona, Butcher of Magan
+  > can stand against Te.
+  > 4/4
+  > HAMIWhfCt
+  > can stand ogainst e.
+  > 4/4
+  > HAEHIYVsh f Cet
+vak 4: gevonden: Charging Monstrosaur (PLST xln-138) [controleren]
+  set=- nummer=- taal=- naam=Charging Monstrosaur
+  > Charging Monstrosaur
+  > 42
+  > Creature- Dinosaur
+  > Trample, haste
+  > " knewI should have staved eith th
+  > oat. Aluays stay uith the boar!
+  > S/5
+  > Charging Monstrosaur
+  > S/5
+  > 5/5
+vak 5: gevonden: Call to the Feast (XLN 219) [controleren]
+  app dacht eerst: gevonden: Call to the Feast (2X2 190) [controleren]
+  set=- nummer=- taal=- naam=Call to the feast
+  > ( Call to the feast
+  > (Sorcery
+  > Creatc ihrce I whie y
+  > Crea ue okens ore
+  > Byi
+  > or en
+  > (Call to the feast
+vak 6: leeg vak
+  set=- nummer=- taal=- naam=- leeg?
+vak 7: gevonden: Slice in Twain (XLN 207) [controleren]
+  app dacht eerst: gevonden: Slice in Twain (C20 190) [controleren]
+  set=- nummer=- taal=- naam=Slice in Twain
+  > 200)
+  > Slice in Twain
+  > Instant
+  > Destroy target artifact or enchantmen
+  > Draw a
+  > ic of the Rieer Heralds is so grea
+  > that eten a single shaman can fend of a
+  > pirate landing party
+  > Slice in Twain
+  > 2€0
+  > HLN ENAS
+vak 8: gevonden: Deeproot Champion (PLST xln-185) [controleren]
+  set=- nummer=- taal=- naam=Deeproot Champion
+  > Deeproot Champion
+  > Le
+  > Creature-Merfolk Shaman
+  > osta noncrcature spell,
+  > Champion,
+  > Jar from your honme
+  > /
+  > Deeproot Champion
+  > Jar from your home.
+  > 189/IP
+  > 1/1
+  > ar from your home.
+  > FLNEN
+vak 9: gevonden: Merfolk Branchwalker (XLN 197) [controleren]
+  app dacht eerst: gevonden: Merfolk Branchwalker (J25 688) [controleren]
+  set=- nummer=- taal=- naam=Merfolk Branchwalker
+  > Merfolk Branchwalker
+  > Creature-Merfolk Scout
+  > when Merfolk Branchwallker enters
+  > he outteieid, tCxplores. (Recval the
+  > mto your hand ự t' a land Otheruie
+  > rhen but the cand back or Dut it iute
+  > 3or graurd.)
+  > Merfolk Branchwalker
+  > vor grugurd,)
+  > HLNEN TaNR
+  > 2/1
+  > or gruegurd)
+  > 2/1

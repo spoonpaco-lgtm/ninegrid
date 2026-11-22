@@ -1,0 +1,90 @@
+NineGrid scanrapport
+versie: 0.9.15 · toestel: samsung SM-A165F
+soort: blad · camera · foto 1080x1440
+instellingen: set leeg (automatisch) · lamp uit · automatisch afdrukken uit · AI-hulp uit · offline database aan · taal en · plaatje aan, geen vingerafdrukken voor deze set
+scherpte: 1143.6 · dekking: 0.76 · lezen: 1660 ms · opnieuw gelezen: 7
+vakken met naam of nummer en set: 7 van 9
+
+vak 1: gevonden: Gaze of Granite (EOC 116) [controleren]
+  set=- nummer=- taal=- naam=Gae of Granite
+  > Gae of Granite
+  > Gae of Granite
+vak 2: gevonden: Catch // Release (DGM 125) [controleren]
+  app dacht eerst: niet gevonden (Card seen, but nothing read)
+  set=- nummer=- taal=- naam=-
+vak 3: gevonden: Dragonshift (DGM 66) [controleren]
+  set=- nummer=- taal=- naam=Dragonshift
+  > Dragonshift
+  > nstant
+  > Dragonshift
+  > acin all snsacrkefer mh each )
+  > pacing all aaANtmkach)
+vak 4: gevonden: Maw of the Obzedat (DGM 83) [controleren]
+  set=- nummer=1 taal=- naam=Naw of the Obredat
+  > (Naw of the Obredat
+  > ature- Thrull
+  > Sacrifice a creatune: Creatures you
+  > control get +1/41 unnl end of turn.
+  > the galt, but manvend up oNg in
+  > 3/3
+  > (Maw of the Obredat
+  > 3/3
+  > 3/3
+vak 5: gevonden: Gruul War Chant (PLST dgm-75) [controleren]
+  set=- nummer=- taal=- naam=Gruul War Clhant
+  > Gruul War Clhant
+  > Enchantment
+  > scking crcátut
+  > gets +1/+0 and cany be blocked
+  > wsae ahe hourt of wd, the fére
+  > and the t r thrnat. Com
+  > Knuhkar Grl atan
+  > Gruul War Chant
+  > 220
+  > Krshkar, Grul ihaan
+  > Krshkar, Grul ihaman
+vak 6: gevonden: Korozda Gorgon (DGM 78) [controleren]
+  set=- nummer=- taal=- naam=Korozda Gorgon
+  > Korozda Gorgon
+  > Creature-Gorgon
+  > Deathtouch
+  > kemove a unter rom
+  > gets -1/-Í unil end of urr
+  > "Wlcome to wy cotlcton."
+  > 2/5
+  > Korozda Gorgon
+  > 36
+  > "Wlcome to woy colection."
+  > 2/5
+  > "Wlcome to wy collecrion.
+  > 2/5
+vak 7: gevonden: Putrefy (ECC 131) [controleren]
+  set=- nummer=- taal=- naam=Putrefy
+  > Putrefy
+  > Instant
+  > Destroy targetarulact or creature.
+  > It can't be regeneratea
+  > brealh
+  > Putrefy
+  > Cenuya, Golari haman
+  > Ceerya, Gluri hảman
+vak 8: gevonden: Rot Farm Skeleton (DGM 98) [controleren]
+  set=- nummer=- taal=- naam=Rot Farm Skeleton
+  > Rot Farm Skeleton
+  > 200
+  > Creature-Plant Skeleton
+  > Rot Farmn Skeleton can't block
+  > e top tour cards of
+  > t
+  > Return Rou Farm Skeleton rom
+  > Activate this abiliry only any tim
+  > you could casta
+  > 4/
+  > Rot Farm Skeleton
+  > you could cast a sorcery.
+  > 4/1
+  > you could cast a sorcery.
+  > 4/1
+vak 9: gevonden: Profit // Loss (DGM 130) [controleren]
+  app dacht eerst: niet gevonden (Card seen, but nothing read)
+  set=- nummer=- taal=- naam=-

@@ -1,0 +1,113 @@
+NineGrid scanrapport
+versie: 0.9.15 · toestel: samsung SM-A165F
+soort: blad · camera · foto 1080x1440
+instellingen: set leeg (automatisch) · lamp uit · automatisch afdrukken uit · AI-hulp uit · offline database aan · taal en · plaatje aan, geen vingerafdrukken voor deze set
+scherpte: 846.2 · dekking: 0.80 · lezen: 1706 ms · opnieuw gelezen: 6
+vakken met naam of nummer en set: 6 van 9
+
+vak 1: gevonden: Hold the Gates (GTC 16) [controleren]
+  app dacht eerst: niet gevonden (Read: ‘them better than any B’)
+  set=- nummer=- taal=- naam=them better than any Boros gront from
+  andere namen: We greto up on these streets We know | for each Gate you control and have | Hold the Gates
+  > Hold the Gates
+  > Enct
+  > rcatures you control get +0/+1
+  > Gare you control and have
+  > vigilance.
+  > "We gree up on tlhese streets. We knoo
+  > Lhcm better than any Boros grunt from
+  > Hold the Gates
+  > them oler than any Boros grnt from
+  > Zelza"
+  > Tolan Bores
+  > Hold the Gates
+  > Phen eter than ary Boros grot from
+  > Zelzo"
+  > Toan Bores
+vak 2: leeg vak
+  set=- nummer=- taal=- naam=- leeg?
+vak 3: gevonden: Realmwright (GTC 45) [controleren] [foil]
+  app dacht eerst: gevonden: Realmwright (GTC 45) [controleren]
+  set=- nummer=- taal=- naam=Realmwright
+  > Realmwright
+  > Creature Vedalken Wirard)
+  > the beelefied.
+  > Lands you control are the chosen ype
+  > There it not a single inch of Ratmica thar
+  > en aiterd at ane pornt or anather
+  > Realmwright
+  > hasn't ben altered at one pornt or anorher
+  > fo fir soeone's ohins.
+  > 1/1
+  > hasn't ben altered at one ont or anorher
+  > fo fit somcone' cohis.
+  > 1/1
+vak 4: gevonden: Gateway Shade (GTC 65) [controleren]
+  app dacht eerst: niet gevonden (Read: ‘Tap an untspped Gate y’)
+  set=- nummer=- taal=- naam=Tap an untspped Gate you control
+  andere namen: of rurn | turn | Gateway Shade
+  > Gateway Shade
+  > Creature-Shade
+  > •Gateway Shade gets +1/+1l until end
+  > Tap an untapped Gate you control:
+  > Gateway Shade gets +2/+2 until end of
+  > Zireless md erciles, shades are hurnesed
+  > Gateway Shade
+  > 20
+  > Tireless and merciless, shades ure harnessed
+  > ar spics by the Dimir.
+  > 1hn Vee
+  > 1/1
+  > Gateway Shade
+  > 20
+  > Tircless ad mmerciless, shades are harnessed
+  > ar spia by rhe Dimi.
+  > an Vee
+vak 5: leeg vak
+  set=- nummer=- taal=- naam=- leeg?
+vak 6: leeg vak
+  set=- nummer=- taal=- naam=- leeg?
+vak 7: gevonden: Miming Slime (GTC 126) [controleren]
+  app dacht eerst: gevonden: Miming Slime (GK2 113) [controleren]
+  set=- nummer=- taal=- naam=Miming Slime
+  > Miming Slime
+  > Sorcery
+  > ken
+  > XX r Xis the gre
+  > on10 the ba
+  > pasay, bur d gusckty cesp our
+  > Meu. Orshr prulate
+  > Miming Slime
+  > -Mlanu, Ortha pralate
+  > -Mlana, Orzh prlate
+vak 8: gevonden: Gyre Sage (GTC 123) [controleren]
+  app dacht eerst: gevonden: Gyre Sage (FIC 306) [controleren]
+  set=- nummer=- taal=- naam=Gyre Sage
+  > [Gyre Sage
+  > Creature - E( Druid
+  > Evolve (P
+  > se battefield sedcr sour boutrol.Wahat
+  > than thiu creatre, pta J+1cownter
+  > na pool for cach
+  > +l/41 counter on Gyre Sage
+  > 1/2)
+  > Gyre Sage
+  > +17+1 cOunter on Gyre Sagc.
+  > +
+  > et laren
+  > 1/2
+  > +1+1 countcr on Gyre Sagc.
+  > et laribn
+  > 1/2
+vak 9: gevonden: Zameck Guildmage (GTC 209) [controleren]
+  app dacht eerst: gevonden: Zameck Guildmage (GK2 129) [controleren]
+  set=- nummer=212 taal=- naam=Zameck Guildmage
+  > Zameck Guildmage
+  > Creature -EI Wizard
+  > 4:This turn, cach cteature you
+  > additional +141 counter on it
+  > , Remove a counter irom
+  > 212
+  > Zameck Guildmage
+  > 2/2
+  > 2/2

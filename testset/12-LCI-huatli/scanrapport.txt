@@ -1,0 +1,109 @@
+NineGrid scanrapport
+versie: 0.9.15 · toestel: samsung SM-A165F
+soort: blad · camera · foto 1080x1440
+instellingen: set leeg (automatisch) · lamp uit · automatisch afdrukken uit · AI-hulp uit · offline database aan · taal en · plaatje aan, geen vingerafdrukken voor deze set
+scherpte: 1051.7 · dekking: 0.80 · lezen: 1190 ms · opnieuw gelezen: 5
+vakken met naam of nummer en set: 7 van 9
+
+vak 1: gevonden: Huatli, Poet of Unity // Roar of the Fifth People (LCI 339) [controleren]
+  app dacht eerst: gevonden: Huatli, Poet of Unity // Huatli, Poet of Unity (ALCI 27) [controleren]
+  set=- nummer=213 taal=- naam=OHuatli, Poet of Unity
+  > OHuatli, Poet of Unity
+  > Leyendary Creature -Juman Warlor Barl
+  > When Husti, Poet of Unity enters
+  > a sçrch your ibrary lor
+  > your hand, then hulleP
+  > her owner s control. Activate only as
+  > 213
+  > LOHuatli, Poet of Unity
+  > her owner's control. Activate only as
+  > a sorcery
+  > 2/3
+  > her owner's control. Activate only as
+  > a sorcery
+  > 2/3
+vak 2: gevonden: Ojer Kaslem, Deepest Growth // Temple of Cultivation (LCI 204) [controleren]
+  app dacht eerst: gevonden: Ojer Kaslem, Deepest Growth // Ojer Kaslem, Deepest Growth (ALCI 58) [controleren]
+  set=- nummer=- taal=- naam=Ojer Kaslem, Deepest Growth e
+  > Ojer Kaslem, Deepest Growth 3 e
+  > Legendary Creature-God
+  > 6/5
+  > Ojer Kaslem, Deepest Growth 3
+  > hen
+  > anlem dies, tefur
+  > Ihe
+  > battlefeld tupped and transformed under its
+  > owner's control
+  > 6/5
+  > hen
+  > nlem dics, fefurn
+  > batlefeld tapped and transformed ueder its
+  > oRner's control
+  > he
+  > 6/5
+vak 3: leeg vak
+  set=- nummer=- taal=- naam=- leeg?
+vak 4: gevonden: Cosmium Confluence (LCI 379) [controleren]
+  set=- nummer=- taal=- naam=Cosmlum Confluence
+  > Cosmlum Confluence
+  > Sorcery
+  > Choose three You may choo1e the same
+  > - Search your hbrary for a Cave ca
+  > oattieheld tapped, then hu
+  > P
+  > ol becomes a 00 Elemental
+  > Destroy target enchantment
+  > Cosmlum Confluence
+  > 44
+  > creature with haste. It's sll a land
+  > -Destroy rarget enchantme
+  > creature with hate. It's sll a land
+  > Destroy rarget cnchantment
+vak 5: gevonden: Bedrock Tortoise (PLCI 176p) [controleren]
+  set=- nummer=0 taal=- naam=Bedrock Tortoise
+  > Bedrock Tortoise
+  > CreatureTurtle
+  > ereater than no nth toughness
+  > rathe
+  > amage
+  > Alaro tonples hate strong foundaions Fes
+  > 0/61
+vak 6: leeg vak
+  set=- nummer=- taal=- naam=- leeg?
+vak 7: gevonden: Glowcap Lantern (LCI 187) [controleren]
+  set=- nummer=- taal=- naam=Glowcap Lantern
+  > Glowcap Lantern
+  > Arrifact - Equipment
+  > quppeud creature hsTou nay o
+  > andWbenever this creature artack
+  > hanury Put hat carl inta yeur Aand yf ith a
+  > Glowcap Lantern
+  > t dinbI
+  > t dnbg
+vak 8: gevonden: Earthshaker Dreadmaw (LCI 183) [controleren]
+  app dacht eerst: gevonden: Earthshaker Dreadmaw (LCI 325) [controleren]
+  set=- nummer=- taal=- naam=Earthshaker Dreadmaw
+  > Earthshaker Dreadmaw
+  > Creature- Dinosaur
+  > when Farthsbaker Dreadmnaw enter
+  > the bartlefield, drawa card for each
+  > other Dinosaur you control.
+  > T Rt toe leave dhs cavern for
+  > Amalid, master cartographer
+  > Earthshaker Dreadmaw
+  > someone ese to conquer."
+  > -Amala, master cartograplher
+  > 6/6
+  > someone ese to conquer."
+  > -Amalia, Imaster cartographer
+  > 6/6
+vak 9: gevonden: Tendril of the Mycotyrant (LCI 215) [controleren]
+  app dacht eerst: gevonden: Tendril of the Mycotyrant // Tendril of the Mycotyrant (ALCI 31) [controleren]
+  set=- nummer=1 taal=- naam=Tendril of the Mycotyrant
+  > Tendril of the Mycotyrant
+  > Creature- Fungus Wirard
+  > 5: Put seven +1/41 counters on
+  > It becomes a O/0 Fungus crearure
+  > with haste. It's still a lanc
+  > eal oith Eself the
+  > 2/2
