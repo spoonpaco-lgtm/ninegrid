@@ -27,6 +27,7 @@ internal suspend fun runTestset(ctx: Context, tree: Uri, vm: AppViewModel, progr
     // Ook als galerijfoto (zonder kader), alleen het totaal: zo blijft zichtbaar of een galerijfoto met een stuk buurpagina werkt.
     var galleryOk = 0; var galleryTotal = 0; var gallerySureWrong = 0
     // Herkennen op het plaatje (1h-scan): hoe vaak de beste kaart volgens het plaatje klopte, los van wat de app koos.
+    var retries = 0; var stillWaiting = 0
     var picTotal = 0; var picRight = 0; var picSure = 0; var picSureWrong = 0
     val picRightScores = mutableListOf<Float>(); val picWrongScores = mutableListOf<Float>()
     val picRightMargins = mutableListOf<Float>(); val picWrongMargins = mutableListOf<Float>()
@@ -70,6 +71,16 @@ internal suspend fun runTestset(ctx: Context, tree: Uri, vm: AppViewModel, progr
                 withContext(Dispatchers.Main) { vm.startScan(slots, crops) }
                 var waited = 0
                 while (waited < 180_000 && withContext(Dispatchers.Main) { vm.pending.any { it.status == ItemStatus.RESOLVING } }) { delay(500); waited += 500 }
+                // Storing bij Scryfall: dan wacht het hele blad op verbinding. Even wachten en opnieuw (max. 3 keer).
+                for (attempt in 1..3) {
+                    if (withContext(Dispatchers.Main) { vm.pending.none { it.status == ItemStatus.WAITING } }) break
+                    progress("${dir.name}/$fname: opnieuw ($attempt)")
+                    delay(3000L * attempt)
+                    if (withContext(Dispatchers.Main) { vm.retryWaiting() } > 0) retries++
+                    var w2 = 0
+                    while (w2 < 60_000 && withContext(Dispatchers.Main) { vm.pending.any { it.status == ItemStatus.RESOLVING } }) { delay(500); w2 += 500 }
+                }
+                stillWaiting += withContext(Dispatchers.Main) { vm.pending.count { it.status == ItemStatus.WAITING } }
                 val items = withContext(Dispatchers.Main) { vm.pending.toList() }
                 withContext(Dispatchers.Main) { vm.clearPending() }
                 val bySlot = items.filter { it.slot != null }.associateBy { it.slot!! }
@@ -121,7 +132,8 @@ internal suspend fun runTestset(ctx: Context, tree: Uri, vm: AppViewModel, progr
     return buildString {
         appendLine("NineGrid testset, volledige scanroute (versie ${nl.spoonpaco.ninegrid.BuildConfig.VERSION_NAME}, ${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL})")
         val fails = vm.repo.scryfall.failures - failsBefore
-        if (fails > 0) appendLine("LET OP: $fails keer kon Scryfall niet bereikt worden (geen internet of tijdelijk geweigerd). Deze uitslag is dan te laag; draai later opnieuw.")
+        if (fails > 0) appendLine(if (stillWaiting == 0) "Scryfall was $fails keer niet bereikbaar; $retries keer opnieuw geprobeerd, alles gelukt. De uitslag telt dus."
+            else "LET OP: $fails keer kon Scryfall niet bereikt worden; na $retries keer opnieuw proberen wachten nog $stillWaiting vakken op verbinding. Deze uitslag is dan te laag; draai later opnieuw.")
         appendLine("Totaal: $total vakken, $ok helemaal goed na opzoeken · $secs s")
         appendLine("Groen maar fout (het ergste): $sureWrong · oranje maar goed: $checkRight · niet gevonden: $notFound")
         if (picTotal > 0) {

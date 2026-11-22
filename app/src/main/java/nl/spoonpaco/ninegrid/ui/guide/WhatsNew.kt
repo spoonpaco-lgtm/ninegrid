@@ -28,14 +28,14 @@ object WhatsNew {
     fun items(dutch: Boolean): List<Item> = if (dutch) NL else EN
 
     private val NL = listOf(
-        Item("Herkennen op het plaatje: naast de tekst kijkt de scanner nu naar het plaatje, binnen de set die je invult. Splitkaarten, een verkeerd gelezen nummer of een kaart zonder leesbare naam worden zo vaker gevonden. Het plaatje maakt nooit groen: wat het vindt is oranje, en ziet het een andere kaart dan de tekst, dan wordt groen oranje.", "add"),
+        Item("Herkennen op het plaatje: naast de tekst kijkt de scanner nu naar het plaatje, binnen de set die je invult. Splitkaarten, een verkeerd gelezen nummer of een kaart zonder leesbare naam worden zo vaker gevonden. Het plaatje maakt nooit groen en overschrijft nooit een gelezen naam: wat het vindt is oranje, en ziet het een andere kaart dan de tekst, dan wordt groen oranje.", "add"),
         Item("Werkt offline: per set maakt de app één keer vingerafdrukken uit de Scryfall-plaatjes (een paar honderd kB). Met Sets vooraf downloaden (Instellingen → Scannen) zet je ze klaar voor je hele collectie; een set die je bij het scannen invult, komt er vanzelf bij.", "settings"),
         Item("Kaart voor kaart: de app kijkt mee met de camera en vult wat de foto mist (set of nummer) aan met wat meerdere beelden van dezelfde kaart lazen.", "add"),
         Item("Controlescherm: is er iets te controleren, dan staan de zekere kaarten ingeklapt. Tik op Zeker om ze te zien; ze worden gewoon opgeslagen.", "add"),
     )
 
     private val EN = listOf(
-        Item("Recognise by picture: besides the text, the scanner now looks at the picture, within the set you enter. Split cards, a misread number or a card without a readable name are found more often. The picture never makes a card green: what it finds is orange, and if it sees a different card than the text, green turns orange.", "add"),
+        Item("Recognise by picture: besides the text, the scanner now looks at the picture, within the set you enter. Split cards, a misread number or a card without a readable name are found more often. The picture never makes a card green and never overrides a read name: what it finds is orange, and if it sees a different card than the text, green turns orange.", "add"),
         Item("Works offline: per set the app makes fingerprints once from the Scryfall images (a few hundred kB). Download sets in advance (Settings → Scanning) prepares them for your whole collection; a set you enter while scanning is added by itself.", "settings"),
         Item("Card by card: the app watches the camera and fills in what the photo missed (set or number) with what several frames of the same card read.", "add"),
         Item("Review screen: when there is something to check, the sure cards are folded away. Tap Sure to see them; they are saved as usual.", "add"),

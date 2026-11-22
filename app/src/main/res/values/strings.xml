@@ -1228,7 +1228,7 @@
     <string name="scan_picture_differs">the picture looks like %1$s</string>
     <string name="setting_picture">Recognise by picture</string>
     <string name="setting_picture_short">Picture</string>
-    <string name="setting_picture_explain">Besides reading the text, the scanner looks at the picture, within the set you enter. For that the app makes fingerprints once per set from the Scryfall images (a few hundred kB per set); after that it works without internet. The picture never makes a card green: it fills in where the text found nothing, and turns green into orange when it sees a different card.</string>
+    <string name="setting_picture_explain">Besides reading the text, the scanner looks at the picture, within the set you enter. For that the app makes fingerprints once per set from the Scryfall images (a few hundred kB per set); after that it works without internet. The picture never makes a card green: it fills in where the text found nothing or no name (a read name always wins), and turns green into orange when it sees a different card.</string>
     <string name="picture_no_model">The picture model is not in this version; the scanner only reads text.</string>
     <string name="picture_status">Fingerprints on this phone: %1$d sets · %2$d kB</string>
     <string name="picture_busy">Making fingerprints: %1$s</string>

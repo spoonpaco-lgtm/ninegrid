@@ -1227,7 +1227,7 @@
     <string name="scan_picture_differs">het plaatje lijkt op %1$s</string>
     <string name="setting_picture">Herkennen op het plaatje</string>
     <string name="setting_picture_short">Plaatje</string>
-    <string name="setting_picture_explain">Naast de tekst kijkt de scanner naar het plaatje, binnen de set die je invult. Daarvoor maakt de app per set één keer vingerafdrukken uit de plaatjes van Scryfall (een paar honderd kB per set); daarna werkt het zonder internet. Het plaatje maakt een kaart nooit groen: het vult aan waar de tekst niets vond, en zet groen op oranje als het een andere kaart ziet.</string>
+    <string name="setting_picture_explain">Naast de tekst kijkt de scanner naar het plaatje, binnen de set die je invult. Daarvoor maakt de app per set één keer vingerafdrukken uit de plaatjes van Scryfall (een paar honderd kB per set); daarna werkt het zonder internet. Het plaatje maakt een kaart nooit groen: het vult aan waar de tekst niets of geen naam vond (een gelezen naam gaat altijd voor), en zet groen op oranje als het een andere kaart ziet.</string>
     <string name="picture_no_model">Het beeldmodel zit niet in deze versie; de scanner leest alleen tekst.</string>
     <string name="picture_status">Vingerafdrukken op de telefoon: %1$d sets · %2$d kB</string>
     <string name="picture_busy">Vingerafdrukken maken: %1$s</string>

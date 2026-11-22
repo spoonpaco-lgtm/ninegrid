@@ -288,7 +288,8 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                         (if (starFoil) " · " + str(R.string.scan_foil_star) else ""),
                 query = if (lang == null) CardQuery(setCode = set, collectorNumber = r.collectorNumber, name = r.name, altNames = r.altNames, lines = r.lines)
                     else CardQuery(setCode = set, collectorNumber = r.collectorNumber, lang = lang, printedName = r.name),
-                status = if (canLook) ItemStatus.RESOLVING else ItemStatus.NOT_FOUND,
+                // Niets te lezen maar wel een set met vingerafdrukken (splitkaart, onleesbare naam): het plaatje mag het proberen.
+                status = if (canLook || (set != null && !emptySlot && settings.value.pictureMatch && c.fingerprints.has(set))) ItemStatus.RESOLVING else ItemStatus.NOT_FOUND,
                 language = r.language ?: "",
                 // Bij een blad begint elk vak gewoon; foil zet je in het voorbeeld. Bij één kaart telt de knop.
                 // Een ster (★) in de verzamelregel betekent foil: alvast aangezet, maar oranje om te controleren.
@@ -304,6 +305,16 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         // Opgegeven set zonder vingerafdrukken: op de achtergrond maken (eenmalig, met internet), dan helpt het plaatje
         // vanaf de volgende scan. Deze scan leest gewoon tekst.
         forcedSet?.let { fingerprintsFor(it) }
+    }
+
+    /** Kaarten die op verbinding wachten opnieuw opzoeken (testset na een storing). Geeft het aantal terug. */
+    fun retryWaiting(): Int {
+        val n = pending.count { it.status == ItemStatus.WAITING }
+        if (n > 0) {
+            pending.indices.forEach { i -> if (pending[i].status == ItemStatus.WAITING) pending[i] = pending[i].copy(status = ItemStatus.RESOLVING) }
+            resolveAll()
+        }
+        return n
     }
 
     /** Bezig met vingerafdrukken: "set gedaan/totaal", of null. */
@@ -556,9 +567,12 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                     var useCard = card
                     var picNote: String? = null
                     if (picOther && pic != null) {
-                        if (!textSure) {
+                        // Alleen aanvullen als de tekst niets vond of geen naam las: een gelezen naam overschrijft het plaatje
+                        // nooit (testset 22 nov: Impact Tremors en Feed the Infection werden zo fout). Wel oranje als het twijfelt.
+                        val noName = q.name == null && q.printedName == null
+                        if (!textSure && (card == null || noName)) {
                             runCatching { repo.scryfall.cardById(pic.id) }.getOrNull()?.let { useCard = it; picNote = str(R.string.scan_by_picture) }
-                        } else picNote = str(R.string.scan_picture_differs, pic.name)
+                        } else if (textSure) picNote = str(R.string.scan_picture_differs, pic.name)
                     }
                     val baseLabel = if (guessedPrint) pending[idx].label + " · " + str(R.string.scan_guessed_print)
                         else if (otherSet) pending[idx].label + " · " + str(R.string.scan_other_set, q.setCode!!.uppercase(), card!!.set.uppercase())

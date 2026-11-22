@@ -88,7 +88,8 @@ class Fingerprints(private val context: Context, private val images: Images, pri
 
     private fun file(code: String) = File(dir, code.uppercase() + ".bin")
 
-    fun has(code: String) = loaded.containsKey(code.uppercase()) || file(code).exists()
+    /** Er staan bruikbare vingerafdrukken (van deze versie) op de telefoon. */
+    fun has(code: String) = index(code) != null
 
     /** Sets met vingerafdrukken op de telefoon. */
     fun sets(): List<String> = dir.listFiles().orEmpty().filter { it.name.endsWith(".bin") }.map { it.name.removeSuffix(".bin") }.sorted()
@@ -99,7 +100,7 @@ class Fingerprints(private val context: Context, private val images: Images, pri
 
     private fun read(code: String): PictureIndex? = runCatching {
         DataInputStream(file(code).inputStream().buffered()).use { s ->
-            require(s.readInt() == MAGIC)
+            require(s.readInt() == MAGIC && s.readInt() == VERSION)
             val dim = s.readInt(); val n = s.readInt()
             val ids = ArrayList<String>(n); val names = ArrayList<String>(n); val numbers = ArrayList<String>(n)
             val vectors = ByteArray(n * dim)
@@ -114,7 +115,7 @@ class Fingerprints(private val context: Context, private val images: Images, pri
     private fun write(ix: PictureIndex) {
         val tmp = File(dir, ix.code + ".tmp")
         DataOutputStream(tmp.outputStream().buffered()).use { s ->
-            s.writeInt(MAGIC); s.writeInt(ix.dim); s.writeInt(ix.size)
+            s.writeInt(MAGIC); s.writeInt(VERSION); s.writeInt(ix.dim); s.writeInt(ix.size)
             for (i in 0 until ix.size) {
                 s.writeUTF(ix.ids[i]); s.writeUTF(ix.names[i]); s.writeUTF(ix.numbers[i])
                 s.write(ix.vectors, i * ix.dim, ix.dim)
@@ -156,7 +157,7 @@ class Fingerprints(private val context: Context, private val images: Images, pri
                 async(Dispatchers.IO) {
                     gate.withPermit {
                         val bmp = runCatching { load(c.image!!) }.getOrNull()
-                        val v = bmp?.let { b -> withContext(Dispatchers.Default) { runCatching { PictureIndex.quantize(e.embed(b)) }.getOrNull() } }
+                        val v = bmp?.let { b -> withContext(Dispatchers.Default) { runCatching { PictureIndex.quantize(e.embed(art(b))) }.getOrNull() } }
                         synchronized(this@Fingerprints) { done++; progress(done, todo.size) }
                         v?.let { c to it }
                     }
@@ -198,11 +199,27 @@ class Fingerprints(private val context: Context, private val images: Images, pri
         // Het vak is iets ruimer dan de kaart: neem het midden, zoals ImageMatch.
         val l = (photo.width * INSET).toInt(); val t = (photo.height * INSET).toInt()
         val part = runCatching { Bitmap.createBitmap(photo, l, t, (photo.width - 2 * l).coerceAtLeast(1), (photo.height - 2 * t).coerceAtLeast(1)) }.getOrDefault(photo)
-        runCatching { ix.best(PictureIndex.quantize(e.embed(part))) }.getOrNull()
+        runCatching { ix.best(PictureIndex.quantize(e.embed(art(part)))) }.getOrNull()
     }
+
+    /**
+     * Alleen de illustratie: binnen een set hebben alle kaarten hetzelfde kader en tekstvak, dus de hele kaart
+     * vergelijken laat alles op elkaar lijken (testset 22 nov: 33% goed). Voor de Scryfall-plaatjes en de foto gelijk.
+     */
+    private fun art(b: Bitmap): Bitmap = runCatching {
+        val l = (b.width * ART_LEFT).toInt(); val t = (b.height * ART_TOP).toInt()
+        Bitmap.createBitmap(b, l, t, (b.width * (ART_RIGHT - ART_LEFT)).toInt().coerceAtLeast(1), (b.height * (ART_BOTTOM - ART_TOP)).toInt().coerceAtLeast(1))
+    }.getOrDefault(b)
 
     private companion object {
         const val MAGIC = 0x4E474650 // "NGFP"
+        /** 2 = alleen de illustratie (0.9.15, 22 nov); oudere bestanden worden opnieuw gemaakt. */
+        const val VERSION = 2
         const val INSET = 0.04f
+        // Waar de illustratie ongeveer zit, als deel van de kaart (modern en oud kader).
+        const val ART_LEFT = 0.08f
+        const val ART_RIGHT = 0.92f
+        const val ART_TOP = 0.11f
+        const val ART_BOTTOM = 0.55f
     }
 }
