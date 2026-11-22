@@ -1233,4 +1233,6 @@
     <string name="picture_busy">Vingerafdrukken maken: %1$s</string>
     <string name="picture_prefetch">Sets vooraf downloaden</string>
     <string name="picture_prefetch_explain">Vingerafdrukken voor alle sets in je collectie en decks, het liefst op wifi. Een set die je bij het scannen invult, komt er vanzelf bij (met internet); die scan leest dan nog alleen tekst.</string>
+    <string name="scan_picture_print">print gekozen op het plaatje</string>
+    <string name="scan_picture_guess">beste gok van het plaatje, controleer</string>
 </resources>

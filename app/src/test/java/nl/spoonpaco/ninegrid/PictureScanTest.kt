@@ -98,6 +98,22 @@ class PictureScanTest {
         assertTrue(g.score > 0.9f)
         assertTrue(g.margin > 0.5f)
         assertTrue(g.sure)
+        // Twee prints van Eternal Wanderer liggen dicht bij elkaar: het plaatje kiest de print dan niet.
+        assertTrue(g.printMargin < PictureIndex.MIN_PRINT_MARGIN)
+        assertFalse(g.printSure)
+    }
+
+    @Test
+    fun printMarginWhenArtDiffers() {
+        val ix = index(
+            "Eternal Wanderer" to floatArrayOf(1f, 0f, 0f, 0f),
+            "Eternal Wanderer" to floatArrayOf(0f, 0f, 0f, 1f),
+            "Intruder Alarm" to floatArrayOf(0f, 1f, 0f, 0f),
+        )
+        val g = ix.best(PictureIndex.quantize(floatArrayOf(0f, 0.1f, 0f, 1f)))!!
+        assertEquals("2", g.number)
+        assertTrue(g.printSure)
+        assertTrue(g.describe().contains(" print "))
     }
 
     @Test

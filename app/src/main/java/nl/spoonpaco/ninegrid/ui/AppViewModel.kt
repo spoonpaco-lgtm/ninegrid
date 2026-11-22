@@ -563,16 +563,28 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                     // Het plaatje (1h-scan) maakt nooit groen: het vult aan waar de tekst niets of iets onzekers vond,
                     // en maakt groen oranje als het duidelijk een andere kaart ziet.
                     val pic = pictures[item.key]
-                    val picOther = pic != null && pic.sure && (card == null || !(pic.name.equals(card.name, true) || nl.spoonpaco.ninegrid.domain.NameMatch.alike(pic.name, card.name)))
+                    val sameName = pic != null && card != null && (pic.name.equals(card.name, true) || nl.spoonpaco.ninegrid.domain.NameMatch.alike(pic.name, card.name))
+                    val picOther = pic != null && pic.sure && (card == null || !sameName)
+                    val noName = q.name == null && q.printedName == null
                     var useCard = card
                     var picNote: String? = null
+                    // De kaart van het plaatje: eerst via set en nummer (werkt offline), dan via id.
+                    suspend fun byPicture(p: nl.spoonpaco.ninegrid.domain.PictureGuess): nl.spoonpaco.ninegrid.data.scryfall.SfCard? =
+                        q.setCode?.let { s -> runCatching { repo.scryfall.cardBySetNumber(s, p.number) }.getOrNull()?.takeIf { it.id == p.id || it.name.equals(p.name, true) } }
+                            ?: runCatching { repo.scryfall.cardById(p.id) }.getOrNull()
                     if (picOther && pic != null) {
                         // Alleen aanvullen als de tekst niets vond of geen naam las: een gelezen naam overschrijft het plaatje
                         // nooit (testset 22 nov: Impact Tremors en Feed the Infection werden zo fout). Wel oranje als het twijfelt.
-                        val noName = q.name == null && q.printedName == null
                         if (!textSure && (card == null || noName)) {
-                            runCatching { repo.scryfall.cardById(pic.id) }.getOrNull()?.let { useCard = it; picNote = str(R.string.scan_by_picture) }
+                            byPicture(pic)?.let { useCard = it; picNote = str(R.string.scan_by_picture) }
                         } else if (textSure) picNote = str(R.string.scan_picture_differs, pic.name)
+                    } else if (pic != null && card != null && sameName && pic.printSure && !card.collectorNumber.equals(pic.number, true) &&
+                        (q.collectorNumber == null || !card.collectorNumber.equals(q.collectorNumber, true))) {
+                        // Zelfde naam, maar het gelezen nummer klopt niet met de print: het plaatje kiest de print (oranje).
+                        byPicture(pic)?.let { useCard = it; picNote = str(R.string.scan_picture_print) }
+                    } else if (pic != null && card == null && noName && q.collectorNumber == null && pic.looseGuess) {
+                        // De tekst las helemaal niets (splitkaart): de beste gok van het plaatje als oranje voorstel.
+                        byPicture(pic)?.let { useCard = it; picNote = str(R.string.scan_picture_guess) }
                     }
                     val baseLabel = if (guessedPrint) pending[idx].label + " · " + str(R.string.scan_guessed_print)
                         else if (otherSet) pending[idx].label + " · " + str(R.string.scan_other_set, q.setCode!!.uppercase(), card!!.set.uppercase())
