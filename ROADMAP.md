@@ -147,9 +147,37 @@ Mick 18 nov: "bouw alle voorstellen in een branch". Basis: eerste testset-meting
 ### 1d-scan. Volgende scannerstappen (voorstel, wacht op startsein)
 
 1. Setlijst uit de offline database halen: gaat mee in de Top movers-branch (zie 1e-movers).
-2. Splitkaarten (GRN rij 3): gedraaid lezen levert nog niets.
-3. Gemengd blad zonder set.
+2. Splitkaarten (GRN rij 3): gedraaid lezen levert nog niets. → aanpak via het plaatje, zie 1h-scan stap 1.
+3. Gemengd blad zonder set. → zie 1h-scan stap 3.
 4. Testset: "kaart als leeg gezien" apart vermelden; testset met losse kaartfoto's (één kaart per foto) om scannen per kaart te meten.
+
+### 1h-scan. Herkennen op het plaatje naast tekst lezen (voorstel 22 nov, wacht op startsein)
+
+Aanleiding: Mick liet de opbouw van de ManaBox-scanner uitzoeken (codekaart van de APK). ManaBox leest geen tekst maar herkent het plaatje: camerastroom → kaart in beeld vinden en rechttrekken → ONNX-model maakt een vingerafdruk (embedding) → dichtstbijzijnde kaart in een int8-index van alle kaarten (apart gedownload) → bij herdrukken met hetzelfde plaatje de print laten kiezen. **Alleen de werkwijze als voorbeeld; hun model en index nemen we niet over** (hun werk, auteursrecht/voorwaarden, publieke repo en Play Store).
+
+Waarom: de resterende fouten uit 0.9.13 (splitkaarten 6, gemengd blad zonder set 6, losse leesfouten 6) komen allemaal van tekst lezen; op het plaatje speelt draaiing, showcase-nummer of taal geen rol. Tekst lezen blijft nodig voor set en nummer: **combineren, niet vervangen**.
+
+**Offline (Mick 22 nov: moet offline blijven werken):** het model zit in de app en rekent op de telefoon. Alleen de vingerafdrukken worden één keer gedownload/gemaakt; daarna offline. Zonder vingerafdrukken voor een set leest de scanner alleen tekst, zoals nu (niets kwijt).
+
+**Stap 1: plaatje binnen de opgegeven set.**
+- MediaPipe ImageEmbedder (klein MobileNet-model, Kotlin, geen eigen native code). APK wordt een paar MB groter.
+- Bij een nieuwe set eenmalig de art-crops van Scryfall ophalen (~10–15 MB), omrekenen naar vingerafdrukken, alleen die bewaren (enkele honderden KB per set); de plaatjes zelf niet.
+- Per vak eerst tekst zoals nu; bij oranje of leeg beslist het plaatje mee. Groen alleen als naam en plaatje het eens zijn.
+- Past bij de regel "een set telt alleen als de gebruiker hem opgeeft".
+- Onzeker: of een algemeen model binnen een set betrouwbaar genoeg is. Meten met de testset op de telefoon (offline database aan); verwacht effect op splitkaarten en losse leesfouten.
+
+**Stap 1b: Sets vooraf downloaden.**
+- Knop naast de offline database: vingerafdrukken voor alle sets in de collectie plus zelf gekozen sets, thuis op wifi.
+- De nachtelijke update maakt vingerafdrukken voor nieuwe sets bij (alleen met internet).
+
+**Stap 2: meerdere beelden laten stemmen bij kaart voor kaart.**
+- CameraX `ImageAnalysis` met `STRATEGY_KEEP_ONLY_LATEST` (zoals ManaBox' `nativeWanted`): ~5 beelden achter elkaar lezen, de uitkomst die het vaakst terugkomt telt. Een slecht moment (glans, beweging) kost geen scan meer. Geen model nodig, volledig offline.
+
+**Stap 3 (later): één index voor alle kaarten, voor gemengde bladen zonder set.**
+- Index vooraf bouwen (bijvoorbeeld in GitHub Actions uit de Scryfall-plaatjes), int8 ingepakt, tientallen MB, één keer downloaden; daarna offline.
+- Pas beginnen als stap 1 laat zien hoe goed een algemeen model op Micks foto's werkt; ManaBox heeft hiervoor een eigen getraind model. Herdrukken met hetzelfde plaatje: set/nummer uit de tekst of de printlijst.
+
+**Tussendoor (klein):** scantips op het scanscherm (achtergrond, licht, niet overlappen, opnieuw scannen).
 
 ### 1e-movers. 0.9.14 Ob Nixilis: Top movers + setlijst uit de offline database (gebouwd op branch `movers-0.9.14` op 18 nov, wacht op test en "ja, release")
 
