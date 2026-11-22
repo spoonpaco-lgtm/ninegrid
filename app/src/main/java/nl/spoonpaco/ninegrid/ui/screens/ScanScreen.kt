@@ -461,6 +461,9 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
     var bandPx by remember { mutableStateOf(0) }
     val bottomBarPx = if (bandPx > 0) bandPx.toFloat() else with(density) { (bandDp + 26).dp.toPx() } + WindowInsets.navigationBars.getBottom(density)
 
+    // Kaart voor kaart: wat de laatste camerabeelden lazen, om de foto mee aan te vullen (FrameVotes).
+    val votes = remember { nl.spoonpaco.ninegrid.domain.FrameVotes() }
+
     fun startScan(reads: List<SlotRead>, crops: Map<Int, Bitmap>) {
         vm.startScan(reads, crops, single = single)
     }
@@ -610,8 +613,6 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
         }
     }
     val analyzerExecutor = remember { java.util.concurrent.Executors.newSingleThreadExecutor() }
-    // Kaart voor kaart: wat de laatste camerabeelden lazen, om de foto mee aan te vullen (FrameVotes).
-    val votes = remember { nl.spoonpaco.ninegrid.domain.FrameVotes() }
     val recognizer = remember { TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS) }
     val analysis = remember {
         androidx.camera.core.ImageAnalysis.Builder()
