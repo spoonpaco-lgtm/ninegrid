@@ -61,6 +61,8 @@ data class AppSettings(
     val autoCapture: Boolean = true,
     /** Hoe lang de kaart stil moet liggen: fast (0,3 s), normal (0,5 s) of sure (1 s). */
     val autoSpeed: String = "normal",
+    /** Herkennen op het plaatje naast tekst lezen (vingerafdrukken per set, 1h-scan). */
+    val pictureMatch: Boolean = true,
     /** Melding bij een Breakout: een kaart die op één dag flink stijgt. */
     val breakoutAlerts: Boolean = true,
     val lastBreakoutDay: String = "",
@@ -180,6 +182,7 @@ class SettingsStore(private val context: Context) {
         val shutterSound = booleanPreferencesKey("shutter_sound")
         val autoCapture = booleanPreferencesKey("auto_capture")
         val autoSpeed = stringPreferencesKey("auto_speed")
+        val pictureMatch = booleanPreferencesKey("picture_match")
         val breakoutAlerts = booleanPreferencesKey("breakout_alerts")
         val lastBreakoutDay = stringPreferencesKey("last_breakout_day")
         val banAlerts = booleanPreferencesKey("ban_alerts")
@@ -290,6 +293,7 @@ class SettingsStore(private val context: Context) {
         shutterSound = this[K.shutterSound] ?: false,
         autoCapture = this[K.autoCapture] ?: true,
         autoSpeed = this[K.autoSpeed] ?: "normal",
+        pictureMatch = this[K.pictureMatch] ?: true,
         breakoutAlerts = this[K.breakoutAlerts] ?: true,
         lastBreakoutDay = this[K.lastBreakoutDay] ?: "",
         banAlerts = this[K.banAlerts] ?: true,
@@ -383,6 +387,7 @@ class SettingsStore(private val context: Context) {
     suspend fun setShutterSound(v: Boolean) = context.dataStore.edit { it[K.shutterSound] = v }
     suspend fun setAutoCapture(v: Boolean) = context.dataStore.edit { it[K.autoCapture] = v }
     suspend fun setAutoSpeed(v: String) = context.dataStore.edit { it[K.autoSpeed] = v }
+    suspend fun setPictureMatch(v: Boolean) = context.dataStore.edit { it[K.pictureMatch] = v }
     suspend fun setBreakoutAlerts(v: Boolean) = context.dataStore.edit { it[K.breakoutAlerts] = v }
     suspend fun setBanAlerts(v: Boolean) = context.dataStore.edit { it[K.banAlerts] = v }
     suspend fun setReprintAlerts(v: Boolean) = context.dataStore.edit { it[K.reprintAlerts] = v }

@@ -14,3 +14,4 @@ keystore.properties
 # Door de bouwstraat opgehaald bij Scryfall
 app/src/main/assets/card-names.json
 app/src/main/assets/sets.json
+app/src/main/assets/embedder.tflite

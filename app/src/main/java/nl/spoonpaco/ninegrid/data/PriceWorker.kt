@@ -30,6 +30,11 @@ class PriceWorker(context: Context, params: WorkerParameters) : CoroutineWorker(
             runCatching { notifyWishAlarms(c) }
             runCatching { notifyWatch(c) }
             runCatching { checkOfflineDb(c) }
+            // Vingerafdrukken (1h-scan): sets op de telefoon aanvullen met nieuwe kaarten; niet op mobiel internet bij "alleen via wifi".
+            runCatching {
+                val st = c.settings.current()
+                if (st.pictureMatch && c.images.networkAllowed(st)) c.fingerprints.refreshAll()
+            }
             runCatching { nl.spoonpaco.ninegrid.data.widget.Widgets.updateAll(applicationContext) }
             Result.success()
         }.getOrElse { if (runAttemptCount < 3) Result.retry() else Result.success() }

@@ -560,6 +560,12 @@ class Repository(
         return out
     }
 
+    /** De sets waar je kaarten van hebt (collectie en decks, geen proxies), voor Sets vooraf downloaden. */
+    suspend fun ownedSetCodes(): List<String> {
+        val prints = db.prints().all().associateBy { it.id }
+        return db.entries().all().filter { !it.proxy }.mapNotNull { prints[it.printId]?.setCode?.uppercase() }.distinct().sorted()
+    }
+
     /** De namen in een setlijst (van de telefoon of Scryfall), voor het raster op de namen. */
     suspend fun setNames(set: String): List<String> {
         val c = cache ?: return emptyList()

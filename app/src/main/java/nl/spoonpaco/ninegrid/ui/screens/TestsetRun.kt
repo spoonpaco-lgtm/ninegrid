@@ -26,6 +26,11 @@ internal suspend fun runTestset(ctx: Context, tree: Uri, vm: AppViewModel, progr
     var ok = 0; var total = 0; var sureWrong = 0; var checkRight = 0; var notFound = 0; var rawOk = 0
     // Ook als galerijfoto (zonder kader), alleen het totaal: zo blijft zichtbaar of een galerijfoto met een stuk buurpagina werkt.
     var galleryOk = 0; var galleryTotal = 0; var gallerySureWrong = 0
+    // Herkennen op het plaatje (1h-scan): hoe vaak de beste kaart volgens het plaatje klopte, los van wat de app koos.
+    var picTotal = 0; var picRight = 0; var picSure = 0; var picSureWrong = 0
+    val picRightScores = mutableListOf<Float>(); val picWrongScores = mutableListOf<Float>()
+    val picRightMargins = mutableListOf<Float>(); val picWrongMargins = mutableListOf<Float>()
+    val picSets = mutableListOf<String>()
     val t0 = System.currentTimeMillis()
     val failsBefore = vm.repo.scryfall.failures
     val prevSet = vm.scanSet
@@ -34,6 +39,8 @@ internal suspend fun runTestset(ctx: Context, tree: Uri, vm: AppViewModel, progr
             // Zoals Mick de app gebruikt: de set van het blad is ingevuld (mapnaam NN-SET-…); een gemengd blad heeft er geen.
             val folderSet = Regex("^\\d+-([A-Za-z0-9]{2,5})-").find(dir.name.orEmpty())?.groupValues?.get(1)?.uppercase()?.takeIf { it != "GEMENGD" } ?: ""
             withContext(Dispatchers.Main) { vm.scanSet = folderSet }
+            // Vingerafdrukken voor de set van het blad (eenmalig met internet; daarna van de telefoon).
+            if (folderSet.isNotBlank()) { progress("${dir.name}: vingerafdrukken"); vm.ensureFingerprints(folderSet)?.let { n -> picSets += "$folderSet $n" } }
             val expected = TestsetScore.parse(ctx.contentResolver.openInputStream(dir.findFile("uitslag.txt")!!.uri)!!.bufferedReader().readLines())
             for (fname in listOf("foto.jpg", "foto-2.jpg")) {
                 val file = dir.findFile(fname) ?: continue
@@ -50,14 +57,17 @@ internal suspend fun runTestset(ctx: Context, tree: Uri, vm: AppViewModel, progr
                 // kader.txt ook met dat kader (de met de hand gezette kaders van 18 nov maakten het slechter en zijn weg).
                 for (camera in if (kader != null) listOf(false, true) else listOf(false)) {
                 // 1. lezen, zoals ScanScreen.process
-                val slots = try {
+                val read = try {
                     val first = readImage(bmp, if (camera) kader else null, false, if (camera) emptyList() else vm.setNames(folderSet))
                     val (r00, _) = reread(bmp, first, false, vm.setInfo.keys)
                     val r0 = tidyReads(vm, r00, false)
-                    markEmpty(bmp, r0).slots
+                    markEmpty(bmp, r0)
                 } catch (e: Exception) { body.appendLine("fout: ${e.message}"); continue }
+                val slots = read.slots
+                // De uitsnede per vak, zoals na een echte scan (voor printkeuze en het plaatje).
+                val crops = withContext(Dispatchers.Default) { runCatching { cropsFor(bmp, read, false) }.getOrDefault(emptyMap()) }
                 // 2. opzoeken, zoals na een scan
-                withContext(Dispatchers.Main) { vm.startScan(slots) }
+                withContext(Dispatchers.Main) { vm.startScan(slots, crops) }
                 var waited = 0
                 while (waited < 180_000 && withContext(Dispatchers.Main) { vm.pending.any { it.status == ItemStatus.RESOLVING } }) { delay(500); waited += 500 }
                 val items = withContext(Dispatchers.Main) { vm.pending.toList() }
@@ -78,6 +88,14 @@ internal suspend fun runTestset(ctx: Context, tree: Uri, vm: AppViewModel, progr
                     }
                     total++
                     if (v.ok) { ok++; good++ }
+                    if (!e.empty && item?.pictureName != null) {
+                        val pv = TestsetScore.judge(e, item.pictureName, folderSet.ifBlank { null }, item.pictureNumber, false)
+                        picTotal++
+                        // Naam goed telt: tussen prints met hetzelfde plaatje kiest het plaatje niet.
+                        if (pv.nameOk) { picRight++; picRightScores += item.pictureScore; picRightMargins += item.pictureMargin }
+                        else { picWrongScores += item.pictureScore; picWrongMargins += item.pictureMargin }
+                        if (item.pictureSure) { picSure++; if (!pv.nameOk) picSureWrong++ }
+                    }
                     if (!e.empty) {
                         if (sure && !v.ok) sureWrong++
                         if (!sure && v.ok) checkRight++
@@ -86,8 +104,9 @@ internal suspend fun runTestset(ctx: Context, tree: Uri, vm: AppViewModel, progr
                     if (!v.ok) {
                         val status = when { item == null -> "geen vak"; item.confident && item.status == ItemStatus.FOUND -> "groen (zeker)"; item.status == ItemStatus.FOUND -> "oranje"; else -> "niet gevonden" }
                         val got = if (p == null) "niets" else "${p.name} (${p.setCode.uppercase()} ${p.collectorNumber})"
-                        val read = item?.query?.let { q -> " · las: naam=${q.name ?: "-"} set=${q.setCode ?: "-"} nr=${q.collectorNumber ?: "-"}" + (if (q.altNames.isNotEmpty()) " ook=${q.altNames.take(2).joinToString("/")}" else "") } ?: ""
-                        body.appendLine("vak $slot: FOUT · verwacht ${TestsetScore.describe(e)} · kreeg $got · $status$read")
+                        val las = item?.query?.let { q -> " · las: naam=${q.name ?: "-"} set=${q.setCode ?: "-"} nr=${q.collectorNumber ?: "-"}" + (if (q.altNames.isNotEmpty()) " ook=${q.altNames.take(2).joinToString("/")}" else "") } ?: ""
+                        val plaatje = item?.picture?.let { " · plaatje: $it" + (if (item.pictureSure) " [zeker]" else "") } ?: ""
+                        body.appendLine("vak $slot: FOUT · verwacht ${TestsetScore.describe(e)} · kreeg $got · $status$las$plaatje")
                     }
                 }
                 if (camera) { body.appendLine("met kader.txt: $good van ${expected.size} vakken goed"); continue }
@@ -105,6 +124,15 @@ internal suspend fun runTestset(ctx: Context, tree: Uri, vm: AppViewModel, progr
         if (fails > 0) appendLine("LET OP: $fails keer kon Scryfall niet bereikt worden (geen internet of tijdelijk geweigerd). Deze uitslag is dan te laag; draai later opnieuw.")
         appendLine("Totaal: $total vakken, $ok helemaal goed na opzoeken · $secs s")
         appendLine("Groen maar fout (het ergste): $sureWrong · oranje maar goed: $checkRight · niet gevonden: $notFound")
+        if (picTotal > 0) {
+            fun avg(l: List<Float>) = if (l.isEmpty()) "-" else String.format(java.util.Locale.ROOT, "%.2f", l.average())
+            fun lo(l: List<Float>) = l.minOrNull()?.let { String.format(java.util.Locale.ROOT, "%.2f", it) } ?: "-"
+            fun hi(l: List<Float>) = l.maxOrNull()?.let { String.format(java.util.Locale.ROOT, "%.2f", it) } ?: "-"
+            appendLine("Plaatje (beste kaart, alleen de naam): $picRight van $picTotal goed · zeker: $picSure, waarvan fout: $picSureWrong")
+            appendLine("  score goed gem ${avg(picRightScores)} (laagste ${lo(picRightScores)}) · fout gem ${avg(picWrongScores)} (hoogste ${hi(picWrongScores)})")
+            appendLine("  marge goed gem ${avg(picRightMargins)} (laagste ${lo(picRightMargins)}) · fout gem ${avg(picWrongMargins)} (hoogste ${hi(picWrongMargins)})")
+            appendLine("  grenzen nu: score ${nl.spoonpaco.ninegrid.domain.PictureIndex.MIN_SCORE} en marge ${nl.spoonpaco.ninegrid.domain.PictureIndex.MIN_MARGIN} · sets: ${picSets.joinToString(", ")}")
+        } else appendLine("Plaatje: niet gebruikt (uit in Instellingen → Scannen, geen beeldmodel in deze build, of geen vingerafdrukken).")
         if (galleryTotal > 0) appendLine("Met kader.txt (alleen bladen met dat bestand): $galleryOk van $galleryTotal goed · groen maar fout: $gallerySureWrong")
         appendLine("Met de set van de mapnaam ingevuld, zoals jij de app gebruikt. Als galerijfoto (zonder kader), wat op 18 nov overeenkwam met de camera. Bij een fout staat erbij wat de scanner las. Namen tellen goed bij 80% gelijkenis. Heeft internet nodig voor kaarten die de offline database niet kent.")
         append(body)

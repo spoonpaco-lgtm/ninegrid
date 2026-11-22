@@ -28,21 +28,17 @@ object WhatsNew {
     fun items(dutch: Boolean): List<Item> = if (dutch) NL else EN
 
     private val NL = listOf(
-        Item("Top movers op het Overzicht: welke kaarten van jou het meest stegen of daalden, per dag of per week, op geld (prijsverandering maal je aantal). Winner of the Week staat bovenaan, en nu is er ook Loser of the Week. Ingeklapt zie je alleen die; tik op de titel voor de hele lijst.", "overview"),
-        Item("Effecten op Winner en Loser: een mythic-gloed en bloed dat van de verliezer afdruipt, of een stempel WINNER en DESTROYED. Kies onder Instellingen → Weergave.", "overview"),
-        Item("Magic-effecten per effect: naast de hoofdschakelaar zet je nu elk effect los aan of uit (foil-glans, verbannen, stempels, schildjes, Winner en Loser, bewegende privacystijlen).", "settings"),
-        Item("Toxic heeft diepte gekregen: schaduw, glanzende ooze en druppels met een glimlicht, zoals het bloed bij Loser of the Week.", "privacy"),
-        Item("Scanner: de setlijst komt eerst uit de offline kaartdatabase. Kiezen binnen de set en het raster op de namen werken zo ook zonder internet.", "add"),
-
+        Item("Herkennen op het plaatje: naast de tekst kijkt de scanner nu naar het plaatje, binnen de set die je invult. Splitkaarten, een verkeerd gelezen nummer of een kaart zonder leesbare naam worden zo vaker gevonden. Het plaatje maakt nooit groen: wat het vindt is oranje, en ziet het een andere kaart dan de tekst, dan wordt groen oranje.", "add"),
+        Item("Werkt offline: per set maakt de app één keer vingerafdrukken uit de Scryfall-plaatjes (een paar honderd kB). Met Sets vooraf downloaden (Instellingen → Scannen) zet je ze klaar voor je hele collectie; een set die je bij het scannen invult, komt er vanzelf bij.", "settings"),
+        Item("Kaart voor kaart: de app kijkt mee met de camera en vult wat de foto mist (set of nummer) aan met wat meerdere beelden van dezelfde kaart lazen.", "add"),
+        Item("Controlescherm: is er iets te controleren, dan staan de zekere kaarten ingeklapt. Tik op Zeker om ze te zien; ze worden gewoon opgeslagen.", "add"),
     )
 
     private val EN = listOf(
-        Item("Top movers on the Overview: which of your cards rose or fell the most, per day or per week, by money (price change times your copies). Winner of the Week sits on top, and there is now a Loser of the Week too. Collapsed you only see that one; tap the title for the full list.", "overview"),
-        Item("Effects on Winner and Loser: a mythic glow and blood dripping off the loser, or a WINNER and DESTROYED stamp. Choose under Settings → View.", "overview"),
-        Item("Magic effects per effect: next to the main switch you can now turn each effect on or off (foil shine, exile, stamps, shields, Winner and Loser, animated privacy styles).", "settings"),
-        Item("Toxic got depth: a shadow, glossy ooze and drops with a highlight, like the blood on Loser of the Week.", "privacy"),
-        Item("Scanner: the set list now comes from the offline card database first, so picking within the set and the grid on the names also work without internet.", "add"),
-
+        Item("Recognise by picture: besides the text, the scanner now looks at the picture, within the set you enter. Split cards, a misread number or a card without a readable name are found more often. The picture never makes a card green: what it finds is orange, and if it sees a different card than the text, green turns orange.", "add"),
+        Item("Works offline: per set the app makes fingerprints once from the Scryfall images (a few hundred kB). Download sets in advance (Settings → Scanning) prepares them for your whole collection; a set you enter while scanning is added by itself.", "settings"),
+        Item("Card by card: the app watches the camera and fills in what the photo missed (set or number) with what several frames of the same card read.", "add"),
+        Item("Review screen: when there is something to check, the sure cards are folded away. Tap Sure to see them; they are saved as usual.", "add"),
     )
 }
 

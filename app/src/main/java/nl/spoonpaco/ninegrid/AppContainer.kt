@@ -18,6 +18,8 @@ class AppContainer(val context: Context) {
     val images = Images(context)
     val cache = nl.spoonpaco.ninegrid.data.CardCache(context, scryfall)
     val combos = nl.spoonpaco.ninegrid.data.ComboService(context)
+    /** Herkennen op het plaatje: vingerafdrukken per set (1h-scan). */
+    val fingerprints = nl.spoonpaco.ninegrid.data.Fingerprints(context, images, cache)
     val repository = Repository(db, scryfall) { removed -> images.remove(removed) }.also { it.cache = cache; it.offlineSearch = { q -> offline.search(q) }; it.offlineFiltered = { q, r, c, t, l, o -> offline.search(q, r, c, t, l, o) }; it.offlinePrints = { n -> offline.printsOf(n) } }
     /** Melding bij ban of reprint (punt 40), na de dagelijkse prijsupdate. */
     val watcher = nl.spoonpaco.ninegrid.data.Watcher(context, repository)

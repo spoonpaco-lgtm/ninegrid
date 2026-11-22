@@ -2,7 +2,7 @@
 
 *Nederlands: [FEATURES.nl.md](FEATURES.nl.md)*
 
-Current version: **0.9.11 – Tezzeret**. Every version is named after a planeswalker.
+Current version: **0.9.15 – Niko**. Every version is named after a planeswalker.
 
 ## What makes NineGrid different
 
@@ -25,6 +25,9 @@ Current version: **0.9.11 – Tezzeret**. Every version is named after a planesw
 - **Scan a binder page of 9 cards** in one photo, or **one card at a time** with automatic capture. Text recognition runs on your phone.
 - Reads name, set and collector number, including **foreign-language cards** (the printed name is checked, the English print supplies the price).
 - **Set field**: fill in the set of a page for much more reliable recognition; remembered for the next scan.
+- **Recognise by picture**: with a set entered, the scanner looks at the picture besides the text (image model on the phone, fingerprints per set, then offline). Helps with split cards, misread numbers and unreadable names; never makes a card green. **Download sets in advance** prepares the fingerprints for your whole collection.
+- **Card-by-card voting**: what the photo misses (set, number) is filled in with what several camera frames of the same card read.
+- **Review screen**: when there is something to check, the sure cards are folded away.
 - **Foil doubt in blue**: a card that is sure but may be a foil (star ★ read) is blue, so orange stays for real card checks. Single-card scanning shows the last three cards with a +1 tap and saves straight away when all are sure.
 - **Scan into a deck** from the deck screen (Add → Scan), with one choice for taking cards from your collection.
 - **Foil per slot**: tap the small grid of the last photo (with ✦), then tap a slot (or All foil). If the scanner reads the **foil star ★**, the card is already set to foil (blue: one tap confirms).

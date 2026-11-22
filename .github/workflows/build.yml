@@ -40,6 +40,9 @@ jobs:
           curl -sSf -A "$UA" -H "Accept: application/json" https://api.scryfall.com/catalog/card-names -o app/src/main/assets/card-names.json || echo "Namenlijst niet gelukt"
           sleep 1
           curl -sSf -A "$UA" -H "Accept: application/json" https://api.scryfall.com/sets -o app/src/main/assets/sets.json || echo "Setlijst niet gelukt"
+          # Beeldmodel voor herkennen op het plaatje (MobileNet V3 small image embedder van MediaPipe, Apache 2.0).
+          # Lukt het niet, dan bouwt de app gewoon; de scanner leest dan alleen tekst.
+          curl -sSfL https://storage.googleapis.com/mediapipe-models/image_embedder/mobilenet_v3_small/float32/latest/mobilenet_v3_small.tflite -o app/src/main/assets/embedder.tflite || { echo "::warning::Beeldmodel niet gelukt"; rm -f app/src/main/assets/embedder.tflite; }
           ls -la app/src/main/assets | tee -a build.log
 
       - name: Bouwen en testen

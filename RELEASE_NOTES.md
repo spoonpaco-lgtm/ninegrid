@@ -1,3 +1,15 @@
+NineGrid 0.9.15 – Niko
+
+Niko Aris, die met spiegelscherven werkt: de scanner kijkt nu ook naar het plaatje, niet alleen naar de tekst.
+
+- Herkennen op het plaatje (Instellingen → Scannen, standaard aan): met een ingevulde set zoekt de scanner per vak de kaart uit die set die er het meest op lijkt. Beeldmodel: MobileNet V3 small (image embedder van MediaPipe, Apache 2.0), draait op de telefoon met TensorFlow Lite. De APK wordt daardoor een paar MB groter.
+- Het plaatje maakt nooit groen. Vond de tekst niets of iets onzekers en is het plaatje duidelijk (score ≥ 0,55 en marge ≥ 0,05 tot de beste kaart met een andere naam; geschat), dan komt die kaart erin, oranje met "herkend op het plaatje". Was de tekst zeker maar ziet het plaatje duidelijk een andere kaart, dan wordt het oranje met "het plaatje lijkt op …". Prints met hetzelfde plaatje (gewoon/showcase) onderscheidt het plaatje niet.
+- Offline: per set één keer vingerafdrukken uit de kleine Scryfall-plaatjes (int8, een paar honderd kB per set, in de app-opslag); de plaatjes zelf zijn daarna niet nodig. Een set die je bij het scannen invult, komt er vanzelf bij (met internet, niet op mobiel bij "alleen via wifi"); die scan leest nog alleen tekst. Sets vooraf downloaden maakt ze voor alle sets in je collectie en decks. De nachtelijke update vult sets aan met nieuwe kaarten. Fabrieksinstellingen zonder "offline database bewaren" wist ze.
+- Kaart voor kaart: de camera kijkt nu altijd mee bij 1 kaart (ook zonder Automatisch). Mist de foto set of nummer, dan vult de app dat aan met wat minstens twee beelden van dezelfde kaart lazen (laatste 2,5 s). Wat de foto las, gaat voor.
+- Controlescherm (39c): is er iets te controleren, dan staat de groep Zeker ingeklapt; tik erop om de kaarten te tonen.
+- Scanrapport: per vak wat het plaatje zei (naam, nummer, score/marge, tweede kaart), of het plaatje aan stond en vingerafdrukken had; bij 1 kaart hoeveel camerabeelden meestemden.
+- Testset draaien: maakt eerst de vingerafdrukken van de set van elk blad, geeft de vakuitsnedes mee zoals een echte scan, en meldt hoe vaak het plaatje de juiste naam had, met scores en marges van goed en fout (om de grenzen bij te stellen).
+
 NineGrid 0.9.14 – Ob Nixilis
 
 Ob Nixilis, die van winst en verlies leeft: Top movers op het Overzicht, met Winner én Loser of the Week.

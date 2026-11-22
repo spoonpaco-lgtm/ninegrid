@@ -8,9 +8,9 @@ plugins {
     id("com.google.devtools.ksp")
 }
 
-val versionNameValue = "0.9.14"
+val versionNameValue = "0.9.15"
 /** Elke versie krijgt de naam van een planeswalker die bij de aanpassingen past. */
-val versionCodenameValue = "Ob Nixilis"
+val versionCodenameValue = "Niko"
 val versionCodeValue = (System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 1)
 
 android {
@@ -122,6 +122,8 @@ dependencies {
     implementation("androidx.camera:camera-lifecycle:1.4.1")
     implementation("androidx.camera:camera-view:1.4.1")
     implementation("com.google.mlkit:text-recognition:16.0.1")
+    // Herkennen op het plaatje (1h-scan): het beeldmodel (MobileNet, assets/embedder.tflite) draait op de telefoon.
+    implementation("org.tensorflow:tensorflow-lite:2.16.1")
     implementation("com.google.mlkit:barcode-scanning:17.3.0")
     implementation("com.google.zxing:core:3.5.3")
 

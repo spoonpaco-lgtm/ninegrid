@@ -35,21 +35,20 @@ Dit is "de lijst": wat Mick wil dat NineGrid nog krijgt. Een nieuw gesprek begin
 **Dit document bijwerken**
 - Eerst `project_read` op `claude/NineGrid-roadmap.md`, anders weigert `project_write`. Daarna bewerken in `ROADMAP.md` in de repo en terugschrijven met `project_write(path="claude/NineGrid-roadmap.md", local_path=".../ROADMAP.md")`.
 
-**Scanner: hoe het werkt (stand 0.9.8.2)**
-- `domain/ScanParser.kt` leest per vak de bovenkant (naam) en een onderste strook (3× vergroot sinds 0.9.7: nummer, set, taal, ★). Een vak is compleet met setcode én nummer; anders volgt een tweede leespoging met meer contrast (`reread`, met bekende setcodes erbij).
-- `Repository.preResolve` verbetert namen en controleert tegen de setlijst op de telefoon (nummer + naam kloppen samen = zeker; alleen de naam = print met die naam, liefst met het gelezen nummer). `Repository.resolve` vraagt dan Scryfall (set+nummer, daarna alternatieve cijfers, daarna op naam in de set).
-- Een kaart is alleen groen als naam, set en nummer samen kloppen. Sinds 0.9.8.1 is een kaart uit een andere set dan gevraagd, of zonder nummer met meerdere prints van die naam, altijd oranje.
-- Leeg vak: `EmptySlots.decide`, alleen leeg als er geen tekst in dat vak is en weinig structuur.
-- Scanrapport (Meer → Instellingen → Ontwikkelaar, op het controlescherm "Scan delen"): foto en per vak wat gelezen is; vraag Mick om dat bij een slechte scan.
+**Scanner: hoe het werkt (stand 0.9.14)**
+- `domain/ScanParser.kt` leest per vak de bovenkant (naam) en een onderste strook (3× vergroot: nummer, set, taal, ★). Zonder setcode én nummer volgt een tweede leespoging met meer contrast (`reread`, met bekende setcodes erbij). Jaartal (ook met W) is nooit een nummer (`sanitize`); kleine tekstgroepjes naast het blad (buurpagina) tellen niet (`mainBlock`).
+- Raster: camera met kader → vaste vakken; galerijfoto met ingevulde set → raster op de kaartnamen (`domain/NameGrid.kt`, ankers ≥ 85%), anders het raster uit de tekst. Lege rij/kolom schuift niet op; leeg vak via `EmptySlots.decide`.
+- Setlijst: `CardCache.setList`/`scanList`, eerst uit de offline database (`OfflineCards`), dan Scryfall.
+- Naam: `domain/NameMatch.kt`, beste naam binnen de set (marge 0,12, drempel 0,7, groen vraagt 80%); `bestInLines` zoekt ook in andere regels (altijd oranje; basislanden alleen met typeregel). Splitkaarten: vak zonder naam gedraaid lezen (`rotatedNames` in ScanScreen.kt).
+- Groen alleen als naam, set en nummer samen kloppen en het nummer bij de best passende naam hoort. Altijd oranje (`domain/SetCheck.kt`): andere set dan opgegeven, geen nummer bij meerdere prints met die naam, geen set én geen nummer (geen gok-print). Alleen een nummer is nooit groen.
+- Voorstel "Alles uit set X?" (`domain/SheetSet.kt`): telt pas na een tik van de gebruiker. Een set telt alleen als de gebruiker hem opgeeft.
+- Meten: Ontwikkelaar → Testset draaien op de telefoon, **met de offline database aan** (anders te lage cijfers). Scanrapport (Ontwikkelaar, op het controlescherm "Scan delen"): foto en per vak wat gelezen is.
 
 **Print kiezen, bans en reprints (stand 0.9.10)**
 - Printlijst, ✎ met print en splitsen, + Exemplaar toevoegen: `ui/screens/PrintDialogs.kt`; regels (afwerkingen, prijs, sorteren) in `domain/PrintChoice.kt`; opslaan als één wijziging in `Repository.changeEntry`.
 - Bans en reprints: `data/Watcher.kt` (stand in `filesDir/watch.json`, gewist bij fabrieksinstellingen), regels in `domain/Watch.kt`, melding in `PriceWorker.notifyWatch`. Legaliteit komt uit de prints, die de prijsupdate ververst.
 - 4e: `domain/DeckFit.kt` en `AppViewModel.deckIssues()`; het controlescherm zet zulke kaarten in de groep Controleer.
 
-**Bekende open vragen**
-- Een heel blad leest minder dan in 0.9.6. Verdachten uit 0.9.7: onderste strook 3×, contrastpoging, gedeelde tekstherkenner. Nodig: scanrapport of voorbeeldfoto. Zo nodig die punten terugdraaien.
-- Geeft ML Kit de ster ★ op echte foils terug? Alleen op de telefoon te zien.
 
 ## Uitgebracht
 
@@ -79,6 +78,7 @@ Dit is "de lijst": wat Mick wil dat NineGrid nog krijgt. Een nieuw gesprek begin
 | 0.9.11 | Tezzeret | Exporteren (Moxfield, Archidekt, Cardmarket), deck via QR, crashrapport, privacymodus met meer controle, 5 nieuwe privacystijlen + Zegel klein, 9 app-iconen, widgets, testset op de telefoon |
 | 0.9.12 | Kasmina | Scanner betrouwbaarder: strengere naamvergelijking, alleen nummer nooit groen, naam ook in andere regels (oranje), geen print op de gok, voorstel set van het blad, splitkaarten gedraaid, buurpagina weg, jaartal met W; testset 98→109 goed, groen maar fout 8→0 |
 | 0.9.13 | Nissa | Raster op de kaartnamen (galerijfoto met set); testset meldt Scryfall-storingen; testset 88% goed (set ingevuld 91%), 0% groen maar fout, lege vakken 96% |
+| 0.9.14 | Ob Nixilis | Top movers (Winner én Loser of the Week/Day, inklapbaar, effecten Gloed en bloed of Stempels), Magic-effecten per effect, Toxic vernieuwd, setlijst voor de scanner uit de offline database |
 
 ## Nog te doen
 
@@ -120,7 +120,7 @@ Uitgebracht 18 nov na Micks "ja, release", zonder eerdere telefoontest; de punte
 **Open vragen bij 0.9.11**
 - Testset opnieuw draaien op de telefoon en `uitslag.txt` per blad controleren (door Claude van de foto gelezen; Mick moet nog nakijken).
 - Verlanglijst: Mick zag na een printwijziging niet de juiste print of prijs; in de code niet te vinden, eerst vragen wat hij precies ziet.
-- Scanner verbeteren (volgende stap): met de telefoonmeting varianten vergelijken (elk vak los lezen, meer pogingen op de voetstrook, hele foto vergroot). Nog niet gemeten; `ScanVariantsTest` staat klaar voor een kleinere run. De emulator is te traag voor meer dan één leesronde.
+- Scanner verbeteren: zie 1h-scan (de varianten uit 0.9.11 — elk vak los, meer pogingen op de voetstrook, hele foto vergroot — zijn niet gemeten; `ScanVariantsTest` staat nog klaar).
 - Supporter-/donatielocking (stijlen of iconen alleen voor supporters): nog niet besloten.
 - Testset-regels: alleen foto's van Micks eigen bladen (repo is publiek); nieuwe bladen in een map `NN-set-kaart` met foto en rapport, liefst originelen.
 
@@ -151,9 +151,9 @@ Mick 18 nov: "bouw alle voorstellen in een branch". Basis: eerste testset-meting
 3. Gemengd blad zonder set. → zie 1h-scan stap 3.
 4. Testset: "kaart als leeg gezien" apart vermelden; testset met losse kaartfoto's (één kaart per foto) om scannen per kaart te meten.
 
-### 1h-scan. Herkennen op het plaatje naast tekst lezen (voorstel 22 nov, wacht op startsein)
+### 1h-scan. Herkennen op het plaatje naast tekst lezen (voorstel 22 nov; stap 1, 1b en 2 gebouwd in 0.9.15, zie 1i-scan; stap 3 wacht)
 
-Aanleiding: Mick liet de opbouw van de ManaBox-scanner uitzoeken (codekaart van de APK). ManaBox leest geen tekst maar herkent het plaatje: camerastroom → kaart in beeld vinden en rechttrekken → ONNX-model maakt een vingerafdruk (embedding) → dichtstbijzijnde kaart in een int8-index van alle kaarten (apart gedownload) → bij herdrukken met hetzelfde plaatje de print laten kiezen. **Alleen de werkwijze als voorbeeld; hun model en index nemen we niet over** (hun werk, auteursrecht/voorwaarden, publieke repo en Play Store).
+Aanleiding: grote scanner-apps lezen geen tekst maar herkennen het plaatje: camerastroom → kaart in beeld vinden en rechttrekken → ONNX-model maakt een vingerafdruk (embedding) → dichtstbijzijnde kaart in een int8-index van alle kaarten (apart gedownload) → bij herdrukken met hetzelfde plaatje de print laten kiezen. **Eigen uitwerking met een open model (MobileNet, Apache 2.0); geen model of index van een andere app.**
 
 Waarom: de resterende fouten uit 0.9.13 (splitkaarten 6, gemengd blad zonder set 6, losse leesfouten 6) komen allemaal van tekst lezen; op het plaatje speelt draaiing, showcase-nummer of taal geen rol. Tekst lezen blijft nodig voor set en nummer: **combineren, niet vervangen**.
 
@@ -171,15 +171,15 @@ Waarom: de resterende fouten uit 0.9.13 (splitkaarten 6, gemengd blad zonder set
 - De nachtelijke update maakt vingerafdrukken voor nieuwe sets bij (alleen met internet).
 
 **Stap 2: meerdere beelden laten stemmen bij kaart voor kaart.**
-- CameraX `ImageAnalysis` met `STRATEGY_KEEP_ONLY_LATEST` (zoals ManaBox' `nativeWanted`): ~5 beelden achter elkaar lezen, de uitkomst die het vaakst terugkomt telt. Een slecht moment (glans, beweging) kost geen scan meer. Geen model nodig, volledig offline.
+- CameraX `ImageAnalysis` met `STRATEGY_KEEP_ONLY_LATEST` : ~5 beelden achter elkaar lezen, de uitkomst die het vaakst terugkomt telt. Een slecht moment (glans, beweging) kost geen scan meer. Geen model nodig, volledig offline.
 
 **Stap 3 (later): één index voor alle kaarten, voor gemengde bladen zonder set.**
 - Index vooraf bouwen (bijvoorbeeld in GitHub Actions uit de Scryfall-plaatjes), int8 ingepakt, tientallen MB, één keer downloaden; daarna offline.
-- Pas beginnen als stap 1 laat zien hoe goed een algemeen model op Micks foto's werkt; ManaBox heeft hiervoor een eigen getraind model. Herdrukken met hetzelfde plaatje: set/nummer uit de tekst of de printlijst.
+- Pas beginnen als stap 1 laat zien hoe goed een algemeen model op Micks foto's werkt; Een algemeen model is daarvoor misschien niet goed genoeg; dan een eigen getraind model. Herdrukken met hetzelfde plaatje: set/nummer uit de tekst of de printlijst.
 
 **Tussendoor (klein):** scantips op het scanscherm (achtergrond, licht, niet overlappen, opnieuw scannen).
 
-### 1e-movers. 0.9.14 Ob Nixilis: Top movers + setlijst uit de offline database (gebouwd op branch `movers-0.9.14` op 18 nov, wacht op test en "ja, release")
+### 1e-movers. 0.9.14 Ob Nixilis: Top movers + setlijst uit de offline database (uitgebracht 22 nov op Micks "Release 0.9.14", nog te testen op de telefoon)
 
 **Ook in deze branch (Mick 18 nov):** scannerstap 1 uit 1d-scan: de setlijst uit de offline database halen (nieuwe query per set in `OfflineCards`, `CardCache.setList` eerst offline, dan Scryfall). Dan werken kiezen binnen de set, zoeken in andere regels en het raster op de namen ook zonder internet, met minder verzoeken aan Scryfall.
 
@@ -197,7 +197,7 @@ Op het Overzicht, op de plek van Winner of the Week, één samengevoegd blok "To
   - Speelt één keer bij openen of wisselen (~1,5 s), daarna stil. Magic-effecten uit → alleen een rustig groen of rood randje. Eigen tekenwerk, geen Wizards-materiaal.
   - Schetsen getoond 18 nov; Mick: het bloed moet van de onderkant van de kaart afdruipen, in dezelfde stijl als de Completed-olie, met schaduw (niet plat). Zo gebouwd in `ui/components/MoverEffects.kt` (`MoverFrame`).
 - Gebouwd: Week = maandag tegen de maandag ervoor (zoals Winner of the Week en de widget); Dag = laatste prijsdag tegen de dag ervoor (`PriceDao.lastDay`/`dayBefore`). `PriceMovers.top/loser` met unittest. Scanner: `CardCache.scanList` (offline database eerst, niet als bestand bewaard).
-- Winner of the Week = nummer 1 van de weekstijgers: nakijken of de huidige berekening (`computeWinner`) hetzelfde rekent (€ × aantal), zodat blok en widget niet verschillen. Loser of the Week is nieuw (nummer 1 van de dalers).
+- Winner of the Week = nummer 1 van de weekstijgers. Nagekeken 22 nov: `computeWinner` en de widget (`WidgetData.winner`) rekenen allebei met `PriceMovers.movers` + `winner`, dezelfde maandagen. Loser of the Week is nieuw (nummer 1 van de dalers).
 - Technisch: rekenwerk in `domain/` met unittest; gegevens uit `price_history` en de exemplaren; handleiding, Wat is nieuw, FEATURES.
 
 ### 1f-movers. Top movers inklapbaar: in deze branch (0.9.14), gebouwd 18 nov
@@ -211,14 +211,30 @@ Op het Overzicht, op de plek van Winner of the Week, één samengevoegd blok "To
 - Elk Magic-effect een eigen schakelaar (`domain/FxSet.kt`, instelling `fxOff`, `LocalFx`): foil, exile, stamps, shields, movers, privacy. Hoofdschakelaar blijft; de losse schakelaars staan eronder als hij aan staat. Stempels uit raakt de WINNER/DESTROYED-stempel niet (die hoort bij Winner en Loser).
 - Fix: Dalers had geen schildje op de grote kaart (alleen bij Stijgers getekend); nu ▼ rood.
 
+### 1i-scan. 0.9.15 Niko: gebouwd op branch `niko-0.9.15` (22 nov, Micks "begin dan de volgende versie op de branch"), wacht op test en "ja, release"
+
+Naam Niko (Aris, spiegelscherven = beelden) gekozen door Claude; Mick mag hem veranderen.
+- **1h stap 1 + 1b:** herkennen op het plaatje. `data/Fingerprints.kt` (Embedder met TensorFlow Lite 2.16.1, model `assets/embedder.tflite` = MediaPipe MobileNet V3 small, door de workflow opgehaald; zonder model leest de scanner alleen tekst). Vingerafdrukken per set in `filesDir/fingerprints/SET.bin` (int8), gemaakt uit `SetCard.image` via Coil. Zoeken en grenzen in `domain/PictureIndex.kt` (MIN_SCORE 0,55, MIN_MARGIN 0,05, **geschat**). In `AppViewModel.resolveAll`: plaatje uit `crops` per vak, nooit groen; tekst onzeker → kaart van het plaatje (oranje); tekst zeker en plaatje duidelijk anders → oranje. Instelling `pictureMatch` (Scannen), Sets vooraf downloaden (`Repository.ownedSetCodes`), set uit het setveld automatisch op de achtergrond, nachtelijk aanvullen in `PriceWorker`.
+- **1h stap 2:** `domain/FrameVotes.kt`: bij 1 kaart draait de analyse altijd mee (ook zonder Automatisch); foto mist set/nummer → aanvullen met ≥ 2 beelden van dezelfde kaart (laatste 2,5 s).
+- **39c:** controlescherm: groep Zeker ingeklapt als er iets te controleren is (▸/▾).
+- Scanrapport en testset: plaatje per vak (naam #nr score/marge, 2e kaart); testset maakt eerst de vingerafdrukken, geeft `cropsFor` mee en meldt plaatje-goed met scores/marges van goed en fout.
+- **Nog te doen na de build:** testset draaien op de telefoon (offline database aan, internet voor de eerste vingerafdrukken), daarna MIN_SCORE/MIN_MARGIN bijstellen met de gemelde scores. APK-groei nakijken (TFLite ~ een paar MB per ABI + model ~4 MB).
+- Onzeker: normalisatie van de invoer (nu -1..1) en of een algemeen model de kaarten binnen een set goed genoeg uit elkaar houdt. De testset laat het zien.
+
 ### 2. Kleine verbeteringen (nog geen versie)
 
-- Scannen, kaart voor kaart: 39a (set van de vorige kaart als aanname) is door Mick afgewezen, 17 nov: scannen wordt er trager van; een set telt alleen als de gebruiker hem zelf opgeeft. 39c groene kaarten overslaan op het controlescherm (pas bouwen als de herkenning betrouwbaar is; wacht op een test op de telefoon).
+- Scannen, kaart voor kaart: 39a (set van de vorige kaart als aanname) is door Mick afgewezen, 17 nov: scannen wordt er trager van; een set telt alleen als de gebruiker hem zelf opgeeft. 39c gebouwd in 0.9.15 (zie 1i-scan).
 - Prijshistorie ophalen uit MTGJSON (tot 90 dagen terug): formaat en Cardmarket-waarde zijn nog niet nagekeken, en Mick heeft het nog niet bevestigd.
 
 ### 3. Nog na te kijken op Micks telefoon
 
-Alleen wat Mick nog niet heeft bevestigd.
+Alleen wat Mick nog niet heeft bevestigd. Wat hij werkend heeft gezien, gaat eruit (22 nov: Mick laat weten wat hij al gebruikt).
+
+**0.9.14 (Top movers)**
+- Top movers op het Overzicht: grote kaart Winner/Loser, Dag | Week, Stijgers | Dalers, inklappen en onthouden, Toon top 20, privacymodus met alleen percentages.
+- Effecten Gloed en bloed / Stempels; elk Magic-effect een eigen schakelaar; Toxic vernieuwd; rood ▼-schildje bij Dalers.
+- Widget Winner of the Week en het blok tonen dezelfde kaart (in de code gelijk; op de telefoon bevestigen).
+- Scannen zonder internet met een set die in de offline database staat.
 
 **0.9.10.1 (menu)**
 - Meer in blokken: Handleiding + Wat is nieuw bovenaan; Collectie (Importeren, Back-up en export, Delen met vrienden, Laatste actie ongedaan maken); App (Instellingen, Over NineGrid).
@@ -237,18 +253,17 @@ Alleen wat Mick nog niet heeft bevestigd.
 
 **0.9.9.2 en 0.9.9 (scanner)**
 - Scannen van één kaart: fotootje met rand groen/oranje/blauw ★; tik = +1, kruisje = weg; bij plaatjes uit blijft het chipje met de naam.
-- Bladscan: een lege rij of kolom schuift de rest niet meer op (maten TEXT_COLS 2.35, TEXT_ROWS 2.86 en grenzen 1.4/2.1 zijn geschat); lege hoesjes met glans (grenzen 0.35 en 0.7 in `EmptySlots.decide` zijn geschat).
+- Lege hoesjes met glans: grenzen 0.35 en 0.7 in `EmptySlots.decide` zijn geschat (testset 0.9.13: lege vakken 22 van 23 goed).
 - Verzonnen setcode of taal valt weg; jaartal telt niet als kaartnummer; de set van het blad wint van één verlezen set.
-- Foil-twijfel is blauw ★ (chips "★ Foil" en "Geen foil"); geeft ML Kit ★ op echte foils?
+- Foil-twijfel is blauw ★ (chips "★ Foil" en "Geen foil"). **Open:** geeft ML Kit de ★ terug op echte foils? De hint werkt alleen dan; zo niet, foil herkennen op beeld.
 - Kaart voor kaart: +1 en kruisje, Opslaan als alles zeker is, Foil als sessiestand.
 - Scannen vanuit een deck (menu Toevoegen → Scannen) en de keuze "uit de collectie halen" (alles / exact dezelfde / niets).
 - Filters en sorteren bij deck, vriend en set; thumbnails bij suggesties; combo-blokken inklappen; segmentbalk Thumbnails | Namen.
 
 **Ouder**
-- 0.9.8: lampmelding (zie punt 30 in RELEASE_NOTES.md) nog niet nagekeken; een nieuw scanrapport met 0.9.9 of nieuwer is nodig om de geschatte maten te toetsen.
-- 0.9.7: scanner met een blad met foils: leest ML Kit de ster ★ echt? (de hint werkt alleen als de tekstherkenning het teken ★ teruggeeft; zo niet, dan een andere aanpak, bijvoorbeeld op beeld).
-- 0.9.7.1: bladscan leest minder dan in 0.9.6 bij een heel blad in beeld; oorzaak nog niet zeker. Verdachten uit 0.9.7: onderste strook 3× vergroot, contrastpoging, gedeelde tekstherkenner. Nodig: een voorbeeldfoto of scanrapport met de vakken die ontbreken. Zo nodig die punten terugdraaien naar 0.9.6.
-- Lamp (zaklamp-knop): de oorzaak bij Mick was een lage batterij (de telefoon laat de lamp dan niet branden); de code is niet stuk.
+- 0.9.8: lampmelding (punt 30 in RELEASE_NOTES.md) nog niet nagekeken.
+
+**Weggehaald 22 nov (ingehaald):** 0.9.7.1 "bladscan leest minder dan 0.9.6" (testset nu 88%, 0 groen maar fout), lamp (lage batterij, code niet stuk), dubbele ★-vraag, geschatte rastermaten (vervangen door raster op de namen).
 
 ### Bekende beperkingen
 

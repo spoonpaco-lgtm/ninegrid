@@ -12,3 +12,7 @@
 -dontwarn org.conscrypt.**
 -dontwarn org.bouncycastle.**
 -dontwarn org.openjsse.**
+
+# TensorFlow Lite (herkennen op het plaatje)
+-keep class org.tensorflow.lite.** { *; }
+-dontwarn org.tensorflow.lite.**

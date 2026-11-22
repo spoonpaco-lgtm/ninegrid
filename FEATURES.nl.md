@@ -2,7 +2,7 @@
 
 *English: [FEATURES.md](FEATURES.md)*
 
-Huidige versie: **0.9.11 – Tezzeret**. Elke versie heeft de naam van een planeswalker.
+Huidige versie: **0.9.15 – Niko**. Elke versie heeft de naam van een planeswalker.
 
 ## Wat NineGrid anders maakt
 
@@ -25,6 +25,9 @@ Huidige versie: **0.9.11 – Tezzeret**. Elke versie heeft de naam van een plane
 - **Scan een verzamelblad met 9 kaarten** in één foto, of **één kaart tegelijk** met automatisch fotograferen. De tekstherkenning draait op je telefoon.
 - Leest naam, set en nummer, ook van **kaarten in andere talen** (de gedrukte naam wordt gecontroleerd, de Engelse print levert de prijs).
 - **Setveld**: vul de set van een blad in voor veel betrouwbaarder herkennen; wordt onthouden voor de volgende scan.
+- **Herkennen op het plaatje**: met een ingevulde set kijkt de scanner naast de tekst ook naar het plaatje (beeldmodel op de telefoon, vingerafdrukken per set, daarna offline). Helpt bij splitkaarten, verkeerd gelezen nummers en onleesbare namen; maakt nooit groen. **Sets vooraf downloaden** zet de vingerafdrukken voor je hele collectie klaar.
+- **Kaart voor kaart stemmen**: wat de foto mist (set, nummer) vult de app aan met wat meerdere camerabeelden van dezelfde kaart lazen.
+- **Controlescherm**: is er iets te controleren, dan staan de zekere kaarten ingeklapt.
 - **Foil-twijfel in blauw**: een kaart die zeker is maar misschien foil (ster ★ gelezen), is blauw, zodat oranje voor echte kaartchecks blijft. Bij één kaart zie je de laatste drie kaarten met +1 en kun je meteen opslaan als alles zeker is.
 - **Scannen naar een deck** vanuit het deck (Toevoegen → Scannen), met één keuze voor uit de collectie halen.
 - **Foil per vak**: tik op het kleine raster van de laatste foto (met ✦) en dan op een vak (of Alles foil). Leest de scanner de **ster ★ van een foil**, dan staat de kaart alvast op foil (blauw: één tik bevestigt).

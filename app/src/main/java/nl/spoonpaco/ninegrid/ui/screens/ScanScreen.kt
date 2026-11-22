@@ -339,7 +339,7 @@ internal fun markEmpty(bmp: Bitmap, result: ScanResult): ScanResult {
     return result.copy(slots = result.slots.map { if (it.slot in empty && it.name == null && !it.complete) it.copy(looksEmpty = true) else it })
 }
 
-private fun cropsFor(bmp: Bitmap, result: ScanResult, single: Boolean): Map<Int, Bitmap> {
+internal fun cropsFor(bmp: Bitmap, result: ScanResult, single: Boolean): Map<Int, Bitmap> {
     val f = result.frame ?: return emptyMap()
     if (single) return listOfNotNull(cutOut(bmp, f)?.let { 1 to it }).toMap()
     val cw = f.width / 3f; val ch = f.height / 3f
@@ -503,7 +503,15 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
                 // Een foto uit de galerij met een opgegeven set: het raster op de gevonden namen leggen (NameGrid).
                 val setNames = if (crop == null && !single) vm.setNames(vm.scanSet) else emptyList()
                 val first = readImage(bmp, crop, single, setNames)
-                val (r00, reread) = reread(bmp, first, single, vm.setInfo.keys)
+                val (rRead, reread) = reread(bmp, first, single, vm.setInfo.keys)
+                // Kaart voor kaart: wat de foto miste aanvullen met wat meerdere camerabeelden van dezelfde kaart lazen (1h-scan stap 2).
+                val r00 = if (!single) rRead else {
+                    val frames = votes.recent(System.currentTimeMillis()); votes.clear()
+                    val filled = rRead.slots.map { nl.spoonpaco.ninegrid.domain.FrameVotes.fill(it, frames) }
+                    vm.lastFrameVotes = frames.size
+                    vm.lastFilledFromFrames = filled.zip(rRead.slots).count { (a, b) -> a != b }
+                    rRead.copy(slots = filled)
+                }
                 // Verzonnen setcodes en talen eruit, en de set van het blad boven een verlezen set.
                 val r0 = tidy(r00, single)
                 // Vakken zonder tekst: is er echt niets, of een kaart die we niet konden lezen?
@@ -519,6 +527,8 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
                             bmp.width, bmp.height, android.os.Build.MANUFACTURER + " " + android.os.Build.MODEL,
                             setField = vm.scanSet.trim().uppercase(), torch = torchOn, autoCapture = auto, aiHelp = settings.aiEnabled,
                             offlineDb = settings.offlineDb != nl.spoonpaco.ninegrid.data.OfflineDb.OFF, language = java.util.Locale.getDefault().language,
+                            pictureMatch = settings.pictureMatch, pictureReady = vm.hasFingerprints(vm.scanSet),
+                            frameVotes = if (single) vm.lastFrameVotes else 0, filledFromFrames = if (single) vm.lastFilledFromFrames else 0,
                         ))
                     }
                 }
@@ -600,6 +610,8 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
         }
     }
     val analyzerExecutor = remember { java.util.concurrent.Executors.newSingleThreadExecutor() }
+    // Kaart voor kaart: wat de laatste camerabeelden lazen, om de foto mee aan te vullen (FrameVotes).
+    val votes = remember { nl.spoonpaco.ninegrid.domain.FrameVotes() }
     val recognizer = remember { TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS) }
     val analysis = remember {
         androidx.camera.core.ImageAnalysis.Builder()
@@ -613,13 +625,13 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
             .build()
     }
     val mainExecutor = remember { ContextCompat.getMainExecutor(context) }
-    // De camera opnieuw koppelen als de stand verandert: meekijken alleen bij 1 kaart met Automatisch aan.
-    androidx.compose.runtime.LaunchedEffect(provider, preview, auto) {
+    // De camera opnieuw koppelen als de stand verandert: meekijken bij 1 kaart (voor Automatisch en om beelden te laten stemmen).
+    androidx.compose.runtime.LaunchedEffect(provider, preview, auto, single) {
         val p = provider ?: return@LaunchedEffect
         val pv = preview ?: return@LaunchedEffect
         runCatching {
             p.unbindAll()
-            camera = if (auto) p.bindToLifecycle(lifecycle, CameraSelector.DEFAULT_BACK_CAMERA, pv, capture, analysis)
+            camera = if (single) p.bindToLifecycle(lifecycle, CameraSelector.DEFAULT_BACK_CAMERA, pv, capture, analysis)
             else p.bindToLifecycle(lifecycle, CameraSelector.DEFAULT_BACK_CAMERA, pv, capture)
         }.onFailure {
             // Sommige telefoons kunnen geen drie dingen tegelijk: dan zonder meekijken.
@@ -629,13 +641,13 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
         // Na het opnieuw koppelen is de lamp uit: weer aan als je hem aan had gezet.
         if (torch) camera?.cameraControl?.enableTorch(true)
     }
-    DisposableEffect(auto) {
+    DisposableEffect(auto, single) {
         var last = 0L
-        if (auto) analysis.setAnalyzer(analyzerExecutor) { proxy ->
+        if (single) analysis.setAnalyzer(analyzerExecutor) { proxy ->
             val now = System.currentTimeMillis()
             val media = proxy.image
             // Een paar beelden per seconde is genoeg, en niet als het meekijken gepauzeerd is.
-            if (media == null || now - last < 300 || autoPaused || boxW <= 0f) { proxy.close(); return@setAnalyzer }
+            if (media == null || now - last < 300 || (auto && autoPaused) || boxW <= 0f) { proxy.close(); return@setAnalyzer }
             last = now
             val rot = proxy.imageInfo.rotationDegrees
             val (w, h) = if (rot == 90 || rot == 270) proxy.height to proxy.width else proxy.width to proxy.height
@@ -643,8 +655,10 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
                 .addOnSuccessListener { text ->
                     val lines = text.textBlocks.flatMap { it.lines }.mapNotNull { l -> l.boundingBox?.let { b -> OcrLine(l.text, b.exactCenterX(), b.exactCenterY()) } }
                     val crop = guideOnImage(guideRect(boxW, boxH, topBarPx, bottomBarPx, true), boxW, boxH, w, h)
-                    val name = ScanParser.analyzeSingle(lines, w, h, crop).slots.firstOrNull()?.name
-                    mainExecutor.execute {
+                    val read = ScanParser.analyzeSingle(lines, w, h, crop).slots.firstOrNull()
+                    val name = read?.name
+                    read?.let { votes.add(nl.spoonpaco.ninegrid.domain.FrameVotes.Read(it.name, it.setCode, it.collectorNumber, now)) }
+                    if (auto) mainExecutor.execute {
                         watcher.onFrame(name?.lowercase()?.filter { it.isLetter() }?.takeIf { it.length >= 3 })
                         if (watcher.idle()) autoPaused = true
                     }

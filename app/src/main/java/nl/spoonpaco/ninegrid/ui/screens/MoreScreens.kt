@@ -442,6 +442,24 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit) {
                         Text(stringResource(R.string.setting_shutter), modifier = Modifier.weight(1f))
                         Switch(checked = settings.shutterSound, onCheckedChange = { vm.setShutterSound(it) })
                     }
+                    // Herkennen op het plaatje (1h-scan): vingerafdrukken per set, daarna offline.
+                    Spacer(Modifier.height(12.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(stringResource(R.string.setting_picture), modifier = Modifier.weight(1f))
+                        Switch(checked = settings.pictureMatch, onCheckedChange = { vm.setPictureMatch(it) })
+                    }
+                    Text(stringResource(R.string.setting_picture_explain), fontSize = NgText.body, color = LocalNgExtra.current.subtle)
+                    if (!vm.pictureModelAvailable) Text(stringResource(R.string.picture_no_model), fontSize = NgText.body, color = NgColorsError)
+                    else if (settings.pictureMatch) {
+                        val busy = vm.fingerprintProgress
+                        Text(
+                            if (busy != null) stringResource(R.string.picture_busy, busy)
+                            else stringResource(R.string.picture_status, vm.fingerprintSets.size, (vm.fingerprintBytes / 1024).toInt()),
+                            fontSize = NgText.body, color = LocalNgExtra.current.subtle,
+                        )
+                        OutlinedButton(onClick = { vm.fingerprintsForCollection() }, enabled = busy == null) { Text(stringResource(R.string.picture_prefetch)) }
+                        Text(stringResource(R.string.picture_prefetch_explain), fontSize = NgText.body, color = LocalNgExtra.current.subtle)
+                    }
                 }
                 SettingsGroup.DATA -> {
                     Text(stringResource(R.string.images), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
@@ -744,6 +762,7 @@ private fun settingsSummary(g: SettingsGroup, vm: AppViewModel, st: nl.spoonpaco
             nl.spoonpaco.ninegrid.domain.Dates.dateTime(System.currentTimeMillis(), st.dateStyle)).joinToString(" · ")
         SettingsGroup.PRIVACY -> stringResource(R.string.privacy_mode) + ": " + (if (st.privacy) on else off)
         SettingsGroup.SCAN -> stringResource(R.string.setting_auto_short) + ": " + (if (st.autoCapture) on else off) + " · " +
+            stringResource(R.string.setting_picture_short) + ": " + (if (st.pictureMatch) on else off) + " · " +
             stringResource(R.string.setting_timing_short) + ": " + (if (st.showTiming) on else off)
         SettingsGroup.DATA -> stringResource(R.string.images) + ": " + imageModeLabelPlain(st.imageMode) + " · " + stringResource(R.string.offline_db_short) + ": " +
             when (st.offlineDb) {

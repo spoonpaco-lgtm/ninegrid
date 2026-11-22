@@ -62,6 +62,14 @@ data class PendingItem(
     val confident: Boolean = false,
     /** De scanner las een ster (★) in de verzamelregel en zette de kaart daarom op foil: even controleren. */
     val foilHint: Boolean = false,
+    /** Wat het plaatje zei (1h-scan), voor het scanrapport en de testset; null zonder vingerafdrukken. */
+    val picture: String? = null,
+    /** Herkend op het plaatje: de naam van de beste kaart, en of het plaatje zeker genoeg was. */
+    val pictureName: String? = null,
+    val pictureNumber: String? = null,
+    val pictureSure: Boolean = false,
+    val pictureScore: Float = 0f,
+    val pictureMargin: Float = 0f,
 ) {
     /** Oranje in de scanner: gevonden, maar naam, set of print is niet zeker. */
     val needsCheck get() = !confident
@@ -209,6 +217,11 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     var lastNamesMs by mutableStateOf(0L)
     var lastLookupMs by mutableStateOf(0L)
     var lastImagesMs by mutableStateOf(0L)
+    /** Hoe lang het herkennen op het plaatje duurde (alle vakken samen). */
+    var lastPicturesMs by mutableStateOf(0L)
+    /** Kaart voor kaart: hoeveel camerabeelden meestemden, en of de foto daarmee is aangevuld (scanrapport). */
+    var lastFrameVotes = 0
+    var lastFilledFromFrames = 0
     /** Dit hele blad is foil. */
     var scanFoil by mutableStateOf(false)
 
@@ -288,7 +301,45 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         }
         if (!single) foilTipOnce()
         resolveAll()
+        // Opgegeven set zonder vingerafdrukken: op de achtergrond maken (eenmalig, met internet), dan helpt het plaatje
+        // vanaf de volgende scan. Deze scan leest gewoon tekst.
+        forcedSet?.let { fingerprintsFor(it) }
     }
+
+    /** Bezig met vingerafdrukken: "set gedaan/totaal", of null. */
+    var fingerprintProgress by mutableStateOf<String?>(null)
+        private set
+    private val fingerprintQueue = java.util.Collections.synchronizedSet(mutableSetOf<String>())
+
+    /** Vingerafdrukken van een set maken als ze er nog niet zijn (niet bij "alleen via wifi" op mobiel internet). */
+    fun fingerprintsFor(set: String) {
+        val code = set.trim().uppercase()
+        if (code.isBlank() || !settings.value.pictureMatch || !c.fingerprints.available || c.fingerprints.has(code)) return
+        if (!images.networkAllowed(settings.value) || !fingerprintQueue.add(code)) return
+        viewModelScope.launch {
+            runCatching { c.fingerprints.ensure(code) { d, t -> fingerprintProgress = "$code $d/$t" } }
+            fingerprintQueue.remove(code); fingerprintProgress = null
+        }
+    }
+
+    /** Sets vooraf downloaden (1h-scan, stap 1b): vingerafdrukken voor alle sets in je collectie en decks. */
+    fun fingerprintsForCollection() = viewModelScope.launch {
+        if (!c.fingerprints.available || fingerprintProgress != null) return@launch
+        val codes = runCatching { repo.ownedSetCodes() }.getOrDefault(emptyList())
+        codes.forEachIndexed { n, code ->
+            fingerprintProgress = "${n + 1}/${codes.size} $code"
+            runCatching { c.fingerprints.ensure(code) { d, t -> fingerprintProgress = "${n + 1}/${codes.size} $code $d/$t" } }
+        }
+        fingerprintProgress = null
+    }
+
+    val fingerprintSets get() = c.fingerprints.sets()
+    val fingerprintBytes get() = c.fingerprints.sizeBytes()
+    val pictureModelAvailable get() = c.fingerprints.available
+    /** Voor de testset: vingerafdrukken van een set maken en erop wachten. Null = niet gelukt of model ontbreekt. */
+    suspend fun ensureFingerprints(set: String): Int? = if (!settings.value.pictureMatch || set.isBlank()) null else runCatching { c.fingerprints.ensure(set) }.getOrNull()
+    fun hasFingerprints(set: String) = set.isNotBlank() && c.fingerprints.has(set.trim())
+    fun setPictureMatch(v: Boolean) = viewModelScope.launch { settingsStore.setPictureMatch(v) }
 
     /** De kaartnamen van een set (uit de setlijst op de telefoon), voor het raster op de namen. Leeg zonder set. */
     suspend fun setNames(set: String?): List<String> = if (set.isNullOrBlank()) emptyList() else repo.setNames(set)
@@ -464,6 +515,15 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                 printed.onSuccess { n -> printedOk[item.key] = n != null && repo.namesLookAlikeLoose(q.printedName, n) }
                 // Geen internet: set en nummer kloppen, dat is genoeg.
             }
+            // Herkennen op het plaatje (1h-scan): alleen met vingerafdrukken die al op de telefoon staan, dus zonder internet.
+            val pictures = mutableMapOf<Int, nl.spoonpaco.ninegrid.domain.PictureGuess>()
+            val tPictures = System.currentTimeMillis()
+            if (scan && settings.value.pictureMatch) todo.forEach { item ->
+                val set = item.query.setCode ?: return@forEach
+                val photo = crops[item.key]?.asAndroidBitmap() ?: return@forEach
+                runCatching { c.fingerprints.match(set, photo) }.getOrNull()?.let { pictures[item.key] = it }
+            }
+            lastPicturesMs = System.currentTimeMillis() - tPictures
             if (scan) repo.scryfall.releaseForeground()
             lastResolveMs = System.currentTimeMillis() - started
             todo.forEachIndexed { i, item ->
@@ -488,13 +548,30 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                         (checkName == null || repo.namesLookAlike(checkName, card.name)) &&
                         (q.collectorNumber == null || card.collectorNumber.equals(q.collectorNumber, true)) &&
                         !otherSet && !ambiguous && !guessedPrint
+                    val textSure = (confident || q.id != null) && nameStrong && !guessedPrint
+                    // Het plaatje (1h-scan) maakt nooit groen: het vult aan waar de tekst niets of iets onzekers vond,
+                    // en maakt groen oranje als het duidelijk een andere kaart ziet.
+                    val pic = pictures[item.key]
+                    val picOther = pic != null && pic.sure && (card == null || !(pic.name.equals(card.name, true) || nl.spoonpaco.ninegrid.domain.NameMatch.alike(pic.name, card.name)))
+                    var useCard = card
+                    var picNote: String? = null
+                    if (picOther && pic != null) {
+                        if (!textSure) {
+                            runCatching { repo.scryfall.cardById(pic.id) }.getOrNull()?.let { useCard = it; picNote = str(R.string.scan_by_picture) }
+                        } else picNote = str(R.string.scan_picture_differs, pic.name)
+                    }
+                    val baseLabel = if (guessedPrint) pending[idx].label + " · " + str(R.string.scan_guessed_print)
+                        else if (otherSet) pending[idx].label + " · " + str(R.string.scan_other_set, q.setCode!!.uppercase(), card!!.set.uppercase())
+                        else if (ambiguous) pending[idx].label + " · " + str(R.string.scan_ambiguous_print) else pending[idx].label
                     pending[idx] = pending[idx].copy(
-                        label = if (guessedPrint) pending[idx].label + " · " + str(R.string.scan_guessed_print)
-                            else if (otherSet) pending[idx].label + " · " + str(R.string.scan_other_set, q.setCode!!.uppercase(), card!!.set.uppercase())
-                            else if (ambiguous) pending[idx].label + " · " + str(R.string.scan_ambiguous_print) else pending[idx].label,
-                        print = card?.toPrint(),
-                        status = if (card != null) ItemStatus.FOUND else ItemStatus.NOT_FOUND,
-                        confident = (confident || q.id != null) && nameStrong && !guessedPrint,
+                        label = if (picNote != null && useCard !== card) pending[idx].label + " · " + picNote
+                            else if (picNote != null) "$baseLabel · $picNote" else baseLabel,
+                        print = useCard?.toPrint(),
+                        status = if (useCard != null) ItemStatus.FOUND else ItemStatus.NOT_FOUND,
+                        confident = textSure && picNote == null,
+                        picture = pic?.describe(),
+                        pictureName = pic?.name, pictureNumber = pic?.number, pictureSure = pic?.sure == true,
+                        pictureScore = pic?.score ?: 0f, pictureMargin = pic?.margin ?: 0f,
                     )
                 }
             }
@@ -924,8 +1001,8 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun scanOutcome(it: PendingItem): String = when {
         it.empty -> "leeg vak"
-        it.status == ItemStatus.NOT_FOUND -> "niet gevonden (${it.label})"
-        it.print != null -> "gevonden: ${it.print.name} (${it.print.setCode.uppercase()} ${it.print.collectorNumber})" + (if (it.needsCheck) " [controleren]" else "") + (if (it.finish != Finish.NONFOIL) " [${it.finish}]" else "")
+        it.status == ItemStatus.NOT_FOUND -> "niet gevonden (${it.label})" + (it.picture?.let { p -> " · plaatje: $p" } ?: "")
+        it.print != null -> "gevonden: ${it.print.name} (${it.print.setCode.uppercase()} ${it.print.collectorNumber})" + (if (it.needsCheck) " [controleren]" else "") + (if (it.finish != Finish.NONFOIL) " [${it.finish}]" else "") + (it.picture?.let { p -> " · plaatje: $p" } ?: "")
         else -> "${it.status.name.lowercase()} (${it.label})"
     }
     fun setHaptics(v: Boolean) = viewModelScope.launch { settingsStore.setHaptics(v) }
@@ -1002,7 +1079,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         listOf("ai_vault", "import_mappings", "deck_rules", "deck_ui", "wish_cheapest").forEach {
             ctx.getSharedPreferences(it, android.content.Context.MODE_PRIVATE).edit().clear().commit()
         }
-        if (!o.keepOffline) runCatching { c.offline.delete() }
+        if (!o.keepOffline) { runCatching { c.offline.delete() }; runCatching { c.fingerprints.clear() } }
         runCatching { c.watcher.reset() }
         images.clearAll()
         settingsStore.resetAll(o.keepOffline)

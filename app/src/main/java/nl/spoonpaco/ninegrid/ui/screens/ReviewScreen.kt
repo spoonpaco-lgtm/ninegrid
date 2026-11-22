@@ -86,6 +86,8 @@ fun ReviewScreen(vm: AppViewModel, onBack: () -> Unit, onSaved: (Long?) -> Unit)
     val extra = LocalNgExtra.current
     var searchFor by remember { mutableStateOf<PendingItem?>(null) }
     var expanded by remember { mutableStateOf<Int?>(null) }
+    // 39c: de groep Zeker ingeklapt zolang er iets te controleren is.
+    var showSure by remember { mutableStateOf(false) }
     var duplicates by remember { mutableStateOf<List<Int>>(emptyList()) }
     val scope = rememberCoroutineScope()
     val items = vm.pending
@@ -240,8 +242,13 @@ fun ReviewScreen(vm: AppViewModel, onBack: () -> Unit, onSaved: (Long?) -> Unit)
             }
             if (check.isNotEmpty()) { item(key = "h_check") { GroupHeader("● ", NgColors.Amber, stringResource(R.string.review_group_check, check.size)) }; rows(check) }
             if (foilCheck.isNotEmpty()) { item(key = "h_foil") { GroupHeader("★ ", NgColors.FoilBlue, stringResource(R.string.review_group_foil, foilCheck.size)) }; rows(foilCheck) }
-            if (grouped && rest.isNotEmpty()) item(key = "h_ok") { GroupHeader("● ", NgColors.Synced, stringResource(R.string.review_group_ok, rest.size)) }
-            rows(rest)
+            // 39c: is er iets te controleren, dan staan de zekere kaarten ingeklapt (ze worden gewoon opgeslagen); tik om ze te tonen.
+            val folds = grouped && (check.isNotEmpty() || foilCheck.isNotEmpty())
+            if (grouped && rest.isNotEmpty()) item(key = "h_ok") {
+                GroupHeader("● ", NgColors.Synced, stringResource(R.string.review_group_ok, rest.size),
+                    open = if (folds) showSure else null, onClick = if (folds) ({ showSure = !showSure }) else null)
+            }
+            if (!folds || showSure) rows(rest)
         }
     }
 
@@ -269,10 +276,12 @@ fun formatLabelPlain(f: String) = when (f) {
 }
 
 @Composable
-private fun GroupHeader(mark: String, color: androidx.compose.ui.graphics.Color, text: String) {
-    Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 2.dp), verticalAlignment = Alignment.CenterVertically) {
+private fun GroupHeader(mark: String, color: androidx.compose.ui.graphics.Color, text: String, open: Boolean? = null, onClick: (() -> Unit)? = null) {
+    val m = if (onClick != null) Modifier.fillMaxWidth().clickable(onClick = onClick) else Modifier.fillMaxWidth()
+    Row(m.padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 2.dp), verticalAlignment = Alignment.CenterVertically) {
         Text(mark, color = color, fontWeight = FontWeight.Bold)
-        Text(text, fontWeight = FontWeight.Bold)
+        Text(text, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+        if (open != null) Text(if (open) "▾" else "▸", fontWeight = FontWeight.Bold)
     }
 }
 

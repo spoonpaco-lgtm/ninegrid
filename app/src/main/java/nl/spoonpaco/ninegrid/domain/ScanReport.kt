@@ -19,6 +19,12 @@ data class ScanMeta(
     val aiHelp: Boolean = false,
     val offlineDb: Boolean = false,
     val language: String = "",
+    /** Herkennen op het plaatje aan, en of er vingerafdrukken voor de set op de telefoon stonden. */
+    val pictureMatch: Boolean = false,
+    val pictureReady: Boolean = false,
+    /** Kaart voor kaart: camerabeelden die meestemden, en vakken die daarmee zijn aangevuld. */
+    val frameVotes: Int = 0,
+    val filledFromFrames: Int = 0,
 )
 
 /**
@@ -34,7 +40,8 @@ object ScanReport {
         appendLine("NineGrid scanrapport")
         appendLine("versie: ${meta.version} · toestel: ${meta.device}")
         appendLine("soort: ${if (meta.single) "één kaart" else "blad"} · ${if (meta.fromCamera) "camera" else "galerij"} · foto ${meta.photoWidth}x${meta.photoHeight}")
-        appendLine("instellingen: set ${meta.setField.ifBlank { "leeg (automatisch)" }} · lamp ${if (meta.torch) "aan" else "uit"} · automatisch afdrukken ${if (meta.autoCapture) "aan" else "uit"} · AI-hulp ${if (meta.aiHelp) "aan" else "uit"} · offline database ${if (meta.offlineDb) "aan" else "uit"} · taal ${meta.language.ifBlank { "-" }}")
+        appendLine("instellingen: set ${meta.setField.ifBlank { "leeg (automatisch)" }} · lamp ${if (meta.torch) "aan" else "uit"} · automatisch afdrukken ${if (meta.autoCapture) "aan" else "uit"} · AI-hulp ${if (meta.aiHelp) "aan" else "uit"} · offline database ${if (meta.offlineDb) "aan" else "uit"} · taal ${meta.language.ifBlank { "-" }} · plaatje ${if (!meta.pictureMatch) "uit" else if (meta.pictureReady) "aan" else "aan, geen vingerafdrukken voor deze set"}")
+        if (meta.single) appendLine("camerabeelden: ${meta.frameVotes} · aangevuld uit de beelden: ${meta.filledFromFrames}")
         appendLine("scherpte: ${"%.1f".format(meta.sharpness)} · dekking: ${"%.2f".format(meta.coverage)} · lezen: ${meta.readMs} ms · opnieuw gelezen: ${meta.rereadSlots}")
         val read = reads.count { it.complete || it.name != null }
         appendLine("vakken met naam of nummer en set: $read van ${reads.size}")

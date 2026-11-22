@@ -1224,4 +1224,14 @@
     <string name="mover_effect_glow">Glow and blood</string>
     <string name="mover_effect_stamp">Stamps</string>
     <string name="mover_effect_explain">On the Overview: a mythic glow for the winner and blood dripping off the loser, or a WINNER and DESTROYED stamp. Plays once when you open the Overview or switch. Only with Magic effects on.</string>
+    <string name="scan_by_picture">recognised from the picture</string>
+    <string name="scan_picture_differs">the picture looks like %1$s</string>
+    <string name="setting_picture">Recognise by picture</string>
+    <string name="setting_picture_short">Picture</string>
+    <string name="setting_picture_explain">Besides reading the text, the scanner looks at the picture, within the set you enter. For that the app makes fingerprints once per set from the Scryfall images (a few hundred kB per set); after that it works without internet. The picture never makes a card green: it fills in where the text found nothing, and turns green into orange when it sees a different card.</string>
+    <string name="picture_no_model">The picture model is not in this version; the scanner only reads text.</string>
+    <string name="picture_status">Fingerprints on this phone: %1$d sets · %2$d kB</string>
+    <string name="picture_busy">Making fingerprints: %1$s</string>
+    <string name="picture_prefetch">Download sets in advance</string>
+    <string name="picture_prefetch_explain">Fingerprints for every set in your collection and decks, best on wifi. A set you enter while scanning is added by itself (with internet); that scan still reads text only.</string>
 </resources>
