@@ -1,0 +1,148 @@
+NineGrid scanrapport
+versie: 0.9.15 · toestel: samsung SM-A165F
+soort: blad · camera · foto 1080x1440
+instellingen: set leeg (automatisch) · lamp uit · automatisch afdrukken uit · AI-hulp uit · offline database aan · taal en · plaatje aan, geen vingerafdrukken voor deze set
+scherpte: 1421.9 · dekking: 0.64 · lezen: 1938 ms · opnieuw gelezen: 9
+vakken met naam of nummer en set: 9 van 9
+
+vak 1: gevonden: History of Benalia (PLST dom-21) [controleren]
+  set=- nummer=- taal=- naam=History of Benalia
+  andere namen: add a lere oovete | Sacrfce after II | eate a / whie
+  > History of Benalia
+  > add a lere oovete
+  > Sacrfce after II1)
+  > eate a 2/2 whie
+  > h
+  > tolken with
+  > Knights yon
+  > Enchantn
+  > antment --Saga
+  > History of Benalia
+  > EnchantmentSaga
+  > Enchantment Saga
+vak 2: gevonden: Seal Away (DOM 31) [controleren]
+  set=- nummer=- taal=- naam=Seal Away
+  > Seal Away
+  > iment
+  > When Scal Away enters the battlefield.
+  > exile target tappeu crA
+  > leaves the battleficld.
+  > AN ancient nemesis rendered armles
+  > leaves the battleficld.
+  > An amcient nemesis rendered harmless
+  > long aga
+  > leaves the battleficld.
+  > An ancient nemesis rendered harmle
+  > long aga.
+vak 3: gevonden: Board the Weatherlight (DOM 8) [controleren]
+  set=- nummer=- taal=- naam=Board the Weatherlight
+  > (Board the Weatherlight
+  > (Sorcery
+  > Look at the top frve cards of your card
+  > from among them and put it into your
+  > library in a random order. (Arnfact,
+  > legendaries, and Sagat are hurtorc.,
+  > A new gathering for a He ag.
+  > library in a random order. (Arnact,
+  > legendaries, and Sapas are historic)
+  > A new gatherine for a nee ae.
+  > library in a random order. (Arniact,
+  > legendaries, and Sagas ane histeric)
+  > A new gathering for a ne age.
+vak 4: gevonden: Wizard's Retort (PLST dom-75) [controleren]
+  set=- nummer=- taal=- naam=Wizard's Retort
+  > Wizard's Retort
+  > Instant
+  > osts less to cast if you
+  > Counter target spel
+  > The secomd mage learned te dissipate
+  > thus dhd phe sudy o'marie
+  > -Naban, dean of iteratiom
+  > Wizard's Retort
+  > thus did the seudy of magic progress"
+  > -Naban, dean ef iteration
+  > thus did the study of magic progress"
+  > -Naban, dean ef iteration
+vak 5: gevonden: Sentinel of the Pearl Trident (DOM 65) [controleren]
+  app dacht eerst: gevonden: Sentinel of the Pearl Trident (2XM 67) [controleren]
+  set=- nummer=- taal=- naam=Sentinel of the Peari Trident o
+  > Sentinel of the Peari Trident 4o
+  > Creature- Merfolk Soldier
+  > When Sentinel of the Pearl Tridnt enters
+  > historic permanent you control. I you do,
+  > its owner's control ar the beginning of
+  > Sagar are historic.)
+  > Sent
+  > oarl Trent
+  > Sts oWncr's control at the bcginning of the
+  > next end step. (Arriact, legendaril, and
+  > Sagar are kutoric.)
+  > 3/3
+  > its owner's control at the beginning of the
+  > next end step (ArilacIn, legendariel, and
+  > Sapar are hutoric.)
+  > POM-ER
+  > 3/3
+vak 6: gevonden: Slinn Voda, the Rising Deep (DOM 66) [controleren]
+  app dacht eerst: gevonden: Slinn Voda, the Rising Deep (CMR 405) [controleren]
+  set=- nummer=- taal=- naam=Slinn Voda, the Rising Deep
+  > Slinn Voda, the Rising Deep 644
+  > Legendary CrearureLeviathan
+  > Kicker E4 (u y
+  > ie bardeficld, if it was kicked, to
+  > xcpt for Merfol, Krakens, Le
+  > Slinn Voda, the Rising Deep 6.4
+  > CKCept for Merlolk, Kralkens,
+  > Oceopurcs, and Serpents
+  > DOMENassy
+  > CKCept ler Merlollk, Krakcos, Le
+  > Oceopures, and Sepents
+vak 7: gevonden: Josu Vess, Lich Knight (DOM 95) [controleren] [foil]
+  app dacht eerst: gevonden: Josu Vess, Lich Knight (FDC 107) [controleren]
+  set=- nummer=- taal=- naam=Tosu Vess, Lich Knight
+  > Tosu Vess, Lich Knight
+  > 233
+  > Legendary Creature - Zomble Knlght O)
+  > Kicker 5
+  > 5a ye cat uy an addinomat
+  > wben Josu Vess, Lach Knight enter
+  > eicht 22 black Zombit Kaight srearurc
+  > Lokens with menace
+  > 4/5)
+  > Josu Vess, Lich Knight
+  > 203
+  > 4/5
+  > 4/5
+vak 8: gevonden: Lingering Phantom (DOM 99) [controleren]
+  set=- nummer=- taal=- naam=Lingering Phantom
+  > Lingering Phantom
+  > 54
+  > Creature --Solrl
+  > maN a
+  > ntone pell, you
+  > hand. Gdrurr
+  > vard to your
+  > irtone
+  > dest Reborr
+  > S/4
+  > Lingering Phantom
+  > 5/4
+  > 5/4
+vak 9: gevonden: The Eldest Reborn (DOM 90) [controleren]
+  app dacht eerst: gevonden: The Eldest Reborn (DSC 139) [controleren]
+  set=- nummer=- taal=- naam=The Eldest Reborn
+  andere namen: A hu Sau enters | Each oppoeen | ereature or
+  > The Eldest Reborn
+  > (A hu Sau enters
+  > Each oppoeen
+  > ereature or
+  > Iach opronent
+  > Or nlanew
+  > newalkcr
+  > ard onto thc
+  > raveyard
+  > ar conrol
+  > Enchantment - Sag
+  > The Eldest Reborn
+  > 46
+  > v

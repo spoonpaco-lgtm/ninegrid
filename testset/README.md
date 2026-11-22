@@ -1,4 +1,4 @@
-# NineGrid scanner-testset (16 bladen, 11, 17 en 22 november 2026)
+# NineGrid scanner-testset (18 bladen, 11, 17 en 22 november 2026)
 
 Staat in de repo in `testset/`. Een nieuw gesprek vindt de bladen hier.
 
@@ -23,8 +23,10 @@ De foto's zijn de verkleinde versie uit het gesprek (1200x1600 of 1500x2000); he
 | 14-DGM-gaze-of-granite | Dragon's Maze, 9 kaarten, twee splitkaarten (vak 2 en 9) | 22 nov 13:55 | 0.9.15 | splitkaarten op hun kant |
 | 15-GTC-hold-the-gates | Gatecrash, 6 kaarten, vak 2, 5 en 6 leeg | 22 nov 13:59 | 0.9.15 | Realmwright foil |
 | 16-XLN-sanctum-seeker | Ixalan, 8 kaarten, vak 6 leeg | 22 nov 14:01 | 0.9.15 | lamp aan |
+| 17-DOM-history-of-benalia | Dominaria, 9 kaarten | 22 nov 14:02 (set DOM) en 14:04 (zonder set) | 0.9.15 | Josu Vess foil |
+| 18-DMR-denizen | Dominaria Remastered met 2 DMU-kaarten, vak 3, 6 en 9 leeg | 22 nov 14:06 | 0.9.15 | Denizen in oud kader, Tura Kennerüd showcase; gescand met set DMR |
 
-Bladen 12 t/m 16 (22 nov) zijn camerafoto's van 1080x1440 uit het scanrapport. Nog te komen: DOM (History of Benalia, 2 scans) en DMR (Denizen of the Deep).
+Bladen 12 t/m 18 (22 nov) zijn camerafoto's van 1080x1440 uit het scanrapport.
 
 De bladen 01 t/m 04 hebben ook `foto-2.jpg` en `scanrapport-2.txt`: dezelfde pagina's, op 17 nov gescand met 0.9.11 (rapporten van 13:11 tot 13:15).
 

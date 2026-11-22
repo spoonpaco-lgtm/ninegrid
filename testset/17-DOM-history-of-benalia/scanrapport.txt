@@ -1,0 +1,137 @@
+NineGrid scanrapport
+versie: 0.9.15 · toestel: samsung SM-A165F
+soort: blad · camera · foto 1080x1440
+instellingen: set DOM · lamp uit · automatisch afdrukken uit · AI-hulp uit · offline database aan · taal en · plaatje aan
+scherpte: 1233.0 · dekking: 0.83 · lezen: 1943 ms · opnieuw gelezen: 9
+vakken met naam of nummer en set: 9 van 9
+
+vak 1: gevonden: History of Benalia (DOM 21) · plaatje: History of Benalia #21 0.74/0.09 (2e: Rite of Belzenlok)
+  set=- nummer=- taal=- naam=History of Benalla
+  andere namen: Sarjee afer | Ceate a whi | mtoken wit re
+  > History of Benalla
+  > Sarjee afer
+  > 1Ceate a 22 whi
+  > mtoken wit re
+  > Knighs you
+  > Enchantment- Saga
+  > History of Benalia
+  > (A
+  > Enchanment Saga
+  > Enchantment Saga
+vak 2: gevonden: Seal Away (DOM 31) · plaatje: Healing Grace #20 0.70/0.01 (2e: Lingering Phantom)
+  set=- nummer=- taal=- naam=Seal Away
+  > Seal Away
+  > Enchantment
+  > when Seal Away cnters the battlefield,
+  > exile target tapped crearure an
+  > leaves the bamnl Seal Away
+  > An ancoent nemeris rendered harmless
+  > mg aga
+  > Seal Away
+  > An ancent memeris rendered harmless
+  > long aga
+  > An ancieNt nemeris rendered harmles
+  > long ago
+vak 3: gevonden: Board the Weatherlight (DOM 8) · plaatje: Board the Weatherlight #8 0.64/0.01 (2e: Shanna, Sisay's Legacy)
+  set=- nummer=- taal=- naam=Board the Weatherlight
+  > Board the Weatherlight
+  > Sorcery
+  > Look at the top five cards of your
+  > from among them and mr
+  > hand Put the rest on the botto
+  > f your
+  > legendarier, and Sapus are Auten)
+  > 1 netu gathering for a ne ape
+  > Board the Weatherlight
+  > legendariey, and Sagus are hutorsc.)
+  > A nets gathering for a neu age
+  > legendaries, and Sagur are hutoic.)
+  > A netw gathering for a meu age
+  > s/
+vak 4: gevonden: Wizard's Retort (DOM 75) · plaatje: Lingering Phantom #99 0.63/0.00 (2e: Lyra Dawnbringer)
+  set=- nummer=- taal=- naam=Wizard's Retort
+  > Wizard's Retort
+  > Insrant
+  > This spell costs less to cast if you
+  > control aWizard.
+  > ounter target spel
+  > asts of lcheming Thnat amd n
+  > h.
+  > efe prgne
+  > dean of
+  > Wizard's Retort
+  > thes did the study of agic progress
+  > -Naban, dean efteration
+  > thes did the sudy of magie progress."
+  > -NabaN, dean ef Meration
+vak 5: gevonden: Sentinel of the Pearl Trident (DOM 65) · plaatje: Island #256 0.71/0.02 (2e: Vodalian Arcanist)
+  set=- nummer=- taal=- naam=Sentinel of the Pearl Trident
+  > Sentinel of the Pearl Trident 4)
+  > Creature-Merfolk Se
+  > n Sentinel of the Pearl Trident enter
+  > he bartlefield
+  > Geld, you may c vOu d
+  > eturn that Card to tonr of th
+  > end step (Arnyac
+  > 3/3
+  > Sentinel of the Pearl Trident 40
+  > contol at te 0eginhing ot tie
+  > next end step (Aract, legendarics, and
+  > Sagas ane hunorie)
+  > 3/3
+  > next end step (Artifact, legendaric, and
+  > Sagas are hutorie)
+  > 3/3
+vak 6: gevonden: Slinn Voda, the Rising Deep (DOM 66) · plaatje: Memorial to War #246 0.48/0.05 (2e: Slinn Voda, the Rising Deep)
+  set=- nummer=- taal=- naam=Slinn Voda, the Rising Deep
+  > Slinn Voda, the Rising Deep 640
+  > Legendary Creature-Leviathan
+  > Deropuses, and Serpents
+  > Slinn Voda, the Rising Deep 6.6
+  > Octopuses, and Serpents
+  > BOR-ENL
+  > Octopuses, and Serpents
+vak 7: gevonden: Josu Vess, Lich Knight (DOM 95) [controleren] · plaatje: Lingering Phantom #99 0.60/0.05 (2e: Steel Leaf Champion)
+  set=- nummer=- taal=- naam=Tosu Vess, ich Knlght
+  > Tosu Vess, ich Knlght
+  > 233
+  > Legendary Creature- Zomble Knight 9
+  > O.
+  > Cker Shiu my y an oddiomal
+  > Menace
+  > hen Jos ves, acn ktentes.
+  > eghr 2/2 black Zombie Knipht creature
+  > tokcas with mena
+  > 4/5
+  > Tosu Vess, ich Knight
+  > 200
+  > tokens wIth menace
+  > 4/5
+  > tokeas wIth menace
+  > 4/5
+vak 8: gevonden: Lingering Phantom (DOM 99) · plaatje: Lingering Phantom #99 0.77/0.10 (2e: In Bolas's Clutches)
+  set=- nummer=- taal=- naam=Lingering Phantom
+  > Lingering Phantom
+  > Creature - Splrlt
+  > Whenever you cast a historic spell, you
+  > o, return Lingering
+  > Phanto
+  > hand. (Arnfac
+  > 1, gnd Saeat are
+  > "True poo
+  > ame to b ipoken."
+  > 5/4)
+  > Lingering Phantom
+  > 50
+  > -The Eldest Reborn
+  > 5/4
+  > -The Eldest Reborn
+  > 5/4
+vak 9: gevonden: The Eldest Reborn (DOM 90) · plaatje: The Eldest Reborn #90 0.82/0.31 (2e: Song of Freyalise)
+  set=- nummer=- taal=- naam=The Eldest Reborn
+  andere namen: pode
+  > The Eldest Reborn
+  > pode
+  > 1d undc
+  > Enchantment - Saga
+  > The Eldest Reborn

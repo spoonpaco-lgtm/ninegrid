@@ -1,0 +1,83 @@
+NineGrid scanrapport
+versie: 0.9.15 · toestel: samsung SM-A165F
+soort: blad · camera · foto 1080x1440
+instellingen: set DMR · lamp uit · automatisch afdrukken uit · AI-hulp uit · offline database aan · taal en · plaatje aan, geen vingerafdrukken voor deze set
+scherpte: 910.2 · dekking: 0.39 · lezen: 1438 ms · opnieuw gelezen: 6
+vakken met naam of nummer en set: 5 van 9
+
+vak 1: gevonden: Denizen of the Deep (DMR 282) [controleren]
+  app dacht eerst: gevonden: Kjeldoran Gargoyle (DMR 11) [controleren]
+  set=- nummer=11 taal=- naam=-
+  andere namen: Denizen of the Decp o
+  > Denizen of the Decp60o
+  > batieficld. rrturn cnen th
+  > &eemd. a den
+  > horu
+  > the derț
+  > alloes the houon at the end
+  > f cach day, bringing en the cold blanker
+  > Tis Anso MadJoks
+  > 11/11
+vak 2: gevonden: Ovinomancer (DMR 64)
+  set=- nummer=- taal=- naam=Ovinomancer
+  > Ovinomancer
+  > Creature-Human Wiard
+  > When Ovinomancer enters the batieheia
+  > ands v0 control to theur owner's hand.
+  > hand Destroy target creature lt can't be
+  > Creates a OL Ereen Sheep creature token
+  > hand Destroy target creature. It can't be
+  > regencrated. That creature's controller
+  > creates a 0/1 green Shecp creature token
+  > O/1
+  > hand Destroy target creature. It can't be
+  > regencrated. That creature's controller
+  > creates a 0'1 green Sbeep creature token
+vak 3: leeg vak
+  set=- nummer=- taal=- naam=- leeg?
+vak 4: gevonden: Voice of All (DMR 34)
+  set=- nummer=- taal=- naam=Volce of All
+  > Volce of All
+  > Creature -
+  > Fyns
+  > vOlce of Al enters the bartdehcld,
+  > Voice ofAll has protection from th
+  > Chosen colot
+  > 2/2
+  > Volce of AlI
+  > 2/2
+  > 2/2
+vak 5: gevonden: Lightning Rift (DMR 129)
+  set=- nummer=- taal=- naam=Lightning Rift
+  > Lightning Rift
+  > Enc hantent
+  > Whenever a player cyclesa card, yo
+  > deals 2darmage to any target
+  > Options erll cost you, but a lack of them
+  > l cost you even more
+  > Lightning Rift
+vak 6: leeg vak
+  set=- nummer=- taal=- naam=- leeg?
+vak 7: gevonden: Tura Kennerüd, Skyknight (DMU 364) [controleren]
+  app dacht eerst: gevonden: Tura Kennerüd, Skyknight (DMU 224) [controleren]
+  set=- nummer=- taal=- naam=Tura Kennerüd, Skyknight o
+  > Tura Kennerüd, Skyknight 0o
+  > Legendary Creature -Muman Kighr
+  > ver you cast an instant or
+  > Spell, create a 1/l white
+  > Solter
+  > Tura Kennerüd, Skyknight 2O00
+  > C
+vak 8: gevonden: Ertai's Scorn (DMU 48) [controleren]
+  set=- nummer=- taal=- naam=Ertal's Scorn
+  > Ertal's Scorn
+  > Instan
+  > This spell costs less
+  > to cast
+  > Tareet
+  > "You're mo
+  > d cas betne char
+  > has been a
+  > Ertai's Scorn
+vak 9: leeg vak
+  set=- nummer=- taal=- naam=- leeg?
