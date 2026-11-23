@@ -23,6 +23,11 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -425,8 +430,8 @@ fun BoosterDetailScreen(vm: AppViewModel, boosterId: Long, onBack: () -> Unit, o
 @Composable
 private fun ThumbSwitch(asCards: Boolean, onChange: (Boolean) -> Unit) {
     androidx.compose.material3.SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {
-        androidx.compose.material3.SegmentedButton(selected = asCards, onClick = { onChange(true) }, shape = androidx.compose.material3.SegmentedButtonDefaults.itemShape(0, 2)) { Text("▦ " + stringResource(R.string.combos_view_cards)) }
-        androidx.compose.material3.SegmentedButton(selected = !asCards, onClick = { onChange(false) }, shape = androidx.compose.material3.SegmentedButtonDefaults.itemShape(1, 2)) { Text("☰ " + stringResource(R.string.combos_view_names)) }
+        SegmentedButton(selected = asCards, onClick = { onChange(true) }, shape = SegmentedButtonDefaults.itemShape(0, 2)) { Text("▦ " + stringResource(R.string.combos_view_cards)) }
+        SegmentedButton(selected = !asCards, onClick = { onChange(false) }, shape = SegmentedButtonDefaults.itemShape(1, 2)) { Text("☰ " + stringResource(R.string.combos_view_names)) }
     }
 }
 
