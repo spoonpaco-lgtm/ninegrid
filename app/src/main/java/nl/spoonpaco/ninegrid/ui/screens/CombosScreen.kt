@@ -251,6 +251,9 @@ private fun ComboDetail(
     val deckNames = decks.associate { it.id to it.name }
     val uri = LocalUriHandler.current
     var pickDeck by remember { mutableStateOf(false) }
+    // Voorwaarden en stappen staan ingepakt in de database: pas laden bij openen.
+    var texts by remember(c.id) { mutableStateOf(c.prerequisites to c.description) }
+    androidx.compose.runtime.LaunchedEffect(c.id) { if (c.prereqId != 0L || c.stepsId != 0L) texts = vm.comboTexts(c) }
     AlertDialog(
         onDismissRequest = onClose,
         title = { Text(c.cards.joinToString(" + "), fontSize = NgText.body, fontWeight = FontWeight.Bold) },
@@ -284,13 +287,13 @@ private fun ComboDetail(
                     Text(stringResource(R.string.combos_requires), fontWeight = FontWeight.Bold, fontSize = NgText.body)
                     c.requires.forEach { Text("• $it", fontSize = NgText.body) }
                 }
-                if (c.prerequisites.isNotBlank()) {
+                if (texts.first.isNotBlank()) {
                     Text(stringResource(R.string.combos_prereq), fontWeight = FontWeight.Bold, fontSize = NgText.body)
-                    Text(c.prerequisites, fontSize = NgText.body)
+                    Text(texts.first, fontSize = NgText.body)
                 }
-                if (c.description.isNotBlank()) {
+                if (texts.second.isNotBlank()) {
                     Text(stringResource(R.string.combos_steps), fontWeight = FontWeight.Bold, fontSize = NgText.body)
-                    Text(c.description, fontSize = NgText.body)
+                    Text(texts.second, fontSize = NgText.body)
                 }
                 if (c.legal.isNotEmpty()) Text(stringResource(R.string.combos_legal_in, c.legal.sortedBy { comboFormatOrder(it) }.joinToString(", ") { comboFormatLabel(it) }), fontSize = NgText.caption, color = extra.subtle)
                 Text(stringResource(R.string.combos_open_spellbook), fontSize = NgText.body, color = MaterialTheme.colorScheme.primary,

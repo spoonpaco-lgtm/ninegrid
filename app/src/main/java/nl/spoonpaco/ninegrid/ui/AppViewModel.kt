@@ -1821,12 +1821,17 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         if (c.comboDb.ready()) viewModelScope.launch {
             val names = (cmd + main).flatMap { (n, _) -> listOf(n.lowercase(), n.substringBefore(" // ").lowercase()) }.toSet()
             val found = runCatching { c.comboDb.find(names) }.getOrNull() ?: return@launch
-            fun combo(o: nl.spoonpaco.ninegrid.data.offline.OwnedCombo) = nl.spoonpaco.ninegrid.data.Combo(o.id, o.cards, o.produces, o.prerequisites, o.description, o.missing)
+            suspend fun combo(o: nl.spoonpaco.ninegrid.data.offline.OwnedCombo): nl.spoonpaco.ninegrid.data.Combo {
+                val (pre, steps) = c.comboDb.texts(o)
+                return nl.spoonpaco.ninegrid.data.Combo(o.id, o.cards, o.produces, pre, steps, o.missing)
+            }
+            val included = found.filter { it.missing.isEmpty() }.sortedBy { it.cards.size }.map { combo(it) }
+            val almost = found.filter { it.missing.size == 1 }.sortedByDescending { it.popularity }.take(30).map { combo(it) }
             if (comboDeckId != deckId) return@launch
             comboReport = nl.spoonpaco.ninegrid.data.ComboReport(
                 deckHash = c.combos.hashOf(cmd, main), fetchedAt = cached?.report?.fetchedAt ?: System.currentTimeMillis(),
-                included = found.filter { it.missing.isEmpty() }.sortedBy { it.cards.size }.map(::combo),
-                almost = found.filter { it.missing.size == 1 }.sortedByDescending { it.popularity }.take(30).map(::combo),
+                included = included,
+                almost = almost,
                 spellbookTag = cached?.report?.spellbookTag, twoCardCombos = cached?.report?.twoCardCombos.orEmpty(),
             )
         }
@@ -1918,7 +1923,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                 fun names(l: List<EntryWithPrint>) = l.flatMap { e -> val n = e.print!!.name.lowercase(); listOf(n, n.substringBefore(" // ")) }.toSet()
                 val owned = names(list)
                 comboFreeNames = names(list.filter { it.entry.deckId == null })
-                if (comboFormats.isEmpty()) comboFormats = c.comboDb.formats()
+                comboFormats = c.comboDb.formats()
                 val found = c.comboDb.find(owned)
                 collectionCombos = found
                 // Prijzen van de kaarten die je mist, uit de offline kaartdatabase (zonder internet).
@@ -1950,7 +1955,15 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         return (cmd.ifEmpty { list }).flatMap { it.print!!.colorIdentity.toList() }.filter { it in "WUBRG" }.toSet()
     }
 
+    /** Voorwaarden en stappen van een combo (ingepakt bewaard, pas laden bij openen). */
+    suspend fun comboTexts(o: nl.spoonpaco.ninegrid.data.offline.OwnedCombo): Pair<String, String> = c.comboDb.texts(o)
+
     init {
+        // 0.9.19: de database van 0.9.18 (196 MB) wordt vervangen door de compacte: oude weg en opnieuw ophalen op wifi.
+        if (c.comboDb.outdated()) {
+            c.comboDb.delete()
+            nl.spoonpaco.ninegrid.data.offline.ComboDbWorker.start(getApplication(), manual = true, anyNetwork = false)
+        }
         watchComboDb()
         viewModelScope.launch { entries.collect { recomputeCombos() } }
     }

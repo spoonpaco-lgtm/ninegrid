@@ -21,7 +21,11 @@ import kotlinx.serialization.json.decodeToSequence
 import java.io.File
 import java.io.InputStream
 
-/** Eén combo uit het bulkbestand van Commander Spellbook, alleen wat NineGrid gebruikt. */
+/**
+ * Eén combo uit het bulkbestand van Commander Spellbook, alleen wat NineGrid gebruikt.
+ * 0.9.19: compacter (196 MB was te groot): stappen en voorwaarden staan één keer, ingepakt, in [ComboTextEntity];
+ * formats als bitmasker.
+ */
 @Entity(tableName = "combos")
 data class ComboEntity(
     @PrimaryKey val id: String,
@@ -34,16 +38,22 @@ data class ComboEntity(
     val requires: String,
     /** Kleuren (WUBRG, C = kleurloos). */
     val identity: String,
-    val prerequisites: String,
-    val description: String,
+    /** Verwijzing naar de voorwaarden (0 = geen). */
+    val prereqId: Long,
+    /** Verwijzing naar de stappen (0 = geen). */
+    val stepsId: Long,
     val popularity: Int,
     val bracketTag: String?,
-    /** Formats waarin de combo legaal is (sleutels van Spellbook), komma's ertussen. */
-    val legal: String,
+    /** Formats waarin hij legaal is, als bits (volgorde in [ComboDb.formatKeys]). */
+    val legalMask: Long,
     val gen: Long,
 )
 
-/** Welke kaarten in welke combo zitten: om snel te zoeken op de kaarten die je hebt. */
+/** Stappen en voorwaarden: één keer per tekst, ingepakt (deflate). */
+@Entity(tableName = "combo_texts")
+data class ComboTextEntity(@PrimaryKey val id: Long, val data: ByteArray)
+
+/** Welke kaarten in welke combo zitten. [front] alleen bij kaarten met // (anders leeg). */
 @Entity(tableName = "combo_cards", primaryKeys = ["comboId", "name"], indices = [Index("name"), Index("front")])
 data class ComboCardEntity(val comboId: String, val name: String, val front: String)
 
@@ -51,18 +61,20 @@ data class ComboCardEntity(val comboId: String, val name: String, val front: Str
 interface ComboDao {
     @Upsert suspend fun upsert(items: List<ComboEntity>)
     @Upsert suspend fun upsertCards(items: List<ComboCardEntity>)
+    @Upsert suspend fun upsertTexts(items: List<ComboTextEntity>)
     @Query("DELETE FROM combos WHERE gen != :gen") suspend fun deleteOtherThan(gen: Long)
     @Query("DELETE FROM combo_cards WHERE comboId NOT IN (SELECT id FROM combos)") suspend fun deleteOrphanCards()
+    @Query("DELETE FROM combo_texts WHERE id NOT IN (SELECT prereqId FROM combos) AND id NOT IN (SELECT stepsId FROM combos)") suspend fun deleteOrphanTexts()
     @Query("SELECT COUNT(*) FROM combos") suspend fun count(): Int
-    @Query("SELECT DISTINCT legal FROM combos") suspend fun legalSets(): List<String>
+    @Query("SELECT data FROM combo_texts WHERE id = :id") suspend fun text(id: Long): ByteArray?
 }
 
-@Database(entities = [ComboEntity::class, ComboCardEntity::class], version = 1, exportSchema = false)
+@Database(entities = [ComboEntity::class, ComboCardEntity::class, ComboTextEntity::class], version = 2, exportSchema = false)
 abstract class ComboDatabase : RoomDatabase() {
     abstract fun combos(): ComboDao
 }
 
-/** Een combo zoals de schermen hem gebruiken: kaarten, wat ontbreekt en de rest. */
+/** Een combo zoals de schermen hem gebruiken: kaarten, wat ontbreekt en de rest. Stappen pas laden bij openen ([ComboDb.texts]). */
 data class OwnedCombo(
     val id: String,
     val cards: List<String>,
@@ -76,6 +88,8 @@ data class OwnedCombo(
     val popularity: Int,
     val bracketTag: String?,
     val legal: Set<String>,
+    val prereqId: Long = 0,
+    val stepsId: Long = 0,
 )
 
 /**
@@ -92,14 +106,18 @@ class ComboDb(private val context: Context) {
         db ?: Room.databaseBuilder(context, ComboDatabase::class.java, FILE).fallbackToDestructiveMigration().build().also { db = it }
     }
 
-    /** Is hij gedownload (en dus bruikbaar)? */
-    fun ready(): Boolean = file.exists() && prefs.getLong("updated", 0L) > 0L
+    /** Is hij gedownload, in de huidige opbouw (en dus bruikbaar)? */
+    fun ready(): Boolean = file.exists() && prefs.getLong("updated", 0L) > 0L && prefs.getInt("schema", 1) == SCHEMA
+    /** Er staat nog een database van een oudere opbouw (0.9.18): opnieuw downloaden. */
+    fun outdated(): Boolean = file.exists() && prefs.getLong("updated", 0L) > 0L && prefs.getInt("schema", 1) != SCHEMA
     val updated: Long get() = prefs.getLong("updated", 0L)
     val comboCount: Int get() = prefs.getInt("count", 0)
     /** Last-Modified van de laatste download (om niet opnieuw te downloaden als er niets nieuws is). */
     var lastModified: String?
         get() = prefs.getString("last_modified", null)
         set(v) { prefs.edit().putString("last_modified", v).apply() }
+    /** Format-sleutels; bit i van legalMask = formatKeys[i]. */
+    val formatKeys: List<String> get() = prefs.getString("formats", "").orEmpty().split(',').filter { it.isNotBlank() }
 
     /** Gekeken, niets nieuws: de datum bijwerken zodat hij pas over een week weer kijkt. */
     fun touch() = prefs.edit().putLong("updated", System.currentTimeMillis()).apply()
@@ -110,25 +128,56 @@ class ComboDb(private val context: Context) {
         val d = open()
         val gen = System.currentTimeMillis()
         var n = 0
-        val batch = ArrayList<ComboEntity>(500)
-        val cards = ArrayList<ComboCardEntity>(2000)
+        val keys = formatKeys.toMutableList()
+        val textIds = HashMap<Long, Long>()   // hash van de tekst → id
+        var nextText = 1L
+        val batch = ArrayList<ComboEntity>(BATCH)
+        val cards = ArrayList<ComboCardEntity>(BATCH * 4)
+        val texts = ArrayList<ComboTextEntity>(BATCH)
+        fun textId(t: String): Long {
+            if (t.isBlank()) return 0L
+            val h = textHash(t)
+            return textIds.getOrPut(h) { val id = nextText++; texts += ComboTextEntity(id, pack(t)); id }
+        }
         suspend fun flush() {
             if (batch.isEmpty()) return
-            val a = batch.toList(); val b = cards.toList(); batch.clear(); cards.clear()
-            d.withTransaction { d.combos().upsert(a); d.combos().upsertCards(b) }
+            val a = batch.toList(); val b = cards.toList(); val t = texts.toList(); batch.clear(); cards.clear(); texts.clear()
+            d.withTransaction { d.combos().upsertTexts(t); d.combos().upsert(a); d.combos().upsertCards(b) }
             n += a.size
             onCount(n)
         }
         for (v in variants(input)) {
-            val e = entity(v, gen) ?: continue
-            batch += e
-            e.cards.split('\n').distinct().forEach { name -> cards += ComboCardEntity(e.id, name.lowercase(), name.substringBefore(" // ").lowercase()) }
-            if (batch.size >= 500) flush()
+            val p = parse(v) ?: continue
+            var mask = 0L
+            for (f in p.legal) {
+                var i = keys.indexOf(f)
+                if (i < 0 && keys.size < 63) { keys += f; i = keys.size - 1 }
+                if (i >= 0) mask = mask or (1L shl i)
+            }
+            batch += ComboEntity(
+                id = p.id, cards = p.cards.joinToString("\n"), cardCount = p.cards.size, produces = p.produces.joinToString("\n"),
+                requires = p.requires.joinToString("\n"), identity = p.identity, prereqId = textId(p.prerequisites), stepsId = textId(p.description),
+                popularity = p.popularity, bracketTag = p.bracketTag, legalMask = mask, gen = gen,
+            )
+            p.cards.forEach { name ->
+                val lower = name.lowercase(); val front = lower.substringBefore(" // ")
+                cards += ComboCardEntity(p.id, lower, if (front != lower) front else "")
+            }
+            if (batch.size >= BATCH) flush()
         }
         flush()
         d.combos().deleteOtherThan(gen)
         d.combos().deleteOrphanCards()
-        prefs.edit().putLong("updated", System.currentTimeMillis()).putInt("count", n).apply()
+        d.combos().deleteOrphanTexts()
+        // Opruimen: het werkbestand (WAL) leeg en de lege ruimte terug (anders blijft het bestand groot).
+        runCatching {
+            val sql = d.openHelper.writableDatabase
+            sql.query("PRAGMA wal_checkpoint(TRUNCATE)").use { it.moveToFirst() }
+            sql.execSQL("VACUUM")
+            sql.query("PRAGMA wal_checkpoint(TRUNCATE)").use { it.moveToFirst() }
+        }
+        prefs.edit().putLong("updated", System.currentTimeMillis()).putInt("count", n).putInt("schema", SCHEMA)
+            .putString("formats", keys.joinToString(",")).apply()
         n
     }
 
@@ -140,8 +189,12 @@ class ComboDb(private val context: Context) {
     }
 
     /** De formats die in de database voorkomen (voor het filter). */
-    suspend fun formats(): List<String> = if (!ready()) emptyList() else withContext(Dispatchers.IO) {
-        runCatching { open().combos().legalSets().flatMap { it.split(',') }.filter { it.isNotBlank() }.distinct() }.getOrDefault(emptyList())
+    fun formats(): List<String> = if (!ready()) emptyList() else formatKeys
+
+    /** Voorwaarden en stappen van één combo (pas bij openen, ze staan ingepakt). */
+    suspend fun texts(c: OwnedCombo): Pair<String, String> = withContext(Dispatchers.IO) {
+        suspend fun t(id: Long) = if (id == 0L) "" else runCatching { open().combos().text(id)?.let(::unpack) }.getOrNull().orEmpty()
+        t(c.prereqId) to t(c.stepsId)
     }
 
     /**
@@ -150,6 +203,7 @@ class ComboDb(private val context: Context) {
      */
     suspend fun find(owned: Set<String>): List<OwnedCombo> = if (!ready() || owned.isEmpty()) emptyList() else withContext(Dispatchers.IO) {
         val sql = open().openHelper.writableDatabase
+        val keys = formatKeys
         val out = ArrayList<OwnedCombo>()
         sql.beginTransaction()
         try {
@@ -158,26 +212,28 @@ class ComboDb(private val context: Context) {
             val ins = sql.compileStatement("INSERT OR IGNORE INTO owned(name) VALUES (?)")
             for (n in owned) { ins.bindString(1, n); ins.executeInsert(); ins.clearBindings() }
             val q = """
-                SELECT k.id, k.cards, k.produces, k.requires, k.identity, k.prerequisites, k.description, k.popularity, k.bracketTag, k.legal
+                SELECT k.id, k.cards, k.produces, k.requires, k.identity, k.prereqId, k.stepsId, k.popularity, k.bracketTag, k.legalMask
                 FROM combos k JOIN (
                     SELECT c.comboId AS cid, COUNT(*) AS total,
-                        SUM(CASE WHEN c.name IN (SELECT name FROM owned) OR c.front IN (SELECT name FROM owned) THEN 1 ELSE 0 END) AS have
+                        SUM(CASE WHEN c.name IN (SELECT name FROM owned) OR (c.front != '' AND c.front IN (SELECT name FROM owned)) THEN 1 ELSE 0 END) AS have
                     FROM combo_cards c
-                    WHERE c.comboId IN (SELECT comboId FROM combo_cards WHERE name IN (SELECT name FROM owned) OR front IN (SELECT name FROM owned))
+                    WHERE c.comboId IN (SELECT comboId FROM combo_cards WHERE name IN (SELECT name FROM owned) UNION SELECT comboId FROM combo_cards WHERE front IN (SELECT name FROM owned))
                     GROUP BY c.comboId HAVING total - have <= 1
                 ) x ON x.cid = k.id
             """.trimIndent()
             sql.query(q).use { cur ->
                 while (cur.moveToNext()) {
                     val cards = cur.getString(1).split('\n').filter { it.isNotBlank() }
+                    val mask = cur.getLong(9)
                     out += OwnedCombo(
                         id = cur.getString(0), cards = cards,
                         missing = cards.filter { c -> c.lowercase() !in owned && c.substringBefore(" // ").lowercase() !in owned }.distinct(),
                         produces = cur.getString(2).split('\n').filter { it.isNotBlank() },
                         requires = cur.getString(3).split('\n').filter { it.isNotBlank() },
-                        identity = cur.getString(4), prerequisites = cur.getString(5), description = cur.getString(6),
+                        identity = cur.getString(4), prerequisites = "", description = "",
+                        prereqId = cur.getLong(5), stepsId = cur.getLong(6),
                         popularity = cur.getInt(7), bracketTag = if (cur.isNull(8)) null else cur.getString(8),
-                        legal = cur.getString(9).split(',').filter { it.isNotBlank() }.toSet(),
+                        legal = keys.filterIndexed { i, _ -> mask and (1L shl i) != 0L }.toSet(),
                     )
                 }
             }
@@ -191,6 +247,9 @@ class ComboDb(private val context: Context) {
     companion object {
         const val FILE = "combos.db"
         const val URL = "https://json.commanderspellbook.com/variants.json.gz"
+        /** 2 = compacte opbouw van 0.9.19. */
+        const val SCHEMA = 2
+        private const val BATCH = 2000
 
         @Serializable data class SbCard(val name: String = "")
         @Serializable data class SbUse(val card: SbCard = SbCard(), val quantity: Int = 1)
@@ -213,20 +272,48 @@ class ComboDb(private val context: Context) {
             val legalities: Map<String, Boolean> = emptyMap(),
         )
 
+        /** Wat NineGrid van een variant bewaart. */
+        data class Parsed(
+            val id: String, val cards: List<String>, val produces: List<String>, val requires: List<String>, val identity: String,
+            val prerequisites: String, val description: String, val popularity: Int, val bracketTag: String?, val legal: List<String>,
+        )
+
         /** Alleen gepubliceerde combo's met minstens twee kaarten (of één kaart plus voorwaarden). */
-        fun entity(v: SbVariant, gen: Long): ComboEntity? {
+        fun parse(v: SbVariant): Parsed? {
             if (v.id.isBlank() || (v.status.isNotBlank() && v.status != "OK" && v.status != "E")) return null
             val cards = v.uses.map { it.card.name }.filter { it.isNotBlank() }.distinct()
             if (cards.isEmpty() || (cards.size == 1 && v.requires.isEmpty())) return null
-            val pre = listOf(v.easyPrerequisites, v.notablePrerequisites).filter { it.isNotBlank() }.joinToString("\n")
-            return ComboEntity(
-                id = v.id, cards = cards.joinToString("\n"), cardCount = cards.size,
-                produces = v.produces.map { it.feature.name }.filter { it.isNotBlank() }.distinct().joinToString("\n"),
-                requires = v.requires.map { r -> (if (r.quantity > 1) "${r.quantity}× " else "") + r.template.name }.filter { it.isNotBlank() }.joinToString("\n"),
-                identity = v.identity, prerequisites = pre, description = v.description,
-                popularity = v.popularity, bracketTag = v.bracketTag,
-                legal = v.legalities.filterValues { it }.keys.sorted().joinToString(","), gen = gen,
+            return Parsed(
+                id = v.id, cards = cards,
+                produces = v.produces.map { it.feature.name }.filter { it.isNotBlank() }.distinct(),
+                requires = v.requires.map { r -> (if (r.quantity > 1) "${r.quantity}× " else "") + r.template.name }.filter { it.isNotBlank() },
+                identity = v.identity,
+                prerequisites = listOf(v.easyPrerequisites, v.notablePrerequisites).filter { it.isNotBlank() }.joinToString("\n"),
+                description = v.description, popularity = v.popularity, bracketTag = v.bracketTag,
+                legal = v.legalities.filterValues { it }.keys.sorted(),
             )
+        }
+
+        /** 64-bits vingerafdruk van een tekst (om dezelfde stappen maar één keer te bewaren). */
+        fun textHash(t: String): Long {
+            var h = -0x340d631b7bdddcdbL
+            for (ch in t) { h = h xor ch.code.toLong(); h *= 0x100000001b3L }
+            return h xor (t.length.toLong() shl 48)
+        }
+
+        fun pack(t: String): ByteArray {
+            val def = java.util.zip.Deflater(java.util.zip.Deflater.BEST_COMPRESSION, true)
+            def.setInput(t.toByteArray(Charsets.UTF_8)); def.finish()
+            val out = java.io.ByteArrayOutputStream(); val buf = ByteArray(1024)
+            while (!def.finished()) { val k = def.deflate(buf); out.write(buf, 0, k) }
+            def.end(); return out.toByteArray()
+        }
+
+        fun unpack(b: ByteArray): String {
+            val inf = java.util.zip.Inflater(true); inf.setInput(b)
+            val out = java.io.ByteArrayOutputStream(); val buf = ByteArray(2048)
+            while (!inf.finished()) { val k = inf.inflate(buf); if (k == 0 && (inf.needsInput() || inf.needsDictionary())) break; out.write(buf, 0, k) }
+            inf.end(); return out.toString(Charsets.UTF_8.name())
         }
 
         private val json = Json { ignoreUnknownKeys = true; coerceInputValues = true; isLenient = true }

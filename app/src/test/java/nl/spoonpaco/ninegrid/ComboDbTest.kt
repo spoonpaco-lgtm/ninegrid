@@ -33,13 +33,24 @@ class ComboDbTest {
         val vs = ComboDb.variants(doc.byteInputStream()).toList()
         assertEquals(3, vs.size)
         assertEquals(listOf("Thassa's Oracle", "Demonic Consultation"), vs[0].uses.map { it.card.name })
-        val e = ComboDb.entity(vs[0], 1L)!!
-        assertEquals("commander,legacy", e.legal)
-        assertEquals("Win the game", e.produces)
+        val e = ComboDb.parse(vs[0])!!
+        assertEquals(listOf("commander", "legacy"), e.legal)
+        assertEquals(listOf("Win the game"), e.produces)
         assertEquals(12345, e.popularity)
         // Niet gepubliceerd, of één kaart zonder voorwaarden: niet bewaren.
-        assertNull(ComboDb.entity(vs[1], 1L))
-        assertNull(ComboDb.entity(vs[2], 1L))
+        assertNull(ComboDb.parse(vs[1]))
+        assertNull(ComboDb.parse(vs[2]))
+    }
+
+    /** 0.9.19: stappen ingepakt bewaren en terug; dezelfde tekst geeft dezelfde vingerafdruk. */
+    @Test
+    fun packAndHash() {
+        val t = "Cast Demonic Consultation naming a card not in your deck. " .repeat(8) + "Ünïcode ✓"
+        val b = ComboDb.pack(t)
+        assertTrue(b.size < t.length / 2)
+        assertEquals(t, ComboDb.unpack(b))
+        assertEquals(ComboDb.textHash(t), ComboDb.textHash(String(t.toCharArray())))
+        assertFalse(ComboDb.textHash(t) == ComboDb.textHash(t + "."))
     }
 
     @Test
