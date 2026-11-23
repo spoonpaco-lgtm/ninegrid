@@ -122,6 +122,11 @@ internal suspend fun runTestset(ctx: Context, tree: Uri, vm: AppViewModel, progr
                         val las = item?.query?.let { q -> " · las: naam=${q.name ?: "-"} set=${q.setCode ?: "-"} nr=${q.collectorNumber ?: "-"}" + (if (q.altNames.isNotEmpty()) " ook=${q.altNames.take(2).joinToString("/")}" else "") } ?: ""
                         val plaatje = item?.picture?.let { " · plaatje: $it" + (if (item.pictureSure) " [zeker]" else "") } ?: ""
                         body.appendLine("vak $slot: FOUT · verwacht ${TestsetScore.describe(e)} · kreeg $got · $status$las$plaatje")
+                    } else if (!e.empty && !sure && item != null) {
+                        // 0.9.17: ook waarom een goede kaart oranje bleef (om groen te maken wat veilig groen kan).
+                        val q = item.query
+                        body.appendLine("vak $slot: goed maar oranje · ${item.label} · las: naam=${q.name ?: "-"} set=${q.setCode ?: "-"} nr=${q.collectorNumber ?: "-"}" +
+                            (vm.printWhyFor(item.key)?.let { " · printkiezer: $it" } ?: ""))
                     }
                 }
                 if (camera) { body.appendLine("met kader.txt: $good van ${expected.size} vakken goed"); continue }
@@ -169,7 +174,8 @@ internal suspend fun runTestset(ctx: Context, tree: Uri, vm: AppViewModel, progr
                     val plaatje = got?.picture?.let { " · plaatje: $it" } ?: ""
                     sBody.appendLine("${item.id}: FOUT · verwacht ${TestsetScore.describe(item.expect)} · kreeg ${p?.let { "${it.name} (${it.setCode.uppercase()} ${it.collectorNumber})" } ?: "niets"} · $status" +
                         (if (item.set.isNotBlank()) " · set ingevuld ${item.set}" else "") + las + plaatje)
-                } else sBody.appendLine("${item.id}: goed · $status")
+                } else sBody.appendLine("${item.id}: goed · $status" + (if (!sure && got != null) " · ${got.label} · las: naam=${got.query.name ?: "-"} set=${got.query.setCode ?: "-"} nr=${got.query.collectorNumber ?: "-"}" else "") +
+                    (got?.let { g -> vm.printWhyFor(g.key) }?.let { " · printkiezer: $it" } ?: ""))
             }
         }
     } finally {

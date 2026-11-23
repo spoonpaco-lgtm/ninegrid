@@ -225,6 +225,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     var lastFrames: List<String> = emptyList()
     /** Per gescande kaart: waarom de printkiezer deze print koos (scanrapport). */
     private val printWhy = java.util.concurrent.ConcurrentHashMap<Int, String>()
+    fun printWhyFor(key: Int): String? = printWhy[key]
     var lastFilledFromFrames = 0
     /** Dit hele blad is foil. */
     var scanFoil by mutableStateOf(false)
@@ -557,7 +558,11 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                     // Geen nummer gelezen en meerdere prints met die naam in de set (gewoon, borderless, showcase): dat is gokken, dus controleren.
                     val ambiguous = scan && card != null && !footSure && nl.spoonpaco.ninegrid.domain.SetCheck.ambiguous(q.collectorNumber != null, repo.printCandidates(card.name, q.setCode ?: card.set).size)
                     // Geen set (niet opgegeven, niet gelezen) en geen nummer: welke print het is, is een gok. Dan nooit groen.
-                    val guessedPrint = scan && card != null && !footSure && nl.spoonpaco.ninegrid.domain.SetCheck.guessedPrint(q.setCode != null, q.collectorNumber != null)
+                    // 0.9.17: zonder set (niet opgegeven, niet gelezen) is de print altijd een gok, ook met een gelezen nummer:
+                    // nummer 254 bestaat in tientallen sets (testset 23 nov: Island FDN 284 werd groen TMT 254). Alleen als
+                    // de printkiezer set én nummer in de voetregel vond, telt het als zeker.
+                    val guessedPrint = scan && card != null && !footSure && (q.setCode == null ||
+                        nl.spoonpaco.ninegrid.domain.SetCheck.guessedPrint(q.setCode != null, q.collectorNumber != null))
                     // Groen alleen als de gelezen naam echt op de gevonden kaart lijkt (80%, zoals de testset telt).
                     // Na de setlijst (preResolve met een duidelijke beste naam in de set) telt die naam; anders wat er gelezen is.
                     // Kwam de naam uit een andere regel dan de naamregel (misschien de naam van het buurvak), dan telt de gelezen naam.

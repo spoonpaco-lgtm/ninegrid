@@ -68,6 +68,16 @@ class PrintPickTest {
         assertNull(PrintPick.pick(cands, listOf("LCI EN JOHN DOE"), extraSets = listOf("LCI")))
     }
 
+    /** Testset 23 nov: een los "200" mocht niet JMP 201 kiezen; en alleen een nummer zonder set is nooit zeker. */
+    @Test
+    fun looseNumberIsWeakAndNumberAloneIsNotSure() {
+        val pie = listOf(PrintPick.Cand("fdn", "fdn", "169", "uncommon", "2024"), PrintPick.Cand("jmp", "jmp", "201", "uncommon", "2020"))
+        assertNull(PrintPick.pick(pie, listOf("200", "200", "FONNEN IoLTAN BoROS")))
+        val islands = listOf(PrintPick.Cand("tmt", "tmt", "254", "common", "2025", basicLand = true), PrintPick.Cand("fdn", "fdn", "284", "common", "2024", basicLand = true))
+        val p = PrintPick.pick(islands, listOf("L 0254", "N&2024 Wards of the Cosst"))
+        assertFalse(p?.sure == true)
+    }
+
     @Test
     fun noFooterNoPick() {
         assertNull(PrintPick.pick(cathar, listOf("Cathar Commando", "Creature — Human Soldier")))

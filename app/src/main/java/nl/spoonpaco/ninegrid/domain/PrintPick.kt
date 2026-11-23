@@ -10,7 +10,8 @@ package nl.spoonpaco.ninegrid.domain
  */
 object PrintPick {
     data class Cand(val id: String, val set: String, val number: String, val rarity: String = "", val year: String = "", val basicLand: Boolean = false)
-    data class Footer(val numbers: Set<String>, val sets: Set<String>, val rarity: Char?, val year: String?)
+    /** [numbers]: met zeldzaamheidsletter of /totaal (telt ook op één teken na); [loose]: een los getal (alleen precies). */
+    data class Footer(val numbers: Set<String>, val sets: Set<String>, val rarity: Char?, val year: String?, val loose: Set<String> = emptySet())
     data class Pick(val cand: Cand, val sure: Boolean, val score: Double, val why: String)
 
     private const val LANGS = "EN|DE|FR|IT|ES|PT|JA|JP|KO|RU|ZH|CS|CT|PH"
@@ -34,7 +35,7 @@ object PrintPick {
     fun isYear(d: String) = d.length == 4 && d.toIntOrNull()?.let { it in 2000..2039 } == true
 
     fun footer(lines: List<String>): Footer {
-        val numbers = linkedSetOf<String>(); val sets = linkedSetOf<String>()
+        val numbers = linkedSetOf<String>(); val sets = linkedSetOf<String>(); val loose = linkedSetOf<String>()
         var rarity: Char? = null; var yr: String? = null
         for (raw in lines) {
             val r = raw.replace(Regex("""\s+"""), " ")
@@ -48,7 +49,8 @@ object PrintPick {
                 numbers += d; if (rarity == null) rarity = m.groupValues[1][0]
             }
             slashNumber.findAll(t).forEach { m -> digits(m.groupValues[1])?.let { numbers += it } }
-            loneNumber.matchEntire(t)?.let { m -> digits(m.groupValues[1])?.takeUnless(::isYear)?.let { numbers += it } }
+            // Een los getal kan ook iets anders zijn ("200" van de manakosten, testset 23 nov: Bake into a Pie → JMP 201).
+            loneNumber.matchEntire(t)?.let { m -> digits(m.groupValues[1])?.takeUnless(::isYear)?.let { loose += it } }
             // Op de regel zoals gelezen (niet in hoofdletters): de voetregel is in hoofdletters, regeltekst niet
             // ("Create a Food token" mag geen setcode "TOK" opleveren).
             for (m in setLang.findAll(r)) {
@@ -56,7 +58,7 @@ object PrintPick {
                 if (code.length >= 3 && code.any { it.isLetter() }) sets += if (code.first() == '0') "O" + code.drop(1) else code
             }
         }
-        return Footer(numbers, sets, rarity, yr)
+        return Footer(numbers, sets, rarity, yr, loose - numbers)
     }
 
     /** Levenshtein-afstand, met een vroege stop boven 2. */
@@ -99,14 +101,16 @@ object PrintPick {
         val sets = f.sets + extraSets.map { it.uppercase() }
         data class S(val c: Cand, val set: Int, val nr: Int, val total: Double)
         val scored = cands.map { c ->
-            val nr = match(nums, c.number.uppercase().trimStart('0').ifEmpty { "0" }, 2)
+            val n = c.number.uppercase().trimStart('0').ifEmpty { "0" }
+            val nr = match(nums, n, 2).let { if (it == 0 && n in f.loose) 2 else it }
             val st = match(sets, c.set.uppercase(), 3)
             val rar = if (f.rarity != null && rarityLetter(c) == f.rarity) 0.5 else 0.0
             val yr = if (f.year != null && c.year == f.year) 0.5 else 0.0
             S(c, st, nr, st + nr + rar + yr)
         }.sortedByDescending { it.total }
         val best = scored.first()
-        if (best.set + best.nr == 0) return null
+        // Te weinig bewijs (bijv. alleen een nummer op één teken na): geen keuze, de rest van de scanner beslist.
+        if (best.set + best.nr == 0 || best.total < 2.0) return null
         val second = scored.getOrNull(1)?.total ?: -10.0
         if (best.total <= second) return null
         // Zeker: set en nummer precies, of één van beide precies en de ander op één teken na met ruime voorsprong.
