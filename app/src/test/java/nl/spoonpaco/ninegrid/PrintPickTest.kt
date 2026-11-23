@@ -78,6 +78,20 @@ class PrintPickTest {
         assertFalse(p?.sure == true)
     }
 
+    /** Testset 23 nov: "Necrosquito" goed gelezen met nummer 1 (een andere kaart) is ruis; het buurvak-geval niet. */
+    @Test
+    fun numberNoise() {
+        val n = nl.spoonpaco.ninegrid.domain.NumberNoise
+        assertTrue(n.isNoise("Necrosquito", "Necrosquito", 1, "Adelaide, Hope of the Moon", listOf("Necrosquito", "1")))
+        assertTrue(n.isNoise("Caparocti Sunborn", "Caparocti Sunborn", 1, null, listOf("440")))
+        // Meer prints met die naam: dan moet het nummer kiezen, dus geen ruis.
+        assertFalse(n.isNoise("Kinzu of the Bleak Coven", "Kinzu of the Bleak Coven", 3, "Glistening Deluge", emptyList()))
+        // De naam van de kaart bij het nummer staat ook in de gelezen regels: misschien hoort de naamregel bij het buurvak.
+        assertFalse(n.isNoise("Shock", "Shock", 1, "Lightning Bolt", listOf("Shock", "Lightning Bolt", "141")))
+        // Naam zwak gelezen: nooit.
+        assertFalse(n.isNoise("Undecealm Lch", "Underrealm Lich", 1, "Blade Instructor", emptyList()))
+    }
+
     @Test
     fun noFooterNoPick() {
         assertNull(PrintPick.pick(cathar, listOf("Cathar Commando", "Creature — Human Soldier")))

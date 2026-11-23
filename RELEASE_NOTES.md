@@ -8,6 +8,8 @@ Dack Fayden pakt altijd het juiste exemplaar: de printkiezer.
 - Art Series-kaarten, tokens en emblemen worden nooit meer gekozen (Snakeskin Veil werd "Snakeskin Veil // Snakeskin Veil" uit ATDM). De offline database neemt ze bij de volgende download niet meer op.
 - Scanrapport: per camerabeeld wat er gelezen is, en waarom de printkiezer een print koos.
 - Testset: 28 losse kaarten (FDN) uit de verzamelde scans van 23 nov.
+- Ruisnummer: is de naam goed gelezen, heeft die kaart maar één print in de set en hoort het gelezen nummer bij een heel andere kaart (of bij geen kaart), dan telt dat nummer niet mee. Zo worden goed gelezen kaarten vaker groen.
+- Zonder set (niet ingevuld en niet gelezen) wordt een kaart alleen groen als set én nummer in de voetregel gevonden zijn.
 - Scherm blijft aan tijdens het scannen, tot 5 minuten zonder gebruik (aanraken, knop of scan). Tijdens Testset draaien blijft de telefoon aan.
 
 NineGrid 0.9.16 – Urza

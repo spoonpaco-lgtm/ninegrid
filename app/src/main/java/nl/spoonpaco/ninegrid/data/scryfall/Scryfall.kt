@@ -159,6 +159,8 @@ data class CardQuery(
     val printSure: Boolean = false,
     /** Waarom de printkiezer deze print koos (voor het scanrapport). */
     val printWhy: String? = null,
+    /** Het gelezen nummer is ruis (hoort niet bij deze naam, zie NumberNoise): telt niet mee voor groen of oranje. */
+    val numberNoise: Boolean = false,
 )
 
 class ScryfallException(message: String, val code: Int = 0) : Exception(message)

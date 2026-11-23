@@ -617,6 +617,12 @@ class Repository(
                 }
             }
             if (pick != null) q = q.copy(id = pick.id)
+            // Een nummer dat duidelijk niet bij de goed gelezen naam hoort ("Necrosquito" met nr 1): ruis, telt niet mee.
+            val readName = q0.name
+            if (pick != null && !numberFits && q.collectorNumber != null && readName != null && bestOnNameLine != null && pick.name == bestOnNameLine &&
+                nl.spoonpaco.ninegrid.domain.NumberNoise.isNoise(readName, bestOnNameLine, list.cards.count { it.name == bestOnNameLine }, byNumber?.name, q0.lines + q0.altNames)) {
+                q = q.copy(numberNoise = true, printWhy = "nummer ${q.collectorNumber} genegeerd (hoort niet bij deze naam)")
+            }
             // 0.9.17: meerdere prints met deze naam in de set en het nummer klopt niet precies: de printkiezer kiest
             // op de voetregel (nummer op één teken na, zeldzaamheidsletter). Alleen een keuze, nooit groener dan voorheen.
             if (pick != null && !numberFits) {

@@ -554,15 +554,17 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                     // 0.9.17: de printkiezer vond set en nummer duidelijk in de voetregel: dat telt als gelezen set en nummer.
                     val pq = queries.getOrNull(i)
                     val footSure = scan && card != null && pq?.printSure == true && pq.id == card.id
+                    // Ruisnummer (NumberNoise): doen alsof er geen nummer gelezen is.
+                    val numRead = if (scan && card != null && pq?.numberNoise == true && pq.id == card.id) null else q.collectorNumber
                     pq?.printWhy?.let { w -> printWhy[item.key] = (if (footSure) "zeker · " else "") + w }
                     // Geen nummer gelezen en meerdere prints met die naam in de set (gewoon, borderless, showcase): dat is gokken, dus controleren.
-                    val ambiguous = scan && card != null && !footSure && nl.spoonpaco.ninegrid.domain.SetCheck.ambiguous(q.collectorNumber != null, repo.printCandidates(card.name, q.setCode ?: card.set).size)
+                    val ambiguous = scan && card != null && !footSure && nl.spoonpaco.ninegrid.domain.SetCheck.ambiguous(numRead != null, repo.printCandidates(card.name, q.setCode ?: card.set).size)
                     // Geen set (niet opgegeven, niet gelezen) en geen nummer: welke print het is, is een gok. Dan nooit groen.
                     // 0.9.17: zonder set (niet opgegeven, niet gelezen) is de print altijd een gok, ook met een gelezen nummer:
                     // nummer 254 bestaat in tientallen sets (testset 23 nov: Island FDN 284 werd groen TMT 254). Alleen als
                     // de printkiezer set én nummer in de voetregel vond, telt het als zeker.
                     val guessedPrint = scan && card != null && !footSure && (q.setCode == null ||
-                        nl.spoonpaco.ninegrid.domain.SetCheck.guessedPrint(q.setCode != null, q.collectorNumber != null))
+                        nl.spoonpaco.ninegrid.domain.SetCheck.guessedPrint(q.setCode != null, numRead != null))
                     // Groen alleen als de gelezen naam echt op de gevonden kaart lijkt (80%, zoals de testset telt).
                     // Na de setlijst (preResolve met een duidelijke beste naam in de set) telt die naam; anders wat er gelezen is.
                     // Kwam de naam uit een andere regel dan de naamregel (misschien de naam van het buurvak), dan telt de gelezen naam.
@@ -570,9 +572,9 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                     // Groen vraagt een gelezen naam: alleen een nummer is te makkelijk verkeerd gelezen ("9", "43"; testset 18 nov).
                     val nameStrong = card != null && if (q.lang != null) q.printedName != null
                         else checkName != null && nl.spoonpaco.ninegrid.domain.NameMatch.score(checkName, card.name) >= 0.8
-                    val confident = card != null && printedOk[item.key] != false && (q.name != null || q.collectorNumber != null) &&
+                    val confident = card != null && printedOk[item.key] != false && (q.name != null || numRead != null) &&
                         (checkName == null || repo.namesLookAlike(checkName, card.name)) &&
-                        (q.collectorNumber == null || footSure || card.collectorNumber.equals(q.collectorNumber, true)) &&
+                        (numRead == null || footSure || card.collectorNumber.equals(numRead, true)) &&
                         !otherSet && !ambiguous && !guessedPrint
                     val textSure = (confident || q.id != null) && nameStrong && !guessedPrint
                     // Het plaatje (1h-scan) maakt nooit groen: het vult aan waar de tekst niets of iets onzekers vond,
