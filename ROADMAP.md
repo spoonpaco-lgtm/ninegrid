@@ -253,6 +253,14 @@ Naam Niko (Aris, spiegelscherven = beelden) gekozen door Claude; Mick mag hem ve
 - Testset 23 nov 15:40: groen maar fout 0, losse 27/28, bladen 203 (oranje maar goed 60, waarvan ~20 door een ruisnummer). Mick koos "2": `domain/NumberNoise` in 0.9.17 (naam ≥80% zoals gelezen, 1 print in de set, kaart bij het nummer bestaat niet of heet duidelijk anders en staat niet in de gelezen regels).
 - Nog niet: zeldzaamheid/jaar/typeregel als tegenbewijs (stap 3) en artiest (stap 4, database-uitbreiding).
 
+### 1m. Combo's in je collectie (voorstel 23 nov, wacht op startsein; na 0.9.17)
+
+- Knop Combo's zoeken onder Collectie: alle kaartnamen (collectie + decks, geen proxies, elke naam één keer) naar Commander Spellbook `find-my-combos`. Lijsten Compleet (met map/blad/vak of deck per kaart) en Bijna (1 kaart mist: prijs, vriend heeft hem, Op verlanglijst; goedkoopste eerst).
+- Filters: kleuren, aantal kaarten (2-kaart), wat de combo doet, prijs ontbrekende kaart, **alle kaarten vrij**, **format/legaliteit via Spellbook (alle formats)**.
+- Combo openen: kaartjes + stappen (zoals bij een deck), Nieuw deck met deze combo, Toevoegen aan deck (alleen passende kleuren). Kaartscherm: "Combo's met deze kaart". Optioneel melding als een scan een bijna-combo compleet maakt (standaard uit).
+- Besloten (Mick 23 nov): kaarten in decks tellen mee, met filter "alle kaarten vrij"; alle formats, filteren via Spellbook.
+- Eerst uitzoeken: limiet op aantal kaarten per verzoek en hoe Spellbook legaliteit per format teruggeeft; anders de combodatabase downloaden en offline zoeken. Privacytekst aanpassen (hele collectielijst, alleen namen, alleen op knopdruk).
+
 ### 2. Kleine verbeteringen (nog geen versie)
 
 - Scannen, kaart voor kaart: 39a (set van de vorige kaart als aanname) is door Mick afgewezen, 17 nov: scannen wordt er trager van; een set telt alleen als de gebruiker hem zelf opgeeft. 39c gebouwd in 0.9.15 (zie 1i-scan).
