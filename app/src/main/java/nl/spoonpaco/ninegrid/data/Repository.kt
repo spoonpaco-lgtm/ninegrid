@@ -648,7 +648,9 @@ class Repository(
     private suspend fun pickPrint(q: CardQuery): CardQuery {
         val name = q.name ?: return q
         val off = scryfall.offline ?: return q
-        val prints = off.printsOf(name).filter { !it.digital && !nl.spoonpaco.ninegrid.domain.PrintPick.notACard(it.name, it.typeLine) }
+        val all = off.printsOf(name).filter { !it.digital && !nl.spoonpaco.ninegrid.domain.PrintPick.notACard(it.name, it.typeLine) }
+        // The List (PLST/ULST): de kaart draagt de setcode van het origineel, dus nooit kiezen als het origineel er is.
+        val prints = all.filter { it.set.lowercase() !in nl.spoonpaco.ninegrid.domain.PrintPick.LIST_SETS }.ifEmpty { all }
         if (prints.isEmpty()) return q
         val cands = prints.map { nl.spoonpaco.ninegrid.domain.PrintPick.Cand(it.id, it.set, it.collectorNumber, it.rarity, it.releasedAt.take(4), it.typeLine.startsWith("Basic Land")) }
         val p = nl.spoonpaco.ninegrid.domain.PrintPick.pick(cands, q.lines, extraNumbers = listOfNotNull(q.collectorNumber)) ?: return q

@@ -87,7 +87,8 @@ interface OfflineDao {
 
     /** Op naam (of voorkant), het liefst in de gegeven set, anders de nieuwste print. Nooit een Art Series-kaart of token
      *  (Snakeskin Veil werd 23 nov "Snakeskin Veil // Snakeskin Veil" uit ATDM, de nieuwste print met die voorkant). */
-    @Query("SELECT * FROM cards WHERE (front = :name OR LOWER(name) = :name) AND (:set IS NULL OR setCode = :set) AND typeLine NOT LIKE 'Card%' AND typeLine NOT LIKE '%Token%' AND typeLine NOT LIKE 'Emblem%' ORDER BY releasedAt DESC LIMIT 1")
+    // 0.9.20: The List (PLST) als laatste: die kaarten dragen de setcode van het origineel (Adanto Vanguard werd PLST xln-1).
+    @Query("SELECT * FROM cards WHERE (front = :name OR LOWER(name) = :name) AND (:set IS NULL OR setCode = :set) AND typeLine NOT LIKE 'Card%' AND typeLine NOT LIKE '%Token%' AND typeLine NOT LIKE 'Emblem%' ORDER BY (LOWER(setCode) IN ('plst', 'ulst')) ASC, releasedAt DESC LIMIT 1")
     suspend fun byName(name: String, set: String?): OfflineCard?
 
     /** Zoeken op naam: één regel per kaart, de nieuwste print. */

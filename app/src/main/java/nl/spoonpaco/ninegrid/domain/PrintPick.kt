@@ -9,6 +9,9 @@ package nl.spoonpaco.ninegrid.domain
  * Groen (zeker) alleen als set en nummer duidelijk kloppen; anders is het een keuze die gecontroleerd moet worden.
  */
 object PrintPick {
+    /** Herdrukreeksen met de setcode van het origineel op de kaart (The List): nooit de standaardkeuze. */
+    val LIST_SETS = setOf("plst", "ulst")
+
     data class Cand(val id: String, val set: String, val number: String, val rarity: String = "", val year: String = "", val basicLand: Boolean = false)
     /** [numbers]: met zeldzaamheidsletter of /totaal (telt ook op één teken na); [loose]: een los getal (alleen precies). */
     data class Footer(val numbers: Set<String>, val sets: Set<String>, val rarity: Char?, val year: String?, val loose: Set<String> = emptySet())
