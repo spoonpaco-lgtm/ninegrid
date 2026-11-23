@@ -81,6 +81,7 @@ Dit is "de lijst": wat Mick wil dat NineGrid nog krijgt. Een nieuw gesprek begin
 | 0.9.14 | Ob Nixilis | Top movers (Winner én Loser of the Week/Day, inklapbaar, effecten Gloed en bloed of Stempels), Magic-effecten per effect, Toxic vernieuwd, setlijst voor de scanner uit de offline database |
 | 0.9.15 | Niko | Herkennen op het plaatje (offline vingerafdrukken per set), beelden laten stemmen bij 1 kaart, 39c, printcontrole-fix (sinds 0.9.14), testset 18 bladen; boosterscherm en boosters wissen, filter Prijs, sorteren in twee richtingen, één paneel Filteren en sorteren, bewaarde combinaties, groei uitgesplitst onder de grafiek |
 | 0.9.16 | Urza | Testset voor losse kaarten (map losse-kaarten), scanrapporten verzamelen en als één zip delen, fix "-" in het scanrapport van een losse kaart |
+| 0.9.17 | Dack | Printkiezer op de voetregel (ook bij een ingevulde set), nummer beter gelezen ("C 2024", "CO098"), geen Art Series/tokens, ruisnummer, zonder set alleen groen met set én nummer, camerabeelden in het scanrapport, scherm aan bij scannen en testset; testset bladen 203/225 (oranje maar goed 56→46), losse kaarten 27/28, groen maar fout 0 |
 
 ## Nog te doen
 
@@ -243,7 +244,7 @@ Naam Niko (Aris, spiegelscherven = beelden) gekozen door Claude; Mick mag hem ve
 - Fix: `scanOutcomes()` — bij een losse kaart (geen slot) stond "-"; ScanMeta heeft nu `crop` (kader).
 - Volgende: GTC-raster als galerijfoto, Mondrak-1, en een testset met 10–20 losse kaarten (Mick verzamelt ze met de nieuwe knop).
 
-### 1l. 0.9.17 Dack: printkiezer (Mick 23 nov "ja bouwen", nog niet uitgebracht)
+### 1l. 0.9.17 Dack: printkiezer (uitgebracht 23 nov op Micks "ja release")
 
 - Aanleiding: 28 losse kaarten (testset/losse-kaarten, 0.9.16): 26 goed, 0 groen maar fout; fout Cathar Commando (→ SLD 7132) en Snakeskin Veil (→ ATDM 19, Art Series); bij 9 kaarten nummer niet gelezen.
 - Oorzaken: (1) "C 2024 Wizards" (© als C) werd als nummer gezien en hield het echte nummer tegen; (2) "CO098", "C O16s" niet herkend; (3) offline `byName` gaf de nieuwste print met die voorkant = Art Series.
