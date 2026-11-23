@@ -83,6 +83,7 @@ Dit is "de lijst": wat Mick wil dat NineGrid nog krijgt. Een nieuw gesprek begin
 | 0.9.16 | Urza | Testset voor losse kaarten (map losse-kaarten), scanrapporten verzamelen en als één zip delen, fix "-" in het scanrapport van een losse kaart |
 | 0.9.17 | Dack | Printkiezer op de voetregel (ook bij een ingevulde set), nummer beter gelezen ("C 2024", "CO098"), geen Art Series/tokens, ruisnummer, zonder set alleen groen met set én nummer, camerabeelden in het scanrapport, scherm aan bij scannen en testset; testset bladen 203/225 (oranje maar goed 56→46), losse kaarten 27/28, groen maar fout 0 |
 | 0.9.18 | Zur | Combo's in je collectie: combodatabase van Commander Spellbook offline, altijd actueel, Compleet/Bijna/Beste aankoop, groepen, filters (kleuren, format, vrij, 2 kaarten, prijs), ∞-knop op Collectie, kaartscherm; combo's per deck offline |
+| 0.9.19 | Jaya | Combodatabase compacter (196 → 119 MB), plaatje kiest tussen prints met een ander plaatje (oranje), half gelezen naam op de letters (oranje); testset 203/225, groen maar fout 0 |
 
 ## Nog te doen
 
