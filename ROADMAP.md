@@ -267,6 +267,13 @@ Naam Niko (Aris, spiegelscherven = beelden) gekozen door Claude; Mick mag hem ve
 - Uitgezocht 23 nov: Spellbook vraagt de hele dataset niet via de API op te halen maar het bulkbestand `https://json.commanderspellbook.com/variants.json.gz` te gebruiken (~30 MB gezipt, ~730 MB uitgepakt, ~121.000 varianten, zelfde vorm als /variants/). Per variant o.a. kaarten (oracle-id), produces, identity, legalities (commander, brawl, standardBrawl, standard, pioneer, alchemy volgens een gebruiker; andere formats afleiden uit de kaartlegaliteit). find-my-combos: max 1000 varianten per pagina. Data zonder licentie; naam in User-Agent, vermelding en link terug. Voorstel: bulkbestand stromend inlezen naar een kleine eigen tabel, zoals de offline kaartdatabase. **Mick 23 nov: "dat is goed"** (aanpak met het bulkbestand gekozen; bouwen na 0.9.17 en zijn startsein).
 - Eerst uitzoeken (oud): limiet op aantal kaarten per verzoek en hoe Spellbook legaliteit per format teruggeeft; anders de combodatabase downloaden en offline zoeken. Privacytekst aanpassen (hele collectielijst, alleen namen, alleen op knopdruk).
 
+### 1n. 0.9.20 Kiora (Mick 23 nov: "release 0.9.19 en bouw dan de volgende", gebouwd, nog niet uitgebracht)
+
+- Camera: `previewRect` (hele beeld 3:4 op volle breedte tussen de balken), `PreviewView` FIT_CENTER in dat vak, `guideRect`/`guideOnImage` op het beeld. Testset (galerijfoto's) meet dit niet: meten met verzamelde scans (kadergrootte in pixels in het scanrapport).
+- Combodatabase SCHEMA 3: `combo_names`, `combo_features`, `combo_cards(cardId, comboRow)`, zoeken via `owned_ids`; inlezen in `combos-new.db` en verwisselen. Mick meet de grootte (0.9.19: 119 MB).
+- `PictureIndex.CHOOSE_PRINT = false` (0.9.19: 8 gelijk, 1 fout). Testset had al nummers bij de prints die het plaatje koos; de vier zonder nummer (Davriel, Cosmium Confluence, Glowcap Lantern, Denizen) zijn op de foto niet leesbaar.
+- `NameLetters.explain` in het rapport als er geen naam gevonden wordt (Tura Kennerüd).
+
 ### 2. Kleine verbeteringen (nog geen versie)
 
 - Scannen, kaart voor kaart: 39a (set van de vorige kaart als aanname) is door Mick afgewezen, 17 nov: scannen wordt er trager van; een set telt alleen als de gebruiker hem zelf opgeeft. 39c gebouwd in 0.9.15 (zie 1i-scan).

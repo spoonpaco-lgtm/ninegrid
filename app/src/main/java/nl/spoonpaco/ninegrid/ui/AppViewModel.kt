@@ -608,12 +608,13 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                     if (scan && pic != null && useCard != null && useCard === card && !footSure && pq?.printWhy == null && setForPic != null &&
                         (numRead == null || !card!!.collectorNumber.equals(numRead, true)) && repo.printCandidates(card!!.name, setForPic).size > 1) {
                         c.fingerprints.printChoice(setForPic, pic, card.name)?.let { pp ->
-                            printWhy[item.key] = "plaatje: " + pp.describe() + if (pp.usable) "" else " · niet gebruikt"
-                            if (pp.usable && !pp.number.equals(card.collectorNumber, true)) {
+                            val use = pp.usable && nl.spoonpaco.ninegrid.domain.PictureIndex.CHOOSE_PRINT
+                            printWhy[item.key] = "plaatje: " + pp.describe() + if (use) "" else " · niet gebruikt"
+                            if (use && !pp.number.equals(card.collectorNumber, true)) {
                                 runCatching { repo.scryfall.cardBySetNumber(setForPic, pp.number) }.getOrNull()?.takeIf { it.name.equals(card.name, true) }?.let {
                                     useCard = it; picNote = str(R.string.scan_picture_print, pp.number)
                                 }
-                            } else if (pp.usable) picNote = str(R.string.scan_picture_print, pp.number)
+                            } else if (use) picNote = str(R.string.scan_picture_print, pp.number)
                         }
                     }
                     val baseLabel = if (guessedPrint) pending[idx].label + " · " + str(R.string.scan_guessed_print)

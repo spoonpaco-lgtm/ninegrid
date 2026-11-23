@@ -2,7 +2,7 @@
 
 *English: [FEATURES.md](FEATURES.md)*
 
-Huidige versie: **0.9.19 – Jaya**. Elke versie heeft de naam van een planeswalker.
+Huidige versie: **0.9.20 – Kiora**. Elke versie heeft de naam van een planeswalker.
 
 ## Wat NineGrid anders maakt
 

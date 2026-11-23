@@ -23,53 +23,58 @@ import java.io.InputStream
 
 /**
  * Eén combo uit het bulkbestand van Commander Spellbook, alleen wat NineGrid gebruikt.
- * 0.9.19: compacter (196 MB was te groot): stappen en voorwaarden staan één keer, ingepakt, in [ComboTextEntity];
- * formats als bitmasker.
+ * 0.9.20: kaartnamen en "wat het doet" als nummers ([ComboNameEntity], [ComboFeatureEntity]); 0.9.19 was 119 MB,
+ * vooral door de kaartnamen die per combo opnieuw als tekst bewaard werden.
  */
 @Entity(tableName = "combos")
 data class ComboEntity(
-    @PrimaryKey val id: String,
-    /** Kaartnamen, één per regel. */
+    @PrimaryKey val row: Int,
+    /** Id bij Spellbook (voor de link). */
+    val id: String,
+    /** Kaartnummers ([ComboNameEntity.id]), komma's ertussen. */
     val cards: String,
     val cardCount: Int,
-    /** Wat de combo oplevert (features), één per regel. */
+    /** Wat de combo oplevert: nummers ([ComboFeatureEntity.id]), komma's ertussen. */
     val produces: String,
-    /** Andere voorwaarden (templates, bijv. "een sac outlet"), één per regel. Die telt de app niet na. */
+    /** Andere voorwaarden (templates), één per regel. Die telt de app niet na. */
     val requires: String,
-    /** Kleuren (WUBRG, C = kleurloos). */
     val identity: String,
-    /** Verwijzing naar de voorwaarden (0 = geen). */
     val prereqId: Long,
-    /** Verwijzing naar de stappen (0 = geen). */
     val stepsId: Long,
     val popularity: Int,
     val bracketTag: String?,
-    /** Formats waarin hij legaal is, als bits (volgorde in [ComboDb.formatKeys]). */
     val legalMask: Long,
-    val gen: Long,
 )
+
+/** Elke kaartnaam één keer. [lower] en [front] (alleen bij //, anders leeg) om op te zoeken. */
+@Entity(tableName = "combo_names", indices = [Index("lower"), Index("front")])
+data class ComboNameEntity(@PrimaryKey val id: Int, val name: String, val lower: String, val front: String)
+
+@Entity(tableName = "combo_features")
+data class ComboFeatureEntity(@PrimaryKey val id: Int, val name: String)
 
 /** Stappen en voorwaarden: één keer per tekst, ingepakt (deflate). */
 @Entity(tableName = "combo_texts")
 data class ComboTextEntity(@PrimaryKey val id: Long, val data: ByteArray)
 
-/** Welke kaarten in welke combo zitten. [front] alleen bij kaarten met // (anders leeg). */
-@Entity(tableName = "combo_cards", primaryKeys = ["comboId", "name"], indices = [Index("name"), Index("front")])
-data class ComboCardEntity(val comboId: String, val name: String, val front: String)
+/** Welke kaart in welke combo zit, alleen nummers. Gesorteerd op kaart: zoeken gaat van jouw kaarten naar de combo's. */
+@Entity(tableName = "combo_cards", primaryKeys = ["cardId", "comboRow"])
+data class ComboCardEntity(val cardId: Int, val comboRow: Int)
 
 @Dao
 interface ComboDao {
     @Upsert suspend fun upsert(items: List<ComboEntity>)
     @Upsert suspend fun upsertCards(items: List<ComboCardEntity>)
     @Upsert suspend fun upsertTexts(items: List<ComboTextEntity>)
-    @Query("DELETE FROM combos WHERE gen != :gen") suspend fun deleteOtherThan(gen: Long)
-    @Query("DELETE FROM combo_cards WHERE comboId NOT IN (SELECT id FROM combos)") suspend fun deleteOrphanCards()
-    @Query("DELETE FROM combo_texts WHERE id NOT IN (SELECT prereqId FROM combos) AND id NOT IN (SELECT stepsId FROM combos)") suspend fun deleteOrphanTexts()
+    @Upsert suspend fun upsertNames(items: List<ComboNameEntity>)
+    @Upsert suspend fun upsertFeatures(items: List<ComboFeatureEntity>)
+    @Query("SELECT * FROM combo_names") suspend fun names(): List<ComboNameEntity>
+    @Query("SELECT * FROM combo_features") suspend fun features(): List<ComboFeatureEntity>
     @Query("SELECT COUNT(*) FROM combos") suspend fun count(): Int
     @Query("SELECT data FROM combo_texts WHERE id = :id") suspend fun text(id: Long): ByteArray?
 }
 
-@Database(entities = [ComboEntity::class, ComboCardEntity::class, ComboTextEntity::class], version = 2, exportSchema = false)
+@Database(entities = [ComboEntity::class, ComboNameEntity::class, ComboFeatureEntity::class, ComboCardEntity::class, ComboTextEntity::class], version = 3, exportSchema = false)
 abstract class ComboDatabase : RoomDatabase() {
     abstract fun combos(): ComboDao
 }
@@ -96,10 +101,13 @@ data class OwnedCombo(
  * De combodatabase van Commander Spellbook op de telefoon (0.9.18). Eén keer het bulkbestand downloaden
  * (https://json.commanderspellbook.com/variants.json.gz, zoals Spellbook vraagt in plaats van de API leeg te halen),
  * daarna zoekt de telefoon zelf: welke combo's je compleet hebt en welke je één kaart missen.
+ * 0.9.20: inlezen gebeurt in een apart bestand; pas als dat klaar is, wordt het verwisseld (de oude blijft zo lang bruikbaar).
  */
 class ComboDb(private val context: Context) {
     private val file get() = context.getDatabasePath(FILE)
     @Volatile private var db: ComboDatabase? = null
+    @Volatile private var nameCache: Map<Int, String>? = null
+    @Volatile private var featureCache: Map<Int, String>? = null
     private val prefs get() = context.getSharedPreferences("combo_db", Context.MODE_PRIVATE)
 
     private fun open(): ComboDatabase = db ?: synchronized(this) {
@@ -108,127 +116,148 @@ class ComboDb(private val context: Context) {
 
     /** Is hij gedownload, in de huidige opbouw (en dus bruikbaar)? */
     fun ready(): Boolean = file.exists() && prefs.getLong("updated", 0L) > 0L && prefs.getInt("schema", 1) == SCHEMA
-    /** Er staat nog een database van een oudere opbouw (0.9.18): opnieuw downloaden. */
+    /** Er staat nog een database van een oudere opbouw: opnieuw downloaden. */
     fun outdated(): Boolean = file.exists() && prefs.getLong("updated", 0L) > 0L && prefs.getInt("schema", 1) != SCHEMA
     val updated: Long get() = prefs.getLong("updated", 0L)
     val comboCount: Int get() = prefs.getInt("count", 0)
-    /** Last-Modified van de laatste download (om niet opnieuw te downloaden als er niets nieuws is). */
     var lastModified: String?
         get() = prefs.getString("last_modified", null)
         set(v) { prefs.edit().putString("last_modified", v).apply() }
     /** Format-sleutels; bit i van legalMask = formatKeys[i]. */
     val formatKeys: List<String> get() = prefs.getString("formats", "").orEmpty().split(',').filter { it.isNotBlank() }
 
-    /** Gekeken, niets nieuws: de datum bijwerken zodat hij pas over een week weer kijkt. */
     fun touch() = prefs.edit().putLong("updated", System.currentTimeMillis()).apply()
 
     fun sizeBytes(): Long = listOf(file, File(file.path + "-wal"), File(file.path + "-shm")).sumOf { if (it.exists()) it.length() else 0L }
 
     suspend fun importFrom(input: InputStream, onCount: suspend (Int) -> Unit): Int = withContext(Dispatchers.IO) {
-        val d = open()
-        val gen = System.currentTimeMillis()
+        context.deleteDatabase(FILE_NEW)
+        val d = Room.databaseBuilder(context, ComboDatabase::class.java, FILE_NEW).build()
         var n = 0
-        val keys = formatKeys.toMutableList()
-        val textIds = HashMap<Long, Long>()   // hash van de tekst → id
-        var nextText = 1L
+        val keys = ArrayList<String>()
+        val textIds = HashMap<Long, Long>()
+        val nameIds = HashMap<String, Int>()
+        val featureIds = HashMap<String, Int>()
         val batch = ArrayList<ComboEntity>(BATCH)
         val cards = ArrayList<ComboCardEntity>(BATCH * 4)
         val texts = ArrayList<ComboTextEntity>(BATCH)
+        val names = ArrayList<ComboNameEntity>(BATCH)
+        val features = ArrayList<ComboFeatureEntity>()
         fun textId(t: String): Long {
             if (t.isBlank()) return 0L
-            val h = textHash(t)
-            return textIds.getOrPut(h) { val id = nextText++; texts += ComboTextEntity(id, pack(t)); id }
+            return textIds.getOrPut(textHash(t)) { val id = textIds.size + 1L; texts += ComboTextEntity(id, pack(t)); id }
         }
+        fun nameId(name: String): Int = nameIds.getOrPut(name) {
+            val id = nameIds.size + 1; val lower = name.lowercase(); val front = lower.substringBefore(" // ")
+            names += ComboNameEntity(id, name, lower, if (front != lower) front else ""); id
+        }
+        fun featureId(f: String): Int = featureIds.getOrPut(f) { val id = featureIds.size + 1; features += ComboFeatureEntity(id, f); id }
         suspend fun flush() {
             if (batch.isEmpty()) return
-            val a = batch.toList(); val b = cards.toList(); val t = texts.toList(); batch.clear(); cards.clear(); texts.clear()
-            d.withTransaction { d.combos().upsertTexts(t); d.combos().upsert(a); d.combos().upsertCards(b) }
+            val a = batch.toList(); val b = cards.toList(); val t = texts.toList(); val nm = names.toList(); val ft = features.toList()
+            batch.clear(); cards.clear(); texts.clear(); names.clear(); features.clear()
+            d.withTransaction {
+                d.combos().upsertNames(nm); d.combos().upsertFeatures(ft); d.combos().upsertTexts(t); d.combos().upsert(a); d.combos().upsertCards(b)
+            }
             n += a.size
             onCount(n)
         }
-        for (v in variants(input)) {
-            val p = parse(v) ?: continue
-            var mask = 0L
-            for (f in p.legal) {
-                var i = keys.indexOf(f)
-                if (i < 0 && keys.size < 63) { keys += f; i = keys.size - 1 }
-                if (i >= 0) mask = mask or (1L shl i)
+        try {
+            for (v in variants(input)) {
+                val p = parse(v) ?: continue
+                var mask = 0L
+                for (f in p.legal) {
+                    var i = keys.indexOf(f)
+                    if (i < 0 && keys.size < 63) { keys += f; i = keys.size - 1 }
+                    if (i >= 0) mask = mask or (1L shl i)
+                }
+                val row = n + batch.size + 1
+                val ids = p.cards.map(::nameId)
+                batch += ComboEntity(
+                    row = row, id = p.id, cards = ids.joinToString(","), cardCount = ids.size,
+                    produces = p.produces.map(::featureId).joinToString(","), requires = p.requires.joinToString("\n"), identity = p.identity,
+                    prereqId = textId(p.prerequisites), stepsId = textId(p.description), popularity = p.popularity, bracketTag = p.bracketTag, legalMask = mask,
+                )
+                ids.forEach { cards += ComboCardEntity(it, row) }
+                if (batch.size >= BATCH) flush()
             }
-            batch += ComboEntity(
-                id = p.id, cards = p.cards.joinToString("\n"), cardCount = p.cards.size, produces = p.produces.joinToString("\n"),
-                requires = p.requires.joinToString("\n"), identity = p.identity, prereqId = textId(p.prerequisites), stepsId = textId(p.description),
-                popularity = p.popularity, bracketTag = p.bracketTag, legalMask = mask, gen = gen,
-            )
-            p.cards.forEach { name ->
-                val lower = name.lowercase(); val front = lower.substringBefore(" // ")
-                cards += ComboCardEntity(p.id, lower, if (front != lower) front else "")
+            flush()
+            // Opruimen: werkbestand leeg en lege ruimte terug.
+            runCatching {
+                val sql = d.openHelper.writableDatabase
+                sql.query("PRAGMA wal_checkpoint(TRUNCATE)").use { it.moveToFirst() }
+                sql.execSQL("VACUUM")
+                sql.query("PRAGMA wal_checkpoint(TRUNCATE)").use { it.moveToFirst() }
             }
-            if (batch.size >= BATCH) flush()
+        } catch (e: Exception) {
+            d.close(); context.deleteDatabase(FILE_NEW); throw e
         }
-        flush()
-        d.combos().deleteOtherThan(gen)
-        d.combos().deleteOrphanCards()
-        d.combos().deleteOrphanTexts()
-        // Opruimen: het werkbestand (WAL) leeg en de lege ruimte terug (anders blijft het bestand groot).
-        runCatching {
-            val sql = d.openHelper.writableDatabase
-            sql.query("PRAGMA wal_checkpoint(TRUNCATE)").use { it.moveToFirst() }
-            sql.execSQL("VACUUM")
-            sql.query("PRAGMA wal_checkpoint(TRUNCATE)").use { it.moveToFirst() }
+        d.close()
+        // Verwisselen: de nieuwe database wordt de echte.
+        synchronized(this@ComboDb) {
+            db?.close(); db = null; nameCache = null; featureCache = null
+            context.deleteDatabase(FILE)
+            for (suffix in listOf("", "-wal", "-shm", "-journal")) {
+                val from = File(context.getDatabasePath(FILE_NEW).path + suffix)
+                if (from.exists()) from.renameTo(File(file.path + suffix))
+            }
         }
         prefs.edit().putLong("updated", System.currentTimeMillis()).putInt("count", n).putInt("schema", SCHEMA)
             .putString("formats", keys.joinToString(",")).apply()
         n
     }
 
-    /** Alles weg (uitzetten). */
     fun delete() {
-        synchronized(this) { db?.close(); db = null }
+        synchronized(this) { db?.close(); db = null; nameCache = null; featureCache = null }
         context.deleteDatabase(FILE)
+        context.deleteDatabase(FILE_NEW)
         prefs.edit().clear().apply()
     }
 
-    /** De formats die in de database voorkomen (voor het filter). */
     fun formats(): List<String> = if (!ready()) emptyList() else formatKeys
 
-    /** Voorwaarden en stappen van één combo (pas bij openen, ze staan ingepakt). */
     suspend fun texts(c: OwnedCombo): Pair<String, String> = withContext(Dispatchers.IO) {
         suspend fun t(id: Long) = if (id == 0L) "" else runCatching { open().combos().text(id)?.let(::unpack) }.getOrNull().orEmpty()
         t(c.prereqId) to t(c.stepsId)
     }
 
+    private suspend fun names(): Map<Int, String> = nameCache ?: open().combos().names().associate { it.id to it.name }.also { nameCache = it }
+    private suspend fun features(): Map<Int, String> = featureCache ?: open().combos().features().associate { it.id to it.name }.also { featureCache = it }
+
     /**
      * Combo's met de kaarten in [owned] (kleine letters; volledige naam en voorkant): compleet en met één kaart te weinig.
-     * Rekent in SQLite: eerst de combo's waarin minstens één van jouw kaarten zit, dan per combo tellen.
+     * Eerst de nummers van jouw kaarten, dan per combo tellen hoeveel daarvan erin zitten.
      */
     suspend fun find(owned: Set<String>): List<OwnedCombo> = if (!ready() || owned.isEmpty()) emptyList() else withContext(Dispatchers.IO) {
+        val nameMap = names(); val featMap = features()
         val sql = open().openHelper.writableDatabase
         val keys = formatKeys
         val out = ArrayList<OwnedCombo>()
+        val ownedIds = HashSet<Int>()
         sql.beginTransaction()
         try {
             sql.execSQL("CREATE TEMP TABLE IF NOT EXISTS owned(name TEXT PRIMARY KEY)")
-            sql.execSQL("DELETE FROM owned")
+            sql.execSQL("CREATE TEMP TABLE IF NOT EXISTS owned_ids(id INTEGER PRIMARY KEY)")
+            sql.execSQL("DELETE FROM owned"); sql.execSQL("DELETE FROM owned_ids")
             val ins = sql.compileStatement("INSERT OR IGNORE INTO owned(name) VALUES (?)")
             for (n in owned) { ins.bindString(1, n); ins.executeInsert(); ins.clearBindings() }
+            sql.execSQL("INSERT OR IGNORE INTO owned_ids(id) SELECT id FROM combo_names WHERE lower IN (SELECT name FROM owned) UNION SELECT id FROM combo_names WHERE front != '' AND front IN (SELECT name FROM owned)")
+            sql.query("SELECT id FROM owned_ids").use { c -> while (c.moveToNext()) ownedIds += c.getInt(0) }
             val q = """
                 SELECT k.id, k.cards, k.produces, k.requires, k.identity, k.prereqId, k.stepsId, k.popularity, k.bracketTag, k.legalMask
                 FROM combos k JOIN (
-                    SELECT c.comboId AS cid, COUNT(*) AS total,
-                        SUM(CASE WHEN c.name IN (SELECT name FROM owned) OR (c.front != '' AND c.front IN (SELECT name FROM owned)) THEN 1 ELSE 0 END) AS have
-                    FROM combo_cards c
-                    WHERE c.comboId IN (SELECT comboId FROM combo_cards WHERE name IN (SELECT name FROM owned) UNION SELECT comboId FROM combo_cards WHERE front IN (SELECT name FROM owned))
-                    GROUP BY c.comboId HAVING total - have <= 1
-                ) x ON x.cid = k.id
+                    SELECT comboRow, COUNT(*) AS have FROM combo_cards WHERE cardId IN (SELECT id FROM owned_ids) GROUP BY comboRow
+                ) x ON x.comboRow = k.row
+                WHERE k.cardCount - x.have <= 1
             """.trimIndent()
             sql.query(q).use { cur ->
                 while (cur.moveToNext()) {
-                    val cards = cur.getString(1).split('\n').filter { it.isNotBlank() }
+                    val ids = cur.getString(1).split(',').mapNotNull { it.toIntOrNull() }
                     val mask = cur.getLong(9)
                     out += OwnedCombo(
-                        id = cur.getString(0), cards = cards,
-                        missing = cards.filter { c -> c.lowercase() !in owned && c.substringBefore(" // ").lowercase() !in owned }.distinct(),
-                        produces = cur.getString(2).split('\n').filter { it.isNotBlank() },
+                        id = cur.getString(0), cards = ids.map { nameMap[it] ?: "?" },
+                        missing = ids.filter { it !in ownedIds }.map { nameMap[it] ?: "?" },
+                        produces = cur.getString(2).split(',').mapNotNull { it.toIntOrNull()?.let(featMap::get) },
                         requires = cur.getString(3).split('\n').filter { it.isNotBlank() },
                         identity = cur.getString(4), prerequisites = "", description = "",
                         prereqId = cur.getLong(5), stepsId = cur.getLong(6),
@@ -246,9 +275,11 @@ class ComboDb(private val context: Context) {
 
     companion object {
         const val FILE = "combos.db"
+        /** Tijdens het inlezen (0.9.20): daarna verwisseld met [FILE]. */
+        const val FILE_NEW = "combos-new.db"
         const val URL = "https://json.commanderspellbook.com/variants.json.gz"
-        /** 2 = compacte opbouw van 0.9.19. */
-        const val SCHEMA = 2
+        /** 2 = compacte opbouw van 0.9.19; 3 = kaartnamen als nummers (0.9.20). */
+        const val SCHEMA = 3
         private const val BATCH = 2000
 
         @Serializable data class SbCard(val name: String = "")

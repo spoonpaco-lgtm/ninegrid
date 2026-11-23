@@ -91,6 +91,11 @@ class PictureIndex(
         const val MIN_PRINT_MARGIN = 0.05f
         /** Twee prints met (bijna) hetzelfde plaatje: geschat, de testset meldt de waarde. */
         const val MAX_SAME_ART = 0.85f
+        /**
+         * 0.9.20: uit. Testset 23 nov (0.9.19): 9 keuzes te controleren, 8 gelijk aan wat de app al goed had, 1 fout
+         * (Huatli 339 werd 189). Het plaatje won dus niets en kostte één kaart. De berekening blijft in het rapport staan.
+         */
+        const val CHOOSE_PRINT = false
         /** Vak zonder tekst: beste gok als oranje voorstel vanaf deze score (splitkaarten 0,52–0,67; ruis 0,17–0,33). */
         const val MIN_GUESS_SCORE = 0.5f
 

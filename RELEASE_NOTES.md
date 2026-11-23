@@ -1,3 +1,12 @@
+NineGrid 0.9.20 – Kiora
+
+Kiora ziet alles wat in het water ligt: het hele camerabeeld.
+
+- Scanscherm: het hele camerabeeld staat nu op het scherm (vroeger viel links en rechts ~40% weg). Het kader ligt op het echte beeld; je houdt de telefoon dichterbij en een kaart krijgt ~1,5 keer zoveel pixels in de breedte, zodat de kleine voetregel (set en nummer) beter leesbaar is. De balken staan boven en onder het beeld, niet erover.
+- Combodatabase nog kleiner: elke kaartnaam en elk "wat het doet" één keer, de koppeling alleen met nummers. Bijwerken gebeurt in een apart bestand: de oude blijft bruikbaar tot de nieuwe klaar is. De database van 0.9.19 wordt vanzelf vervangen (op wifi).
+- Scanner: het plaatje kiest geen print meer (testset: 8 keer hetzelfde als de tekst, 1 keer fout: Huatli). De cijfers blijven in het scanrapport.
+- Scanrapport: als er geen naam gevonden wordt, staat erbij welke twee namen op de letters het best pasten (om Tura Kennerüd uit te zoeken).
+
 NineGrid 0.9.19 – Jaya
 
 Jaya Ballard: alles wat overbodig is, eruit gebrand.

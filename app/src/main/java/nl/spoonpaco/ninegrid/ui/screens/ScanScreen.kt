@@ -153,24 +153,46 @@ internal suspend fun readImage(bmp: Bitmap, crop: Area?, single: Boolean, setNam
 
 private const val CARD_RATIO = 63f / 88f
 
+/** Plaatst iets precies op het camerabeeld ([previewRect]); zolang de maten nog niet bekend zijn: schermvullend. */
+@Composable
+private fun previewModifier(boxW: Float, boxH: Float, topPx: Float, bottomPx: Float): Modifier {
+    if (boxW <= 0f || boxH <= 0f) return Modifier.fillMaxSize()
+    val p = previewRect(boxW, boxH, topPx, bottomPx)
+    val d = androidx.compose.ui.platform.LocalDensity.current
+    return Modifier.offset { androidx.compose.ui.unit.IntOffset(p.left.toInt(), p.top.toInt()) }
+        .size(with(d) { p.width.toDp() }, with(d) { p.height.toDp() })
+}
+
 /** Wat er gebeurt als de kaart stilligt (doorlopend scannen); gezet door het camerascherm. */
 private var watcherTrigger: () -> Unit = {}
 
-/** Het richtkader binnen een beeld van w x h, tussen de balken boven en onder. */
+/**
+ * 0.9.20: waar het camerabeeld op het scherm staat. Het hele beeld (3:4), op volle breedte tussen de balken; vroeger
+ * vulde het het hele scherm en viel links en rechts ~40% van de camera weg, zodat je de telefoon verder weg moest houden.
+ */
+private fun previewRect(w: Float, h: Float, topPx: Float, bottomPx: Float): Area {
+    val availH = (h - topPx - bottomPx).coerceAtLeast(h * 0.3f)
+    var pw = w; var ph = pw * 4f / 3f
+    if (ph > availH) { ph = availH; pw = ph * 3f / 4f }
+    val left = (w - pw) / 2f; val top = topPx + (availH - ph) / 2f
+    return Area(left, top, left + pw, top + ph)
+}
+
+/** Het richtkader binnen het camerabeeld. */
 private fun guideRect(w: Float, h: Float, topPx: Float, bottomPx: Float, single: Boolean): Area {
-    val availTop = topPx + 8f
-    val availH = (h - topPx - bottomPx - 16f).coerceAtLeast(h * 0.3f)
+    val p = previewRect(w, h, topPx, bottomPx)
     // Blad: 3x3 kaarten heeft dezelfde verhouding als één kaart. Eén kaart: iets kleiner, zodat je hem makkelijk vult.
-    val maxW = if (single) w * 0.78f else w * 0.94f
-    val gw = minOf(maxW, availH * (if (single) 0.92f else 1f) * CARD_RATIO); val gh = gw / CARD_RATIO
-    val left = (w - gw) / 2f; val top = availTop + (availH - gh) / 2f
+    val maxW = if (single) p.width * 0.85f else p.width * 0.96f
+    val gw = minOf(maxW, p.height * (if (single) 0.92f else 0.98f) * CARD_RATIO); val gh = gw / CARD_RATIO
+    val left = p.left + (p.width - gw) / 2f; val top = p.top + (p.height - gh) / 2f
     return Area(left, top, left + gw, top + gh)
 }
 
-/** Zet het kader op het scherm om naar pixels op de foto (het camerabeeld vult het scherm, midden uitgesneden). */
-private fun guideOnImage(g: Area, boxW: Float, boxH: Float, imgW: Int, imgH: Int): Area {
-    val scale = maxOf(boxW / imgW, boxH / imgH)
-    val dx = (boxW - imgW * scale) / 2f; val dy = (boxH - imgH * scale) / 2f
+/** Zet het kader op het scherm om naar pixels op de foto (het hele camerabeeld staat in [previewRect]). */
+private fun guideOnImage(g: Area, boxW: Float, boxH: Float, imgW: Int, imgH: Int, topPx: Float, bottomPx: Float): Area {
+    val p = previewRect(boxW, boxH, topPx, bottomPx)
+    val scale = minOf(p.width / imgW, p.height / imgH)
+    val dx = p.left + (p.width - imgW * scale) / 2f; val dy = p.top + (p.height - imgH * scale) / 2f
     val padX = g.width * 0.03f; val padY = g.height * 0.03f
     return Area(
         ((g.left - padX - dx) / scale).coerceAtLeast(0f), ((g.top - padY - dy) / scale).coerceAtLeast(0f),
@@ -585,7 +607,7 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
                 val shown = bitmap.asImageBitmap()
                 frozen = shown; lastPhoto = shown
                 scope.launch { kotlinx.coroutines.delay(500); frozen = null }
-                val crop = if (boxW > 0 && boxH > 0) guideOnImage(guideRect(boxW, boxH, topBarPx, bottomBarPx, single), boxW, boxH, bitmap.width, bitmap.height) else null
+                val crop = if (boxW > 0 && boxH > 0) guideOnImage(guideRect(boxW, boxH, topBarPx, bottomBarPx, single), boxW, boxH, bitmap.width, bitmap.height, topBarPx, bottomBarPx) else null
                 process(bitmap, crop, fromCamera = true)
             }
 
@@ -661,7 +683,7 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
             recognizer.process(InputImage.fromMediaImage(media, rot))
                 .addOnSuccessListener { text ->
                     val lines = text.textBlocks.flatMap { it.lines }.mapNotNull { l -> l.boundingBox?.let { b -> OcrLine(l.text, b.exactCenterX(), b.exactCenterY()) } }
-                    val crop = guideOnImage(guideRect(boxW, boxH, topBarPx, bottomBarPx, true), boxW, boxH, w, h)
+                    val crop = guideOnImage(guideRect(boxW, boxH, topBarPx, bottomBarPx, true), boxW, boxH, w, h, topBarPx, bottomBarPx)
                     val read = ScanParser.analyzeSingle(lines, w, h, crop).slots.firstOrNull()
                     val name = read?.name
                     read?.let { votes.add(nl.spoonpaco.ninegrid.domain.FrameVotes.Read(it.name, it.setCode, it.collectorNumber, now)) }
@@ -702,7 +724,7 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
                     PreviewView(ctx).also { view ->
                         // TextureView in plaats van SurfaceView: blijft netjes binnen zijn vak in Compose.
                         view.implementationMode = PreviewView.ImplementationMode.COMPATIBLE
-                        view.scaleType = PreviewView.ScaleType.FILL_CENTER
+                        view.scaleType = PreviewView.ScaleType.FIT_CENTER
                         val future = ProcessCameraProvider.getInstance(ctx)
                         future.addListener({
                             // Zelfde verhouding als de foto, zodat het kader op het scherm en op de foto hetzelfde stuk is.
@@ -722,7 +744,8 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
                         }
                     }
                 },
-                modifier = Modifier.fillMaxSize(),
+                // Het hele camerabeeld in zijn eigen vak (0.9.20), niet meer schermvullend.
+                modifier = previewModifier(boxW, boxH, topBarPx, bottomBarPx),
             )
             val sum = vm.scanSummary
             val frameColor = when {
@@ -732,7 +755,7 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
                 sum.allGood -> NgColors.Synced
                 else -> Color(0xFFFF8C00)
             }
-            frozen?.let { androidx.compose.foundation.Image(it, null, Modifier.fillMaxSize(), contentScale = androidx.compose.ui.layout.ContentScale.Crop) }
+            frozen?.let { androidx.compose.foundation.Image(it, null, previewModifier(boxW, boxH, topBarPx, bottomBarPx), contentScale = androidx.compose.ui.layout.ContentScale.Fit) }
             GuideOverlay(topBarPx, bottomBarPx, single, frameColor)
         } else {
             Column(Modifier.align(Alignment.Center).padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {

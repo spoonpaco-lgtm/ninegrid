@@ -24,6 +24,15 @@ object NameLetters {
      * De naam uit [names] waarin bijna alle gelezen letters (85%) in volgorde terugkomen en die minstens de helft
      * van zijn eigen letters terugziet; de tweede beste moet duidelijk slechter passen. Minstens 6 gelezen letters.
      */
+    /** Voor het scanrapport: de twee best passende namen met hun cijfers (gelezen letters / letters van de naam). */
+    fun explain(read: String, names: List<String>): String {
+        val r = letters(read)
+        if (r.length < 6) return "letters: te kort"
+        val top = names.distinct().map { n -> val l = letters(n); val k = lcs(r, l).toDouble(); Triple(n, k / r.length, if (l.isEmpty()) 0.0 else k / l.length) }
+            .sortedByDescending { it.second + it.third / 4 }.take(2)
+        return "letters: " + top.joinToString(" · ") { (n, a, b) -> String.format(java.util.Locale.ROOT, "%s %.2f/%.2f", n, a, b) }
+    }
+
     fun best(read: String, names: List<String>): String? {
         val r = letters(read)
         if (r.length < 6) return null

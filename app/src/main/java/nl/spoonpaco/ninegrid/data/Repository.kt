@@ -600,6 +600,8 @@ class Repository(
             val bestByLetters = if (bestOnNameLine != null || bestInLines != null) null
                 else q0.name?.let { nl.spoonpaco.ninegrid.domain.NameLetters.best(it, setNames) }
             val bestInSet = bestOnNameLine ?: bestInLines ?: bestByLetters
+            // Niets gevonden: waarom de letters niet beslisten, voor het scanrapport (Tura Kennerüd, testset 23 nov).
+            if (bestInSet == null) q0.name?.let { n -> q = q.copy(printWhy = nl.spoonpaco.ninegrid.domain.NameLetters.explain(n, setNames)) }
             if (bestInSet != null) q = q.copy(name = bestInSet, nameFromLine = bestOnNameLine == null)
             fun byName(): SetCard? {
                 bestInSet?.let { n -> list.cards.filter { it.name == n }.let { m -> (m.firstOrNull { it.regular } ?: m.firstOrNull())?.let { return it } } }
