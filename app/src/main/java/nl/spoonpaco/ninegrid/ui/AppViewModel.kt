@@ -1922,7 +1922,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                 val found = c.comboDb.find(owned)
                 collectionCombos = found
                 // Prijzen van de kaarten die je mist, uit de offline kaartdatabase (zonder internet).
-                val missing = found.flatMap { it.missing }.map { it.lowercase() }.distinct().filter { it !in comboPrices }
+                val missing = found.flatMap { it.missing }.map { it.lowercase() }.distinct().filter { !comboPrices.containsKey(it) }
                 if (missing.isNotEmpty()) kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
                     for (m in missing) {
                         val prices = runCatching { c.offline.printsOf(m) }.getOrDefault(emptyList())

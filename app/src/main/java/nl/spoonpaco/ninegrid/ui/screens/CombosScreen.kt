@@ -118,10 +118,10 @@ fun CombosScreen(
                 }
                 var fmtMenu by remember { mutableStateOf(false) }
                 Column {
-                    FilterChip(selected = format != null, onClick = { fmtMenu = true }, label = { Text(format?.let { formatLabel(it) } ?: stringResource(R.string.combos_format_all)) })
+                    FilterChip(selected = format != null, onClick = { fmtMenu = true }, label = { Text(format?.let { comboFormatLabel(it) } ?: stringResource(R.string.combos_format_all)) })
                     DropdownMenu(fmtMenu, onDismissRequest = { fmtMenu = false }) {
                         DropdownMenuItem(text = { Text(stringResource(R.string.combos_format_all)) }, onClick = { format = null; fmtMenu = false })
-                        vm.comboFormats.sortedBy { formatOrder(it) }.forEach { f -> DropdownMenuItem(text = { Text(formatLabel(f)) }, onClick = { format = f; fmtMenu = false }) }
+                        vm.comboFormats.sortedBy { comboFormatOrder(it) }.forEach { f -> DropdownMenuItem(text = { Text(comboFormatLabel(f)) }, onClick = { format = f; fmtMenu = false }) }
                     }
                 }
                 if (tab == 0) FilterChip(selected = free, onClick = { free = !free }, label = { Text(stringResource(R.string.combos_filter_free)) })
@@ -277,7 +277,7 @@ private fun ComboDetail(
                     Text(stringResource(R.string.combos_steps), fontWeight = FontWeight.Bold, fontSize = NgText.body)
                     Text(c.description, fontSize = NgText.body)
                 }
-                if (c.legal.isNotEmpty()) Text(stringResource(R.string.combos_legal_in, c.legal.sortedBy { formatOrder(it) }.joinToString(", ") { formatLabel(it) }), fontSize = NgText.caption, color = extra.subtle)
+                if (c.legal.isNotEmpty()) Text(stringResource(R.string.combos_legal_in, c.legal.sortedBy { comboFormatOrder(it) }.joinToString(", ") { comboFormatLabel(it) }), fontSize = NgText.caption, color = extra.subtle)
                 Text(stringResource(R.string.combos_open_spellbook), fontSize = NgText.body, color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.clickable { uri.openUri("https://commanderspellbook.com/combo/${c.id}/") })
                 HorizontalDivider()
@@ -303,8 +303,8 @@ private fun groupLabel(g: ComboGroup) = stringResource(when (g) {
     ComboGroup.OTHER -> R.string.combos_group_other
 })
 
-private val FORMAT_ORDER = listOf("commander", "oathbreaker", "brawl", "standardBrawl", "standard", "pioneer", "modern", "premodern", "legacy", "vintage", "pauper", "pauperCommander", "pauperCommanderMain", "predh", "alchemy")
-private fun formatOrder(f: String) = FORMAT_ORDER.indexOf(f).let { if (it < 0) 99 else it }
+private val COMBO_FORMAT_ORDER = listOf("commander", "oathbreaker", "brawl", "standardBrawl", "standard", "pioneer", "modern", "premodern", "legacy", "vintage", "pauper", "pauperCommander", "pauperCommanderMain", "predh", "alchemy")
+private fun comboFormatOrder(f: String) = COMBO_FORMAT_ORDER.indexOf(f).let { if (it < 0) 99 else it }
 
 /** "pauperCommanderMain" → "Pauper Commander Main". */
-private fun formatLabel(f: String) = f.replace(Regex("([a-z])([A-Z])"), "$1 $2").replaceFirstChar { it.uppercase() }
+private fun comboFormatLabel(f: String) = f.replace(Regex("([a-z])([A-Z])"), "$1 $2").replaceFirstChar { it.uppercase() }
