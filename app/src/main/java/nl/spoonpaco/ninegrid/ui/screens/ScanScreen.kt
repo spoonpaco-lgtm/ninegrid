@@ -408,6 +408,8 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
     /** Wat je met de knop Lamp wilt; [torchOn] is wat de camera echt doet. */
     var torch by remember { mutableStateOf(false) }
     var torchOn by remember { mutableStateOf(false) }
+    /** Laatste gebruik van het scanscherm (aanraken, knop, scan): het scherm blijft aan tot 5 minuten daarna. */
+    var lastUse by remember { mutableStateOf(System.currentTimeMillis()) }
     DisposableEffect(camera) {
         val ld = camera?.cameraInfo?.torchState
         val obs = androidx.lifecycle.Observer<Int> { torchOn = it == androidx.camera.core.TorchState.ON }
@@ -499,6 +501,7 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
     suspend fun tidy(result: ScanResult, single: Boolean): ScanResult = tidyReads(vm, result, single)
 
     fun process(bmp: Bitmap, crop: Area?, fromCamera: Boolean) {
+        lastUse = System.currentTimeMillis()
         scope.launch {
             runCatching {
                 val t0 = System.currentTimeMillis()
@@ -679,8 +682,20 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
         onDispose { ScanKeys.onShutter = null }
     }
 
+    // Scherm aan tijdens het scannen; pas uit na 5 minuten zonder gebruik (aanraken, knop of een scan).
+    nl.spoonpaco.ninegrid.ui.components.KeepScreenOn(lastUse, 5 * 60_000L)
+
     // Volledig camerascherm: het beeld vult alles, de bediening zweeft erop.
-    Box(Modifier.fillMaxSize().background(Color.Black).onSizeChanged { boxW = it.width.toFloat(); boxH = it.height.toFloat() }) {
+    Box(Modifier.fillMaxSize().background(Color.Black).onSizeChanged { boxW = it.width.toFloat(); boxH = it.height.toFloat() }
+        .pointerInput(Unit) {
+            awaitPointerEventScope {
+                while (true) {
+                    awaitPointerEvent(androidx.compose.ui.input.pointer.PointerEventPass.Initial)
+                    val now = System.currentTimeMillis()
+                    if (now - lastUse > 1000) lastUse = now
+                }
+            }
+        }) {
         if (permitted) {
             AndroidView(
                 factory = { ctx ->

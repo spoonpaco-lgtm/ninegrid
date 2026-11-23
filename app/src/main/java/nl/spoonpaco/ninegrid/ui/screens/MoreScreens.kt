@@ -2,6 +2,7 @@
 
 package nl.spoonpaco.ninegrid.ui.screens
 
+import nl.spoonpaco.ninegrid.ui.components.findActivity
 import nl.spoonpaco.ninegrid.ui.theme.NgText
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -431,10 +432,17 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit) {
                         if (uri != null) {
                             tsBusy = ""
                             tsScope.launch {
-                                tsReport = runCatching {
-                                    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { runTestset(crashCtx, uri, vm) { tsBusy = it } }
-                                }.getOrElse { "Fout: ${it.message}" }
-                                tsBusy = null
+                                // Telefoon aan zolang de test loopt (anders valt het scherm uit en stopt de test halverwege).
+                                val win = crashCtx.findActivity()?.window
+                                win?.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                                try {
+                                    tsReport = runCatching {
+                                        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { runTestset(crashCtx, uri, vm) { tsBusy = it } }
+                                    }.getOrElse { "Fout: ${it.message}" }
+                                } finally {
+                                    win?.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                                    tsBusy = null
+                                }
                             }
                         }
                     }

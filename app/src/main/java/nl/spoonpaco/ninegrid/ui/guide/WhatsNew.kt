@@ -28,6 +28,7 @@ object WhatsNew {
     fun items(dutch: Boolean): List<Item> = if (dutch) NL else EN
 
     private val NL = listOf(
+        Item("Het scherm blijft aan tijdens het scannen, tot 5 minuten zonder gebruik.", "settings"),
         Item("Scanner kiest de juiste print beter: zonder ingevulde set vergelijkt hij alle prints met die naam met wat onderaan de kaart staat (nummer, set, zeldzaamheid, jaar). Offline en sneller.", "add"),
         Item("Nummers onderaan worden vaker goed gelezen, en Art Series-kaarten en tokens worden nooit meer gekozen.", "check"),
         Item("Ontwikkelaar: Scanrapporten verzamelen. Scan bijvoorbeeld 20 losse kaarten en deel alle foto's en rapporten in één keer als zip, klaar voor de testset.", "settings"),
@@ -42,6 +43,7 @@ object WhatsNew {
     )
 
     private val EN = listOf(
+        Item("The screen stays on while scanning, until 5 minutes without use.", "settings"),
         Item("The scanner picks the right print better: without a set filled in, it compares every print with that name to what is printed at the bottom of the card (number, set, rarity, year). Offline and faster.", "add"),
         Item("Numbers at the bottom are read correctly more often, and Art Series cards and tokens are never picked anymore.", "check"),
         Item("Developer: Collect scan reports. Scan for example 20 single cards and share all photos and reports at once as a zip, ready for the testset.", "settings"),
