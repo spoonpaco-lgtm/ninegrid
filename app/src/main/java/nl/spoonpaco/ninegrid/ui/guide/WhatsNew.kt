@@ -28,7 +28,7 @@ object WhatsNew {
     fun items(dutch: Boolean): List<Item> = if (dutch) NL else EN
 
     private val NL = listOf(
-        Item("Combo's in je collectie: compleet, één kaart te weinig, en welke kaart de meeste combo's afmaakt. Eén keer downloaden, daarna offline en altijd actueel. Te vinden onder Collectie.", "add"),
+        Item("Combo's in je collectie: compleet, één kaart te weinig, en welke kaart de meeste combo's afmaakt. Eén keer downloaden, daarna offline en altijd actueel. Te vinden onder Collectie, de ∞-knop bovenin.", "add"),
         Item("Combo's per deck werken nu direct en zonder internet (met de combodatabase).", "check"),
         Item("Het scherm blijft aan tijdens het scannen, tot 5 minuten zonder gebruik.", "settings"),
         Item("Scanner kiest de juiste print beter: zonder ingevulde set vergelijkt hij alle prints met die naam met wat onderaan de kaart staat (nummer, set, zeldzaamheid, jaar). Offline en sneller.", "add"),
@@ -45,7 +45,7 @@ object WhatsNew {
     )
 
     private val EN = listOf(
-        Item("Combos in your collection: complete, one card short, and which card completes the most combos. Download once, then offline and always up to date. Find it under Collection.", "add"),
+        Item("Combos in your collection: complete, one card short, and which card completes the most combos. Download once, then offline and always up to date. Find it under Collection, the ∞ button at the top.", "add"),
         Item("Deck combos now work instantly and without internet (with the combo database).", "check"),
         Item("The screen stays on while scanning, until 5 minutes without use.", "settings"),
         Item("The scanner picks the right print better: without a set filled in, it compares every print with that name to what is printed at the bottom of the card (number, set, rarity, year). Offline and faster.", "add"),

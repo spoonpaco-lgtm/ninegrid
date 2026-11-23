@@ -1312,8 +1312,6 @@
     <string name="combos_db_failed">Downloaden lukte niet. Probeer het opnieuw.</string>
     <string name="combos_db_download">Downloaden (wifi)</string>
     <string name="combos_db_download_mobile">Downloaden, ook via mobiel internet</string>
-    <string name="combos_summary">Combo\'s: %1$d compleet · %2$d mis 1 kaart ›</string>
-    <string name="combos_summary_setup">Combo\'s in je collectie zoeken ›</string>
     <string name="combos_card_line">Combo\'s met deze kaart: %1$d compleet, %2$d bijna ›</string>
     <string name="combos_db_info">%1$d combo\'s · bijgewerkt %2$s · %3$d MB</string>
     <string name="combos_db_update">Nu bijwerken (wifi)</string>

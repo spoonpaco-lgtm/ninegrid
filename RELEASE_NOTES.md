@@ -2,7 +2,7 @@ NineGrid 0.9.18 – Zur
 
 Zur, de meester van de enchantments en het zoeken: combo's vinden in je hele collectie.
 
-- Combo's in je collectie (Collectie → "Combo's: … ›", en op het kaartscherm). Download één keer de combodatabase van Commander Spellbook (~30 MB, zoals Spellbook zelf vraagt in plaats van hun API leeg te halen). Daarna rekent je telefoon alles zelf uit, zonder internet; je collectie gaat nergens heen.
+- Combo's in je collectie (Collectie → de ∞-knop bovenin met het aantal complete combo's, en op het kaartscherm). Download één keer de combodatabase van Commander Spellbook (~30 MB, zoals Spellbook zelf vraagt in plaats van hun API leeg te halen). Daarna rekent je telefoon alles zelf uit, zonder internet; je collectie gaat nergens heen.
   - Drie lijsten: Compleet, Bijna (je mist één kaart) en Beste aankoop (welke kaart de meeste combo's afmaakt, met prijs en Op verlanglijst).
   - Ingedeeld op wat de combo doet: Winnen, Oneindig mana, Oneindige tokens, Lock en extra beurten, Overig. Populairste eerst, met het bracket-label van Spellbook.
   - Filters: kleuren, format (legaliteit van Spellbook), alle kaarten vrij (niet in een deck), alleen 2 kaarten, prijs van de ontbrekende kaart, en één kaart (vanaf het kaartscherm).
