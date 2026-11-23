@@ -286,6 +286,8 @@ object Guide {
             )),
             Tip("Een ruil is één wijziging: één keer ongedaan maken zet alles terug. De kaart die eruit gaat, gaat terug naar je collectie."),
             P("AI-suggesties (als AI-hulp aan staat): kies Alleen mijn collectie of Ook kaarten die ik niet heb en tik op Vraag AI. Alleen kaartnamen en je deckregels gaan weg. Elk voorstel wordt gecontroleerd op kleuren, format en bracket; wat niet past laat de app weg. Kaarten die je niet hebt staan onder Overweeg te kopen, met prijs en link."),
+            H("Combo's in je collectie"),
+            P("Collectie → de regel \"Combo's: … ›\" (of op een kaartscherm: Combo's met deze kaart). Download één keer de combodatabase van Commander Spellbook (ongeveer 30 MB). Daarna rekent je telefoon zelf, zonder internet, en werkt het overzicht zichzelf bij als je kaarten toevoegt. Drie lijsten: Compleet, Bijna (je mist één kaart) en Beste aankoop (welke kaart de meeste combo's afmaakt). Filter op kleuren, format, alle kaarten vrij (niet in een deck), 2 kaarten en prijs. Tik op een combo voor waar de kaarten liggen, de stappen, Nieuw deck met deze combo en Toevoegen aan deck."),
             H("Combo's"),
             P("De combo's staan als kaartjes met een + ertussen; tik op een kaartje voor het kaartscherm, houd het ingedrukt voor een groot plaatje. De ontbrekende kaart is vager met een oranje rand. Met Namen krijg je de oude lijst met labels; de keuze blijft bewaard. Bovenaan kies je met één schakelaar Thumbnails | Namen; die keuze geldt ook bij Suggesties. De blokken Combo's in dit deck en Bijna klappen in en uit (per deck onthouden)."),
             Steps(listOf(
@@ -692,6 +694,8 @@ object Guide {
             )),
             Tip("A swap is one change: one undo reverts all of it. The card that goes out returns to your collection."),
             P("AI suggestions (when AI help is on): choose Only my collection or Also cards I do not have and tap Ask AI. Only card names and your deck rules are sent. Every suggestion is checked for colours, format and bracket; what does not fit is left out. Cards you do not own are listed under Consider buying, with price and link."),
+            H("Combos in your collection"),
+            P("Collection → the line \"Combos: … ›\" (or on a card screen: Combos with this card). Download the Commander Spellbook combo database once (about 30 MB). After that your phone works it out by itself, without internet, and the overview updates itself when you add cards. Three lists: Complete, Almost (you miss one card) and Best buy (which card completes the most combos). Filter by colours, format, all cards free (not in a deck), 2 cards and price. Tap a combo for where the cards are, the steps, New deck with this combo and Add to deck."),
             H("Combos"),
             P("Combos show as small cards with a + between them; tap a card for the card screen, press and hold for a large picture. The missing card is dimmed with an orange border. Names gives the old list of labels; your choice is remembered. At the top one switch, Thumbnails | Names, sets the view; it also applies to Suggestions. The Combos in this deck and Almost blocks fold open and closed (remembered per deck)."),
             Steps(listOf(

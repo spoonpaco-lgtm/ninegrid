@@ -2,7 +2,7 @@
 
 *English: [FEATURES.md](FEATURES.md)*
 
-Huidige versie: **0.9.17 – Dack**. Elke versie heeft de naam van een planeswalker.
+Huidige versie: **0.9.18 – Zur**. Elke versie heeft de naam van een planeswalker.
 
 ## Wat NineGrid anders maakt
 
@@ -61,6 +61,7 @@ Huidige versie: **0.9.17 – Dack**. Elke versie heeft de naam van een planeswal
 - **Deckscherm**: banner met de art van je commander, kaarten per type (in- en uitklapbaar, sorteren op mana, naam of prijs), manakosten op elke regel, label GC bij Game Changers, zoeken in het deck.
 - **Commander-bracket**: game changers, landvernietiging, extra beurten, tutors en combo's van twee kaarten.
 - **Statistieken**: manacurve met oordeel per decktype en **landadvies** (formule van Frank Karsten), kleuren in de kosten tegenover de lands, kans op 2–4 lands met **Trek 7** (voorbeeldhand met mulligan), kaarttypen.
+- **Combo's in je collectie** (Collectie): compleet, bijna (1 kaart mist) en beste aankoop, ingedeeld op wat ze doen, met filters (kleuren, format, alle kaarten vrij, 2 kaarten, prijs). Combodatabase van Commander Spellbook één keer downloaden, daarna offline en altijd actueel.
 - **Combo's** via Commander Spellbook: combo's in het deck, invloed op de bracket, bijna-combo's met een actie per status (In deck, Ruilmatch, Op verlanglijst). Laat zien als het deck sinds de laatste zoekactie is veranderd.
 - **Suggesties** uit je eigen collectie: rollen als balkjes met doelen per decktype (automatisch, of zelf kiezen), zelf kaarten bij een rol aanvinken, wat erbij, betere lands, wat eruit, en **Bij vrienden**. Elke ruil bekijk je eerst. De blokken klappen in en uit en leggen uit wat ze zijn.
 - Stempel **Legaal** of **Banned**.
@@ -110,5 +111,5 @@ Plannen, geen beloftes. Wat echt in een versie zit, staat in de release notes.
 - Koppeling met Google Sheets
 
 ## Privacy
-Geen account, geen tracking, geen advertenties. Kaartnamen en nummers gaan naar Scryfall; kaartnamen van een deck gaan naar Commander Spellbook als je combo's zoekt. Foto's blijven op je telefoon, tenzij je AI-hulp aanzet: dan gaat alleen de uitsnede van een twijfelvak naar de AI-dienst die je koos.
+Geen account, geen tracking, geen advertenties. Kaartnamen en nummers gaan naar Scryfall; kaartnamen van een deck gaan naar Commander Spellbook als je daar de bracket laat schatten; combo's in je collectie worden op je telefoon uitgerekend (alleen de combodatabase wordt gedownload). Foto's blijven op je telefoon, tenzij je AI-hulp aanzet: dan gaat alleen de uitsnede van een twijfelvak naar de AI-dienst die je koos.
 - Ontwikkelaar → Testset draaien: de echte scanner leest een map met testbladen (foto + juiste uitslag) op de telefoon en meldt per vak goed of fout.

@@ -20,6 +20,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
@@ -95,7 +96,21 @@ fun CombosScreen(
         TopAppBar(
             title = { Text(stringResource(R.string.combos_collection_title)) },
             navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) } },
-            actions = { nl.spoonpaco.ninegrid.ui.guide.HelpButton("decks") },
+            actions = {
+                nl.spoonpaco.ninegrid.ui.guide.HelpButton("decks")
+                if (vm.comboDbReady) {
+                    var menu by remember { mutableStateOf(false) }
+                    IconButton(onClick = { menu = true }) { Icon(androidx.compose.material.icons.Icons.Filled.MoreVert, null) }
+                    DropdownMenu(menu, onDismissRequest = { menu = false }) {
+                        Text(
+                            stringResource(R.string.combos_db_info, vm.comboDbSize, nl.spoonpaco.ninegrid.domain.Dates.dateTime(vm.comboDbUpdated, settings.dateStyle), vm.comboDbBytes / 1_000_000),
+                            fontSize = NgText.caption, color = extra.subtle, modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+                        )
+                        DropdownMenuItem(text = { Text(stringResource(R.string.combos_db_update)) }, onClick = { menu = false; vm.startComboDownload(mobile = false) })
+                        DropdownMenuItem(text = { Text(stringResource(R.string.combos_db_delete), color = NgColors.Error) }, onClick = { menu = false; vm.deleteComboDb() })
+                    }
+                }
+            },
         )
     }) { pad ->
         if (!vm.comboDbReady) { ComboDbSetup(vm, Modifier.padding(pad)); return@Scaffold }

@@ -1316,4 +1316,7 @@
     <string name="combos_summary">Combos: %1$d complete · %2$d missing 1 card ›</string>
     <string name="combos_summary_setup">Find combos in your collection ›</string>
     <string name="combos_card_line">Combos with this card: %1$d complete, %2$d almost ›</string>
+    <string name="combos_db_info">%1$d combos · updated %2$s · %3$d MB</string>
+    <string name="combos_db_update">Update now (wifi)</string>
+    <string name="combos_db_delete">Delete combo database</string>
 </resources>

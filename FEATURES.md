@@ -2,7 +2,7 @@
 
 *Nederlands: [FEATURES.nl.md](FEATURES.nl.md)*
 
-Current version: **0.9.17 – Dack**. Every version is named after a planeswalker.
+Current version: **0.9.18 – Zur**. Every version is named after a planeswalker.
 
 ## What makes NineGrid different
 
@@ -61,6 +61,7 @@ Current version: **0.9.17 – Dack**. Every version is named after a planeswalke
 - **Deck screen**: banner with your commander's art, cards per type (fold open and shut, sort by mana, name or price), mana costs on every row, GC label for Game Changers, search in the deck.
 - **Commander bracket estimate**: game changers, mass land denial, extra turns, tutors and two-card combos.
 - **Statistics**: mana curve with a verdict per deck type and **land advice** (Frank Karsten's formula), colours in costs versus lands, odds of 2–4 lands with **Draw 7** (sample hand with mulligan), card types.
+- **Combos in your collection** (Collection): complete, almost (1 card missing) and best buy, grouped by what they do, with filters (colours, format, all cards free, 2 cards, price). Download the Commander Spellbook combo database once, then offline and always up to date.
 - **Combos** via Commander Spellbook: combos in the deck, influence on the bracket, almost-combos with an action per status (In deck, Trade match, On wishlist). Shows when the deck changed since the last search.
 - **Suggestions** from your own collection: roles as bars with targets per deck type (automatic, or your choice), tick cards for a role yourself, what to add, better lands, what to cut, and **At friends**. Review every swap before it happens. The blocks fold and unfold and explain what they are.
 - **Legal** or **Banned** stamp.
