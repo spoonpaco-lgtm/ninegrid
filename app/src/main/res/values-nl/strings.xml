@@ -1316,4 +1316,5 @@
     <string name="combos_db_info">%1$d combo\'s · bijgewerkt %2$s · %3$d MB</string>
     <string name="combos_db_update">Nu bijwerken (wifi)</string>
     <string name="combos_db_delete">Combodatabase verwijderen</string>
+    <string name="scan_picture_print">print #%1$s gekozen op het plaatje, controleer</string>
 </resources>

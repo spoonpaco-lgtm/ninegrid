@@ -92,6 +92,33 @@ class PrintPickTest {
         assertFalse(n.isNoise("Undecealm Lch", "Underrealm Lich", 1, "Blade Instructor", emptyList()))
     }
 
+    /** 0.9.19: half gelezen namen uit de testset van 23 nov. */
+    @Test
+    fun nameByLetters() {
+        val rtr = listOf("Havoc Festival", "Hover Barrier", "Trained Caracal", "Wayfaring Temple", "Hellhole Flailer", "Vassal Soul")
+        assertEquals("Havoc Festival", nl.spoonpaco.ninegrid.domain.NameLetters.best("avoc etva", rtr))
+        val dmr = listOf("Tura Kennerüd, Skyknight", "Cackling Fiend", "Cleric of the Forward Order", "Denizen of the Deep", "Ertai's Scorn")
+        assertEquals("Tura Kennerüd, Skyknight", nl.spoonpaco.ninegrid.domain.NameLetters.best("ierüd, Skyknight", dmr))
+        // Te kort, of twee namen passen even goed: niets.
+        assertNull(nl.spoonpaco.ninegrid.domain.NameLetters.best("orm", dmr))
+        assertNull(nl.spoonpaco.ninegrid.domain.NameLetters.best("Grizzly", listOf("Grizzly Bears", "Grizzly Fate")))
+        // Regeltekst lijkt op geen enkele naam.
+        assertNull(nl.spoonpaco.ninegrid.domain.NameLetters.best("Whenever a creature enters the battlefield", dmr))
+    }
+
+    /** 0.9.19: het plaatje kiest alleen tussen prints met een ander plaatje. */
+    @Test
+    fun pictureChoosesOnlyBetweenDifferentArt() {
+        fun v(vararg x: Float) = nl.spoonpaco.ninegrid.domain.PictureIndex.quantize(x)
+        val a = v(1f, 0f, 0f, 0f); val b = v(0f, 1f, 0f, 0f); val bSame = v(0.98f, 0.2f, 0f, 0f)
+        val ix = nl.spoonpaco.ninegrid.domain.PictureIndex("ONE", listOf("x1", "x2", "y"), listOf("Wanderer", "Wanderer", "Other"), listOf("11", "335", "5"), 4, a + b + v(0f, 0f, 1f, 0f))
+        val photo = v(0.3f, 0.95f, 0f, 0f)
+        val pp = ix.printChoice(photo, "Wanderer")!!
+        assertEquals("335", pp.number); assertTrue(pp.usable)
+        val same = nl.spoonpaco.ninegrid.domain.PictureIndex("ONE", listOf("k1", "k2"), listOf("Kinzu", "Kinzu"), listOf("406", "411"), 4, a + bSame)
+        assertFalse(same.printChoice(v(0.9f, 0.4f, 0f, 0f), "Kinzu")!!.usable)
+    }
+
     @Test
     fun noFooterNoPick() {
         assertNull(PrintPick.pick(cathar, listOf("Cathar Commando", "Creature — Human Soldier")))

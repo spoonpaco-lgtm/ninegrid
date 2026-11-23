@@ -121,7 +121,8 @@ internal suspend fun runTestset(ctx: Context, tree: Uri, vm: AppViewModel, progr
                         val got = if (p == null) "niets" else "${p.name} (${p.setCode.uppercase()} ${p.collectorNumber})"
                         val las = item?.query?.let { q -> " · las: naam=${q.name ?: "-"} set=${q.setCode ?: "-"} nr=${q.collectorNumber ?: "-"}" + (if (q.altNames.isNotEmpty()) " ook=${q.altNames.take(2).joinToString("/")}" else "") } ?: ""
                         val plaatje = item?.picture?.let { " · plaatje: $it" + (if (item.pictureSure) " [zeker]" else "") } ?: ""
-                        body.appendLine("vak $slot: FOUT · verwacht ${TestsetScore.describe(e)} · kreeg $got · $status$las$plaatje")
+                        body.appendLine("vak $slot: FOUT · verwacht ${TestsetScore.describe(e)} · kreeg $got · $status$las$plaatje" +
+                            (item?.let { vm.printWhyFor(it.key) }?.let { " · printkiezer: $it" } ?: ""))
                     } else if (!e.empty && !sure && item != null) {
                         // 0.9.17: ook waarom een goede kaart oranje bleef (om groen te maken wat veilig groen kan).
                         val q = item.query

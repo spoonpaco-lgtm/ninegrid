@@ -596,7 +596,10 @@ class Repository(
             // als naam genomen: "oros Challenger gets", "mpact Tremors"). Zo'n kaart wordt gevonden maar blijft oranje.
             val bestInLines = if (bestOnNameLine != null) null
                 else kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { nl.spoonpaco.ninegrid.domain.NameMatch.bestInLines(q0.altNames + q0.lines, setNames) }
-            val bestInSet = bestOnNameLine ?: bestInLines
+            // 0.9.19: nog niets: de letters van de naamregel die er wel staan, in volgorde ("avoc etva" → Havoc Festival). Oranje.
+            val bestByLetters = if (bestOnNameLine != null || bestInLines != null) null
+                else q0.name?.let { nl.spoonpaco.ninegrid.domain.NameLetters.best(it, setNames) }
+            val bestInSet = bestOnNameLine ?: bestInLines ?: bestByLetters
             if (bestInSet != null) q = q.copy(name = bestInSet, nameFromLine = bestOnNameLine == null)
             fun byName(): SetCard? {
                 bestInSet?.let { n -> list.cards.filter { it.name == n }.let { m -> (m.firstOrNull { it.regular } ?: m.firstOrNull())?.let { return it } } }

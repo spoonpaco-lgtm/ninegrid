@@ -202,6 +202,10 @@ class Fingerprints(private val context: Context, private val images: Images, pri
         runCatching { ix.best(PictureIndex.quantize(e.embed(art(part)))) }.getOrNull()
     }
 
+    /** Tussen prints met dezelfde naam kiezen op de vingerafdruk van de foto (0.9.19). */
+    fun printChoice(code: String, guess: nl.spoonpaco.ninegrid.domain.PictureGuess, name: String): nl.spoonpaco.ninegrid.domain.PrintPicture? =
+        guess.query?.let { q -> runCatching { index(code)?.printChoice(q, name) }.getOrNull() }
+
     /**
      * Alleen de illustratie: binnen een set hebben alle kaarten hetzelfde kader en tekstvak, dus de hele kaart
      * vergelijken laat alles op elkaar lijken (testset 22 nov: 33% goed). Voor de Scryfall-plaatjes en de foto gelijk.
