@@ -53,3 +53,7 @@ Map `losse-kaarten/`: `NNN.jpg` (één kaart per foto, camera kaart voor kaart),
 Testset draaien leest ze via de route van kaart voor kaart (zonder het stemmen over camerabeelden).
 
 23 nov: 28 kaarten (FDN, setveld leeg) uit Micks verzamelde scans met 0.9.16; de foto van een toetsenbord is weggelaten. Uitslag van de app: 26 van 28 goed, groen maar fout 0, oranje maar fout 2 (Cathar Commando → SLD 7132, Snakeskin Veil → ATDM 19), oranje maar goed 6.
+
+## Bladen 19–24 (23 nov, 0.9.20, hele camerabeeld)
+
+Zes bladen gescand met 0.9.20 (blad vult het kader, setveld leeg), uitslag door Claude van de foto gelezen. Gemengd (19, 20, 24) zonder set; 21 M20, 22 ONE, 23 LCI. Uitslag van de app bij het scannen: 47 van 51 kaarten goed, 29 groen, groen maar fout 0, lege vakken 3 van 3. Fout (oranje): Adanto Vanguard en Smiting Helix als The List (PLST), Jayemdae Tome ORI 231 (moet M13 207), Aminatou 2X2 468 (moet 169).
