@@ -28,6 +28,7 @@ object WhatsNew {
     fun items(dutch: Boolean): List<Item> = if (dutch) NL else EN
 
     private val NL = listOf(
+        Item("Scanner: kiest vaker de juiste print (gewoon, showcase, borderless) op het plaatje, en herkent half gelezen namen. Altijd oranje, dus even controleren.", "add"),
         Item("De combodatabase is veel kleiner en sneller ingelezen. De oude wordt vanzelf vervangen op wifi.", "check"),
         Item("Combo's in je collectie: compleet, één kaart te weinig, en welke kaart de meeste combo's afmaakt. Eén keer downloaden, daarna offline en altijd actueel. Te vinden onder Collectie, de ∞-knop bovenin.", "add"),
         Item("Combo's per deck werken nu direct en zonder internet (met de combodatabase).", "check"),
@@ -46,6 +47,7 @@ object WhatsNew {
     )
 
     private val EN = listOf(
+        Item("Scanner: picks the right print (regular, showcase, borderless) from the picture more often, and recognises half-read names. Always orange, so check it.", "add"),
         Item("The combo database is much smaller and reads in faster. The old one is replaced automatically on wifi.", "check"),
         Item("Combos in your collection: complete, one card short, and which card completes the most combos. Download once, then offline and always up to date. Find it under Collection, the ∞ button at the top.", "add"),
         Item("Deck combos now work instantly and without internet (with the combo database).", "check"),

@@ -4,6 +4,8 @@ Jaya Ballard: alles wat overbodig is, eruit gebrand.
 
 - Combodatabase veel kleiner (was 196 MB): stappen en voorwaarden staan één keer, ingepakt, en worden pas geladen als je een combo opent; formats als bits; de voorkant van een kaartnaam alleen bij kaarten met //; na het inlezen wordt het werkbestand opgeruimd. Inlezen gaat in grotere stukken, dus sneller.
 - De database van 0.9.18 wordt vanzelf vervangen: de oude gaat weg en de nieuwe wordt op wifi opgehaald.
+- Scanner: zijn er meerdere prints met dezelfde naam in de set (gewoon, showcase, borderless) en kon de tekst niet kiezen, dan kiest het plaatje, maar alleen als die prints echt een ander plaatje hebben (niet alleen een ander kader). Blijft oranje.
+- Scanner: een half gelezen naam wordt herkend aan de letters die er wel staan, in de goede volgorde ("avoc etva" → Havoc Festival, "ierüd, Skyknight" → Tura Kennerüd). Alleen binnen de set en als één naam duidelijk het best past. Blijft oranje.
 
 NineGrid 0.9.18 – Zur
 
