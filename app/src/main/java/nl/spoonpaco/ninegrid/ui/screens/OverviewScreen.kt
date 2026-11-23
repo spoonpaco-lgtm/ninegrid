@@ -419,6 +419,20 @@ fun OverviewScreen(vm: AppViewModel, onSet: (String) -> Unit = {}, onSets: () ->
                         formatX = { ms, withTime -> if (withTime) nl.spoonpaco.ninegrid.domain.Dates.dateTime(ms, settings.dateStyle) else nl.spoonpaco.ninegrid.domain.Dates.date(ms, settings.dateStyle) },
                         axisColor = MaterialTheme.colorScheme.onSurface, textColor = extra.subtle,
                     )
+                    // Waar de groei vandaan komt: prijzen of kaarten erbij/eraf (alleen bij Waarde, eerste lijn, dagen met bekende koers).
+                    if (byValue && !byGain && !hideMoney) {
+                        val key = lines.first()
+                        val split = remember(snaps, key, from, cur) {
+                            nl.spoonpaco.ninegrid.domain.Growth.split(
+                                snaps.filter { it.key == key && !isSheet(it) && noon(it.day) >= from }.sortedBy { it.day }
+                                    .map { (if (cur == "USD") it.usd else it.eur) to (if (cur == "USD") it.gainUsd else it.gainEur) }
+                            )
+                        }
+                        split?.let { sp ->
+                            fun sg(v: Double) = (if (v >= 0) "+" else "−") + Money.format(kotlin.math.abs(v), cur)
+                            Text(stringResource(R.string.chart_growth_split, sg(sp.total), sg(sp.prices), sg(sp.cards)), fontSize = NgText.body, modifier = Modifier.padding(top = 4.dp))
+                        }
+                    }
                     if (byGain) Text(stringResource(R.string.chart_gain_explain), fontSize = NgText.caption, color = extra.subtle)
                     else if (series.any { s -> s.sheetUntil != null && s.points.any { it.first <= s.sheetUntil } })
                         Text(stringResource(R.string.chart_sheet_note), fontSize = NgText.caption, color = extra.subtle)

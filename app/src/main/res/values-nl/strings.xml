@@ -930,7 +930,7 @@
     <string name="boosters_box">Box: %1$d van %2$d geopend · %3$s eruit · %4$s</string>
     <string name="boosters_then_now">Toen %1$s · nu %2$s</string>
     <string name="boosters_total">%1$s betaald · %2$s nu</string>
-    <string name="boosters_note">Waarde nu rekent met de prijzen van vandaag. Tik op een booster om de prijs aan te passen of hem te verwijderen; de kaarten blijven in je collectie.</string>
+    <string name="boosters_note">Waarde nu rekent met de prijzen van vandaag. Tik op een booster om te zien wat erin zat; lang indrukken om boosters te selecteren en te verwijderen.</string>
     <plurals name="n_opened">
         <item quantity="one">%d geopend</item>
         <item quantity="other">%d geopend</item>
@@ -1234,4 +1234,42 @@
     <string name="picture_prefetch">Sets vooraf downloaden</string>
     <string name="picture_prefetch_explain">Vingerafdrukken voor alle sets in je collectie en decks, het liefst op wifi. Een set die je bij het scannen invult, komt er vanzelf bij (met internet); die scan leest dan nog alleen tekst.</string>
     <string name="scan_picture_guess">beste gok van het plaatje, controleer</string>
+    <string name="boosters_selected">%1$d geselecteerd</string>
+    <string name="select_all">Alles</string>
+    <string name="booster_box_delete">Box verwijderen</string>
+    <string name="boosters_delete_all">Alle boosters wissen</string>
+    <string name="boosters_delete_only">Alleen de booster (de kaarten blijven in je collectie)</string>
+    <string name="boosters_delete_cards">Ook de kaarten uit je collectie halen</string>
+    <string name="boosters_delete_cards_count">%1$d kaarten gaan uit je collectie.</string>
+    <string name="boosters_delete_cards_skip">%1$d kaarten zitten niet meer los in je collectie (in een deck, verkocht of al weg); die blijven zoals ze zijn.</string>
+    <string name="boosters_delete_undo">Terug te draaien met Laatste actie ongedaan maken.</string>
+    <string name="booster_delete">Booster verwijderen</string>
+    <string name="booster_value_then">Waarde toen</string>
+    <string name="booster_value_now">Waarde nu</string>
+    <string name="booster_result">Winst of verlies</string>
+    <string name="booster_no_cards">Van deze booster zijn geen kaarten bewaard.</string>
+    <string name="booster_card_gone">niet meer in je collectie</string>
+    <string name="log_boosters_deleted">%1$d boosters verwijderd</string>
+    <string name="boosters_deleted">%1$d boosters verwijderd (de kaarten blijven in je collectie)</string>
+    <string name="boosters_deleted_cards">%1$d boosters verwijderd, %2$d kaarten uit je collectie</string>
+    <plurals name="n_cards_short">
+        <item quantity="one">%d kaart</item>
+        <item quantity="other">%d kaarten</item>
+    </plurals>
+    <plurals name="boosters_delete_title">
+        <item quantity="one">Booster verwijderen?</item>
+        <item quantity="other">%d boosters verwijderen?</item>
+    </plurals>
+    <string name="sort_list">Volgorde van de lijst</string>
+    <string name="filter_and_sort">Filteren en sorteren</string>
+    <string name="sort_tap_again">Tik nog eens op de gekozen sortering om hem om te draaien (↓ standaard, ↑ andersom).</string>
+    <string name="views_saved">Bewaarde combinaties</string>
+    <string name="views_save">Deze combinatie bewaren</string>
+    <string name="views_name">Naam</string>
+    <string name="views_save_note">Bewaart de filters en de sortering die nu aan staan. Tik later op de naam om ze terug te zetten.</string>
+    <string name="filter_price">Prijs per stuk</string>
+    <string name="price_from">Van</string>
+    <string name="price_to">Tot</string>
+    <string name="filter_price_note">Bij een foil telt de foilprijs. Kaarten zonder prijs vallen weg zodra er een grens is.</string>
+    <string name="chart_growth_split">In deze periode %1$s: %2$s door prijzen, %3$s door kaarten erbij of eraf</string>
 </resources>

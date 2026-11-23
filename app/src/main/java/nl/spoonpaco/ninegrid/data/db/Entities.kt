@@ -115,6 +115,10 @@ data class UndoData(
     val deleteEntryIds: List<Long> = emptyList(),
     val restoreDecks: List<Deck> = emptyList(),
     val deleteDeckIds: List<Long> = emptyList(),
+    /** Verwijderde boosters (met hun kaarten en lege boxen), zodat ongedaan maken ze terugzet. */
+    val restoreBoosters: List<Booster> = emptyList(),
+    val restoreBoosterCards: List<BoosterCard> = emptyList(),
+    val restoreBoosterBoxes: List<BoosterBox> = emptyList(),
 )
 
 /** Een exemplaar met zijn print erbij, voor lijsten. */

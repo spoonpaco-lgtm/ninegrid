@@ -63,8 +63,8 @@ fun PickFromCollectionDialog(vm: AppViewModel, deck: Deck, onDismiss: () -> Unit
     var query by remember { mutableStateOf("") }
     var picking by remember { mutableStateOf<EntryWithPrint?>(null) }
     val filter = remember(settings.filters["pick"]) { nl.spoonpaco.ninegrid.ui.components.CardFilter.fromJson(settings.filters["pick"]).copy(decks = false) }
-    val list = remember(all, query, filter) {
-        all.filter { it.entry.deckId == null && it.print != null && filter.matches(it, query) }
+    val list = remember(all, query, filter, settings.currency) {
+        all.filter { it.entry.deckId == null && it.print != null && filter.matches(it, query, settings.currency) }
             .sortedWith(compareBy({ it.print!!.name }, { it.print!!.setCode }))
     }
 
@@ -80,8 +80,9 @@ fun PickFromCollectionDialog(vm: AppViewModel, deck: Deck, onDismiss: () -> Unit
                 nl.spoonpaco.ninegrid.ui.components.FilterSearchBar(
                     query = query, onQuery = { query = it }, placeholder = stringResource(R.string.pick_search_hint),
                     filter = filter, onFilter = { vm.setFilter("pick", it) },
-                    groups = setOf(nl.spoonpaco.ninegrid.ui.components.FilterGroup.RARITY, nl.spoonpaco.ninegrid.ui.components.FilterGroup.COLOR,
+                    groups = setOf(nl.spoonpaco.ninegrid.ui.components.FilterGroup.PRICE, nl.spoonpaco.ninegrid.ui.components.FilterGroup.RARITY, nl.spoonpaco.ninegrid.ui.components.FilterGroup.COLOR,
                         nl.spoonpaco.ninegrid.ui.components.FilterGroup.TYPE, nl.spoonpaco.ninegrid.ui.components.FilterGroup.FOIL, nl.spoonpaco.ninegrid.ui.components.FilterGroup.TEXT),
+                    currency = settings.currency,
                 )
                 Text(stringResource(R.string.pick_explain), fontSize = NgText.body, color = LocalNgExtra.current.subtle, modifier = Modifier.padding(horizontal = 16.dp))
                 if (list.isEmpty()) {

@@ -394,6 +394,10 @@ interface BoosterDao {
     @Query("DELETE FROM booster_cards") suspend fun deleteAllCards()
     @Query("DELETE FROM booster_boxes") suspend fun deleteAllBoxes()
     @Insert suspend fun insertAllBoosters(b: List<Booster>)
+    // Terugzetten na ongedaan maken: met hun oude id's.
+    @Insert(onConflict = androidx.room.OnConflictStrategy.REPLACE) suspend fun restoreBoosters(b: List<Booster>)
+    @Insert(onConflict = androidx.room.OnConflictStrategy.REPLACE) suspend fun restoreCards(c: List<BoosterCard>)
+    @Insert(onConflict = androidx.room.OnConflictStrategy.REPLACE) suspend fun restoreBoxes(b: List<BoosterBox>)
     @Insert suspend fun insertAllBoxes(b: List<BoosterBox>)
 
     @Transaction

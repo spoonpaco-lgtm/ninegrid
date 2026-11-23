@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material.icons.filled.Close
@@ -67,10 +68,25 @@ data class CardFilter(
     val gameChangers: Boolean = false,
     /** Alleen kaarten met het label NIEUW. */
     val onlyNew: Boolean = false,
+    /** Prijs per stuk van–tot (foil: de foilprijs), in de gekozen valuta; null = geen grens. */
+    val priceMin: Double? = null,
+    val priceMax: Double? = null,
 ) {
-    val count get() = rarities.size + colors.size + types.size + binders.size + (if (foil) 1 else 0) + (if (decks) 1 else 0) + (if (inText) 1 else 0) + (if (notOwned) 1 else 0) + (if (gameChangers) 1 else 0) + (if (onlyNew) 1 else 0)
+    val count get() = rarities.size + colors.size + types.size + binders.size + (if (foil) 1 else 0) + (if (decks) 1 else 0) + (if (inText) 1 else 0) + (if (notOwned) 1 else 0) + (if (gameChangers) 1 else 0) + (if (onlyNew) 1 else 0) +
+        (if (hasPrice) 1 else 0)
 
-    fun matches(e: EntryWithPrint, query: String, isNew: (nl.spoonpaco.ninegrid.data.db.Entry) -> Boolean = { false }): Boolean {
+    val hasPrice get() = priceMin != null || priceMax != null
+
+    /** Valt deze prijs binnen het prijsfilter? Zonder prijs telt een kaart niet mee zodra er een grens is. */
+    fun priceOk(v: Double?): Boolean {
+        if (!hasPrice) return true
+        val x = v ?: return false
+        if (priceMin != null && x < priceMin) return false
+        if (priceMax != null && x > priceMax) return false
+        return true
+    }
+
+    fun matches(e: EntryWithPrint, query: String, currency: String = "EUR", isNew: (nl.spoonpaco.ninegrid.data.db.Entry) -> Boolean = { false }): Boolean {
         val p = e.print
         val q = query.trim()
         if (!decks && e.entry.deckId != null) return false
@@ -84,6 +100,7 @@ data class CardFilter(
         if (foil && e.entry.finish == Finish.NONFOIL) return false
         if (gameChangers && p?.gameChanger != true) return false
         if (onlyNew && !isNew(e.entry)) return false
+        if (hasPrice && !priceOk(nl.spoonpaco.ninegrid.domain.Money.unitPrice(e.entry, p, currency).takeIf { p != null && it > 0.0 })) return false
         if (colors.isNotEmpty()) {
             val c = p?.colors ?: ""
             if (colors.none { k -> if (k == "C") c.isEmpty() else c.contains(k) }) return false
@@ -102,6 +119,8 @@ data class CardFilter(
         fun fromJson(s: String?): CardFilter = s?.takeIf { it.isNotBlank() }?.let { runCatching { json.decodeFromString(serializer(), it) }.getOrNull() } ?: CardFilter()
         val RARITIES = listOf("mythic", "rare", "uncommon", "common")
         val TYPES = listOf("Creature", "Instant", "Sorcery", "Artifact", "Enchantment", "Planeswalker", "Land", "Battle")
+        /** Snelle keuzes voor het prijsfilter. */
+        val PRICE_RANGES: List<Pair<Double?, Double?>> = listOf(null to 1.0, 1.0 to 5.0, 5.0 to 20.0, 20.0 to null)
 
         /** Zoekvraag voor Scryfall uit tekst en filters (alleen de filters die daar bestaan). */
         fun scryfallQuery(text: String, f: CardFilter): String {
@@ -113,17 +132,53 @@ data class CardFilter(
             if (f.colors.isNotEmpty()) parts += or(f.colors.map { if (it == "C") "c:c" else "c:${it.lowercase()}" })
             if (f.types.isNotEmpty()) parts += or(f.types.map { "t:${it.lowercase()}" })
             if (f.gameChangers) parts += "is:gamechanger"
+            // Prijs: Scryfall kent eur en usd; de app filtert daarna nog op de eigen valuta.
+            f.priceMin?.let { parts += "eur>=" + String.format(java.util.Locale.ROOT, "%.2f", it) }
+            f.priceMax?.let { parts += "eur<=" + String.format(java.util.Locale.ROOT, "%.2f", it) }
             // Alleen "alleen wat ik niet heb": Scryfall wil een zoekopdracht, dus alle papieren kaarten.
             return parts.joinToString(" ").ifBlank { "game:paper" }
         }
     }
 }
 
-enum class FilterGroup { RARITY, COLOR, TYPE, FOIL, DECKS, TEXT, BINDER, NOT_OWNED, GAME_CHANGER, NEW }
+enum class FilterGroup { RARITY, COLOR, TYPE, FOIL, DECKS, TEXT, BINDER, NOT_OWNED, GAME_CHANGER, NEW, PRICE }
 
 /**
- * Zoekbalk met één knop Filter (met het aantal actieve filters) en eventueel een knop Sorteren.
- * Onder de balk alleen de filters die aan staan, met een kruisje. Het paneel komt van onderaf.
+ * Sorteren met een richting: de sleutel ("price") en, omgekeerd, met "~r" erachter ("price~r"). Elk scherm sorteert
+ * op de sleutel zoals altijd en draait de lijst om als [rev] waar is.
+ */
+object SortKey {
+    private const val REV = "~r"
+    fun key(s: String) = s.removeSuffix(REV)
+    fun rev(s: String) = s.endsWith(REV)
+    fun of(key: String, rev: Boolean) = if (rev) key + REV else key
+}
+
+fun <T> List<T>.reversedIf(rev: Boolean): List<T> = if (rev) reversed() else this
+
+/** Een bewaarde combinatie van filters en sortering, onder een eigen naam. */
+@Serializable
+data class SavedView(val name: String, val filter: CardFilter = CardFilter(), val sort: String = "")
+
+/** De bewaarde combinaties van één scherm, met bewaren (huidige filters en sortering) en weghalen. */
+class SavedViews(val list: List<SavedView>, val save: (String) -> Unit, val delete: (String) -> Unit)
+
+/** "€ 5–20", "< € 1", "> € 20". */
+fun priceLabel(min: Double?, max: Double?, currency: String): String {
+    val sym = if (currency == "USD") "$" else "€"
+    fun n(v: Double) = if (v % 1.0 == 0.0) v.toInt().toString() else String.format(java.util.Locale.getDefault(), "%.2f", v)
+    return when {
+        min != null && max != null -> "$sym ${n(min)}–${n(max)}"
+        max != null -> "< $sym ${n(max)}"
+        min != null -> "> $sym ${n(min)}"
+        else -> ""
+    }
+}
+
+/**
+ * Zoekbalk met één knop Filteren en sorteren (met het aantal actieve filters). Onder de balk wat aan staat, met een
+ * kruisje: filters en een sortering die niet de standaard is. Het paneel komt van onderaf: sorteren (tik nog eens =
+ * andersom), bewaarde combinaties en de filters.
  */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -141,9 +196,18 @@ fun FilterSearchBar(
     binderOptions: List<String> = emptyList(),
     /** Andere kleur zoekbalk (bij Alle kaarten). */
     accent: Boolean = false,
+    /** Valuta voor het prijsfilter. */
+    currency: String = "EUR",
+    /** Bewaarde combinaties van dit scherm (null = niet bewaren). */
+    views: SavedViews? = null,
 ) {
     var panel by remember { mutableStateOf(false) }
-    var sortMenu by remember { mutableStateOf(false) }
+    var naming by remember { mutableStateOf(false) }
+    val sortKey = SortKey.key(sort)
+    val sortRev = SortKey.rev(sort)
+    val defaultSort = sortOptions.firstOrNull()?.first
+    val sortChanged = sortOptions.isNotEmpty() && sort.isNotBlank() && (sortKey != defaultSort || sortRev)
+    fun sortLabel() = (if (sortRev) "↑ " else "↓ ") + (sortOptions.firstOrNull { it.first == sortKey }?.second ?: sortKey)
     Column {
         Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
             OutlinedTextField(
@@ -157,26 +221,20 @@ fun FilterSearchBar(
                     unfocusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
                 ) else androidx.compose.material3.OutlinedTextFieldDefaults.colors(),
             )
-            // Trechter = filteren, pijltjes = sorteren: zo zijn ze niet te verwarren.
-            if (groups.isNotEmpty()) IconButton(onClick = { panel = true }) {
+            // Eén knop voor filteren en sorteren; zonder filters alleen het sorteericoon.
+            if (groups.isNotEmpty() || sortOptions.isNotEmpty()) IconButton(onClick = { panel = true }) {
                 BadgedBox(badge = { if (filter.count > 0) Badge { Text("${filter.count}") } }) {
-                    Icon(Icons.Filled.FilterAlt, stringResource(R.string.filter))
-                }
-            }
-            if (sortOptions.isNotEmpty()) Column {
-                IconButton(onClick = { sortMenu = true }) { Icon(Icons.Filled.SwapVert, stringResource(R.string.sort)) }
-                DropdownMenu(expanded = sortMenu, onDismissRequest = { sortMenu = false }) {
-                    sortOptions.forEach { (k, l) ->
-                        DropdownMenuItem(text = { Text(l, fontWeight = if (k == sort) FontWeight.Bold else FontWeight.Normal) }, onClick = { sortMenu = false; onSort(k) })
-                    }
+                    Icon(if (groups.isNotEmpty()) Icons.Filled.FilterAlt else Icons.Filled.SwapVert, stringResource(R.string.filter_and_sort))
                 }
             }
         }
         // Wat er aan staat, met een kruisje om het uit te zetten.
-        if (filter.count > 0) Row(
+        if (filter.count > 0 || sortChanged) Row(
             Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp, vertical = 4.dp),
             horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically,
         ) {
+            if (sortChanged) ActiveChip(sortLabel()) { onSort(defaultSort ?: "") }
+            if (filter.hasPrice) ActiveChip(priceLabel(filter.priceMin, filter.priceMax, currency)) { onFilter(filter.copy(priceMin = null, priceMax = null)) }
             filter.rarities.forEach { r -> ActiveChip(r.replaceFirstChar { it.uppercase() }) { onFilter(filter.copy(rarities = filter.rarities - r)) } }
             filter.colors.forEach { c -> ActiveChip(c) { onFilter(filter.copy(colors = filter.colors - c)) } }
             filter.types.forEach { t -> ActiveChip(t) { onFilter(filter.copy(types = filter.types - t)) } }
@@ -187,15 +245,66 @@ fun FilterSearchBar(
             if (filter.notOwned) ActiveChip(stringResource(R.string.only_not_owned)) { onFilter(filter.copy(notOwned = false)) }
             if (filter.gameChangers) ActiveChip(stringResource(R.string.filter_game_changers)) { onFilter(filter.copy(gameChangers = false)) }
             if (filter.onlyNew) ActiveChip(stringResource(R.string.filter_new)) { onFilter(filter.copy(onlyNew = false)) }
-            TextButton(onClick = { onFilter(CardFilter()) }) { Text(stringResource(R.string.clear_filters)) }
+            if (filter.count > 0) TextButton(onClick = { onFilter(CardFilter()) }) { Text(stringResource(R.string.clear_filters)) }
         }
     }
 
     if (panel) ModalBottomSheet(onDismissRequest = { panel = false }) {
-        Column(Modifier.padding(horizontal = 16.dp).padding(bottom = 24.dp)) {
+        Column(Modifier.padding(horizontal = 16.dp).padding(bottom = 24.dp).verticalScroll(rememberScrollState())) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(stringResource(R.string.filter), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                Text(stringResource(R.string.filter_and_sort), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
                 if (filter.count > 0) TextButton(onClick = { onFilter(CardFilter()) }) { Text(stringResource(R.string.clear_filters)) }
+            }
+            if (sortOptions.isNotEmpty()) {
+                Group(stringResource(R.string.sort)) {
+                    sortOptions.forEach { (k, l) ->
+                        val on = k == sortKey || (sort.isBlank() && k == defaultSort)
+                        FilterChip(
+                            selected = on,
+                            onClick = { onSort(if (on) SortKey.of(k, !sortRev) else k) },
+                            label = { Text((if (on) (if (sortRev) "↑ " else "↓ ") else "") + l) },
+                        )
+                    }
+                }
+                Text(stringResource(R.string.sort_tap_again), fontSize = NgText.caption, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            if (views != null) {
+                Group(stringResource(R.string.views_saved)) {
+                    views.list.forEach { v ->
+                        InputChip(
+                            selected = false,
+                            onClick = { onFilter(v.filter); if (sortOptions.isNotEmpty() && v.sort.isNotBlank()) onSort(v.sort); panel = false },
+                            label = { Text(v.name, maxLines = 1) },
+                            trailingIcon = { IconButton(onClick = { views.delete(v.name) }, modifier = Modifier.size(20.dp)) { Icon(Icons.Filled.Close, stringResource(R.string.delete), Modifier.size(14.dp)) } },
+                        )
+                    }
+                    TextButton(onClick = { naming = true }) { Text("+ " + stringResource(R.string.views_save)) }
+                }
+            }
+            if (FilterGroup.PRICE in groups) {
+                Group(stringResource(R.string.filter_price)) {
+                    CardFilter.PRICE_RANGES.forEach { (lo, hi) ->
+                        val on = filter.priceMin == lo && filter.priceMax == hi
+                        FilterChip(selected = on, onClick = { onFilter(if (on) filter.copy(priceMin = null, priceMax = null) else filter.copy(priceMin = lo, priceMax = hi)) },
+                            label = { Text(priceLabel(lo, hi, currency)) })
+                    }
+                }
+                // Zelf invullen: van en tot.
+                fun parse(t: String) = t.replace(',', '.').trim().toDoubleOrNull()?.takeIf { it >= 0 }
+                var lo by remember { mutableStateOf(filter.priceMin?.let { fmtPrice(it) } ?: "") }
+                var hi by remember { mutableStateOf(filter.priceMax?.let { fmtPrice(it) } ?: "") }
+                // Een snelle keuze of het kruisje zet de velden gelijk; tijdens het typen blijft staan wat je typt.
+                androidx.compose.runtime.LaunchedEffect(filter.priceMin) { if (parse(lo) != filter.priceMin) lo = filter.priceMin?.let { fmtPrice(it) } ?: "" }
+                androidx.compose.runtime.LaunchedEffect(filter.priceMax) { if (parse(hi) != filter.priceMax) hi = filter.priceMax?.let { fmtPrice(it) } ?: "" }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 4.dp)) {
+                    OutlinedTextField(lo, { t -> lo = t.filter { it.isDigit() || it == ',' || it == '.' }; onFilter(filter.copy(priceMin = parse(lo))) }, singleLine = true,
+                        label = { Text(stringResource(R.string.price_from)) }, modifier = Modifier.weight(1f),
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal))
+                    OutlinedTextField(hi, { t -> hi = t.filter { it.isDigit() || it == ',' || it == '.' }; onFilter(filter.copy(priceMax = parse(hi))) }, singleLine = true,
+                        label = { Text(stringResource(R.string.price_to)) }, modifier = Modifier.weight(1f),
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal))
+                }
+                Text(stringResource(R.string.filter_price_note), fontSize = NgText.caption, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             if (FilterGroup.RARITY in groups) Group(stringResource(R.string.rarity)) {
                 CardFilter.RARITIES.forEach { r -> FilterChip(selected = r in filter.rarities, onClick = { onFilter(filter.copy(rarities = filter.rarities.toggle(r))) }, label = { Text(r.replaceFirstChar { it.uppercase() }) }) }
@@ -228,7 +337,25 @@ fun FilterSearchBar(
             Button(onClick = { panel = false }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.done)) }
         }
     }
+
+    if (naming && views != null) {
+        var name by remember { mutableStateOf("") }
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { naming = false },
+            title = { Text(stringResource(R.string.views_save)) },
+            text = {
+                Column {
+                    OutlinedTextField(name, { name = it.take(40) }, singleLine = true, label = { Text(stringResource(R.string.views_name)) })
+                    Text(stringResource(R.string.views_save_note), fontSize = NgText.caption, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 6.dp))
+                }
+            },
+            confirmButton = { TextButton(enabled = name.isNotBlank(), onClick = { views.save(name.trim()); naming = false }) { Text(stringResource(R.string.save)) } },
+            dismissButton = { TextButton(onClick = { naming = false }) { Text(stringResource(R.string.cancel)) } },
+        )
+    }
 }
+
+private fun fmtPrice(v: Double) = if (v % 1.0 == 0.0) v.toInt().toString() else String.format(java.util.Locale.getDefault(), "%.2f", v)
 
 private fun Set<String>.toggle(v: String) = if (v in this) this - v else this + v
 

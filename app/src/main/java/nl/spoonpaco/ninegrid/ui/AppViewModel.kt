@@ -1746,6 +1746,29 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     /** Onthouden sortering per scherm (setscherm, kaarten van een vriend). */
     fun screenSort(screen: String, default: String): String = deckUiPrefs.getString("sort_screen_$screen", default) ?: default
     fun setScreenSort(screen: String, v: String) = deckUiPrefs.edit().putString("sort_screen_$screen", v).apply()
+
+    // ---------- Bewaarde combinaties van filters en sortering, per scherm ----------
+    private val viewsJson = kotlinx.serialization.json.Json { ignoreUnknownKeys = true }
+    private val viewsCache = java.util.concurrent.ConcurrentHashMap<String, List<nl.spoonpaco.ninegrid.ui.components.SavedView>>()
+    // Gelezen tijdens het tekenen, verhoogd bij bewaren: zo tekent het paneel opnieuw zonder tijdens het tekenen te schrijven.
+    private var viewsVersion by mutableStateOf(0)
+    private fun viewsOf(screen: String): List<nl.spoonpaco.ninegrid.ui.components.SavedView> = viewsVersion.let { _ -> viewsCache.getOrPut(screen) {
+        deckUiPrefs.getString("views_$screen", null)?.let { t ->
+            runCatching { viewsJson.decodeFromString(kotlinx.serialization.builtins.ListSerializer(nl.spoonpaco.ninegrid.ui.components.SavedView.serializer()), t) }.getOrNull()
+        }.orEmpty()
+    } }
+    private fun putViews(screen: String, list: List<nl.spoonpaco.ninegrid.ui.components.SavedView>) {
+        viewsCache[screen] = list
+        viewsVersion++
+        deckUiPrefs.edit().putString("views_$screen", viewsJson.encodeToString(kotlinx.serialization.builtins.ListSerializer(nl.spoonpaco.ninegrid.ui.components.SavedView.serializer()), list)).apply()
+    }
+
+    /** De bewaarde combinaties van [screen]; bewaren legt [filter] en [sort] vast onder de gekozen naam. */
+    fun viewsFor(screen: String, filter: nl.spoonpaco.ninegrid.ui.components.CardFilter, sort: String) = nl.spoonpaco.ninegrid.ui.components.SavedViews(
+        list = viewsOf(screen),
+        save = { name -> putViews(screen, viewsOf(screen).filter { !it.name.equals(name, true) } + nl.spoonpaco.ninegrid.ui.components.SavedView(name, filter, sort)) },
+        delete = { name -> putViews(screen, viewsOf(screen).filter { it.name != name }) },
+    )
     fun comboCollapsed(deckId: Long): Set<String> = deckUiPrefs.getStringSet("combo_closed_$deckId", emptySet()).orEmpty().toSet()
     fun setComboCollapsed(deckId: Long, v: Set<String>) = deckUiPrefs.edit().putStringSet("combo_closed_$deckId", v).apply()
     /** Kaartscherm van een kaart die je niet hebt: zoek hem op naam bij Scryfall en geef het id door. */
@@ -2213,7 +2236,17 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     }
     fun endBox() { boosterBoxId = null }
     fun updateBoosterPaid(b: nl.spoonpaco.ninegrid.data.db.Booster, paid: Double) = viewModelScope.launch { repo.updateBooster(b.copy(paid = paid)) }
-    fun deleteBooster(b: nl.spoonpaco.ninegrid.data.db.Booster) = viewModelScope.launch { repo.deleteBooster(b.id); message = str(R.string.booster_deleted) }
+    fun deleteBooster(b: nl.spoonpaco.ninegrid.data.db.Booster) = deleteBoosters(setOf(b.id), false)
+
+    /** Hoeveel kaarten van deze boosters nog los in de collectie zitten, en hoeveel niet. */
+    suspend fun boosterCardsInCollection(ids: Set<Long>) = repo.boosterCardsInCollection(ids)
+
+    /** Boosters verwijderen, eventueel met hun kaarten uit de collectie; terug te draaien met ongedaan maken. */
+    fun deleteBoosters(ids: Set<Long>, withCards: Boolean) = viewModelScope.launch {
+        val n = repo.deleteBoosters(ids, withCards, str(R.string.log_boosters_deleted, ids.size))
+        if (n > 0) snapshot()
+        message = if (withCards) str(R.string.boosters_deleted_cards, ids.size, n) else str(R.string.boosters_deleted, ids.size)
+    }
 
     /** Bij het openen van het controlescherm: de laatst betaalde prijs staat klaar. */
     fun prefillBooster() {
@@ -2310,7 +2343,8 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Gebruikt Alle kaarten de offline database? (Regeltekst zit daar niet in: dan online.) */
     // De offline database kent geen Game Changers: met dat filter zoekt Alle kaarten bij Scryfall.
-    fun allCardsOffline(f: nl.spoonpaco.ninegrid.ui.components.CardFilter) = c.offline.usable() && !f.inText && !f.gameChangers
+    // Met een prijsfilter online: de offline database kan niet op prijs zoeken.
+    fun allCardsOffline(f: nl.spoonpaco.ninegrid.ui.components.CardFilter) = c.offline.usable() && !f.inText && !f.gameChangers && !f.hasPrice
 
     /**
      * Zoeken: minstens 2 letters of één filter. Online pas een halve seconde na de laatste letter,
@@ -2318,7 +2352,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
      */
     fun searchAll(text: String, f: nl.spoonpaco.ninegrid.ui.components.CardFilter) {
         val t = text.trim()
-        val hasFilter = f.rarities.isNotEmpty() || f.colors.isNotEmpty() || f.types.isNotEmpty() || f.notOwned || f.gameChangers
+        val hasFilter = f.rarities.isNotEmpty() || f.colors.isNotEmpty() || f.types.isNotEmpty() || f.notOwned || f.gameChangers || f.hasPrice
         val key = t + "|" + f.toJson()
         if (key == allKey) return
         allKey = key

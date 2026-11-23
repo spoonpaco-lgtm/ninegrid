@@ -387,12 +387,12 @@ fun FriendScreen(vm: AppViewModel, friendId: String, onBack: () -> Unit, onCard:
                 val list = remember(ids, allCards) { vm.friendEntries(ids) }
                 val friendFilter = remember(settings.filters["friend"]) { nl.spoonpaco.ninegrid.ui.components.CardFilter.fromJson(settings.filters["friend"]) }
                 var friendSort by remember { mutableStateOf(vm.screenSort("friend", "price")) }
-                val shown = list.filter { friendFilter.copy(decks = true).matches(it, query) }.let { l ->
-                    when (friendSort) {
+                val shown = list.filter { friendFilter.copy(decks = true).matches(it, query, settings.currency) }.let { l ->
+                    when (nl.spoonpaco.ninegrid.ui.components.SortKey.key(friendSort)) {
                         "name" -> l.sortedBy { it.print?.name?.lowercase() ?: "" }
                         "set" -> l.sortedWith(compareBy({ it.print?.setCode ?: "" }, { it.print?.collectorNumber?.toIntOrNull() ?: 0 }))
                         else -> l.sortedByDescending { Money.total(it.entry, it.print, settings.currency) }
-                    }
+                    }.let { if (nl.spoonpaco.ninegrid.ui.components.SortKey.rev(friendSort)) it.reversed() else it }
                 }
                 LazyColumn(contentPadding = PaddingValues(bottom = 32.dp)) {
                     item {
@@ -406,9 +406,11 @@ fun FriendScreen(vm: AppViewModel, friendId: String, onBack: () -> Unit, onCard:
                         nl.spoonpaco.ninegrid.ui.components.FilterSearchBar(
                             query = query, onQuery = { query = it }, placeholder = stringResource(R.string.search_card),
                             filter = friendFilter, onFilter = { vm.setFilter("friend", it) },
-                            groups = setOf(nl.spoonpaco.ninegrid.ui.components.FilterGroup.RARITY, nl.spoonpaco.ninegrid.ui.components.FilterGroup.COLOR, nl.spoonpaco.ninegrid.ui.components.FilterGroup.TYPE, nl.spoonpaco.ninegrid.ui.components.FilterGroup.FOIL),
+                            groups = setOf(nl.spoonpaco.ninegrid.ui.components.FilterGroup.PRICE, nl.spoonpaco.ninegrid.ui.components.FilterGroup.RARITY, nl.spoonpaco.ninegrid.ui.components.FilterGroup.COLOR, nl.spoonpaco.ninegrid.ui.components.FilterGroup.TYPE, nl.spoonpaco.ninegrid.ui.components.FilterGroup.FOIL),
                             sortOptions = listOf("price" to stringResource(R.string.sort_price), "set" to stringResource(R.string.sort_set), "name" to stringResource(R.string.sort_name)),
                             sort = friendSort, onSort = { friendSort = it; vm.setScreenSort("friend", it) },
+                            currency = settings.currency,
+                            views = vm.viewsFor("friend", friendFilter, friendSort),
                         )
                         Text(
                             stringResource(R.string.share_cards_value, list.sumOf { it.entry.quantity }, Money.format(list.sumOf { Money.total(it.entry, it.print, settings.currency) }, settings.currency)),

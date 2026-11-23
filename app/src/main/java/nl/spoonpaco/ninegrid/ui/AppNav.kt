@@ -277,7 +277,10 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
             composable("import") {
                 nl.spoonpaco.ninegrid.ui.screens.ImportScreen(vm, onBack = { nav.popBackStack() }, onDone = { tab("collection") }, onPaste = { nav.navigate("paste") })
             }
-            composable("boosters") { nl.spoonpaco.ninegrid.ui.screens.BoostersScreen(vm, onBack = { nav.popBackStack() }) }
+            composable("boosters") { nl.spoonpaco.ninegrid.ui.screens.BoostersScreen(vm, onBack = { nav.popBackStack() }, onOpen = { nav.navigate("booster/$it") }) }
+            composable("booster/{id}", arguments = listOf(navArgument("id") { type = NavType.LongType })) {
+                nl.spoonpaco.ninegrid.ui.screens.BoosterDetailScreen(vm, it.arguments?.getLong("id") ?: 0L, onBack = { nav.popBackStack() }, onCard = { id -> nav.navigate("card/$id") })
+            }
             composable("share") { nl.spoonpaco.ninegrid.ui.screens.ShareScreen(vm, onBack = { nav.popBackStack() }, onFriend = { nav.navigate("friend/$it") }) }
             composable("friend/{id}", arguments = listOf(navArgument("id") { type = NavType.StringType })) {
                 nl.spoonpaco.ninegrid.ui.screens.FriendScreen(vm, it.arguments?.getString("id") ?: "", onBack = { nav.popBackStack() }, onCard = { id -> nav.navigate("card/$id") })

@@ -3,6 +3,8 @@ package nl.spoonpaco.ninegrid.ui.screens
 import nl.spoonpaco.ninegrid.ui.theme.NgText
 import nl.spoonpaco.ninegrid.ui.theme.NgShape
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -192,10 +194,13 @@ private fun ResultLine(label: String, value: String, good: Boolean?) {
     }
 }
 
-/** Overzicht → Boosters: per set en type wat je gemiddeld betaalde en eruit haalde; per booster waarde toen en nu. */
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * Overzicht → Boosters: per set en type wat je gemiddeld betaalde en eruit haalde; per booster waarde toen en nu.
+ * Tik op een booster = wat erin zat. Lang indrukken = selecteren om te verwijderen.
+ */
+@OptIn(ExperimentalMaterial3Api::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
-fun BoostersScreen(vm: AppViewModel, onBack: () -> Unit) {
+fun BoostersScreen(vm: AppViewModel, onBack: () -> Unit, onOpen: (Long) -> Unit = {}) {
     val boosters by vm.boosters.collectAsState()
     val cards by vm.boosterCards.collectAsState()
     val prints by vm.boosterPrints.collectAsState()
@@ -205,9 +210,18 @@ fun BoostersScreen(vm: AppViewModel, onBack: () -> Unit) {
     val byId = remember(prints) { prints.associateBy { it.id } }
     val cardsOf = remember(cards) { cards.groupBy { it.boosterId } }
     fun now(b: Booster) = vm.boosterValue(cardsOf[b.id].orEmpty().map { byId[it.printId] to it }, b.currency)
-    var editing by remember { mutableStateOf<Booster?>(null) }
+    var selected by remember { mutableStateOf(setOf<Long>()) }
+    var deleting by remember { mutableStateOf<Set<Long>?>(null) }
+    androidx.activity.compose.BackHandler(enabled = selected.isNotEmpty()) { selected = emptySet() }
     Scaffold(topBar = {
-        TopAppBar(
+        if (selected.isNotEmpty()) TopAppBar(
+            title = { Text(stringResource(R.string.boosters_selected, selected.size)) },
+            navigationIcon = { IconButton(onClick = { selected = emptySet() }) { Icon(androidx.compose.material.icons.Icons.Filled.Close, stringResource(R.string.cancel)) } },
+            actions = {
+                TextButton(onClick = { selected = if (selected.size == boosters.size) emptySet() else boosters.map { it.id }.toSet() }) { Text(stringResource(R.string.select_all)) }
+                IconButton(onClick = { deleting = selected }) { Icon(androidx.compose.material.icons.Icons.Filled.Delete, stringResource(R.string.delete), tint = NgColors.Error) }
+            },
+        ) else TopAppBar(
             title = { Text(stringResource(R.string.boosters_title)) },
             navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) } },
             actions = { nl.spoonpaco.ninegrid.ui.components.PrivacyButton(vm) },
@@ -232,7 +246,11 @@ fun BoostersScreen(vm: AppViewModel, onBack: () -> Unit) {
                                 boxes.firstOrNull { it.id == bid }?.let { box ->
                                     val inBox = list.filter { it.boxId == bid }
                                     val out = inBox.sumOf { now(it) }
-                                    Text(stringResource(R.string.boosters_box, inBox.size, box.size, money(out, cur, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL), signed(out - box.price, cur)), fontSize = NgText.body, color = extra.subtle)
+                                    // Tik op de box: de hele box verwijderen.
+                                    Row(Modifier.fillMaxWidth().clickable { deleting = inBox.map { it.id }.toSet() }.padding(vertical = 2.dp), verticalAlignment = Alignment.CenterVertically) {
+                                        Text(stringResource(R.string.boosters_box, inBox.size, box.size, money(out, cur, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL), signed(out - box.price, cur)), fontSize = NgText.body, color = extra.subtle, modifier = Modifier.weight(1f))
+                                        Icon(androidx.compose.material.icons.Icons.Filled.Delete, stringResource(R.string.booster_box_delete), tint = extra.subtle, modifier = Modifier.height(18.dp))
+                                    }
                                 }
                             }
                         }
@@ -240,35 +258,175 @@ fun BoostersScreen(vm: AppViewModel, onBack: () -> Unit) {
                 }
                 items(list, key = { it.id }) { b ->
                     val ds = settings.dateStyle
-                    Row(Modifier.fillMaxWidth().clickable { editing = b }.padding(horizontal = 20.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                    val isSel = b.id in selected
+                    Row(
+                        Modifier.fillMaxWidth()
+                            .background(if (isSel) androidx.compose.material3.MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else androidx.compose.ui.graphics.Color.Transparent)
+                            .combinedClickable(
+                                onClick = { if (selected.isNotEmpty()) selected = if (isSel) selected - b.id else selected + b.id else onOpen(b.id) },
+                                onLongClick = { selected = selected + b.id },
+                            )
+                            .padding(horizontal = 20.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        if (selected.isNotEmpty()) Checkbox(checked = isSel, onCheckedChange = { selected = if (it) selected + b.id else selected - b.id })
                         Column(Modifier.weight(1f)) {
-                            Text(nl.spoonpaco.ninegrid.domain.Dates.date(b.openedAt, ds), fontSize = NgText.body)
+                            Text(nl.spoonpaco.ninegrid.domain.Dates.date(b.openedAt, ds) + " · " + androidx.compose.ui.res.pluralStringResource(R.plurals.n_cards_short, cardsOf[b.id].orEmpty().sumOf { it.quantity }, cardsOf[b.id].orEmpty().sumOf { it.quantity }), fontSize = NgText.body)
                             Text(stringResource(R.string.boosters_then_now, money(b.valueAtOpen, b.currency, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL), money(now(b), b.currency, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL)), fontSize = NgText.body, color = extra.subtle)
                         }
                         Text(money(b.paid, b.currency, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL), color = extra.price, fontWeight = FontWeight.Bold)
+                        if (selected.isEmpty()) Text("  ›", color = extra.subtle)
                     }
                 }
             }
             item { Text(stringResource(R.string.boosters_note), fontSize = NgText.caption, color = extra.subtle, modifier = Modifier.padding(16.dp)) }
+            if (boosters.isNotEmpty()) item {
+                TextButton(onClick = { deleting = boosters.map { it.id }.toSet() }, modifier = Modifier.padding(horizontal = 8.dp)) {
+                    Text(stringResource(R.string.boosters_delete_all), color = NgColors.Error)
+                }
+                Spacer(Modifier.height(24.dp))
+            }
         }
     }
-    editing?.let { b ->
+    deleting?.let { ids -> DeleteBoostersDialog(vm, ids) { done -> deleting = null; if (done) selected = emptySet() } }
+}
+
+/**
+ * Boosters verwijderen: alleen de booster (de kaarten blijven in je collectie) of ook de kaarten eruit halen.
+ * Kaarten in een deck blijven altijd staan; dat staat er vooraf bij.
+ */
+@Composable
+fun DeleteBoostersDialog(vm: AppViewModel, ids: Set<Long>, onClose: (deleted: Boolean) -> Unit) {
+    var withCards by remember { mutableStateOf(false) }
+    var counts by remember { mutableStateOf<Pair<Int, Int>?>(null) }
+    LaunchedEffect(ids) { counts = vm.boosterCardsInCollection(ids) }
+    AlertDialog(
+        onDismissRequest = { onClose(false) },
+        title = { Text(androidx.compose.ui.res.pluralStringResource(R.plurals.boosters_delete_title, ids.size, ids.size)) },
+        text = {
+            Column {
+                Row(Modifier.fillMaxWidth().clickable { withCards = false }, verticalAlignment = Alignment.CenterVertically) {
+                    androidx.compose.material3.RadioButton(selected = !withCards, onClick = { withCards = false })
+                    Text(stringResource(R.string.boosters_delete_only))
+                }
+                Row(Modifier.fillMaxWidth().clickable { withCards = true }, verticalAlignment = Alignment.CenterVertically) {
+                    androidx.compose.material3.RadioButton(selected = withCards, onClick = { withCards = true })
+                    Text(stringResource(R.string.boosters_delete_cards))
+                }
+                counts?.let { (inCol, notIn) ->
+                    if (withCards) {
+                        Text(stringResource(R.string.boosters_delete_cards_count, inCol), fontSize = NgText.body, modifier = Modifier.padding(top = 6.dp))
+                        if (notIn > 0) Text(stringResource(R.string.boosters_delete_cards_skip, notIn), fontSize = NgText.body, color = LocalNgExtra.current.subtle)
+                    }
+                }
+                Text(stringResource(R.string.boosters_delete_undo), fontSize = NgText.caption, color = LocalNgExtra.current.subtle, modifier = Modifier.padding(top = 6.dp))
+            }
+        },
+        confirmButton = { TextButton(onClick = { vm.deleteBoosters(ids, withCards); onClose(true) }) { Text(stringResource(R.string.delete), color = NgColors.Error) } },
+        dismissButton = { TextButton(onClick = { onClose(false) }) { Text(stringResource(R.string.cancel)) } },
+    )
+}
+
+/** Wat er in één booster zat: kop met betaald en winst, daaronder de kaarten (duurste eerst, de hit bovenaan). */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BoosterDetailScreen(vm: AppViewModel, boosterId: Long, onBack: () -> Unit, onCard: (String) -> Unit) {
+    val boosters by vm.boosters.collectAsState()
+    val cards by vm.boosterCards.collectAsState()
+    val prints by vm.boosterPrints.collectAsState()
+    val all by vm.entries.collectAsState()
+    val settings by vm.settings.collectAsState()
+    val extra = LocalNgExtra.current
+    val b = boosters.firstOrNull { it.id == boosterId }
+    if (b == null) { LaunchedEffect(Unit) { onBack() }; return }
+    val byId = remember(prints) { prints.associateBy { it.id } }
+    val mine = remember(cards, boosterId) { cards.filter { it.boosterId == boosterId } }
+    fun value(c: nl.spoonpaco.ninegrid.data.db.BoosterCard) = vm.boosterValue(listOf(byId[c.printId] to c), b.currency)
+    val sorted = remember(mine, prints, settings.currency) { mine.sortedByDescending { value(it) } }
+    val now = sorted.sumOf { value(it) }
+    // Wat je nog hebt (collectie of deck, geen proxies), per print en afwerking.
+    val owned = remember(all) { all.filter { !it.entry.proxy }.groupBy { it.entry.printId to it.entry.finish }.mapValues { (_, l) -> l.sumOf { it.entry.quantity } } }
+    var asCards by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
+    var editing by remember { mutableStateOf(false) }
+    var deleting by remember { mutableStateOf(false) }
+    Scaffold(topBar = {
+        TopAppBar(
+            title = { Text("${b.setCode} " + boosterTypeLabel(b.type)) },
+            navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) } },
+            actions = {
+                nl.spoonpaco.ninegrid.ui.components.PrivacyButton(vm)
+                IconButton(onClick = { editing = true }) { Icon(androidx.compose.material.icons.Icons.Filled.Edit, stringResource(R.string.booster_edit)) }
+                IconButton(onClick = { deleting = true }) { Icon(androidx.compose.material.icons.Icons.Filled.Delete, stringResource(R.string.booster_delete), tint = NgColors.Error) }
+            },
+        )
+    }) { pad ->
+        LazyColumn(Modifier.padding(pad).fillMaxSize(), contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 32.dp)) {
+            item {
+                Card(colors = CardDefaults.cardColors(containerColor = extra.cardSurface), shape = NgShape.Normal,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)) {
+                    Column(Modifier.padding(12.dp)) {
+                        Text(nl.spoonpaco.ninegrid.domain.Dates.date(b.openedAt, settings.dateStyle) + " · " + androidx.compose.ui.res.pluralStringResource(R.plurals.n_cards_short, mine.sumOf { it.quantity }, mine.sumOf { it.quantity }), fontWeight = FontWeight.Bold)
+                        ResultLine(stringResource(R.string.booster_paid), money(b.paid, b.currency, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL), null)
+                        ResultLine(stringResource(R.string.booster_value_then), money(b.valueAtOpen, b.currency, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL), null)
+                        ResultLine(stringResource(R.string.booster_value_now), money(now, b.currency, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.TOTAL), null)
+                        ResultLine(stringResource(R.string.booster_result), signed(now - b.paid, b.currency), now >= b.paid)
+                    }
+                }
+            }
+            item { ThumbSwitch(asCards) { asCards = it } }
+            if (mine.isEmpty()) item { Text(stringResource(R.string.booster_no_cards), modifier = Modifier.padding(16.dp), color = extra.subtle) }
+            if (asCards) {
+                items(sorted.chunked(3)) { row ->
+                    Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        row.forEach { c ->
+                            val p = byId[c.printId]
+                            Column(Modifier.weight(1f).clickable { onCard(c.printId) }, horizontalAlignment = Alignment.CenterHorizontally) {
+                                CardThumb(p, vm.images, settings, 100, foil = c.finish != nl.spoonpaco.ninegrid.data.db.Finish.NONFOIL)
+                                Text((if (c == sorted.first()) "★ " else "") + (p?.name ?: "?") + (if (c.quantity > 1) " ×${c.quantity}" else ""), fontSize = NgText.caption, maxLines = 1,
+                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, fontWeight = if (c == sorted.first()) FontWeight.Bold else FontWeight.Normal)
+                                Text(money(value(c), b.currency, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.CARD), fontSize = NgText.caption, color = extra.price)
+                                if ((owned[c.printId to c.finish] ?: 0) < c.quantity) Text(stringResource(R.string.booster_card_gone), fontSize = NgText.caption, color = extra.subtle)
+                            }
+                        }
+                        repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
+                    }
+                }
+            } else {
+                items(sorted, key = { it.id }) { c ->
+                    val p = byId[c.printId]
+                    val gone = (owned[c.printId to c.finish] ?: 0) < c.quantity
+                    nl.spoonpaco.ninegrid.ui.components.CardRow(
+                        Entry(printId = c.printId, finish = c.finish, quantity = c.quantity), p, settings, vm.images,
+                        location = if (gone) stringResource(R.string.booster_card_gone) else null,
+                        tag = if (c == sorted.first() && value(c) > 0) stringResource(R.string.booster_hit) else null,
+                        priceText = money(value(c), b.currency, nl.spoonpaco.ninegrid.ui.components.PrivacyKind.CARD),
+                    ) { onCard(c.printId) }
+                }
+            }
+        }
+    }
+    if (editing) {
         var price by remember(b.id) { mutableStateOf(String.format(java.util.Locale.getDefault(), "%.2f", b.paid)) }
         AlertDialog(
-            onDismissRequest = { editing = null },
+            onDismissRequest = { editing = false },
             title = { Text(stringResource(R.string.booster_edit)) },
             text = {
                 OutlinedTextField(price, { price = it.filter { c -> c.isDigit() || c == ',' || c == '.' } }, singleLine = true,
                     label = { Text(stringResource(R.string.booster_paid)) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal))
             },
-            confirmButton = { TextButton(onClick = { vm.parseMoney(price)?.let { vm.updateBoosterPaid(b, it) }; editing = null }) { Text(stringResource(R.string.save)) } },
-            dismissButton = {
-                Row {
-                    TextButton(onClick = { vm.deleteBooster(b); editing = null }) { Text(stringResource(R.string.delete), color = NgColors.Error) }
-                    TextButton(onClick = { editing = null }) { Text(stringResource(R.string.cancel)) }
-                }
-            },
+            confirmButton = { TextButton(onClick = { vm.parseMoney(price)?.let { vm.updateBoosterPaid(b, it) }; editing = false }) { Text(stringResource(R.string.save)) } },
+            dismissButton = { TextButton(onClick = { editing = false }) { Text(stringResource(R.string.cancel)) } },
         )
+    }
+    if (deleting) DeleteBoostersDialog(vm, setOf(b.id)) { done -> deleting = false; if (done) onBack() }
+}
+
+/** Thumbnails | Namen, zoals bij Combo's en Suggesties. */
+@Composable
+private fun ThumbSwitch(asCards: Boolean, onChange: (Boolean) -> Unit) {
+    androidx.compose.material3.SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {
+        androidx.compose.material3.SegmentedButton(selected = asCards, onClick = { onChange(true) }, shape = androidx.compose.material3.SegmentedButtonDefaults.itemShape(0, 2)) { Text("▦ " + stringResource(R.string.combos_view_cards)) }
+        androidx.compose.material3.SegmentedButton(selected = !asCards, onClick = { onChange(false) }, shape = androidx.compose.material3.SegmentedButtonDefaults.itemShape(1, 2)) { Text("☰ " + stringResource(R.string.combos_view_names)) }
     }
 }
 

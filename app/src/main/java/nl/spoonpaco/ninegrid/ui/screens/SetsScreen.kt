@@ -108,12 +108,12 @@ fun SetsScreen(vm: AppViewModel, onBack: () -> Unit, onSet: (String) -> Unit) {
     val shown = remember(rows, query, sort) {
         val q = query.trim()
         val f = if (q.isEmpty()) rows else rows.filter { it.name.contains(q, true) || it.code.equals(q, true) }
-        when (sort) {
+        when (nl.spoonpaco.ninegrid.ui.components.SortKey.key(sort)) {
             "name" -> f.sortedBy { it.name.lowercase() }
             "date" -> f.sortedByDescending { it.released }
             "count" -> f.sortedByDescending { it.cards }
             else -> f.sortedByDescending { it.value }
-        }
+        }.let { if (nl.spoonpaco.ninegrid.ui.components.SortKey.rev(sort)) it.reversed() else it }
     }
 
     Scaffold(topBar = {

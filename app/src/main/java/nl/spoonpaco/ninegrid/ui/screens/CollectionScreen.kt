@@ -107,7 +107,10 @@ fun CollectionScreen(
     // Filters en sortering worden onthouden, ook na het afsluiten.
     val filter = remember(settings.filters["collection"]) { CardFilter.fromJson(settings.filters["collection"]) }
     val allFilter = remember(settings.filters["allcards"]) { CardFilter.fromJson(settings.filters["allcards"]) }
-    val sort = settings.collectionSort
+    val sortRaw = settings.collectionSort
+    // Sleutel en richting (↑ = omgekeerd), zie SortKey.
+    val sort = nl.spoonpaco.ninegrid.ui.components.SortKey.key(sortRaw)
+    val sortRev = nl.spoonpaco.ninegrid.ui.components.SortKey.rev(sortRaw)
     var menu by remember { mutableStateOf(false) }
     var topMenu by remember { mutableStateOf(false) }
     var pasteWish by remember { mutableStateOf(false) }
@@ -128,11 +131,11 @@ fun CollectionScreen(
     val binderList = remember(all) { all.filter { it.entry.deckId == null }.mapNotNull { it.entry.binder?.takeIf { b -> b.isNotBlank() } }.distinct().sortedBy { it.lowercase() } }
 
     // Alleen opnieuw uitrekenen als de kaarten of de filters echt veranderen (scheelt veel bij duizenden kaarten).
-    val filtered = remember(all, query, filter, settings.newDays, settings.newSeenAt) { all.filter { filter.matches(it, query) { e -> e.isNew(settings) } } }
+    val filtered = remember(all, query, filter, settings.newDays, settings.newSeenAt, settings.currency) { all.filter { filter.matches(it, query, settings.currency) { e -> e.isNew(settings) } } }
     val count = remember(filtered) { filtered.sumOf { it.entry.quantity } }
     val value = remember(filtered, settings.currency) { filtered.sumOf { Money.total(it.entry, it.print, settings.currency) } }
     data class Group(val key: String, val title: String, val count: Int, val value: Double, val cards: List<nl.spoonpaco.ninegrid.data.db.EntryWithPrint>, val binder: String? = null)
-    val groups = remember(filtered, sort, settings.currency) {
+    val groups = remember(filtered, sort, sortRev, settings.currency) {
         when (sort) {
             "set" -> filtered.groupBy { it.print?.setCode ?: "?" }.toSortedMap().map { (set, list) ->
                 Group(
@@ -151,15 +154,15 @@ fun CollectionScreen(
                     )
                 }
             else -> emptyList()
-        }
+        }.let { g -> if (sortRev) g.reversed().map { it.copy(cards = it.cards.reversed()) } else g }
     }
-    val sortedFlat = remember(filtered, sort, settings.currency) {
+    val sortedFlat = remember(filtered, sort, sortRev, settings.currency) {
         when (sort) {
             "price" -> filtered.sortedByDescending { Money.total(it.entry, it.print, settings.currency) }
             "name" -> filtered.sortedBy { it.print?.name ?: "" }
             "new" -> filtered.sortedByDescending { it.entry.addedAt }
             else -> emptyList()
-        }
+        }.let { if (sortRev) it.reversed() else it }
     }
     // De kaarten in de volgorde zoals ze op het scherm staan: het kaartscherm veegt daarbinnen.
     val listedPrintIds = remember(groups, sortedFlat) {
@@ -229,10 +232,12 @@ fun CollectionScreen(
                     FilterSearchBar(
                         query = query, onQuery = { query = it }, placeholder = stringResource(R.string.search_hint),
                         filter = filter, onFilter = { vm.setFilter("collection", it) },
-                        groups = setOf(FilterGroup.RARITY, FilterGroup.COLOR, FilterGroup.TYPE, FilterGroup.FOIL, FilterGroup.DECKS, FilterGroup.TEXT, FilterGroup.BINDER, FilterGroup.NEW, FilterGroup.GAME_CHANGER),
+                        groups = setOf(FilterGroup.PRICE, FilterGroup.RARITY, FilterGroup.COLOR, FilterGroup.TYPE, FilterGroup.FOIL, FilterGroup.DECKS, FilterGroup.TEXT, FilterGroup.BINDER, FilterGroup.NEW, FilterGroup.GAME_CHANGER),
                         sortOptions = listOf("set" to stringResource(R.string.sort_set), "binder" to stringResource(R.string.sort_binder), "price" to stringResource(R.string.sort_price), "name" to stringResource(R.string.sort_name), "new" to stringResource(R.string.sort_newest)),
-                        sort = sort, onSort = { vm.setCollectionSort(it) },
+                        sort = sortRaw, onSort = { vm.setCollectionSort(it) },
                         binderOptions = binderList,
+                        currency = settings.currency,
+                        views = vm.viewsFor("collection", filter, sortRaw),
                     )
                     if (all.isEmpty()) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
@@ -294,22 +299,25 @@ private fun AllCardsPanel(vm: AppViewModel, query: String, onQuery: (String) -> 
     // Wat je al hebt: per naam, los en in welke decks.
     val owned = remember(all) { all.filter { !it.entry.proxy && it.print != null }.groupBy { it.print!!.name.lowercase() } }
     val deckNames = remember(decks) { decks.associate { it.id to it.name } }
-    val shown = remember(vm.allResults, filter.notOwned, owned) {
-        if (filter.notOwned) vm.allResults.filter { it.name.lowercase() !in owned } else vm.allResults
+    val shown = remember(vm.allResults, filter.notOwned, filter.priceMin, filter.priceMax, owned, settings.currency) {
+        (if (filter.notOwned) vm.allResults.filter { it.name.lowercase() !in owned } else vm.allResults)
+            .filter { p -> filter.priceOk(if (settings.currency == "USD") p.usd ?: p.usdFoil else p.eur ?: p.eurFoil) }
     }
     Column(Modifier.fillMaxSize()) {
         FilterSearchBar(
             query = query, onQuery = onQuery, placeholder = stringResource(R.string.all_cards_hint),
             filter = filter, onFilter = { vm.setFilter("allcards", it) },
-            groups = setOf(FilterGroup.RARITY, FilterGroup.COLOR, FilterGroup.TYPE, FilterGroup.TEXT, FilterGroup.NOT_OWNED, FilterGroup.GAME_CHANGER),
+            groups = setOf(FilterGroup.PRICE, FilterGroup.RARITY, FilterGroup.COLOR, FilterGroup.TYPE, FilterGroup.TEXT, FilterGroup.NOT_OWNED, FilterGroup.GAME_CHANGER),
             accent = true,
+            currency = settings.currency,
+            views = vm.viewsFor("allcards", filter, ""),
         )
         Text(
             stringResource(if (vm.allCardsOffline(filter)) R.string.all_cards_src_offline else R.string.all_cards_src_online),
             fontSize = NgText.caption, color = extra.subtle, modifier = Modifier.padding(horizontal = 16.dp),
         )
         if (vm.allLoading) LinearProgressIndicator(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp))
-        val hasFilter = filter.rarities.isNotEmpty() || filter.colors.isNotEmpty() || filter.types.isNotEmpty() || filter.notOwned || filter.gameChangers
+        val hasFilter = filter.rarities.isNotEmpty() || filter.colors.isNotEmpty() || filter.types.isNotEmpty() || filter.notOwned || filter.gameChangers || filter.hasPrice
         if (query.trim().length < 2 && !hasFilter) {
             Text(stringResource(R.string.all_cards_min), fontSize = NgText.body, color = extra.subtle, modifier = Modifier.padding(16.dp))
             // Recente zoekopdrachten.
@@ -439,16 +447,38 @@ private fun WishlistPanel(vm: AppViewModel, onCard: (String) -> Unit, onPaste: (
         return
     }
     LaunchedEffect(wishes.map { it.item.id to it.item.anyPrint }, settings.currency) { vm.loadCheapest() }
-    // Filter: alleen Game Changers (een knop, zoals de andere filters).
-    var gcOnly by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
-    val shownWishes = if (gcOnly) wishes.filter { it.print?.gameChanger == true } else wishes
+    // Zoeken, filteren (prijs, Game Changers) en sorteren, zoals in de collectie.
+    val wishFilter = remember(settings.filters["wish"]) { CardFilter.fromJson(settings.filters["wish"]) }
+    var wishQuery by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf("") }
+    var wishSort by remember { mutableStateOf(vm.screenSort("wish", "list")) }
+    val shownWishes = wishes.filter { w ->
+        (!wishFilter.gameChangers || w.print?.gameChanger == true) && wishFilter.priceOk(vm.wishUnitPrice(w, settings.currency)) &&
+            (wishQuery.isBlank() || w.print?.name?.contains(wishQuery.trim(), true) == true)
+    }.let { l ->
+        when (nl.spoonpaco.ninegrid.ui.components.SortKey.key(wishSort)) {
+            "price" -> l.sortedByDescending { vm.wishUnitPrice(it, settings.currency) ?: -1.0 }
+            "name" -> l.sortedBy { it.print?.name?.lowercase() ?: "" }
+            else -> l
+        }.let { if (nl.spoonpaco.ninegrid.ui.components.SortKey.rev(wishSort)) it.reversed() else it }
+    }
+    val gcOnly = wishFilter.gameChangers || wishFilter.hasPrice || wishQuery.isNotBlank()
     LazyColumn(contentPadding = PaddingValues(bottom = 96.dp)) {
+        item(key = "search") {
+            FilterSearchBar(
+                query = wishQuery, onQuery = { wishQuery = it }, placeholder = stringResource(R.string.search_hint),
+                filter = wishFilter, onFilter = { vm.setFilter("wish", it) },
+                groups = setOf(FilterGroup.PRICE, FilterGroup.GAME_CHANGER),
+                sortOptions = listOf("list" to stringResource(R.string.sort_list), "price" to stringResource(R.string.sort_price), "name" to stringResource(R.string.sort_name)),
+                sort = wishSort, onSort = { wishSort = it; vm.setScreenSort("wish", it) },
+                currency = settings.currency,
+                views = vm.viewsFor("wish", wishFilter, wishSort),
+            )
+        }
         item(key = "filters") {
             Row(Modifier.padding(horizontal = NgSpace.screen), verticalAlignment = Alignment.CenterVertically) {
-                androidx.compose.material3.FilterChip(selected = gcOnly, onClick = { gcOnly = !gcOnly }, label = { Text(stringResource(R.string.filter_game_changers)) })
                 val wantsContext = androidx.compose.ui.platform.LocalContext.current
                 val wantsCopied = stringResource(R.string.export_wants_copied)
-                androidx.compose.material3.AssistChip(modifier = Modifier.padding(start = 8.dp), onClick = {
+                androidx.compose.material3.AssistChip(onClick = {
                     val (txt, n) = nl.spoonpaco.ninegrid.domain.Export.cardmarketWants(wishes)
                     nl.spoonpaco.ninegrid.ui.components.copyAndOpen(wantsContext, "Cardmarket", txt, nl.spoonpaco.ninegrid.domain.Export.Site.CARDMARKET.url, wantsCopied.replace("%d", n.toString()))
                 }, label = { Text(stringResource(R.string.export_wants)) })

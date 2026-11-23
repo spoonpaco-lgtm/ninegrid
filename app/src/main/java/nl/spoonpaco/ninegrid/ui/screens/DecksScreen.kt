@@ -125,7 +125,9 @@ fun DecksScreen(vm: AppViewModel, onDeck: (Long) -> Unit, onNewDeck: () -> Unit,
             return@Scaffold
         }
         var query by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf("") }
-        val sort = settings.decksSort
+        val sortRaw = settings.decksSort
+        val sort = nl.spoonpaco.ninegrid.ui.components.SortKey.key(sortRaw)
+        val sortRev = nl.spoonpaco.ninegrid.ui.components.SortKey.rev(sortRaw)
         // Per deck één keer uitrekenen: kaarten, controle en waarde.
         data class DeckLine(val d: nl.spoonpaco.ninegrid.data.db.Deck, val count: Int, val value: Double, val check: nl.spoonpaco.ninegrid.domain.DeckCheck)
         val rows = remember(decks, all, settings.currency) {
@@ -141,7 +143,7 @@ fun DecksScreen(vm: AppViewModel, onDeck: (Long) -> Unit, onNewDeck: () -> Unit,
                 "count" -> l.sortedByDescending { it.count }
                 "updated" -> l.sortedByDescending { it.d.updatedAt }
                 else -> l.sortedByDescending { it.value }
-            }
+            }.let { if (sortRev) it.reversed() else it }
         }
         // Standaard (sortering "Per format", geen zoekterm): per format met een kopje.
         val grouped = sort == "format" && query.isBlank()
@@ -152,11 +154,11 @@ fun DecksScreen(vm: AppViewModel, onDeck: (Long) -> Unit, onNewDeck: () -> Unit,
                 filter = nl.spoonpaco.ninegrid.ui.components.CardFilter(), onFilter = {}, groups = emptySet(),
                 sortOptions = listOf("format" to stringResource(R.string.sort_per_format), "value" to stringResource(R.string.sort_value),
                     "name" to stringResource(R.string.sort_name), "count" to stringResource(R.string.sort_count), "updated" to stringResource(R.string.sort_updated)),
-                sort = sort, onSort = { vm.setDecksSort(it) },
+                sort = sortRaw, onSort = { vm.setDecksSort(it) },
             )
             LazyColumn(contentPadding = PaddingValues(bottom = 96.dp)) {
                 if (grouped) {
-                    shown.groupBy { it.d.format }.toList().sortedByDescending { (_, l) -> l.sumOf { it.value } }.forEach { (f, l) ->
+                    shown.groupBy { it.d.format }.toList().sortedByDescending { (_, l) -> l.sumOf { it.value } }.let { if (sortRev) it.reversed() else it }.forEach { (f, l) ->
                         item(key = "h_$f") {
                             Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 4.dp)) {
                                 Text(formatLabel(f), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, modifier = Modifier.weight(1f))
@@ -406,7 +408,11 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
                 nl.spoonpaco.ninegrid.ui.components.FilterSearchBar(
                     query = cardQuery, onQuery = { cardQuery = it }, placeholder = stringResource(R.string.deck_search),
                     filter = deckFilter, onFilter = { vm.setFilter("deck", it) },
-                    groups = setOf(nl.spoonpaco.ninegrid.ui.components.FilterGroup.COLOR, nl.spoonpaco.ninegrid.ui.components.FilterGroup.TYPE, nl.spoonpaco.ninegrid.ui.components.FilterGroup.RARITY),
+                    groups = setOf(nl.spoonpaco.ninegrid.ui.components.FilterGroup.PRICE, nl.spoonpaco.ninegrid.ui.components.FilterGroup.COLOR, nl.spoonpaco.ninegrid.ui.components.FilterGroup.TYPE, nl.spoonpaco.ninegrid.ui.components.FilterGroup.RARITY),
+                    sortOptions = listOf("mana" to deckSortName("mana"), "name" to deckSortName("name"), "price" to deckSortName("price")),
+                    sort = cardSort, onSort = { cardSort = it; vm.setDeckSort(deckId, it) },
+                    currency = settings.currency,
+                    views = vm.viewsFor("deck", deckFilter, cardSort),
                 )
                 Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.End) {
                     Box {
@@ -420,31 +426,24 @@ fun DeckDetailScreen(vm: AppViewModel, deckId: Long, onBack: () -> Unit, onCard:
                     }
                 }
                 }
-                Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+                // Sorteren zit nu in het paneel Filteren en sorteren; hier alleen wat er gekozen is.
+                Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text(stringResource(R.string.deck_by_type), fontSize = NgText.body, color = extra.subtle, modifier = Modifier.weight(1f))
-                    Box {
-                        var sortMenu by remember { mutableStateOf(false) }
-                        TextButton(onClick = { sortMenu = true }) { Text(stringResource(R.string.deck_sort_label, deckSortName(cardSort)) + " ▾", fontSize = NgText.body) }
-                        DropdownMenu(expanded = sortMenu, onDismissRequest = { sortMenu = false }) {
-                            listOf("mana", "name", "price").forEach { k ->
-                                DropdownMenuItem(text = { Text(deckSortName(k)) }, onClick = { sortMenu = false; cardSort = k; vm.setDeckSort(deckId, k) })
-                            }
-                        }
-                    }
+                    Text(stringResource(R.string.deck_sort_label, (if (nl.spoonpaco.ninegrid.ui.components.SortKey.rev(cardSort)) "↑ " else "") + deckSortName(nl.spoonpaco.ninegrid.ui.components.SortKey.key(cardSort))), fontSize = NgText.body, color = extra.subtle)
                 }
             }
             if (tab == 0) {
                 val q = cardQuery.trim()
                 val visible = list.filter { e ->
                     val sec = e.entry.section ?: Section.MAIN
-                    !(hasBanner && sec == Section.COMMANDER) && deckFilter.copy(decks = true).matches(e, "") &&
+                    !(hasBanner && sec == Section.COMMANDER) && deckFilter.copy(decks = true).matches(e, "", settings.currency) &&
                         (q.isEmpty() || e.print?.name?.contains(q, true) == true || e.print?.typeLine?.contains(q, true) == true)
                 }
-                fun sorted(l: List<nl.spoonpaco.ninegrid.data.db.EntryWithPrint>) = when (cardSort) {
+                fun sorted(l: List<nl.spoonpaco.ninegrid.data.db.EntryWithPrint>) = when (nl.spoonpaco.ninegrid.ui.components.SortKey.key(cardSort)) {
                     "name" -> l.sortedBy { it.print?.name ?: "" }
                     "price" -> l.sortedByDescending { Money.total(it.entry, it.print, settings.currency) }
                     else -> l.sortedWith(compareBy<nl.spoonpaco.ninegrid.data.db.EntryWithPrint> { it.print?.cmc ?: 0.0 }.thenBy { it.print?.name ?: "" })
-                }
+                }.let { if (nl.spoonpaco.ninegrid.ui.components.SortKey.rev(cardSort)) it.reversed() else it }
                 // Groepen: commander (zonder banner), de typen van het main deck, en het sideboard apart.
                 val groups = buildList {
                     visible.filter { it.entry.section == Section.COMMANDER }.takeIf { it.isNotEmpty() }?.let { add("commander" to it) }

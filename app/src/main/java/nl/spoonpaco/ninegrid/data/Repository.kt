@@ -179,7 +179,64 @@ class Repository(
     }
     suspend fun newBox(b: nl.spoonpaco.ninegrid.data.db.BoosterBox) = db.boosters().insertBox(b.copy(id = 0))
     suspend fun updateBooster(b: nl.spoonpaco.ninegrid.data.db.Booster) = db.boosters().update(b)
-    suspend fun deleteBooster(id: Long) = db.boosters().delete(id)
+    /** Hoeveel kaarten van deze boosters nog los in de collectie zitten, en hoeveel niet (in een deck, weg of verkocht). */
+    suspend fun boosterCardsInCollection(ids: Collection<Long>): Pair<Int, Int> {
+        val cards = db.boosters().allCards().filter { it.boosterId in ids }
+        val plan = takeFromCollection(cards)
+        val wanted = cards.sumOf { it.quantity }
+        val taken = plan.sumOf { it.second }
+        return taken to (wanted - taken)
+    }
+
+    /** Welke losse exemplaren (nieuwste eerst) de boosterkaarten dekken: exemplaar en hoeveel ervan. */
+    private suspend fun takeFromCollection(cards: List<nl.spoonpaco.ninegrid.data.db.BoosterCard>): List<Pair<Entry, Int>> {
+        if (cards.isEmpty()) return emptyList()
+        val pool = cards.map { it.printId }.distinct().chunked(500).flatMap { db.entries().forPrints(it) }
+            .filter { it.deckId == null && !it.proxy }.sortedByDescending { it.addedAt }
+        val left = pool.associate { it.id to it.quantity }.toMutableMap()
+        val used = LinkedHashMap<Long, Int>()
+        for (c in cards) {
+            var need = c.quantity
+            for (e in pool) {
+                if (need == 0) break
+                if (e.printId != c.printId || e.finish != c.finish) continue
+                val take = minOf(need, left[e.id] ?: 0)
+                if (take <= 0) continue
+                left[e.id] = (left[e.id] ?: 0) - take
+                used[e.id] = (used[e.id] ?: 0) + take
+                need -= take
+            }
+        }
+        val byId = pool.associateBy { it.id }
+        return used.mapNotNull { (id, n) -> byId[id]?.let { it to n } }
+    }
+
+    /**
+     * Verwijdert boosters. [withCards]: ook hun kaarten uit de collectie halen (alleen losse exemplaren, niet uit decks).
+     * Eén wijziging in het wijzigingslog, zodat ongedaan maken alles terugzet. Geeft het aantal weggehaalde kaarten terug.
+     */
+    suspend fun deleteBoosters(ids: Collection<Long>, withCards: Boolean, summary: String): Int {
+        if (ids.isEmpty()) return 0
+        var removed = 0
+        db.withTransaction {
+            val boosters = db.boosters().all().filter { it.id in ids }
+            val cards = db.boosters().allCards().filter { it.boosterId in ids }
+            val rest = db.boosters().all().filter { it.id !in ids }
+            val boxes = db.boosters().allBoxes().filter { box -> boosters.any { it.boxId == box.id } && rest.none { it.boxId == box.id } }
+            val restore = mutableListOf<Entry>()
+            if (withCards) {
+                for ((e, n) in takeFromCollection(cards)) {
+                    restore += e
+                    if (n >= e.quantity) db.entries().deleteIds(listOf(e.id)) else db.entries().upsert(listOf(e.copy(quantity = e.quantity - n)))
+                    removed += n
+                }
+            }
+            boosters.forEach { db.boosters().delete(it.id) }
+            log(summary, UndoData(restoreEntries = restore, restoreBoosters = boosters, restoreBoosterCards = cards, restoreBoosterBoxes = boxes))
+        }
+        cleanupPrints().let { if (it.isNotEmpty()) onPrintsRemoved(it) }
+        return removed
+    }
 
     /** Voegt exemplaren toe. Gelijke exemplaren op dezelfde plek worden samengevoegd tot één stapel. */
     suspend fun addEntries(items: List<NewEntry>, summary: String): Int {
@@ -449,6 +506,10 @@ class Repository(
             undo.deleteDeckIds.chunked(500).forEach { db.decks().deleteIds(it) }
             // Een booster die bij deze wijziging is opgeslagen, verdwijnt mee.
             db.boosters().idsForChange(change.id).forEach { db.boosters().delete(it) }
+            // Verwijderde boosters komen terug (eerst de box, dan de booster, dan de kaarten).
+            if (undo.restoreBoosterBoxes.isNotEmpty()) db.boosters().restoreBoxes(undo.restoreBoosterBoxes)
+            if (undo.restoreBoosters.isNotEmpty()) db.boosters().restoreBoosters(undo.restoreBoosters)
+            undo.restoreBoosterCards.chunked(500).forEach { db.boosters().restoreCards(it) }
             db.changes().markReverted(change.id)
             done = true
         }

@@ -931,7 +931,7 @@
     <string name="boosters_box">Box: %1$d of %2$d opened · %3$s out · %4$s</string>
     <string name="boosters_then_now">Then %1$s · now %2$s</string>
     <string name="boosters_total">%1$s paid · %2$s now</string>
-    <string name="boosters_note">Value now uses today\'s prices. Tap a booster to change the price or remove it; the cards stay in your collection.</string>
+    <string name="boosters_note">Value now uses today\'s prices. Tap a booster to see what was in it; long-press to select and delete boosters.</string>
     <plurals name="n_opened">
         <item quantity="one">%d opened</item>
         <item quantity="other">%d opened</item>
@@ -1235,4 +1235,42 @@
     <string name="picture_prefetch">Download sets in advance</string>
     <string name="picture_prefetch_explain">Fingerprints for every set in your collection and decks, best on wifi. A set you enter while scanning is added by itself (with internet); that scan still reads text only.</string>
     <string name="scan_picture_guess">best guess from the picture, check it</string>
+    <string name="boosters_selected">%1$d selected</string>
+    <string name="select_all">All</string>
+    <string name="booster_box_delete">Delete box</string>
+    <string name="boosters_delete_all">Delete all boosters</string>
+    <string name="boosters_delete_only">Only the booster (the cards stay in your collection)</string>
+    <string name="boosters_delete_cards">Also take the cards out of your collection</string>
+    <string name="boosters_delete_cards_count">%1$d cards leave your collection.</string>
+    <string name="boosters_delete_cards_skip">%1$d cards are no longer loose in your collection (in a deck, sold or gone); they stay as they are.</string>
+    <string name="boosters_delete_undo">Can be reverted with Undo last action.</string>
+    <string name="booster_delete">Delete booster</string>
+    <string name="booster_value_then">Value then</string>
+    <string name="booster_value_now">Value now</string>
+    <string name="booster_result">Profit or loss</string>
+    <string name="booster_no_cards">No cards were stored for this booster.</string>
+    <string name="booster_card_gone">no longer in your collection</string>
+    <string name="log_boosters_deleted">%1$d boosters deleted</string>
+    <string name="boosters_deleted">%1$d boosters deleted (the cards stay in your collection)</string>
+    <string name="boosters_deleted_cards">%1$d boosters deleted, %2$d cards taken out of your collection</string>
+    <plurals name="n_cards_short">
+        <item quantity="one">%d card</item>
+        <item quantity="other">%d cards</item>
+    </plurals>
+    <plurals name="boosters_delete_title">
+        <item quantity="one">Delete booster?</item>
+        <item quantity="other">Delete %d boosters?</item>
+    </plurals>
+    <string name="sort_list">List order</string>
+    <string name="filter_and_sort">Filter and sort</string>
+    <string name="sort_tap_again">Tap the chosen sort again to reverse it (↓ default, ↑ reversed).</string>
+    <string name="views_saved">Saved combinations</string>
+    <string name="views_save">Save this combination</string>
+    <string name="views_name">Name</string>
+    <string name="views_save_note">Saves the filters and sort that are on now. Tap the name later to bring them back.</string>
+    <string name="filter_price">Price per card</string>
+    <string name="price_from">From</string>
+    <string name="price_to">To</string>
+    <string name="filter_price_note">For a foil the foil price counts. Cards without a price drop out as soon as there is a limit.</string>
+    <string name="chart_growth_split">In this period %1$s: %2$s from prices, %3$s from cards added or removed</string>
 </resources>
