@@ -1,0 +1,34 @@
+NineGrid scanrapport
+versie: 0.9.16 · toestel: samsung SM-A165F
+soort: één kaart · camera · foto 1080x1440
+instellingen: set leeg (automatisch) · lamp uit · automatisch afdrukken aan · AI-hulp uit · offline database aan · taal en · plaatje aan, geen vingerafdrukken voor deze set
+camerabeelden: 7 · aangevuld uit de beelden: 0
+kader: 290 179 790 877
+scherpte: 421.7 · dekking: 0.75 · lezen: 512 ms · opnieuw gelezen: 1
+vakken met naam of nummer en set: 1 van 1
+
+vak 1: gevonden: Icewind Elemental (FDN 42)
+  set=FDN nummer=42 taal= naam=Icewind Elemental
+  > Icewind Elemental
+  > Creature- Elemental
+  > Flying
+  > When this creature enters, draw a
+  > card, then discard a card.
+  > It surveys its domain on wings of ice,
+  > bringing misfortune to all who dare
+  > trespass.
+  > 3/4
+  > CO042
+  > FDN EN >ANDREW MAR
+  > 202Wands of the Coust
+  > lcewind Elemental
+  > trespass.
+  > C0042
+  > FDN • EN >ANDREW MAR
+  > 3/4
+  > &02Wwands of the Cus
+  > trespasS.
+  > C 0042
+  > FDNEN >ANDREW MAR
+  > 3/4
+  > w&02Wvans of the Cust

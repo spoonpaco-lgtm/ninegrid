@@ -1,0 +1,28 @@
+NineGrid scanrapport
+versie: 0.9.16 · toestel: samsung SM-A165F
+soort: één kaart · camera · foto 1080x1440
+instellingen: set leeg (automatisch) · lamp uit · automatisch afdrukken aan · AI-hulp uit · offline database aan · taal en · plaatje aan, geen vingerafdrukken voor deze set
+camerabeelden: 7 · aangevuld uit de beelden: 0
+kader: 290 179 790 877
+scherpte: 207.9 · dekking: 0.77 · lezen: 493 ms · opnieuw gelezen: 1
+vakken met naam of nummer en set: 1 van 1
+
+vak 1: gevonden: Bake into a Pie (FDN 169)
+  set=- nummer=169 taal=- naam=Bake into a Pie
+  > Bake into a Pie
+  > Instant
+  > Destroy target ereature, Create a
+  > Food token. ('s an artifact with "2,
+  > e, Sacrifice this token: Yon gain 3 life.")
+  > "My secrt ingredient? Wall, I can't
+  > tell you that. But here's a hint. It's not
+  > love,"
+  > M&02IWianls of the Cant
+  > FDNENoLAN Monos
+  > Dake into a Ple
+  > € O169
+  > FDN ENoAN lonos
+  > M02Wan of the Cont
+  > C O169
+  > FDN ÉNoUAN onos
+  > M02Wian of the Cont

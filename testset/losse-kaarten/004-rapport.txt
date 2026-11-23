@@ -1,0 +1,25 @@
+NineGrid scanrapport
+versie: 0.9.16 · toestel: samsung SM-A165F
+soort: één kaart · camera · foto 1080x1440
+instellingen: set leeg (automatisch) · lamp uit · automatisch afdrukken aan · AI-hulp uit · offline database aan · taal en · plaatje aan, geen vingerafdrukken voor deze set
+camerabeelden: 6 · aangevuld uit de beelden: 0
+kader: 290 179 790 877
+scherpte: 758.7 · dekking: 0.78 · lezen: 230 ms · opnieuw gelezen: 0
+vakken met naam of nummer en set: 1 van 1
+
+vak 1: gevonden: Ambush Wolf (FDN 98)
+  set=FDN nummer=- taal= naam=Ambush Wolf
+  > Ambush Wolf
+  > 20
+  > Creature – Wolf
+  > Flash (You may cast this spell any timne
+  > you could cast an instant.)
+  > When this creature enters, exile up to
+  > one target card from a graveyard.
+  > It lies perfectly still and silent for hours,
+  > concealed in the undergrowth, until its prey
+  > draws close enough to strike.
+  > 4/2
+  > CO098
+  > FDN EN PAOLO PARENTE
+  > M&C 2024 W'izards of the Coast

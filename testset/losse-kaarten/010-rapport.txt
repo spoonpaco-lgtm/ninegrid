@@ -1,0 +1,25 @@
+NineGrid scanrapport
+versie: 0.9.16 · toestel: samsung SM-A165F
+soort: één kaart · camera · foto 1080x1440
+instellingen: set leeg (automatisch) · lamp uit · automatisch afdrukken aan · AI-hulp uit · offline database aan · taal en · plaatje aan, geen vingerafdrukken voor deze set
+camerabeelden: 6 · aangevuld uit de beelden: 0
+kader: 290 179 790 877
+scherpte: 491.9 · dekking: 0.85 · lezen: 195 ms · opnieuw gelezen: 0
+vakken met naam of nummer en set: 1 van 1
+
+vak 1: gevonden: Revenge of the Rats (FDN 67)
+  set=- nummer=67 taal=- naam=Revenge of the Rats
+  > Revenge of the Rats
+  > Sorcery
+  > Create a tapped 1/1 black Rat creature token
+  > for each creature card in your graveyard.
+  > Flashback 2 (You may cast this card
+  > from your graveyard for iis flashback cost. Then
+  > exile it.)
+  > "The cats are behaving oddly today. Almost like
+  > they're all scared of something."
+  > -Entry in a heavily chewed journal
+  > U 0067
+  > M&C2024 W'izards of the Coast
+  > FDN E
+  > FLuPE PAGLIUSO

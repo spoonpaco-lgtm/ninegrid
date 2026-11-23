@@ -1,0 +1,20 @@
+NineGrid scanrapport
+versie: 0.9.16 · toestel: samsung SM-A165F
+soort: één kaart · camera · foto 1080x1440
+instellingen: set leeg (automatisch) · lamp uit · automatisch afdrukken aan · AI-hulp uit · offline database aan · taal en · plaatje aan, geen vingerafdrukken voor deze set
+camerabeelden: 5 · aangevuld uit de beelden: 0
+kader: 290 179 790 877
+scherpte: 283.6 · dekking: 0.75 · lezen: 174 ms · opnieuw gelezen: 0
+vakken met naam of nummer en set: 1 van 1
+
+vak 1: gevonden: Blanchwood Armor (FDN 213)
+  set=FDN nummer=213 taal= naam=Blanchwood Armor
+  > Blanchwood Armor
+  > Enchantment Aura
+  > Enchant creature
+  > Enchanted creature gets +1/+1 for
+  > each Forest you control.
+  > Some armor is forged, somne is forested.
+  > U 0213
+  > M& 2024 Wizards of the (oast
+  > FDN EN MANUEL CASTAÑÓN

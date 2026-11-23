@@ -1,0 +1,29 @@
+NineGrid scanrapport
+versie: 0.9.16 · toestel: samsung SM-A165F
+soort: één kaart · camera · foto 1080x1440
+instellingen: set leeg (automatisch) · lamp uit · automatisch afdrukken aan · AI-hulp uit · offline database aan · taal en · plaatje aan, geen vingerafdrukken voor deze set
+camerabeelden: 7 · aangevuld uit de beelden: 0
+kader: 290 179 790 877
+scherpte: 537.0 · dekking: 0.76 · lezen: 508 ms · opnieuw gelezen: 1
+vakken met naam of nummer en set: 1 van 1
+
+vak 1: gevonden: Llanowar Elves (FDN 227) [controleren]
+  set=FDN nummer=227 taal= naam=-
+  andere namen: Llanowar Elves
+  > Llanowar Elves
+  > Creature - Elf Druid
+  > :Add 4.
+  > The elves of the Llanowar forest have
+  > defended it for generations. It is their
+  > sacred duty to keep outside influences
+  > Jrom corrupting their ancestral home.
+  > 1/1
+  > C 0227
+  > FDN EN KEV WALKER
+  > M&O 2024 Wizards of the Coast
+  > Llanowar Elves
+  > C0227
+  > FDN •EN KEV WALKER
+  > 1/1
+  > M &O2024 Wizards of the Coast
+  > Llanowar Elves

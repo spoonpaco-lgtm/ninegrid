@@ -1,0 +1,29 @@
+NineGrid scanrapport
+versie: 0.9.16 · toestel: samsung SM-A165F
+soort: één kaart · camera · foto 1080x1440
+instellingen: set leeg (automatisch) · lamp uit · automatisch afdrukken aan · AI-hulp uit · offline database aan · taal en · plaatje aan, geen vingerafdrukken voor deze set
+camerabeelden: 7 · aangevuld uit de beelden: 0
+kader: 290 179 790 877
+scherpte: 659.8 · dekking: 0.74 · lezen: 409 ms · opnieuw gelezen: 1
+vakken met naam of nummer en set: 1 van 1
+
+vak 1: gevonden: Balmor, Battlemage Captain (FDN 237)
+  set=FDN nummer=237 taal= naam=Balmor, Battlemage Captain
+  > Balmor, Battlemage Captain
+  > Legendary Creature - Bird Wizard
+  > Flying
+  > Whenever you cast an instant or sorcery
+  > spell, creatures you control get +1/+0
+  > and gain trample until end of turn.
+  > Even the most hardened armies are ill-
+  > equipped to defend against an onslaught
+  > from the sky."
+  > 1/3
+  > U0237
+  > FDN EN >BRAM SELS
+  > r&2024 W'zards of the Coast
+  > Balmor, Battlemage Captain
+  > U 0237
+  > FDN EN >BRAM SELS
+  > 1/3
+  > IM & 2024 W'zards of the Coast

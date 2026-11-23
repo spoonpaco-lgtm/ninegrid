@@ -1,0 +1,40 @@
+NineGrid scanrapport
+versie: 0.9.16 · toestel: samsung SM-A165F
+soort: één kaart · camera · foto 1080x1440
+instellingen: set leeg (automatisch) · lamp uit · automatisch afdrukken aan · AI-hulp uit · offline database aan · taal en · plaatje aan, geen vingerafdrukken voor deze set
+camerabeelden: 6 · aangevuld uit de beelden: 0
+kader: 290 179 790 877
+scherpte: 792.7 · dekking: 0.80 · lezen: 512 ms · opnieuw gelezen: 1
+vakken met naam of nummer en set: 1 van 1
+
+vak 1: gevonden: Treetop Snarespinner (FDN 114)
+  set=FDN nummer=- taal= naam=Treetop Snarespinner
+  > Treetop Snarespinner
+  > 3
+  > Creature- Spider
+  > Reach (This creature can block creatures with
+  > fying.)
+  > Deathtouch (Any amount of damage this deals
+  > to a creature is enough to destroy it.)
+  > 24: Put a +1/+1 counter on target creature
+  > Vou control. Activate only as a sorcery.
+  > The griffins think they rule the sky, but the spiders
+  > know better.
+  > 1/4
+  > CO114
+  > FDNEN >STEVE ELLIS
+  > M&O 2024 Wzards of the Coast
+  > Treetop Snarespinner
+  > 3¢
+  > The griffins think they rule the sky, but the spiders
+  > know better.
+  > CO114
+  > FDNEN STEVE ELLIS
+  > 1/4
+  > IM &O2024 W'izards of the Coast
+  > The griffins think they rule the sky, but the spiders
+  > know better.
+  > CO114
+  > FDN • EN >STEVE ELLIS
+  > 1/4
+  > IM &O 2024 Wizards of the Coast

@@ -1,0 +1,29 @@
+NineGrid scanrapport
+versie: 0.9.16 · toestel: samsung SM-A165F
+soort: één kaart · camera · foto 1080x1440
+instellingen: set leeg (automatisch) · lamp uit · automatisch afdrukken aan · AI-hulp uit · offline database aan · taal en · plaatje aan, geen vingerafdrukken voor deze set
+camerabeelden: 8 · aangevuld uit de beelden: 0
+kader: 290 179 790 877
+scherpte: 335.5 · dekking: 0.76 · lezen: 489 ms · opnieuw gelezen: 1
+vakken met naam of nummer en set: 1 van 1
+
+vak 1: gevonden: Fleeting Distraction (FDN 155) [controleren]
+  set=- nummer=- taal=- naam=Fleeting Distraction
+  > Fleeting Distraction
+  > nstant
+  > Target creature gets -1/-0 until end
+  > of turn.
+  > Draw a card.
+  > The first spell taught to young mages,
+  > it has spared the lives of many whose
+  > hands are too small to hold a sword.
+  > &2024 NWr
+  > Fleeting Distraction
+  > hands are too small to hold a szword.
+  > C9155
+  > FDNNEN RYAM YEE
+  > H&2024 Whri of ths Chst
+  > hands are too small to hold a swOI
+  > CO155
+  > FONREN RYAM YEE
+  > H&2024TWars of the Chst

@@ -1,0 +1,26 @@
+NineGrid scanrapport
+versie: 0.9.16 · toestel: samsung SM-A165F
+soort: één kaart · camera · foto 1080x1440
+instellingen: set leeg (automatisch) · lamp uit · automatisch afdrukken aan · AI-hulp uit · offline database aan · taal en · plaatje aan, geen vingerafdrukken voor deze set
+camerabeelden: 7 · aangevuld uit de beelden: 0
+kader: 290 179 790 877
+scherpte: 188.8 · dekking: 0.74 · lezen: 483 ms · opnieuw gelezen: 1
+vakken met naam of nummer en set: 1 van 1
+
+vak 1: gevonden: Bake into a Pie (FDN 169) [controleren]
+  set=- nummer=- taal=- naam=Bake into a Pie
+  > Bake into a Pie
+  > 200
+  > Instan
+  > Destroy target creature. Create a
+  > Food token. (It's an artifact vith “2,
+  > e, Sacrifice this token: You gain 3 life.")
+  > My secret ingredient? Well, I can't
+  > tell you that. But here's a hint. It's not
+  > love."
+  > Bake into a Pie
+  > 200
+  > love.
+  > FONNEN IoLTAN BoROS
+  > love.
+  > FONNEN IoLTAN BoiRO5

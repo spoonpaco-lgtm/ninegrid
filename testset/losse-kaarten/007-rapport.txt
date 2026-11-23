@@ -1,0 +1,22 @@
+NineGrid scanrapport
+versie: 0.9.16 · toestel: samsung SM-A165F
+soort: één kaart · camera · foto 1080x1440
+instellingen: set leeg (automatisch) · lamp uit · automatisch afdrukken aan · AI-hulp uit · offline database aan · taal en · plaatje aan, geen vingerafdrukken voor deze set
+camerabeelden: 7 · aangevuld uit de beelden: 0
+kader: 290 179 790 877
+scherpte: 428.7 · dekking: 0.78 · lezen: 205 ms · opnieuw gelezen: 0
+vakken met naam of nummer en set: 1 van 1
+
+vak 1: gevonden: Sanguine Syphoner (FDN 68)
+  set=FDN nummer=- taal= naam=Sanguine Syphoner
+  > Sanguine Syphoner
+  > Creature - Vampire Warlock
+  > Whenever this creature attacks, each
+  > opponent loses 1 life and you gain
+  > 1 life.
+  > As life returned to the bogs of Bala Ged,
+  > the vanpires returned to feed upon it.
+  > 1/3
+  > c o068
+  > FDN EN RINA NoRDSOL
+  > M&C 2024 W'izards of the Coast

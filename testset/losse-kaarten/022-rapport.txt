@@ -1,0 +1,24 @@
+NineGrid scanrapport
+versie: 0.9.16 · toestel: samsung SM-A165F
+soort: één kaart · camera · foto 1080x1440
+instellingen: set leeg (automatisch) · lamp uit · automatisch afdrukken aan · AI-hulp uit · offline database aan · taal en · plaatje aan, geen vingerafdrukken voor deze set
+camerabeelden: 7 · aangevuld uit de beelden: 0
+kader: 290 179 790 877
+scherpte: 681.8 · dekking: 0.81 · lezen: 268 ms · opnieuw gelezen: 0
+vakken met naam of nummer en set: 1 van 1
+
+vak 1: gevonden: Fiendish Panda (FDN 120)
+  set=FDN nummer=120 taal= naam=Fiendish Panda
+  > Fiendish Panda
+  > Creature - Bear Demon
+  > Whenever you gain life, put a +1/+1
+  > counter on this creature.
+  > When this creature dies, return
+  > another target non-Bear creature card
+  > with mana value less than or equal
+  > to this creature's power from your
+  > graveyard to the battlefield.
+  > 3/2
+  > U 0120
+  > FDN EN > BRIAN VALEZA
+  > 2021Wizards of the Coast

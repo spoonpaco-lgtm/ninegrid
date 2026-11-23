@@ -1,0 +1,40 @@
+NineGrid scanrapport
+versie: 0.9.16 · toestel: samsung SM-A165F
+soort: één kaart · camera · foto 1080x1440
+instellingen: set leeg (automatisch) · lamp uit · automatisch afdrukken aan · AI-hulp uit · offline database aan · taal en · plaatje aan, geen vingerafdrukken voor deze set
+camerabeelden: 7 · aangevuld uit de beelden: 0
+kader: 290 179 790 877
+scherpte: 566.4 · dekking: 0.82 · lezen: 567 ms · opnieuw gelezen: 1
+vakken met naam of nummer en set: 1 van 1
+
+vak 1: gevonden: Kykar, Zephyr Awakener (FDN 122) [controleren]
+  set=FDN nummer=- taal= naam=Kykar, Zephyr Awakener
+  > 230
+  > Kykar, Zephyr Awakener
+  > Legendary Creature - Bird Wizard
+  > Flying
+  > Whenever you cast a noncreature spell,
+  > choose one
+  > • Exile another target creature you control.
+  > Return that card to the battlefield under its
+  > owner's control at the beginning of the next
+  > end step.
+  > • Create a 1/1 white Spirit creature token with
+  > flying.
+  > 3/4
+  > FDNEN DMITRY BURMAK
+  > M& C2024 W'izards of the Coast
+  > Kykar, Zephyr Awakener
+  > 230
+  > • Create a 1/1 white Spirit creature token with
+  > fying.
+  > RO122
+  > FDNEN >OMITRY BURMAK
+  > 3/4
+  > IM & C2024 W'izards oť the Coast
+  > • Create a 1/1 white Spirit creature token with
+  > flying.
+  > RO122
+  > FDN • EN >OMITRY BURMAK
+  > 3/4
+  > M & C2024 W'izards of the Coast

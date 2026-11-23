@@ -1,0 +1,22 @@
+NineGrid scanrapport
+versie: 0.9.16 · toestel: samsung SM-A165F
+soort: één kaart · camera · foto 1080x1440
+instellingen: set leeg (automatisch) · lamp uit · automatisch afdrukken aan · AI-hulp uit · offline database aan · taal en · plaatje aan, geen vingerafdrukken voor deze set
+camerabeelden: 7 · aangevuld uit de beelden: 0
+kader: 290 179 790 877
+scherpte: 416.7 · dekking: 0.80 · lezen: 236 ms · opnieuw gelezen: 0
+vakken met naam of nummer en set: 1 van 1
+
+vak 1: gevonden: Think Twice (FDN 165) [controleren]
+  set=FDN nummer=- taal= naam=Think Twice
+  > Think Twice
+  > Instant
+  > Draw a card.
+  > Flashback 2 6 (You may cast this
+  > Card from your graveyard for iis
+  > flashback cost. Then exile it.)
+  > Either I know just the spell I need, or
+  > I'm about to."
+  > C O16s
+  > TM &C 2024 Wzards of the Coast
+  > FDNEN ANTHONY FRANCISCO

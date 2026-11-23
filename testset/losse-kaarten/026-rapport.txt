@@ -1,0 +1,24 @@
+NineGrid scanrapport
+versie: 0.9.16 · toestel: samsung SM-A165F
+soort: één kaart · camera · foto 1080x1440
+instellingen: set leeg (automatisch) · lamp uit · automatisch afdrukken aan · AI-hulp uit · offline database aan · taal en · plaatje aan, geen vingerafdrukken voor deze set
+camerabeelden: 6 · aangevuld uit de beelden: 0
+kader: 290 179 790 877
+scherpte: 570.4 · dekking: 0.75 · lezen: 275 ms · opnieuw gelezen: 0
+vakken met naam of nummer en set: 1 van 1
+
+vak 1: gevonden: Thousand-Year Storm (FDN 248)
+  set=- nummer=248 taal=- naam=Thousand-Year Storm
+  > Thousand-Year Storm
+  > 400
+  > Enchantment
+  > Whenever you cast an instant or Sorcery
+  > spell, copy it for each other instant and
+  > sorcery spell you've cast before it this
+  > turn. You may choose new targets for the
+  > copies.
+  > Ral's storm crackled with mystical detections:
+  > Planeswalkers were infiltrating Ravnica.
+  > R 0248
+  > M&2024 Wizards of the Coast
+  > FDN•ENDIMITAR MARINSKI

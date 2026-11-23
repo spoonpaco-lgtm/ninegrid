@@ -45,3 +45,11 @@ Optioneel: `kader.txt` (bij `foto-2.jpg`: `kader-2.txt`) met "links boven rechts
 ## Nulmeting 0.9.11 (18 nov, Samsung SM-A165F, als galerijfoto)
 
 98 van 144 vakken goed · groen maar fout 8 · oranje maar goed 24 · niet gevonden 33. Groen maar fout: Raid/Goblin Bombardment, Gloomwidow/Gloom Surgeon, Golgari/Azorius Keyrune, Selesnya Keyrune/Sentry, Knight of Autumn/Maximize Altitude, Nightveil Predator/Sprite, Feed the Infection/Reject Imperfection, Shock STA/MSC. 29 van de 33 niet gevonden op DOM, WAR, GRN en het gemengde blad.
+
+## Losse kaarten (vanaf 0.9.16)
+
+Map `losse-kaarten/`: `NNN.jpg` (één kaart per foto, camera kaart voor kaart), `NNN-rapport.txt` (scanrapport) en één `uitslag.txt`:
+`NNN: Naam (SET nr) | set=XXX | kader=links boven rechts onder`. `set=` alleen als het setveld bij het scannen was ingevuld; `kader` is het richtkader op de foto.
+Testset draaien leest ze via de route van kaart voor kaart (zonder het stemmen over camerabeelden).
+
+23 nov: 28 kaarten (FDN, setveld leeg) uit Micks verzamelde scans met 0.9.16; de foto van een toetsenbord is weggelaten. Uitslag van de app: 26 van 28 goed, groen maar fout 0, oranje maar fout 2 (Cathar Commando → SLD 7132, Snakeskin Veil → ATDM 19), oranje maar goed 6.

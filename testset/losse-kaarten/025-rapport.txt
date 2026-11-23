@@ -1,0 +1,24 @@
+NineGrid scanrapport
+versie: 0.9.16 · toestel: samsung SM-A165F
+soort: één kaart · camera · foto 1080x1440
+instellingen: set leeg (automatisch) · lamp uit · automatisch afdrukken aan · AI-hulp uit · offline database aan · taal en · plaatje aan, geen vingerafdrukken voor deze set
+camerabeelden: 7 · aangevuld uit de beelden: 0
+kader: 290 179 790 877
+scherpte: 601.9 · dekking: 0.70 · lezen: 217 ms · opnieuw gelezen: 0
+vakken met naam of nummer en set: 1 van 1
+
+vak 1: gevonden: Tatyova, Benthic Druid (FDN 247)
+  set=FDN nummer=247 taal= naam=Tatyova, Benthic Druid
+  > Tatyova, Benthic Druid 3@0
+  > Legendary Creature– Merfolk Druid
+  > Landfall Whenever a land you
+  > control enters, you gain 1 life and
+  > draw a card.
+  > Yavimaya is one being one vastness
+  > of rippling leaves, one deepness of roots,
+  > and one chatter of animals-of which I
+  > am one part.
+  > 3/3
+  > U 0247
+  > FDN EN MATHIAS KoLLROS
+  > M&2024Wizards of the Coast

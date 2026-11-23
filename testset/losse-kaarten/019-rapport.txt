@@ -1,0 +1,22 @@
+NineGrid scanrapport
+versie: 0.9.16 · toestel: samsung SM-A165F
+soort: één kaart · camera · foto 1080x1440
+instellingen: set leeg (automatisch) · lamp uit · automatisch afdrukken aan · AI-hulp uit · offline database aan · taal en · plaatje aan, geen vingerafdrukken voor deze set
+camerabeelden: 7 · aangevuld uit de beelden: 0
+kader: 290 179 790 877
+scherpte: 324.5 · dekking: 0.76 · lezen: 166 ms · opnieuw gelezen: 0
+vakken met naam of nummer en set: 1 van 1
+
+vak 1: gevonden: Goblin Boarders (FDN 87)
+  set=FDN nummer=87 taal= naam=Goblin Boarders
+  > Goblin Boarders
+  > Creature- Goblin Pitar
+  > Raid This creature eztés
+  > +1/+1 counter on it if yeu ataLc
+  > this turn.
+  > «SPLIT THE SKULLS AND SPLIT
+  > THE SPOILS!"
+  > Breeches, munitions master
+  > 3/2
+  > C O087
+  > FDN-EN FLIPK PuCAESO

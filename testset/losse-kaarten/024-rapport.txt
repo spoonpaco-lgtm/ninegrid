@@ -1,0 +1,23 @@
+NineGrid scanrapport
+versie: 0.9.16 · toestel: samsung SM-A165F
+soort: één kaart · camera · foto 1080x1440
+instellingen: set leeg (automatisch) · lamp uit · automatisch afdrukken aan · AI-hulp uit · offline database aan · taal en · plaatje aan, geen vingerafdrukken voor deze set
+camerabeelden: 6 · aangevuld uit de beelden: 0
+kader: 290 179 790 877
+scherpte: 437.5 · dekking: 0.79 · lezen: 201 ms · opnieuw gelezen: 0
+vakken met naam of nummer en set: 1 van 1
+
+vak 1: gevonden: Arcane Epiphany (FDN 29)
+  set=FDN nummer=29 taal= naam=Arcane Epiphany
+  > 360
+  > Arcane Epiphany
+  > Instant
+  > This spell costs 1 less to cast i vou
+  > control a Wizard.
+  > Draw three cards.
+  > For years, the tome pulsed oith forgotten
+  > s and secrets, hungry for a mind
+  > spells
+  > Strong enough to read it.
+  > U 0029
+  > FDN-EN >ANDREW MAR

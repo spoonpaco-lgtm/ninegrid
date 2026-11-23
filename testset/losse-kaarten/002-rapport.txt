@@ -1,0 +1,31 @@
+NineGrid scanrapport
+versie: 0.9.16 · toestel: samsung SM-A165F
+soort: één kaart · camera · foto 1080x1440
+instellingen: set leeg (automatisch) · lamp uit · automatisch afdrukken aan · AI-hulp uit · offline database aan · taal en · plaatje aan, geen vingerafdrukken voor deze set
+camerabeelden: 8 · aangevuld uit de beelden: 0
+kader: 290 179 790 877
+scherpte: 530.3 · dekking: 0.76 · lezen: 435 ms · opnieuw gelezen: 1
+vakken met naam of nummer en set: 1 van 1
+
+vak 1: gevonden: Courageous Goblin (FDN 82)
+  set=FDN nummer=82 taal= naam=Courageous Goblin
+  > Courageous Goblin
+  > Creature Goblin
+  > Whenever this creature attacks while
+  > vou control a creature with power 4
+  > or greater, this creature gets +1/+0
+  > and gains menace until end of turn
+  > (It can't be blocked except by twO or
+  > more creatures.)
+  > Yeah! What he said!"
+  > 2/2
+  > c0082
+  > FDN EN BEN WOoTTEN
+  > &2024 Wizards of the Coast
+  > Couraoeous Goblin
+  > more creatures. )
+  > Yeah! WVhat he said!"
+  > C O082
+  > FDN •ENBEN WooTTEN
+  > 2/2
+  > &O2024 W'izards of the Coast

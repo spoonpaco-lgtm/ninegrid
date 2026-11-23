@@ -1,0 +1,27 @@
+NineGrid scanrapport
+versie: 0.9.16 · toestel: samsung SM-A165F
+soort: één kaart · camera · foto 1080x1440
+instellingen: set leeg (automatisch) · lamp uit · automatisch afdrukken aan · AI-hulp uit · offline database aan · taal en · plaatje aan, geen vingerafdrukken voor deze set
+camerabeelden: 8 · aangevuld uit de beelden: 0
+kader: 290 179 790 877
+scherpte: 591.8 · dekking: 0.78 · lezen: 589 ms · opnieuw gelezen: 1
+vakken met naam of nummer en set: 1 van 1
+
+vak 1: gevonden: Snakeskin Veil // Snakeskin Veil (ATDM 19) [controleren]
+  set=- nummer=233 taal=- naam=Snakeskin Veil
+  > Snakeskin Veil
+  > Instant
+  > Put a +1/+1 counter on target creature
+  > you control. It gains hexproof until end
+  > of turn. (It can't be the target of spells or
+  > abilities your oppoments control.)
+  > Most travelers panic when they stumble
+  > upon the skin of a giant rattlewurm.
+  > Landry saw it as a gift.
+  > M&2024Wizards of the Coast
+  > EDN EN DAN MURAVAMA ScoTT
+  > Snakeskin Veil
+  > Landry saw û as a gift.
+  > U 0233
+  > FDN EN >DAN MURAYAMA SCOTT
+  > IM&2024 Wizards of thc Coast

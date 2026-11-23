@@ -1,0 +1,16 @@
+NineGrid scanrapport
+versie: 0.9.16 · toestel: samsung SM-A165F
+soort: één kaart · camera · foto 1080x1440
+instellingen: set leeg (automatisch) · lamp uit · automatisch afdrukken aan · AI-hulp uit · offline database aan · taal en · plaatje aan, geen vingerafdrukken voor deze set
+camerabeelden: 7 · aangevuld uit de beelden: 0
+kader: 290 179 790 877
+scherpte: 288.8 · dekking: 0.87 · lezen: 150 ms · opnieuw gelezen: 0
+vakken met naam of nummer en set: 1 van 1
+
+vak 1: gevonden: Plains (FDN 272)
+  set=FDN nummer=272 taal= naam=Plains
+  > Plains
+  > Basic Land- Plains
+  > L 0272
+  > M&O2024 W'izards of the Coast
+  > FDN EN REOECCA GUAY

@@ -1,0 +1,39 @@
+NineGrid scanrapport
+versie: 0.9.16 · toestel: samsung SM-A165F
+soort: één kaart · camera · foto 1080x1440
+instellingen: set leeg (automatisch) · lamp uit · automatisch afdrukken aan · AI-hulp uit · offline database aan · taal en · plaatje aan, geen vingerafdrukken voor deze set
+camerabeelden: 6 · aangevuld uit de beelden: 0
+kader: 290 179 790 877
+scherpte: 367.6 · dekking: 0.78 · lezen: 767 ms · opnieuw gelezen: 1
+vakken met naam of nummer en set: 1 van 1
+
+vak 1: gevonden: Cathar Commando (SLD 7132) [controleren]
+  set=- nummer=- taal=- naam=Cathar Commando
+  > Cathar Commando
+  > Creature
+  > Human Soldier
+  > Flash ( You ma cast this spell any tine you
+  > could cast an instant.)
+  > 1, Sacrifice this creature: Destroy target
+  > artifact or enchantment.
+  > "Honorable tactics are for honorable foes. These
+  > verecvoles are preving on innocent travelers.
+  > TM stab them in the back while they sleep ifI
+  > have to"
+  > 3/1
+  > S0130
+  > FDNN EVYN ONG
+  > M&2024W'as f the Cast
+  > Cathar Commando
+  > EUerevolves are preymg on mnOcent travelers.
+  > 1'l stab them in the back while they sleep if I
+  > have to
+  > FON EN EVYN FUNG
+  > 3/1
+  > H&02| Wanls of the Cast
+  > Oerevoves are fpreying on innocent travelers.
+  > 1'l stab them in the back while they sleep if I
+  > hae to"
+  > FON EN EVYN UNO
+  > 3/1
+  > M&202Wants f the Cast
