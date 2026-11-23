@@ -409,12 +409,12 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit) {
                             }
                         }) { Text(stringResource(R.string.dev_collect_share, nSingle + nSheet)) }
                         var confirmClear by remember { mutableStateOf(false) }
-                        TextButton(enabled = nSingle + nSheet > 0, onClick = { confirmClear = true }) { Text(stringResource(R.string.dev_collect_clear), color = NgColors.Error) }
+                        TextButton(enabled = nSingle + nSheet > 0, onClick = { confirmClear = true }) { Text(stringResource(R.string.dev_collect_clear), color = NgColorsError) }
                         if (confirmClear) AlertDialog(
                             onDismissRequest = { confirmClear = false },
                             title = { Text(stringResource(R.string.dev_collect_clear)) },
                             text = { Text(stringResource(R.string.dev_collect_clear_q)) },
-                            confirmButton = { TextButton(onClick = { vm.clearCollected(); confirmClear = false }) { Text(stringResource(R.string.delete), color = NgColors.Error) } },
+                            confirmButton = { TextButton(onClick = { vm.clearCollected(); confirmClear = false }) { Text(stringResource(R.string.delete), color = NgColorsError) } },
                             dismissButton = { TextButton(onClick = { confirmClear = false }) { Text(stringResource(R.string.cancel)) } },
                         )
                     }
