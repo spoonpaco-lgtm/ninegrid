@@ -95,6 +95,7 @@ fun CollectionScreen(
     onShare: () -> Unit = {},
     onBinder: (String) -> Unit = {},
     onFriend: (String) -> Unit = {},
+    onCombos: () -> Unit = {},
 ) {
     val settings by vm.settings.collectAsState()
     val all by vm.entries.collectAsState()
@@ -239,6 +240,16 @@ fun CollectionScreen(
                         currency = settings.currency,
                         views = vm.viewsFor("collection", filter, sortRaw),
                     )
+                    // Combo's in je collectie (0.9.18): één regel met de tellers, altijd actueel.
+                    if (all.isNotEmpty()) {
+                        val combos = vm.collectionCombos
+                        androidx.compose.material3.Text(
+                            if (vm.comboDbReady) stringResource(R.string.combos_summary, combos.count { it.missing.isEmpty() }, combos.count { it.missing.size == 1 })
+                            else stringResource(R.string.combos_summary_setup),
+                            fontSize = NgText.body, color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.fillMaxWidth().clickable(onClick = onCombos).padding(horizontal = 16.dp, vertical = 6.dp),
+                        )
+                    }
                     if (all.isEmpty()) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
                             EmptyState(stringResource(R.string.empty_collection_title), stringResource(R.string.empty_collection_body))

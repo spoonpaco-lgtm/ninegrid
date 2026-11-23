@@ -89,7 +89,7 @@ val LANGUAGES = listOf("", "DE", "FR", "IT", "ES", "PT", "JP", "KO", "RU", "CN",
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CardDetailScreen(vm: AppViewModel, printId: String, onBack: () -> Unit, onFriend: (String) -> Unit = {}, onBinder: (String, Int?, Int?) -> Unit = { _, _, _ -> }, onSwipe: (String) -> Unit = {}, onOpenPrint: (String) -> Unit = onSwipe) {
+fun CardDetailScreen(vm: AppViewModel, printId: String, onBack: () -> Unit, onFriend: (String) -> Unit = {}, onBinder: (String, Int?, Int?) -> Unit = { _, _, _ -> }, onSwipe: (String) -> Unit = {}, onOpenPrint: (String) -> Unit = onSwipe, onCombos: (String) -> Unit = {}) {
     val settings by vm.settings.collectAsState()
     val print by vm.repo.print(printId).collectAsState(initial = null)
     val copies by vm.repo.entriesForPrint(printId).collectAsState(initial = emptyList())
@@ -187,6 +187,13 @@ fun CardDetailScreen(vm: AppViewModel, printId: String, onBack: () -> Unit, onFr
             // Andere prints van deze kaart (punt 8e): overstappen en die aan collectie of verlanglijst toevoegen.
             TextButton(onClick = { otherPrints = true }, contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 8.dp)) {
                 Text(stringResource(R.string.other_prints), fontSize = NgText.body)
+            }
+            // Combo's met deze kaart (0.9.18), uit de combodatabase op de telefoon.
+            if (vm.comboDbReady) {
+                val (done, almost) = vm.combosWithCard(p.name)
+                if (done + almost > 0) TextButton(onClick = { onCombos(p.name) }, contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 8.dp)) {
+                    Text(stringResource(R.string.combos_card_line, done, almost), fontSize = NgText.body)
+                }
             }
             // Legaliteit klein, in twee vaste regels van drie.
             val legal = listOf("commander", "modern", "pioneer", "standard", "legacy", "pauper").map { f -> f to Formats.legalityOf(p.legalities, f) }

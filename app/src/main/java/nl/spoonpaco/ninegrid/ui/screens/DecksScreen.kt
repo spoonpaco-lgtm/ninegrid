@@ -926,7 +926,7 @@ private fun CombosPanel(vm: AppViewModel, deck: nl.spoonpaco.ninegrid.data.db.De
 
 /** Eén segmentbalk Thumbnails | Namen, op Combo's en Suggesties op dezelfde plek. */
 @Composable
-private fun ThumbnailSwitch(asCards: Boolean, onChange: (Boolean) -> Unit) {
+internal fun ThumbnailSwitch(asCards: Boolean, onChange: (Boolean) -> Unit) {
     androidx.compose.material3.SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 2.dp)) {
         SegmentedButton(
             selected = asCards, onClick = { onChange(true) },
@@ -940,7 +940,7 @@ private fun ThumbnailSwitch(asCards: Boolean, onChange: (Boolean) -> Unit) {
 }
 
 /** Plaatje van een kaart op naam: uit het deck of de collectie als je hem hebt, anders via Scryfall. */
-private fun comboImageUrl(vm: AppViewModel, name: String, large: Boolean): String {
+internal fun comboImageUrl(vm: AppViewModel, name: String, large: Boolean): String {
     val own = vm.entries.value.firstOrNull { it.print?.name?.substringBefore(" // ").equals(name, true) }?.print
     return vm.images.urlFor(own, large) ?: ("https://api.scryfall.com/cards/named?format=image&version=" + (if (large) "normal" else "small") + "&exact=" + java.net.URLEncoder.encode(name, "UTF-8"))
 }
@@ -948,7 +948,7 @@ private fun comboImageUrl(vm: AppViewModel, name: String, large: Boolean): Strin
 /** Een kleine kaartafbeelding op naam. Tik opent het kaartscherm (ook van een kaart die je niet hebt), vasthouden toont hem groot. */
 @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
-private fun CardThumbByName(
+internal fun CardThumbByName(
     vm: AppViewModel, settings: nl.spoonpaco.ninegrid.data.AppSettings, name: String, onCard: (String) -> Unit, onBig: (String) -> Unit,
     width: Int = 72, dimmed: Boolean = false,
 ) {
@@ -971,7 +971,7 @@ private fun CardThumbByName(
 
 /** De grote kaart na lang indrukken. */
 @Composable
-private fun BigCardDialog(vm: AppViewModel, settings: nl.spoonpaco.ninegrid.data.AppSettings, url: String?, onClose: () -> Unit) {
+internal fun BigCardDialog(vm: AppViewModel, settings: nl.spoonpaco.ninegrid.data.AppSettings, url: String?, onClose: () -> Unit) {
     if (url == null) return
     androidx.compose.ui.window.Dialog(onDismissRequest = onClose) {
         coil.compose.AsyncImage(
@@ -984,7 +984,7 @@ private fun BigCardDialog(vm: AppViewModel, settings: nl.spoonpaco.ninegrid.data
 /** Een combo als kaartjes met + ertussen (of als namen). Tik opent de kaart, lang indrukken toont hem groot. */
 @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
-private fun ComboRow(
+internal fun ComboRow(
     vm: AppViewModel, settings: nl.spoonpaco.ninegrid.data.AppSettings, cards: List<String>, missing: String?, twoCard: Boolean,
     asCards: Boolean, onCard: (String) -> Unit, onBig: (String) -> Unit,
 ) {
@@ -1001,7 +1001,7 @@ private fun ComboRow(
 
 /** Kaarten van een combo als labels met +; de ontbrekende kaart gestippeld. */
 @Composable
-private fun ComboPills(cards: List<String>, missing: String?, twoCard: Boolean) {
+internal fun ComboPills(cards: List<String>, missing: String?, twoCard: Boolean) {
     androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         cards.forEachIndexed { i, n ->
             if (i > 0) Text("+", color = LocalNgExtra.current.subtle, modifier = Modifier.align(Alignment.CenterVertically))
@@ -1018,13 +1018,13 @@ private fun ComboPills(cards: List<String>, missing: String?, twoCard: Boolean) 
 }
 
 @Composable
-private fun Pill(text: String, bg: Color, fg: Color) {
+internal fun Pill(text: String, bg: Color, fg: Color) {
     Text(text, fontSize = NgText.caption, color = fg, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
         modifier = Modifier.clip(NgShape.Normal).background(bg).padding(horizontal = 7.dp, vertical = 2.dp))
 }
 
 @Composable
-private fun spellbookTagLabel(t: String) = when (t) {
+internal fun spellbookTagLabel(t: String) = when (t) {
     "R" -> "Ruthless"; "S" -> "Spicy"; "P" -> "Powerful"; "O" -> "Oddball"; "PA" -> "Precon Appropriate"; "C" -> "Casual"; else -> t
 }
 

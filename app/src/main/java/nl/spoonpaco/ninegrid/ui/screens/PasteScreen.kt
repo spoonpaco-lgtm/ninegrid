@@ -37,7 +37,8 @@ import nl.spoonpaco.ninegrid.ui.theme.LocalNgExtra
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PasteScreen(vm: AppViewModel, intoDeck: Long?, asNewDeck: Boolean, onBack: () -> Unit, onNext: () -> Unit) {
-    var text by rememberSaveable { mutableStateOf("") }
+    // Vooraf ingevuld vanuit Combo's (Nieuw deck met deze combo / Toevoegen aan deck).
+    var text by rememberSaveable { mutableStateOf(vm.pastePrefill.also { vm.pastePrefill = null } ?: "") }
     val clipboard = LocalClipboardManager.current
     Scaffold(topBar = {
         TopAppBar(

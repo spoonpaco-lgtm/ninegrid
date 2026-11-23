@@ -179,6 +179,14 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
                     onShare = { nav.navigate("share") },
                     onBinder = { b -> nav.navigate("binder/" + android.net.Uri.encode(b)) },
                     onFriend = { id -> nav.navigate("friend/$id") },
+                    onCombos = { nav.navigate("combos") },
+                )
+            }
+            composable("combos?card={card}", arguments = listOf(navArgument("card") { type = NavType.StringType; nullable = true; defaultValue = null })) {
+                nl.spoonpaco.ninegrid.ui.screens.CombosScreen(
+                    vm, it.arguments?.getString("card"), onBack = { nav.popBackStack() },
+                    onCard = { id -> nav.navigate("card/$id") }, onFriend = { id -> nav.navigate("friend/$id") },
+                    onNewDeck = { nav.navigate("paste?asNewDeck=true") }, onIntoDeck = { id -> nav.navigate("paste?intoDeck=$id") },
                 )
             }
             composable(
@@ -233,6 +241,7 @@ fun AppNav(vm: AppViewModel, showOnboarding: Boolean) {
                     onSwipe = { id -> vm.openCardId(id) { nav.navigate("card/$it") { popUpTo("card/{printId}") { inclusive = true } } } },
                     // Andere print kiezen: een nieuw kaartscherm erbovenop, zodat Terug naar de vorige print gaat.
                     onOpenPrint = { id -> nav.navigate("card/$id") },
+                    onCombos = { name -> nav.navigate("combos?card=" + android.net.Uri.encode(name)) },
                 )
             }
             composable("deck/{deckId}", arguments = listOf(navArgument("deckId") { type = NavType.LongType })) {

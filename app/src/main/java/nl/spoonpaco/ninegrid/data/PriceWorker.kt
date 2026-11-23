@@ -30,6 +30,8 @@ class PriceWorker(context: Context, params: WorkerParameters) : CoroutineWorker(
             runCatching { notifyWishAlarms(c) }
             runCatching { notifyWatch(c) }
             runCatching { checkOfflineDb(c) }
+            // Combodatabase (0.9.18): eens per week kijken of Commander Spellbook iets nieuws heeft (alleen als hij gedownload is).
+            runCatching { if (nl.spoonpaco.ninegrid.data.offline.ComboDbWorker.due(c.comboDb.updated)) nl.spoonpaco.ninegrid.data.offline.ComboDbWorker.start(applicationContext, manual = false) }
             // Vingerafdrukken (1h-scan): sets op de telefoon aanvullen met nieuwe kaarten; niet op mobiel internet bij "alleen via wifi".
             runCatching {
                 val st = c.settings.current()

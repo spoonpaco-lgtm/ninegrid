@@ -1816,6 +1816,20 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         val cached = c.combos.cached(deckId, c.combos.hashOf(cmd, main))
         comboReport = cached?.report
         comboStale = cached?.stale == true
+        // 0.9.18: met de combodatabase op de telefoon meteen en zonder internet: welke combo's in het deck zitten en
+        // welke één kaart missen. De bracketschatting van Spellbook (twee-kaart-combo's) blijft van de laatste zoekactie.
+        if (c.comboDb.ready()) viewModelScope.launch {
+            val names = (cmd + main).flatMap { (n, _) -> listOf(n.lowercase(), n.substringBefore(" // ").lowercase()) }.toSet()
+            val found = runCatching { c.comboDb.find(names) }.getOrNull() ?: return@launch
+            fun combo(o: nl.spoonpaco.ninegrid.data.offline.OwnedCombo) = nl.spoonpaco.ninegrid.data.Combo(o.id, o.cards, o.produces, o.prerequisites, o.description, o.missing)
+            if (comboDeckId != deckId) return@launch
+            comboReport = nl.spoonpaco.ninegrid.data.ComboReport(
+                deckHash = c.combos.hashOf(cmd, main), fetchedAt = cached?.report?.fetchedAt ?: System.currentTimeMillis(),
+                included = found.filter { it.missing.isEmpty() }.sortedBy { it.cards.size }.map(::combo),
+                almost = found.filter { it.missing.size == 1 }.sortedByDescending { it.popularity }.take(30).map(::combo),
+                spellbookTag = cached?.report?.spellbookTag, twoCardCombos = cached?.report?.twoCardCombos.orEmpty(),
+            )
+        }
     }
 
     fun findCombos(deckId: Long) = viewModelScope.launch {
@@ -1830,6 +1844,116 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Ligt deze kaart (los) in je collectie? Geeft het exemplaar terug, of null. */
     fun inCollectionByName(name: String) = entries.value.firstOrNull { it.entry.deckId == null && !it.entry.proxy && it.print?.name.equals(name, true) }
+
+    // ---------- Combo's in je collectie (0.9.18): combodatabase van Commander Spellbook op de telefoon ----------
+    var comboDbReady by mutableStateOf(c.comboDb.ready())
+        private set
+    var comboDbRunning by mutableStateOf(false)
+        private set
+    var comboDbWaiting by mutableStateOf(false)
+        private set
+    var comboDbCount by mutableStateOf(0)
+        private set
+    var comboDbPct by mutableStateOf(-1)
+        private set
+    var comboDbFailed by mutableStateOf(false)
+        private set
+    val comboDbBytes get() = c.comboDb.sizeBytes()
+    val comboDbUpdated get() = c.comboDb.updated
+    val comboDbSize get() = c.comboDb.comboCount
+    /** Alle combo's met jouw kaarten: compleet (missing leeg) en met één kaart te weinig. Altijd actueel. */
+    var collectionCombos by mutableStateOf<List<nl.spoonpaco.ninegrid.data.offline.OwnedCombo>>(emptyList())
+        private set
+    var combosComputing by mutableStateOf(false)
+        private set
+    var comboFormats by mutableStateOf<List<String>>(emptyList())
+        private set
+    /** Namen (kleine letters, ook de voorkant) van kaarten die los in de collectie liggen, niet in een deck. */
+    var comboFreeNames by mutableStateOf<Set<String>>(emptySet())
+        private set
+    private val comboPrices = java.util.concurrent.ConcurrentHashMap<String, Double>()
+    /** Telt op als er prijzen bij zijn gekomen, zodat schermen opnieuw tekenen. */
+    var comboPricesVersion by mutableStateOf(0)
+        private set
+    /** Goedkoopste prijs (offline database) van een kaart die je mist; null als onbekend. */
+    fun comboPrice(name: String): Double? = comboPrices[name.lowercase()]
+    /** Tekst die het plakscherm vooraf invult (Nieuw deck met deze combo). */
+    var pastePrefill: String? = null
+
+    fun startComboDownload(mobile: Boolean) {
+        comboDbFailed = false
+        nl.spoonpaco.ninegrid.data.offline.ComboDbWorker.start(getApplication(), manual = true, anyNetwork = mobile)
+    }
+
+    fun deleteComboDb() = viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+        nl.spoonpaco.ninegrid.data.offline.ComboDbWorker.cancel(getApplication())
+        c.comboDb.delete()
+        comboDbReady = false; collectionCombos = emptyList(); comboFormats = emptyList()
+    }
+
+    private fun watchComboDb() = viewModelScope.launch {
+        val wm = androidx.work.WorkManager.getInstance(getApplication())
+        wm.getWorkInfosForUniqueWorkFlow(nl.spoonpaco.ninegrid.data.offline.ComboDbWorker.NAME).collect { infos ->
+            val w = infos.firstOrNull() ?: return@collect
+            comboDbRunning = w.state == androidx.work.WorkInfo.State.RUNNING
+            comboDbWaiting = w.state == androidx.work.WorkInfo.State.ENQUEUED || w.state == androidx.work.WorkInfo.State.BLOCKED
+            comboDbCount = w.progress.getInt("count", if (comboDbRunning) comboDbCount else 0)
+            comboDbPct = w.progress.getInt("pct", -1)
+            comboDbFailed = w.state == androidx.work.WorkInfo.State.FAILED
+            if (w.state == androidx.work.WorkInfo.State.SUCCEEDED) { comboDbReady = c.comboDb.ready(); recomputeCombos(now = true) }
+        }
+    }
+
+    private var comboJob: kotlinx.coroutines.Job? = null
+
+    /** Opnieuw rekenen (kort na een wijziging in de collectie, zodat een scan van 20 kaarten één keer telt). */
+    fun recomputeCombos(now: Boolean = false) {
+        if (!comboDbReady) return
+        comboJob?.cancel()
+        comboJob = viewModelScope.launch {
+            if (!now) kotlinx.coroutines.delay(1500)
+            combosComputing = true
+            try {
+                val list = entries.value.filter { !it.entry.proxy && it.print != null }
+                fun names(l: List<EntryWithPrint>) = l.flatMap { e -> val n = e.print!!.name.lowercase(); listOf(n, n.substringBefore(" // ")) }.toSet()
+                val owned = names(list)
+                comboFreeNames = names(list.filter { it.entry.deckId == null })
+                if (comboFormats.isEmpty()) comboFormats = c.comboDb.formats()
+                val found = c.comboDb.find(owned)
+                collectionCombos = found
+                // Prijzen van de kaarten die je mist, uit de offline kaartdatabase (zonder internet).
+                val missing = found.flatMap { it.missing }.map { it.lowercase() }.distinct().filter { it !in comboPrices }
+                if (missing.isNotEmpty()) kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    for (m in missing) {
+                        val prices = runCatching { c.offline.printsOf(m) }.getOrDefault(emptyList())
+                            .mapNotNull { p -> p.prices.eur?.toDoubleOrNull() ?: p.prices.eurFoil?.toDoubleOrNull() }
+                        prices.minOrNull()?.let { comboPrices[m] = it }
+                    }
+                }
+                comboPricesVersion++
+            } catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (_: Exception) {
+            } finally { combosComputing = false }
+        }
+    }
+
+    /** Combo's met deze kaart: compleet en bijna (kaartscherm). */
+    fun combosWithCard(name: String): Pair<Int, Int> {
+        val n = name.lowercase(); val f = n.substringBefore(" // ")
+        val with = collectionCombos.filter { c -> c.cards.any { it.lowercase() == n || it.substringBefore(" // ").lowercase() == f } }
+        return with.count { it.missing.isEmpty() } to with.count { it.missing.size == 1 }
+    }
+
+    /** Kleuren van een deck (commander, anders alle kaarten), om te zien of een combo erin past. */
+    fun deckColors(deckId: Long): Set<Char> {
+        val list = entries.value.filter { it.entry.deckId == deckId && it.print != null }
+        val cmd = list.filter { it.entry.section == Section.COMMANDER }
+        return (cmd.ifEmpty { list }).flatMap { it.print!!.colorIdentity.toList() }.filter { it in "WUBRG" }.toSet()
+    }
+
+    init {
+        watchComboDb()
+        viewModelScope.launch { entries.collect { recomputeCombos() } }
+    }
 
     init {
         watchImport()
