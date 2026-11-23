@@ -2,7 +2,7 @@
 
 *Nederlands: [FEATURES.nl.md](FEATURES.nl.md)*
 
-Current version: **0.9.18 – Zur**. Every version is named after a planeswalker.
+Current version: **0.9.19 – Jaya**. Every version is named after a planeswalker.
 
 ## What makes NineGrid different
 

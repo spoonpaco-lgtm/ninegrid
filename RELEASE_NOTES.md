@@ -1,3 +1,10 @@
+NineGrid 0.9.19 – Jaya
+
+Jaya Ballard: alles wat overbodig is, eruit gebrand.
+
+- Combodatabase veel kleiner (was 196 MB): stappen en voorwaarden staan één keer, ingepakt, en worden pas geladen als je een combo opent; formats als bits; de voorkant van een kaartnaam alleen bij kaarten met //; na het inlezen wordt het werkbestand opgeruimd. Inlezen gaat in grotere stukken, dus sneller.
+- De database van 0.9.18 wordt vanzelf vervangen: de oude gaat weg en de nieuwe wordt op wifi opgehaald.
+
 NineGrid 0.9.18 – Zur
 
 Zur, de meester van de enchantments en het zoeken: combo's vinden in je hele collectie.
