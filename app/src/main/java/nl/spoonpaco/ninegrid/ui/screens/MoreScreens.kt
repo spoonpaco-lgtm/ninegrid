@@ -388,7 +388,7 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit) {
                     val collectCtx = androidx.compose.ui.platform.LocalContext.current
                     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
                         Text(stringResource(R.string.dev_collect), modifier = Modifier.weight(1f))
-                        Switch(checked = vm.collectReports, onCheckedChange = { vm.setCollectReports(it) })
+                        Switch(checked = vm.collectReports, onCheckedChange = { vm.changeCollectReports(it) })
                     }
                     Text(stringResource(R.string.dev_collect_explain), fontSize = NgText.body, color = LocalNgExtra.current.subtle)
                     val (nSingle, nSheet) = vm.collected

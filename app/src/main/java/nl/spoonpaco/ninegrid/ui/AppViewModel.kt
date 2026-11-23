@@ -1031,7 +1031,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     /** Aan: na elke scan foto, rapport en een voorstel voor de uitslag bewaren, om later in één keer te delen. */
     var collectReports by mutableStateOf(deckUiPrefs.getBoolean("collect_reports", false))
         private set
-    fun setCollectReports(v: Boolean) { collectReports = v; deckUiPrefs.edit().putBoolean("collect_reports", v).apply() }
+    fun changeCollectReports(v: Boolean) { collectReports = v; deckUiPrefs.edit().putBoolean("collect_reports", v).apply() }
     private var collectPendingScan = false
     private val collectDir get() = java.io.File(getApplication<Application>().filesDir, "verzameld")
     /** Hoeveel scans er verzameld zijn (losse kaarten, bladen). */
