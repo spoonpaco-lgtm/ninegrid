@@ -28,6 +28,8 @@ Current version: **0.9.15 – Niko**. Every version is named after a planeswalke
 - **Recognise by picture**: with a set entered, the scanner looks at the picture besides the text (image model on the phone, fingerprints per set, then offline). Helps with split cards, misread numbers and unreadable names; never makes a card green. **Download sets in advance** prepares the fingerprints for your whole collection.
 - **Card-by-card voting**: what the photo misses (set, number) is filled in with what several camera frames of the same card read.
 - **Review screen**: when there is something to check, the sure cards are folded away.
+- **Filter and sort in one panel**: **Price per card** filter, sorting both ways, **save combinations** under a name.
+- **Booster screen**: see what was in a booster; **delete** boosters (one, several, per box or all), with or without the cards, undoable.
 - **Foil doubt in blue**: a card that is sure but may be a foil (star ★ read) is blue, so orange stays for real card checks. Single-card scanning shows the last three cards with a +1 tap and saves straight away when all are sure.
 - **Scan into a deck** from the deck screen (Add → Scan), with one choice for taking cards from your collection.
 - **Foil per slot**: tap the small grid of the last photo (with ✦), then tap a slot (or All foil). If the scanner reads the **foil star ★**, the card is already set to foil (blue: one tap confirms).

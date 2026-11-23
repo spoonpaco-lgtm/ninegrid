@@ -79,6 +79,7 @@ Dit is "de lijst": wat Mick wil dat NineGrid nog krijgt. Een nieuw gesprek begin
 | 0.9.12 | Kasmina | Scanner betrouwbaarder: strengere naamvergelijking, alleen nummer nooit groen, naam ook in andere regels (oranje), geen print op de gok, voorstel set van het blad, splitkaarten gedraaid, buurpagina weg, jaartal met W; testset 98→109 goed, groen maar fout 8→0 |
 | 0.9.13 | Nissa | Raster op de kaartnamen (galerijfoto met set); testset meldt Scryfall-storingen; testset 88% goed (set ingevuld 91%), 0% groen maar fout, lege vakken 96% |
 | 0.9.14 | Ob Nixilis | Top movers (Winner én Loser of the Week/Day, inklapbaar, effecten Gloed en bloed of Stempels), Magic-effecten per effect, Toxic vernieuwd, setlijst voor de scanner uit de offline database |
+| 0.9.15 | Niko | Herkennen op het plaatje (offline vingerafdrukken per set), beelden laten stemmen bij 1 kaart, 39c, printcontrole-fix (sinds 0.9.14), testset 18 bladen; boosterscherm en boosters wissen, filter Prijs, sorteren in twee richtingen, één paneel Filteren en sorteren, bewaarde combinaties, groei uitgesplitst onder de grafiek |
 
 ## Nog te doen
 
@@ -211,7 +212,7 @@ Op het Overzicht, op de plek van Winner of the Week, één samengevoegd blok "To
 - Elk Magic-effect een eigen schakelaar (`domain/FxSet.kt`, instelling `fxOff`, `LocalFx`): foil, exile, stamps, shields, movers, privacy. Hoofdschakelaar blijft; de losse schakelaars staan eronder als hij aan staat. Stempels uit raakt de WINNER/DESTROYED-stempel niet (die hoort bij Winner en Loser).
 - Fix: Dalers had geen schildje op de grote kaart (alleen bij Stijgers getekend); nu ▼ rood.
 
-### 1i-scan. 0.9.15 Niko: gebouwd op branch `niko-0.9.15` (22 nov, Micks "begin dan de volgende versie op de branch"), wacht op test en "ja, release"
+### 1i-scan. 0.9.15 Niko: uitgebracht 23 nov (Mick: "voeg dit allemaal toe aan 0.9.15 en als dat gedaan is release je hem meteen")
 
 Naam Niko (Aris, spiegelscherven = beelden) gekozen door Claude; Mick mag hem veranderen.
 - **1h stap 1 + 1b:** herkennen op het plaatje. `data/Fingerprints.kt` (Embedder met TensorFlow Lite 2.16.1, model `assets/embedder.tflite` = MediaPipe MobileNet V3 small, door de workflow opgehaald; zonder model leest de scanner alleen tekst). Vingerafdrukken per set in `filesDir/fingerprints/SET.bin` (int8), gemaakt uit `SetCard.image` via Coil. Zoeken en grenzen in `domain/PictureIndex.kt` (MIN_SCORE 0,55, MIN_MARGIN 0,05, **geschat**). In `AppViewModel.resolveAll`: plaatje uit `crops` per vak, nooit groen; tekst onzeker → kaart van het plaatje (oranje); tekst zeker en plaatje duidelijk anders → oranje. Instelling `pictureMatch` (Scannen), Sets vooraf downloaden (`Repository.ownedSetCodes`), set uit het setveld automatisch op de achtergrond, nachtelijk aanvullen in `PriceWorker`.
@@ -224,6 +225,15 @@ Naam Niko (Aris, spiegelscherven = beelden) gekozen door Claude; Mick mag hem ve
 - **Testset 22 nov 18:05 (build 45028235674, plaatje aan):** 203 van 225, groen maar fout 0, oranje maar goed 56 (was 48: meer prints worden nu terecht als dubbelzinnig gezien), niet gevonden 16. Opgelost: Huatli (339), Kinzu (406), Caparocti showcase 2×. Nieuw fout: Bedrock Tortoise LCI 176 → 378 (oranje; de oude 24×33-vergelijker kiest nu ook bij LCI en koos verkeerd). Mondrak-1 nog steeds Bladed Ambassador ondanks plaatje 0,78/0,31 en geen gelezen naam: oorzaak onbekend (vermoeden: kaart van het plaatje niet op te halen); voor 0.9.16 de reden in het label/testset zetten.
 - **Nog te doen na de build:** testset draaien op de telefoon (offline database aan, internet voor de eerste vingerafdrukken), daarna MIN_SCORE/MIN_MARGIN bijstellen met de gemelde scores. APK-groei nakijken (TFLite ~ een paar MB per ABI + model ~4 MB).
 - Onzeker: normalisatie van de invoer (nu -1..1) en of een algemeen model de kaarten binnen een set goed genoeg uit elkaar houdt. De testset laat het zien.
+
+### 1j. Ook in 0.9.15 (Mick 23 nov): boosters, filteren en sorteren, meetellen
+
+- Boosterscherm (`BoosterDetailScreen`, route `booster/{id}`): kop met betaald/toen/nu/winst, kaarten duurste eerst met hit, Thumbnails | Namen, "niet meer in je collectie", tik = kaartscherm, potlood = prijs.
+- Boosters wissen (`Repository.deleteBoosters`): alleen de booster of ook de kaarten (losse exemplaren, nieuwste eerst; deck of weg blijft staan, vooraf geteld via `boosterCardsInCollection`); meerdere (lang indrukken), per box, alles. `UndoData` heeft nu `restoreBoosters/Cards/Boxes`; ongedaan maken zet alles terug.
+- `FilterSearchBar`: één paneel Filteren en sorteren; sorteerrichting via `SortKey` ("key~r"), elk scherm draait zijn lijst om; chip voor een niet-standaard sortering. Filter Prijs (`CardFilter.priceMin/priceMax`, `FilterGroup.PRICE`, per stuk, foilprijs). Bewaarde combinaties (`SavedView`, per scherm in `deckUiPrefs` "views_<scherm>", niet in de back-up). Verlanglijst kreeg zoeken, filter en sorteren (scherm "wish").
+- Grafiek: `domain/Growth.split` onder de grafiek (prijzen vs kaarten erbij/eraf). De dagstand werd al 3 s na een wijziging bijgewerkt (`AppViewModel.snapshot`); mijn eerdere uitleg "pas bij de volgende keer openen" klopte niet.
+- Nog na te kijken op de telefoon: alles hierboven; vooral boosters wissen met kaarten + ongedaan maken, en het paneel op alle schermen.
+- Later: bewaarde combinaties in de back-up; raster GTC als galerijfoto (0.9.16); Mondrak-1 diagnose.
 
 ### 2. Kleine verbeteringen (nog geen versie)
 

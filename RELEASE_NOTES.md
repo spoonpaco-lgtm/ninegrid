@@ -14,6 +14,13 @@ Niko Aris, die met spiegelscherven werkt: de scanner kijkt nu ook naar het plaat
 - Scanrapport: per vak wat het plaatje zei (naam, nummer, score/marge, tweede kaart), of het plaatje aan stond en vingerafdrukken had; bij 1 kaart hoeveel camerabeelden meestemden.
 - Testset draaien: bij een storing bij Scryfall wacht hij even en probeert hij het blad tot 3 keer opnieuw, in plaats van het hele blad als niet gevonden te tellen. Maakt eerst de vingerafdrukken van de set van elk blad, geeft de vakuitsnedes mee zoals een echte scan, en meldt hoe vaak het plaatje de juiste naam had, met scores en marges van goed en fout (om de grenzen bij te stellen).
 
+Ook in 0.9.15 (Mick 23 nov):
+- Boosters: tik op een booster → boosterscherm met betaald, waarde toen/nu, winst of verlies en de kaarten (duurste eerst, de hit gemarkeerd), als lijst of plaatjes; "niet meer in je collectie" als je een kaart niet meer hebt; tik = kaartscherm; potlood = prijs aanpassen.
+- Boosters wissen: per booster (prullenbak), meerdere tegelijk (lang indrukken, Alles), per box (tik op de boxregel) of Alle boosters wissen. Keuze: alleen de booster, of ook de kaarten uit de collectie halen (alleen losse exemplaren, nieuwste eerst; kaarten in een deck of al weg blijven staan en worden vooraf geteld). Eén wijziging in het wijzigingslog: Laatste actie ongedaan maken zet boosters, boxen en kaarten terug.
+- Filteren en sorteren in één paneel (de oude losse sorteerknop is weg): sorteren bovenaan, tik nog eens = andersom (↓/↑); een andere sortering dan de standaard staat als chip onder de zoekbalk. Nieuw filter Prijs per stuk (snelle keuzes en Van/Tot; foil = foilprijs; zonder prijs valt weg zodra er een grens is). In Collectie, Alle kaarten (dan online), sets, decklijst en deckkaarten, vrienden, Uit collectie kiezen en de verlanglijst (die heeft nu ook zoeken en sorteren).
+- Bewaarde combinaties: filters + sortering onder een naam, per scherm; tik = terugzetten, kruisje = weghalen.
+- Grafiek Waarde: onder de grafiek de groei in de gekozen periode, uitgesplitst in prijzen en kaarten erbij/eraf (alleen dagen met bekende koers). De dagstand werd al een paar seconden na een wijziging bijgewerkt; nu ook na boosters wissen. Handleiding: wanneer een nieuwe kaart waar meetelt.
+
 NineGrid 0.9.14 – Ob Nixilis
 
 Ob Nixilis, die van winst en verlies leeft: Top movers op het Overzicht, met Winner én Loser of the Week.

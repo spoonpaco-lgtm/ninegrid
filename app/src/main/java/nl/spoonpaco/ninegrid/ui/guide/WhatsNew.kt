@@ -28,6 +28,9 @@ object WhatsNew {
     fun items(dutch: Boolean): List<Item> = if (dutch) NL else EN
 
     private val NL = listOf(
+        Item("Boosters: tik op een booster om te zien wat erin zat, met de hit bovenaan, als lijst of als plaatjes. Wissen kan per booster, meerdere tegelijk (lang indrukken), per box of alles, met of zonder de kaarten uit je collectie, en terug te draaien.", "add"),
+        Item("Filteren en sorteren in één paneel, met een nieuw filter Prijs per stuk (< € 1, € 1–5, € 5–20, > € 20 of zelf invullen) en sorteren in twee richtingen. Zo kan Nieuwste eerst samen met prijs > € 5. Combinaties bewaar je onder een eigen naam.", "add"),
+        Item("Onder de grafiek Waarde: hoeveel van de groei door prijzen kwam en hoeveel door kaarten erbij of eraf. In de handleiding staat wanneer een nieuwe kaart waar meetelt.", "add"),
         Item("Herkennen op het plaatje: naast de tekst kijkt de scanner nu naar het plaatje, binnen de set die je invult. Splitkaarten, een verkeerd gelezen nummer of een kaart zonder leesbare naam worden zo vaker gevonden. Het plaatje maakt nooit groen en overschrijft nooit een gelezen naam: wat het vindt is oranje, en ziet het een andere kaart dan de tekst, dan wordt groen oranje.", "add"),
         Item("Werkt offline: per set maakt de app één keer vingerafdrukken uit de Scryfall-plaatjes (een paar honderd kB). Met Sets vooraf downloaden (Instellingen → Scannen) zet je ze klaar voor je hele collectie; een set die je bij het scannen invult, komt er vanzelf bij.", "settings"),
         Item("Kaart voor kaart: de app kijkt mee met de camera en vult wat de foto mist (set of nummer) aan met wat meerdere beelden van dezelfde kaart lazen.", "add"),
@@ -35,6 +38,9 @@ object WhatsNew {
     )
 
     private val EN = listOf(
+        Item("Boosters: tap a booster to see what was in it, with the hit on top, as a list or as images. Delete one booster, several at once (long-press), a box or all, with or without the cards from your collection, and undo it.", "add"),
+        Item("Filter and sort in one panel, with a new Price per card filter (< € 1, € 1–5, € 5–20, > € 20 or your own) and sorting both ways. So Newest first works together with price > € 5. Save combinations under your own name.", "add"),
+        Item("Under the Value chart: how much of the growth came from prices and how much from cards added or removed. The guide explains when a new card counts where.", "add"),
         Item("Recognise by picture: besides the text, the scanner now looks at the picture, within the set you enter. Split cards, a misread number or a card without a readable name are found more often. The picture never makes a card green and never overrides a read name: what it finds is orange, and if it sees a different card than the text, green turns orange.", "add"),
         Item("Works offline: per set the app makes fingerprints once from the Scryfall images (a few hundred kB). Download sets in advance (Settings → Scanning) prepares them for your whole collection; a set you enter while scanning is added by itself.", "settings"),
         Item("Card by card: the app watches the camera and fills in what the photo missed (set or number) with what several frames of the same card read.", "add"),

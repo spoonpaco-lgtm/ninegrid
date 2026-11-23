@@ -28,6 +28,8 @@ Huidige versie: **0.9.15 – Niko**. Elke versie heeft de naam van een planeswal
 - **Herkennen op het plaatje**: met een ingevulde set kijkt de scanner naast de tekst ook naar het plaatje (beeldmodel op de telefoon, vingerafdrukken per set, daarna offline). Helpt bij splitkaarten, verkeerd gelezen nummers en onleesbare namen; maakt nooit groen. **Sets vooraf downloaden** zet de vingerafdrukken voor je hele collectie klaar.
 - **Kaart voor kaart stemmen**: wat de foto mist (set, nummer) vult de app aan met wat meerdere camerabeelden van dezelfde kaart lazen.
 - **Controlescherm**: is er iets te controleren, dan staan de zekere kaarten ingeklapt.
+- **Filteren en sorteren in één paneel**: filter **Prijs per stuk**, sorteren in twee richtingen, combinaties **bewaren onder een naam**.
+- **Boosterscherm**: zien wat er in een booster zat; boosters **wissen** (los, meerdere, per box of alles), met of zonder de kaarten, terug te draaien.
 - **Foil-twijfel in blauw**: een kaart die zeker is maar misschien foil (ster ★ gelezen), is blauw, zodat oranje voor echte kaartchecks blijft. Bij één kaart zie je de laatste drie kaarten met +1 en kun je meteen opslaan als alles zeker is.
 - **Scannen naar een deck** vanuit het deck (Toevoegen → Scannen), met één keuze voor uit de collectie halen.
 - **Foil per vak**: tik op het kleine raster van de laatste foto (met ✦) en dan op een vak (of Alles foil). Leest de scanner de **ster ★ van een foil**, dan staat de kaart alvast op foil (blauw: één tik bevestigt).
