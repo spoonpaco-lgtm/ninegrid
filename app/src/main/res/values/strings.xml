@@ -1144,7 +1144,7 @@
     <string name="wish_any_print_short">any print</string>
     <string name="dev_testset">Run test set</string>
     <string name="dev_testset_busy">Reading %1$s…</string>
-    <string name="dev_testset_explain">Choose a folder with test sheets (sub-folders with foto.jpg and uitslag.txt, like testset/ in the repo). The real scanner reads every photo and shows what is right and wrong. Takes a minute or two.</string>
+    <string name="dev_testset_explain">Choose a folder with test sheets (sub-folders with foto.jpg and uitslag.txt, like testset/ in the repo) and optionally losse-kaarten/ (NNN.jpg and one uitslag.txt). The real scanner reads every photo and shows what is right and wrong, separately for pages and single cards. Takes a few minutes.</string>
     <string name="dev_testset_title">Test set result</string>
     <string name="dev_testset_share">Share</string>
     <string name="review_all_to">All cards to:</string>
@@ -1273,4 +1273,10 @@
     <string name="price_to">To</string>
     <string name="filter_price_note">For a foil the foil price counts. Cards without a price drop out as soon as there is a limit.</string>
     <string name="chart_growth_split">In this period %1$s: %2$s from prices, %3$s from cards added or removed</string>
+    <string name="dev_collect">Collect scan reports</string>
+    <string name="dev_collect_explain">After every scan, keeps the photo, the scan report and what the app found on the phone. Scan for example 20 single cards and share everything at once as a zip, in the testset layout (losse-kaarten/ and a folder per page). Works even when the scan report above is off.</string>
+    <string name="dev_collect_count">Collected: %1$d single cards, %2$d pages</string>
+    <string name="dev_collect_share">Share all (%1$d)</string>
+    <string name="dev_collect_clear">Clear collection</string>
+    <string name="dev_collect_clear_q">Delete all collected photos and reports from the phone?</string>
 </resources>

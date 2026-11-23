@@ -2,7 +2,7 @@
 
 *Nederlands: [FEATURES.nl.md](FEATURES.nl.md)*
 
-Current version: **0.9.15 – Niko**. Every version is named after a planeswalker.
+Current version: **0.9.16 – Urza**. Every version is named after a planeswalker.
 
 ## What makes NineGrid different
 
@@ -28,6 +28,7 @@ Current version: **0.9.15 – Niko**. Every version is named after a planeswalke
 - **Recognise by picture**: with a set entered, the scanner looks at the picture besides the text (image model on the phone, fingerprints per set, then offline). Helps with split cards, misread numbers and unreadable names; never makes a card green. **Download sets in advance** prepares the fingerprints for your whole collection.
 - **Card-by-card voting**: what the photo misses (set, number) is filled in with what several camera frames of the same card read.
 - **Review screen**: when there is something to check, the sure cards are folded away.
+- **Collect scan reports** (Developer): share many scans in one zip; **testset for single cards**.
 - **Filter and sort in one panel**: **Price per card** filter, sorting both ways, **save combinations** under a name.
 - **Booster screen**: see what was in a booster; **delete** boosters (one, several, per box or all), with or without the cards, undoable.
 - **Foil doubt in blue**: a card that is sure but may be a foil (star ★ read) is blue, so orange stays for real card checks. Single-card scanning shows the last three cards with a +1 tap and saves straight away when all are sure.

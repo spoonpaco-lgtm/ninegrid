@@ -532,6 +532,7 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
                             offlineDb = settings.offlineDb != nl.spoonpaco.ninegrid.data.OfflineDb.OFF, language = java.util.Locale.getDefault().language,
                             pictureMatch = settings.pictureMatch, pictureReady = vm.hasFingerprints(vm.scanSet),
                             frameVotes = if (single) vm.lastFrameVotes else 0, filledFromFrames = if (single) vm.lastFilledFromFrames else 0,
+                            crop = crop?.let { a -> String.format(java.util.Locale.ROOT, "%.0f %.0f %.0f %.0f", a.left, a.top, a.right, a.bottom) } ?: "",
                         ))
                     }
                 }

@@ -384,6 +384,40 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit) {
                         Switch(checked = settings.devScanReport, onCheckedChange = { vm.setDevScanReport(it) })
                     }
                     Text(stringResource(R.string.dev_scan_report_explain), fontSize = NgText.body, color = LocalNgExtra.current.subtle)
+                    // Scanrapporten verzamelen: bijv. 20 losse kaarten scannen en alles in één keer delen (voor de testset).
+                    val collectCtx = androidx.compose.ui.platform.LocalContext.current
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
+                        Text(stringResource(R.string.dev_collect), modifier = Modifier.weight(1f))
+                        Switch(checked = vm.collectReports, onCheckedChange = { vm.setCollectReports(it) })
+                    }
+                    Text(stringResource(R.string.dev_collect_explain), fontSize = NgText.body, color = LocalNgExtra.current.subtle)
+                    val (nSingle, nSheet) = vm.collected
+                    Text(stringResource(R.string.dev_collect_count, nSingle, nSheet), fontSize = NgText.body)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedButton(enabled = nSingle + nSheet > 0, onClick = {
+                            val stamp = java.text.SimpleDateFormat("yyyyMMdd-HHmm", java.util.Locale.US).format(java.util.Date())
+                            val dir = java.io.File(collectCtx.cacheDir, "share").apply { mkdirs(); listFiles()?.filter { it.name.startsWith("verzameld-") }?.forEach { it.delete() } }
+                            vm.zipCollected(java.io.File(dir, "verzameld-$stamp.zip"))?.let { f ->
+                                val uri = androidx.core.content.FileProvider.getUriForFile(collectCtx, collectCtx.packageName + ".files", f)
+                                val send = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                                    type = "application/zip"
+                                    putExtra(android.content.Intent.EXTRA_STREAM, uri)
+                                    putExtra(android.content.Intent.EXTRA_SUBJECT, "NineGrid verzamelde scanrapporten")
+                                    addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                }
+                                collectCtx.startActivity(android.content.Intent.createChooser(send, null))
+                            }
+                        }) { Text(stringResource(R.string.dev_collect_share, nSingle + nSheet)) }
+                        var confirmClear by remember { mutableStateOf(false) }
+                        TextButton(enabled = nSingle + nSheet > 0, onClick = { confirmClear = true }) { Text(stringResource(R.string.dev_collect_clear), color = NgColors.Error) }
+                        if (confirmClear) AlertDialog(
+                            onDismissRequest = { confirmClear = false },
+                            title = { Text(stringResource(R.string.dev_collect_clear)) },
+                            text = { Text(stringResource(R.string.dev_collect_clear_q)) },
+                            confirmButton = { TextButton(onClick = { vm.clearCollected(); confirmClear = false }) { Text(stringResource(R.string.delete), color = NgColors.Error) } },
+                            dismissButton = { TextButton(onClick = { confirmClear = false }) { Text(stringResource(R.string.cancel)) } },
+                        )
+                    }
                     val crashCtx = androidx.compose.ui.platform.LocalContext.current
                     val hasCrash = nl.spoonpaco.ninegrid.data.CrashReport.latest(crashCtx) != null
                     OutlinedButton(onClick = { nl.spoonpaco.ninegrid.data.CrashReport.share(crashCtx) }, enabled = hasCrash, modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {

@@ -262,6 +262,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         val pageSet = if (single) forcedSet else forcedSet ?: nl.spoonpaco.ninegrid.domain.ScanParser.dominantSet(reads)
         // Bij een blad altijd alle 9 vakken tonen, ook als er niets gelezen is: dan zie je dat er een kaart gemist is.
         val list = if (single) reads.take(1) else (1..9).map { slot -> reads.firstOrNull { it.slot == slot } ?: SlotRead(slot, null, null, null, emptyList()) }
+        val keysBefore = pending.map { it.key }.toSet()
         list.forEach { r ->
             // De set die je zelf opgeeft wint: de setcode is het kleinste tekstje en wordt het vaakst verkeerd gelezen.
             val set = forcedSet ?: r.setCode ?: pageSet
@@ -300,6 +301,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             if (binder.isNotBlank() && page.isBlank()) page = repo.nextPage(binder).toString()
         }
+        lastScanKeys = pending.map { it.key }.filter { it !in keysBefore }
         if (!single) foilTipOnce()
         resolveAll()
         // Opgegeven set zonder vingerafdrukken: op de achtergrond maken (eenmalig, met internet), dan helpt het plaatje
@@ -602,7 +604,9 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
             }
             if (pending.none { it.status == ItemStatus.WAITING }) clearSavedPending()
             // Voor het scanrapport: wat de app er zelf van maakte, vóór AI-hulp en vóór correcties van de gebruiker.
-            if (scan) firstGuess = pending.filter { it.slot != null }.associate { it.slot!! to scanOutcome(it) }
+            if (scan) firstGuess = scanOutcomes()
+            // Scanrapporten verzamelen (Ontwikkelaar): nu het opzoeken klaar is, met de uitkomst erbij.
+            if (scan && collectPendingScan && pending.none { it.status == ItemStatus.RESOLVING }) { collectPendingScan = false; runCatching { collectScan() } }
             // Geen set opgegeven of gelezen: in welke set bestaan alle kaarten van dit blad samen? (voorstel, zie SheetSet)
             if (scan && pending.any { it.slot != null }) suggestSheetSet()
             // AI-hulp bij twijfel (als aan): de oranje en niet gevonden vakjes van deze scan.
@@ -999,6 +1003,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Onthoudt de foto (verkleind) en wat er gelezen is, zodat het rapport erna gedeeld kan worden. */
     fun recordScan(bmp: android.graphics.Bitmap, reads: List<SlotRead>, meta: nl.spoonpaco.ninegrid.domain.ScanMeta) {
+        collectPendingScan = collectReports
         lastScanReads = reads
         lastScanMeta = meta
         firstGuess = emptyMap()
@@ -1012,10 +1017,95 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     val hasScanReport get() = lastScanMeta != null && lastScanReads.isNotEmpty()
 
+    /** De regels van de laatste scan in het controlescherm (bij losse kaarten: de kaart van deze foto). */
+    private var lastScanKeys: List<Int> = emptyList()
+
+    /** Per vak wat de app ervan maakte; bij één kaart is dat vak 1 (die heeft geen vaknummer, daarom stond er "-"). */
+    private fun scanOutcomes(): Map<Int, String> =
+        if (lastScanMeta?.single == true || (pending.isNotEmpty() && pending.all { it.slot == null })) {
+            val item = lastScanKeys.lastOrNull()?.let { k -> pending.firstOrNull { it.key == k } } ?: pending.lastOrNull()
+            item?.let { mapOf(1 to scanOutcome(it)) } ?: emptyMap()
+        } else pending.filter { it.slot != null }.associate { it.slot!! to scanOutcome(it) }
+
+    // ---------- Scanrapporten verzamelen (Ontwikkelaar) ----------
+    /** Aan: na elke scan foto, rapport en een voorstel voor de uitslag bewaren, om later in één keer te delen. */
+    var collectReports by mutableStateOf(deckUiPrefs.getBoolean("collect_reports", false))
+        private set
+    fun setCollectReports(v: Boolean) { collectReports = v; deckUiPrefs.edit().putBoolean("collect_reports", v).apply() }
+    private var collectPendingScan = false
+    private val collectDir get() = java.io.File(getApplication<Application>().filesDir, "verzameld")
+    /** Hoeveel scans er verzameld zijn (losse kaarten, bladen). */
+    var collected by mutableStateOf(collectedCounts())
+        private set
+    private fun collectedCounts(): Pair<Int, Int> {
+        val files = collectDir.listFiles().orEmpty().map { it.name }
+        return files.count { it.endsWith("-los.jpg") } to files.count { it.endsWith("-blad.jpg") }
+    }
+
+    /** Bewaart de laatste scan (foto, rapport, voorstel voor de uitslag) in de verzameling. */
+    private fun collectScan() {
+        val meta = lastScanMeta ?: return
+        val photo = lastScanPhoto ?: return
+        val dir = collectDir.apply { mkdirs() }
+        val n = (dir.listFiles().orEmpty().mapNotNull { it.name.take(3).toIntOrNull() }.maxOrNull() ?: 0) + 1
+        val id = String.format(java.util.Locale.ROOT, "%03d", n)
+        val kind = if (meta.single) "los" else "blad"
+        java.io.File(dir, "$id-$kind.jpg").writeBytes(photo)
+        val outcomes = scanOutcomes()
+        java.io.File(dir, "$id-$kind-rapport.txt").writeText(nl.spoonpaco.ninegrid.domain.ScanReport.build(meta, lastScanReads, outcomes, firstGuess))
+        // Voorstel voor de uitslag: wat de app vond (te verbeteren door Mick of Claude).
+        fun cardOf(p: PendingItem?) = p?.print?.let { "${it.name} (${it.setCode.uppercase()} ${it.collectorNumber})" }
+        val uitslag = if (meta.single) {
+            val item = lastScanKeys.lastOrNull()?.let { k -> pending.firstOrNull { it.key == k } } ?: pending.lastOrNull()
+            nl.spoonpaco.ninegrid.domain.SingleTestset.line(id, cardOf(item) ?: "?", meta.setField, meta.crop)
+        } else (1..9).joinToString("\n") { slot ->
+            val item = pending.firstOrNull { it.slot == slot }
+            "vak $slot: " + (if (item == null || item.empty) "leeg" else cardOf(item) ?: "?")
+        } + "\nset: " + meta.setField
+        java.io.File(dir, "$id-$kind-uitslag.txt").writeText(uitslag)
+        collected = collectedCounts()
+    }
+
+    /**
+     * Maakt één zip van de verzameling, in de indeling van de testset: losse-kaarten/ (NNN.jpg, NNN-rapport.txt en één
+     * uitslag.txt) en per blad een map NNN-SET-blad/ met foto.jpg, scanrapport.txt en uitslag.txt.
+     */
+    fun zipCollected(out: java.io.File): java.io.File? {
+        val files = collectDir.listFiles().orEmpty().sortedBy { it.name }
+        if (files.none { it.name.endsWith(".jpg") }) return null
+        out.parentFile?.mkdirs()
+        java.util.zip.ZipOutputStream(out.outputStream().buffered()).use { z ->
+            fun put(name: String, bytes: ByteArray) { z.putNextEntry(java.util.zip.ZipEntry(name)); z.write(bytes); z.closeEntry() }
+            val singles = files.filter { it.name.endsWith("-los.jpg") }
+            if (singles.isNotEmpty()) {
+                val lines = mutableListOf("# Losse kaarten: per foto de juiste kaart. Voorstel = wat de app vond; verbeter waar nodig.")
+                singles.forEach { f ->
+                    val id = f.name.take(3)
+                    put("losse-kaarten/$id.jpg", f.readBytes())
+                    java.io.File(collectDir, "$id-los-rapport.txt").takeIf { it.exists() }?.let { put("losse-kaarten/$id-rapport.txt", it.readBytes()) }
+                    java.io.File(collectDir, "$id-los-uitslag.txt").takeIf { it.exists() }?.let { lines += it.readText().trim() }
+                }
+                put("losse-kaarten/uitslag.txt", (lines.joinToString("\n") + "\n").toByteArray())
+            }
+            files.filter { it.name.endsWith("-blad.jpg") }.forEach { f ->
+                val id = f.name.take(3)
+                val u = java.io.File(collectDir, "$id-blad-uitslag.txt").takeIf { it.exists() }?.readText().orEmpty()
+                val set = u.lines().firstOrNull { it.startsWith("set:") }?.substringAfter(":")?.trim().orEmpty().ifBlank { "gemengd" }
+                val folder = "$id-$set-blad"
+                put("$folder/foto.jpg", f.readBytes())
+                java.io.File(collectDir, "$id-blad-rapport.txt").takeIf { it.exists() }?.let { put("$folder/scanrapport.txt", it.readBytes()) }
+                put("$folder/uitslag.txt", ("# Voorstel = wat de app vond; verbeter waar nodig.\n" + u.lines().filter { it.startsWith("vak ") }.joinToString("\n") + "\n").toByteArray())
+            }
+        }
+        return out
+    }
+
+    fun clearCollected() { collectDir.listFiles().orEmpty().forEach { it.delete() }; collected = collectedCounts() }
+
     /** Schrijft rapport en foto naar de deelmap; geeft de bestanden terug. */
     fun writeScanReport(dir: java.io.File): List<java.io.File> {
         val meta = lastScanMeta ?: return emptyList()
-        val outcomes = pending.filter { it.slot != null }.associate { it.slot!! to scanOutcome(it) }
+        val outcomes = scanOutcomes()
         val stamp = java.text.SimpleDateFormat("yyyyMMdd-HHmmss", java.util.Locale.US).format(java.util.Date())
         dir.mkdirs()
         dir.listFiles()?.filter { it.name.startsWith("scanrapport-") }?.forEach { it.delete() }

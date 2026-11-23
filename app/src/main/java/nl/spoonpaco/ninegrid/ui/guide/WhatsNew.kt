@@ -28,6 +28,8 @@ object WhatsNew {
     fun items(dutch: Boolean): List<Item> = if (dutch) NL else EN
 
     private val NL = listOf(
+        Item("Ontwikkelaar: Scanrapporten verzamelen. Scan bijvoorbeeld 20 losse kaarten en deel alle foto's en rapporten in één keer als zip, klaar voor de testset.", "settings"),
+        Item("Testset draaien test nu ook losse kaarten (map losse-kaarten), met een eigen blok in de uitslag. En het scanrapport van een losse kaart laat weer zien wat de app vond.", "add"),
         Item("Boosters: tik op een booster om te zien wat erin zat, met de hit bovenaan, als lijst of als plaatjes. Wissen kan per booster, meerdere tegelijk (lang indrukken), per box of alles, met of zonder de kaarten uit je collectie, en terug te draaien.", "add"),
         Item("Filteren en sorteren in één paneel, met een nieuw filter Prijs per stuk (< € 1, € 1–5, € 5–20, > € 20 of zelf invullen) en sorteren in twee richtingen. Zo kan Nieuwste eerst samen met prijs > € 5. Combinaties bewaar je onder een eigen naam.", "add"),
         Item("Onder de grafiek Waarde: hoeveel van de groei door prijzen kwam en hoeveel door kaarten erbij of eraf. In de handleiding staat wanneer een nieuwe kaart waar meetelt.", "add"),
@@ -38,6 +40,8 @@ object WhatsNew {
     )
 
     private val EN = listOf(
+        Item("Developer: Collect scan reports. Scan for example 20 single cards and share all photos and reports at once as a zip, ready for the testset.", "settings"),
+        Item("Run testset now also tests single cards (folder losse-kaarten), with its own block in the result. And the scan report of a single card shows again what the app found.", "add"),
         Item("Boosters: tap a booster to see what was in it, with the hit on top, as a list or as images. Delete one booster, several at once (long-press), a box or all, with or without the cards from your collection, and undo it.", "add"),
         Item("Filter and sort in one panel, with a new Price per card filter (< € 1, € 1–5, € 5–20, > € 20 or your own) and sorting both ways. So Newest first works together with price > € 5. Save combinations under your own name.", "add"),
         Item("Under the Value chart: how much of the growth came from prices and how much from cards added or removed. The guide explains when a new card counts where.", "add"),

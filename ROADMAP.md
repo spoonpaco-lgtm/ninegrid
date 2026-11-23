@@ -80,6 +80,7 @@ Dit is "de lijst": wat Mick wil dat NineGrid nog krijgt. Een nieuw gesprek begin
 | 0.9.13 | Nissa | Raster op de kaartnamen (galerijfoto met set); testset meldt Scryfall-storingen; testset 88% goed (set ingevuld 91%), 0% groen maar fout, lege vakken 96% |
 | 0.9.14 | Ob Nixilis | Top movers (Winner én Loser of the Week/Day, inklapbaar, effecten Gloed en bloed of Stempels), Magic-effecten per effect, Toxic vernieuwd, setlijst voor de scanner uit de offline database |
 | 0.9.15 | Niko | Herkennen op het plaatje (offline vingerafdrukken per set), beelden laten stemmen bij 1 kaart, 39c, printcontrole-fix (sinds 0.9.14), testset 18 bladen; boosterscherm en boosters wissen, filter Prijs, sorteren in twee richtingen, één paneel Filteren en sorteren, bewaarde combinaties, groei uitgesplitst onder de grafiek |
+| 0.9.16 | Urza | Testset voor losse kaarten (map losse-kaarten), scanrapporten verzamelen en als één zip delen, fix "-" in het scanrapport van een losse kaart |
 
 ## Nog te doen
 
@@ -234,6 +235,13 @@ Naam Niko (Aris, spiegelscherven = beelden) gekozen door Claude; Mick mag hem ve
 - Grafiek: `domain/Growth.split` onder de grafiek (prijzen vs kaarten erbij/eraf). De dagstand werd al 3 s na een wijziging bijgewerkt (`AppViewModel.snapshot`); mijn eerdere uitleg "pas bij de volgende keer openen" klopte niet.
 - Nog na te kijken op de telefoon: alles hierboven; vooral boosters wissen met kaarten + ongedaan maken, en het paneel op alle schermen.
 - Later: bewaarde combinaties in de back-up; raster GTC als galerijfoto (0.9.16); Mondrak-1 diagnose.
+
+### 1k. 0.9.16 Urza (Mick 23 nov: "bouw het zonder gtc-raster en mondrak-1", daarna "ja release")
+
+- Testset losse kaarten: `losse-kaarten/` met NNN.jpg en uitslag.txt (`NNN: Naam (SET nr) | set=XXX | kader=l t r b`, `domain/SingleTestset`); `runTestset` doet daarna de route van kaart voor kaart (`startScan(single = true)`), apart blok in de uitslag. Stemmen over camerabeelden kan niet uit een foto.
+- Scanrapporten verzamelen: `AppViewModel.collectReports` (deckUiPrefs "collect_reports"), na het opzoeken (`collectScan` in `resolveAll`) foto/rapport/voorstel in `filesDir/verzameld`; `zipCollected` → zip in testset-indeling; wissen.
+- Fix: `scanOutcomes()` — bij een losse kaart (geen slot) stond "-"; ScanMeta heeft nu `crop` (kader).
+- Volgende: GTC-raster als galerijfoto, Mondrak-1, en een testset met 10–20 losse kaarten (Mick verzamelt ze met de nieuwe knop).
 
 ### 2. Kleine verbeteringen (nog geen versie)
 

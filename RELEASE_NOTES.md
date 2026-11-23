@@ -1,3 +1,11 @@
+NineGrid 0.9.16 – Urza
+
+Urza, die alles uitprobeerde en vastlegde: de testset en de scanrapporten voor losse kaarten.
+
+- Testset voor losse kaarten: een map `losse-kaarten/` naast de bladen, met NNN.jpg en één uitslag.txt (`001: Thriving Bluff (J25 775) | set=ONE | kader=…`). Testset draaien doet eerst de bladen en dan de losse kaarten, via de route van kaart voor kaart (eigen setveld per foto, het richtkader als dat bekend is). De uitslag heeft twee blokken: Bladen en Losse kaarten. Het stemmen over camerabeelden kan de testset niet nabootsen (een foto is één beeld).
+- Scanrapporten verzamelen (Instellingen → Ontwikkelaar): na elke scan bewaart de app de foto, het rapport en wat hij vond. Alles delen maakt één zip in de indeling van de testset: `losse-kaarten/` met de foto's, de rapporten en een uitslag.txt met voorstellen, en per blad een map met foto.jpg, scanrapport.txt en uitslag.txt. Daarna Verzameling wissen.
+- Fix scanrapport: bij een losse kaart stond bij de uitkomst "-" (een losse kaart heeft geen vaknummer). Nu staat er wat de app vond, met groen of oranje. Het rapport noemt ook het kader op de foto.
+
 NineGrid 0.9.15 – Niko
 
 Niko Aris, die met spiegelscherven werkt: de scanner kijkt nu ook naar het plaatje, niet alleen naar de tekst.

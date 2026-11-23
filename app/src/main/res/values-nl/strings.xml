@@ -1143,7 +1143,7 @@
     <string name="wish_any_print_short">elke print</string>
     <string name="dev_testset">Testset draaien</string>
     <string name="dev_testset_busy">Bezig met %1$s…</string>
-    <string name="dev_testset_explain">Kies een map met testbladen (submappen met foto.jpg en uitslag.txt, zoals testset/ in de repo). De echte scanner leest elke foto en laat zien wat goed en fout is. Duurt een of twee minuten.</string>
+    <string name="dev_testset_explain">Kies een map met testbladen (submappen met foto.jpg en uitslag.txt, zoals testset/ in de repo) en eventueel losse-kaarten/ (NNN.jpg en één uitslag.txt). De echte scanner leest elke foto en laat zien wat goed en fout is, apart voor bladen en losse kaarten. Duurt een paar minuten.</string>
     <string name="dev_testset_title">Uitslag testset</string>
     <string name="dev_testset_share">Delen</string>
     <string name="review_all_to">Alle kaarten naar:</string>
@@ -1272,4 +1272,10 @@
     <string name="price_to">Tot</string>
     <string name="filter_price_note">Bij een foil telt de foilprijs. Kaarten zonder prijs vallen weg zodra er een grens is.</string>
     <string name="chart_growth_split">In deze periode %1$s: %2$s door prijzen, %3$s door kaarten erbij of eraf</string>
+    <string name="dev_collect">Scanrapporten verzamelen</string>
+    <string name="dev_collect_explain">Bewaart na elke scan de foto, het scanrapport en wat de app vond, op de telefoon. Scan bijvoorbeeld 20 losse kaarten en deel alles in één keer als zip, in de indeling van de testset (losse-kaarten/ en per blad een map). Werkt ook als het scanrapport hierboven uit staat.</string>
+    <string name="dev_collect_count">Verzameld: %1$d losse kaarten, %2$d bladen</string>
+    <string name="dev_collect_share">Alles delen (%1$d)</string>
+    <string name="dev_collect_clear">Verzameling wissen</string>
+    <string name="dev_collect_clear_q">Alle verzamelde foto\'s en rapporten van de telefoon wissen?</string>
 </resources>

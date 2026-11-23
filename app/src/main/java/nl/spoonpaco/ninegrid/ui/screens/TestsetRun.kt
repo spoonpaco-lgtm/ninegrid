@@ -20,8 +20,12 @@ import nl.spoonpaco.ninegrid.ui.ItemStatus
 internal suspend fun runTestset(ctx: Context, tree: Uri, vm: AppViewModel, progress: (String) -> Unit): String {
     val root = DocumentFile.fromTreeUri(ctx, tree) ?: return "Map niet te openen."
     if (withContext(Dispatchers.Main) { vm.pending.isNotEmpty() }) return "Er staat nog een scan klaar op het controlescherm. Sla die eerst op of gooi hem weg, en draai dan de testset."
-    val dirs = root.listFiles().filter { it.isDirectory && it.findFile("uitslag.txt") != null }.sortedBy { it.name }
-    if (dirs.isEmpty()) return "Geen bladen gevonden. Kies de map met submappen die een uitslag.txt en foto.jpg bevatten (zoals testset/ in de repo)."
+    val dirs = root.listFiles().filter { it.isDirectory && it.name != SINGLES && it.findFile("uitslag.txt") != null }.sortedBy { it.name }
+    val singlesDir = root.findFile(SINGLES)?.takeIf { it.isDirectory && it.findFile("uitslag.txt") != null }
+    if (dirs.isEmpty() && singlesDir == null) return "Geen bladen gevonden. Kies de map met submappen die een uitslag.txt en foto.jpg bevatten (zoals testset/ in de repo), en eventueel losse-kaarten/."
+    // Losse kaarten (één kaart per foto): apart geteld.
+    var sOk = 0; var sTotal = 0; var sSureWrong = 0; var sCheckRight = 0; var sNotFound = 0
+    val sBody = StringBuilder()
     val body = StringBuilder()
     var ok = 0; var total = 0; var sureWrong = 0; var checkRight = 0; var notFound = 0; var rawOk = 0
     // Ook als galerijfoto (zonder kader), alleen het totaal: zo blijft zichtbaar of een galerijfoto met een stuk buurpagina werkt.
@@ -125,6 +129,49 @@ internal suspend fun runTestset(ctx: Context, tree: Uri, vm: AppViewModel, progr
                 }
             }
         }
+        // Losse kaarten: zoals scannen kaart voor kaart (één kaart, eigen setveld per foto, het richtkader als dat bekend is).
+        // Het stemmen over camerabeelden kan hier niet: uit een foto komt maar één beeld.
+        if (singlesDir != null) {
+            val items = nl.spoonpaco.ninegrid.domain.SingleTestset.parse(ctx.contentResolver.openInputStream(singlesDir.findFile("uitslag.txt")!!.uri)!!.bufferedReader().readLines())
+            for (code in items.map { i -> i.set }.filter { c -> c.isNotBlank() }.distinct()) { progress("$SINGLES: vingerafdrukken $code"); vm.ensureFingerprints(code) }
+            for (item in items) {
+                val file = singlesDir.findFile("${item.id}.jpg") ?: run { sBody.appendLine("${item.id}: foto ontbreekt"); null } ?: continue
+                progress("$SINGLES/${item.id}.jpg")
+                withContext(Dispatchers.Main) { vm.scanSet = item.set; if (vm.pending.isNotEmpty()) vm.clearPending() }
+                val bmp = try { loadPhoto(ctx, file.uri) } catch (e: Exception) { sBody.appendLine("${item.id}: fout ${e.message}"); continue }
+                val read = try {
+                    val first = readImage(bmp, item.crop, true)
+                    val (r00, _) = reread(bmp, first, true, vm.setInfo.keys)
+                    tidyReads(vm, r00, true)
+                } catch (e: Exception) { sBody.appendLine("${item.id}: fout ${e.message}"); continue }
+                val crops = withContext(Dispatchers.Default) { runCatching { cropsFor(bmp, read, true) }.getOrDefault(emptyMap()) }
+                withContext(Dispatchers.Main) { vm.startScan(read.slots, crops, single = true) }
+                var waited = 0
+                while (waited < 60_000 && withContext(Dispatchers.Main) { vm.pending.any { it.status == ItemStatus.RESOLVING } }) { delay(300); waited += 300 }
+                if (withContext(Dispatchers.Main) { vm.pending.any { it.status == ItemStatus.WAITING } }) {
+                    delay(3000); withContext(Dispatchers.Main) { vm.retryWaiting() }
+                    var w2 = 0
+                    while (w2 < 30_000 && withContext(Dispatchers.Main) { vm.pending.any { it.status == ItemStatus.RESOLVING } }) { delay(300); w2 += 300 }
+                }
+                val got = withContext(Dispatchers.Main) { vm.pending.lastOrNull() }
+                withContext(Dispatchers.Main) { vm.clearPending() }
+                val p = got?.print
+                val v = TestsetScore.judge(item.expect, p?.name, p?.setCode, p?.collectorNumber, p == null)
+                val sure = got?.confident == true && got.status == ItemStatus.FOUND
+                sTotal++
+                if (v.ok) sOk++
+                if (sure && !v.ok) sSureWrong++
+                if (!sure && v.ok) sCheckRight++
+                if (p == null) sNotFound++
+                val status = when { got == null -> "niets"; sure -> "groen"; got.status == ItemStatus.FOUND -> "oranje"; else -> "niet gevonden" }
+                if (!v.ok) {
+                    val las = got?.query?.let { q -> " · las: naam=${q.name ?: "-"} set=${q.setCode ?: "-"} nr=${q.collectorNumber ?: "-"}" } ?: ""
+                    val plaatje = got?.picture?.let { " · plaatje: $it" } ?: ""
+                    sBody.appendLine("${item.id}: FOUT · verwacht ${TestsetScore.describe(item.expect)} · kreeg ${p?.let { "${it.name} (${it.setCode.uppercase()} ${it.collectorNumber})" } ?: "niets"} · $status" +
+                        (if (item.set.isNotBlank()) " · set ingevuld ${item.set}" else "") + las + plaatje)
+                } else sBody.appendLine("${item.id}: goed · $status")
+            }
+        }
     } finally {
         withContext(Dispatchers.Main) { if (vm.pending.isNotEmpty()) vm.clearPending(); vm.scanSet = prevSet }
     }
@@ -134,8 +181,12 @@ internal suspend fun runTestset(ctx: Context, tree: Uri, vm: AppViewModel, progr
         val fails = vm.repo.scryfall.failures - failsBefore
         if (fails > 0) appendLine(if (stillWaiting == 0) "Scryfall was $fails keer niet bereikbaar; $retries keer opnieuw geprobeerd, alles gelukt. De uitslag telt dus."
             else "LET OP: $fails keer kon Scryfall niet bereikt worden; na $retries keer opnieuw proberen wachten nog $stillWaiting vakken op verbinding. Deze uitslag is dan te laag; draai later opnieuw.")
-        appendLine("Totaal: $total vakken, $ok helemaal goed na opzoeken · $secs s")
+        appendLine("Bladen: $total vakken, $ok helemaal goed na opzoeken · $secs s")
         appendLine("Groen maar fout (het ergste): $sureWrong · oranje maar goed: $checkRight · niet gevonden: $notFound")
+        if (sTotal > 0) {
+            appendLine("Losse kaarten: $sTotal foto's, $sOk helemaal goed")
+            appendLine("Groen maar fout (het ergste): $sSureWrong · oranje maar goed: $sCheckRight · niet gevonden: $sNotFound")
+        }
         if (picTotal > 0) {
             fun avg(l: List<Float>) = if (l.isEmpty()) "-" else String.format(java.util.Locale.ROOT, "%.2f", l.average())
             fun lo(l: List<Float>) = l.minOrNull()?.let { String.format(java.util.Locale.ROOT, "%.2f", it) } ?: "-"
@@ -148,5 +199,8 @@ internal suspend fun runTestset(ctx: Context, tree: Uri, vm: AppViewModel, progr
         if (galleryTotal > 0) appendLine("Met kader.txt (alleen bladen met dat bestand): $galleryOk van $galleryTotal goed · groen maar fout: $gallerySureWrong")
         appendLine("Met de set van de mapnaam ingevuld, zoals jij de app gebruikt. Als galerijfoto (zonder kader), wat op 18 nov overeenkwam met de camera. Bij een fout staat erbij wat de scanner las. Namen tellen goed bij 80% gelijkenis. Heeft internet nodig voor kaarten die de offline database niet kent.")
         append(body)
+        if (sTotal > 0) { appendLine("\n== $SINGLES (zoals kaart voor kaart; zonder het stemmen over camerabeelden)"); append(sBody) }
     }
 }
+
+private const val SINGLES = "losse-kaarten"
