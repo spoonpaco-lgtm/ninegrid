@@ -269,7 +269,7 @@ Naam Niko (Aris, spiegelscherven = beelden) gekozen door Claude; Mick mag hem ve
 
 ### 1n. 0.9.20 Kiora (Mick 23 nov: "release 0.9.19 en bouw dan de volgende", gebouwd, nog niet uitgebracht)
 
-- Eerste echte scans met 0.9.20 (6 bladen, setveld leeg): 47/51 goed, 29 groen, groen maar fout 0, lege vakken 3/3; in de testset als 19–24. Fouten: PLST (The List) gekozen voor Adanto Vanguard en Smiting Helix, Jayemdae Tome ORI i.p.v. M13 207, Aminatou 2X2 468 i.p.v. 169. Voorstel: PLST nooit standaard; daarna voetregel lezen op de volle foto (nu verkleind tot 1080 breed).
+- Eerste echte scans met 0.9.20 (6 bladen, setveld leeg): 47/51 goed, 29 groen, groen maar fout 0, lege vakken 3/3; in de testset als 19–24. Fouten: PLST (The List) gekozen voor Adanto Vanguard en Smiting Helix, Jayemdae Tome ORI i.p.v. M13 207, Aminatou 2X2 468 i.p.v. 169. PLST-fix gebouwd (Mick "doe de fix"): offline `byName` zet PLST/ULST achteraan, `pickPrint` laat ze weg als er een origineel is; daarna voetregel lezen op de volle foto (nu verkleind tot 1080 breed).
 - Camera: `previewRect` (hele beeld 3:4 op volle breedte tussen de balken), `PreviewView` FIT_CENTER in dat vak, `guideRect`/`guideOnImage` op het beeld. Testset (galerijfoto's) meet dit niet: meten met verzamelde scans (kadergrootte in pixels in het scanrapport).
 - Combodatabase SCHEMA 3: `combo_names`, `combo_features`, `combo_cards(cardId, comboRow)`, zoeken via `owned_ids`; inlezen in `combos-new.db` en verwisselen. Gemeten door Mick (23 nov): **41 MB** (0.9.18: 196, 0.9.19: 119).
 - `PictureIndex.CHOOSE_PRINT = false` (0.9.19: 8 gelijk, 1 fout). Testset had al nummers bij de prints die het plaatje koos; de vier zonder nummer (Davriel, Cosmium Confluence, Glowcap Lantern, Denizen) zijn op de foto niet leesbaar.
