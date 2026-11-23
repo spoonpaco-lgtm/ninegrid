@@ -3,6 +3,7 @@ NineGrid 0.9.17 – Dack
 Dack Fayden pakt altijd het juiste exemplaar: de printkiezer.
 
 - Printkiezer (zonder ingevulde set): alle prints met de gelezen naam uit de offline kaartdatabase krijgen punten voor wat er in de voetregel staat (nummer, setcode, zeldzaamheidsletter, jaartal). Half gelezen telt mee ("S0130" ligt dicht bij 139, "FON" bij FDN), maar alleen tussen prints die echt bestaan. Groen alleen als set en nummer duidelijk kloppen; anders oranje met de beste print. Werkt offline en is sneller dan zoeken bij Scryfall.
+- Printkiezer ook bij een ingevulde set: zijn er meerdere prints met die naam in de set (gewoon, showcase, borderless) en is het nummer niet precies gelezen, dan kiest hij op wat er wel staat. Dat blijft oranje.
 - Nummer onderaan beter gelezen: ook aan elkaar ("CO098", "U0146") en met S voor 5 ("C O16s" = 165). Het © van de copyrightregel, gelezen als "C 2024", hield het echte nummer erboven tegen; dat gebeurt niet meer.
 - Art Series-kaarten, tokens en emblemen worden nooit meer gekozen (Snakeskin Veil werd "Snakeskin Veil // Snakeskin Veil" uit ATDM). De offline database neemt ze bij de volgende download niet meer op.
 - Scanrapport: per camerabeeld wat er gelezen is, en waarom de printkiezer een print koos.

@@ -248,7 +248,8 @@ Naam Niko (Aris, spiegelscherven = beelden) gekozen door Claude; Mick mag hem ve
 - Aanleiding: 28 losse kaarten (testset/losse-kaarten, 0.9.16): 26 goed, 0 groen maar fout; fout Cathar Commando (→ SLD 7132) en Snakeskin Veil (→ ATDM 19, Art Series); bij 9 kaarten nummer niet gelezen.
 - Oorzaken: (1) "C 2024 Wizards" (© als C) werd als nummer gezien en hield het echte nummer tegen; (2) "CO098", "C O16s" niet herkend; (3) offline `byName` gaf de nieuwste print met die voorkant = Art Series.
 - Gebouwd: `domain/PrintPick` (alle prints met de naam uit de offline database, punten voor nummer/set (precies 2, één teken 1), zeldzaamheidsletter en jaartal 0,5; zeker alleen bij set én nummer precies of 2+1 met ruime voorsprong), `Repository.pickPrint` bij geen set, `CardQuery.printSure/printWhy`, `resolveAll` telt `printSure` als gelezen set en nummer. Parser: letter+nummer aan elkaar, S=5, jaartal stopt niet. Offline: geen Art Series/tokens/emblemen (query én import). Scanrapport: camerabeelden en printkiezer.
-- Nog niet: printkiezer bij een ingevulde set met verlezen nummer; zeldzaamheid/jaar/typeregel als tegenbewijs (stap 3) en artiest (stap 4, database-uitbreiding).
+- Ook bij een ingevulde set (Mick 23 nov "ja graag"): meerdere prints met de naam in de set en geen precies nummer → printkiezer kiest (alleen keuze, nooit groener). Nulmeting 0.9.16 met de nieuwe testset: bladen 203/225, losse kaarten 26/28, groen maar fout 0.
+- Nog niet: zeldzaamheid/jaar/typeregel als tegenbewijs (stap 3) en artiest (stap 4, database-uitbreiding).
 
 ### 2. Kleine verbeteringen (nog geen versie)
 

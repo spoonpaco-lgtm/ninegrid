@@ -617,6 +617,16 @@ class Repository(
                 }
             }
             if (pick != null) q = q.copy(id = pick.id)
+            // 0.9.17: meerdere prints met deze naam in de set en het nummer klopt niet precies: de printkiezer kiest
+            // op de voetregel (nummer op één teken na, zeldzaamheidsletter). Alleen een keuze, nooit groener dan voorheen.
+            if (pick != null && !numberFits) {
+                val same = list.cards.filter { it.name == pick.name }
+                if (same.size > 1 && same.none { it.number.equals(q.collectorNumber, true) }) {
+                    val cands = same.map { nl.spoonpaco.ninegrid.domain.PrintPick.Cand(it.id, set, it.number, it.rarity) }
+                    nl.spoonpaco.ninegrid.domain.PrintPick.pick(cands, q0.lines, extraSets = listOf(set), extraNumbers = listOfNotNull(q.collectorNumber))
+                        ?.let { p -> q = q.copy(id = p.cand.id, printWhy = "in set $set · " + p.why) }
+                }
+            }
             q
         }
         lastNamesMs = System.currentTimeMillis() - t0

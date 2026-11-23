@@ -60,6 +60,15 @@ class PrintPickTest {
     }
 
     @Test
+    fun withinAKnownSetHalfReadNumberPicksTheRightVariant() {
+        val cands = listOf(PrintPick.Cand("176", "lci", "176", "common"), PrintPick.Cand("378", "lci", "378", "common"))
+        val p = PrintPick.pick(cands, listOf("C 0170", "LCI EN JOHN DOE"), extraSets = listOf("LCI"))!!
+        assertEquals("176", p.cand.id)
+        // Niets in de voetregel dat de prints onderscheidt: geen keuze.
+        assertNull(PrintPick.pick(cands, listOf("LCI EN JOHN DOE"), extraSets = listOf("LCI")))
+    }
+
+    @Test
     fun noFooterNoPick() {
         assertNull(PrintPick.pick(cathar, listOf("Cathar Commando", "Creature — Human Soldier")))
     }
