@@ -221,6 +221,10 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     var lastPicturesMs by mutableStateOf(0L)
     /** Kaart voor kaart: hoeveel camerabeelden meestemden, en of de foto daarmee is aangevuld (scanrapport). */
     var lastFrameVotes = 0
+    /** Wat de camerabeelden van de laatste losse kaart lazen (scanrapport). */
+    var lastFrames: List<String> = emptyList()
+    /** Per gescande kaart: waarom de printkiezer deze print koos (scanrapport). */
+    private val printWhy = java.util.concurrent.ConcurrentHashMap<Int, String>()
     var lastFilledFromFrames = 0
     /** Dit hele blad is foil. */
     var scanFoil by mutableStateOf(false)
@@ -546,10 +550,14 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                     val q = item.query
                     // Een opgegeven of gelezen set is een grens: staat de kaart in een andere set, dan altijd oranje, met de gevonden set erbij.
                     val otherSet = scan && card != null && nl.spoonpaco.ninegrid.domain.SetCheck.otherSet(q.setCode, card.set)
+                    // 0.9.17: de printkiezer vond set en nummer duidelijk in de voetregel: dat telt als gelezen set en nummer.
+                    val pq = queries.getOrNull(i)
+                    val footSure = scan && card != null && pq?.printSure == true && pq.id == card.id
+                    pq?.printWhy?.let { w -> printWhy[item.key] = (if (footSure) "zeker · " else "") + w }
                     // Geen nummer gelezen en meerdere prints met die naam in de set (gewoon, borderless, showcase): dat is gokken, dus controleren.
-                    val ambiguous = scan && card != null && nl.spoonpaco.ninegrid.domain.SetCheck.ambiguous(q.collectorNumber != null, repo.printCandidates(card.name, q.setCode ?: card.set).size)
+                    val ambiguous = scan && card != null && !footSure && nl.spoonpaco.ninegrid.domain.SetCheck.ambiguous(q.collectorNumber != null, repo.printCandidates(card.name, q.setCode ?: card.set).size)
                     // Geen set (niet opgegeven, niet gelezen) en geen nummer: welke print het is, is een gok. Dan nooit groen.
-                    val guessedPrint = scan && card != null && nl.spoonpaco.ninegrid.domain.SetCheck.guessedPrint(q.setCode != null, q.collectorNumber != null)
+                    val guessedPrint = scan && card != null && !footSure && nl.spoonpaco.ninegrid.domain.SetCheck.guessedPrint(q.setCode != null, q.collectorNumber != null)
                     // Groen alleen als de gelezen naam echt op de gevonden kaart lijkt (80%, zoals de testset telt).
                     // Na de setlijst (preResolve met een duidelijke beste naam in de set) telt die naam; anders wat er gelezen is.
                     // Kwam de naam uit een andere regel dan de naamregel (misschien de naam van het buurvak), dan telt de gelezen naam.
@@ -559,7 +567,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                         else checkName != null && nl.spoonpaco.ninegrid.domain.NameMatch.score(checkName, card.name) >= 0.8
                     val confident = card != null && printedOk[item.key] != false && (q.name != null || q.collectorNumber != null) &&
                         (checkName == null || repo.namesLookAlike(checkName, card.name)) &&
-                        (q.collectorNumber == null || card.collectorNumber.equals(q.collectorNumber, true)) &&
+                        (q.collectorNumber == null || footSure || card.collectorNumber.equals(q.collectorNumber, true)) &&
                         !otherSet && !ambiguous && !guessedPrint
                     val textSure = (confident || q.id != null) && nameStrong && !guessedPrint
                     // Het plaatje (1h-scan) maakt nooit groen: het vult aan waar de tekst niets of iets onzekers vond,
@@ -1117,7 +1125,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     private fun scanOutcome(it: PendingItem): String = when {
         it.empty -> "leeg vak"
         it.status == ItemStatus.NOT_FOUND -> "niet gevonden (${it.label})" + (it.picture?.let { p -> " · plaatje: $p" } ?: "")
-        it.print != null -> "gevonden: ${it.print.name} (${it.print.setCode.uppercase()} ${it.print.collectorNumber})" + (if (it.needsCheck) " [controleren]" else "") + (if (it.finish != Finish.NONFOIL) " [${it.finish}]" else "") + (it.picture?.let { p -> " · plaatje: $p" } ?: "")
+        it.print != null -> "gevonden: ${it.print.name} (${it.print.setCode.uppercase()} ${it.print.collectorNumber})" + (if (it.needsCheck) " [controleren]" else "") + (if (it.finish != Finish.NONFOIL) " [${it.finish}]" else "") + (it.picture?.let { p -> " · plaatje: $p" } ?: "") + (printWhy[it.key]?.let { w -> " · printkiezer: $w" } ?: "")
         else -> "${it.status.name.lowercase()} (${it.label})"
     }
     fun setHaptics(v: Boolean) = viewModelScope.launch { settingsStore.setHaptics(v) }

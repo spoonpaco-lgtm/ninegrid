@@ -243,6 +243,13 @@ Naam Niko (Aris, spiegelscherven = beelden) gekozen door Claude; Mick mag hem ve
 - Fix: `scanOutcomes()` — bij een losse kaart (geen slot) stond "-"; ScanMeta heeft nu `crop` (kader).
 - Volgende: GTC-raster als galerijfoto, Mondrak-1, en een testset met 10–20 losse kaarten (Mick verzamelt ze met de nieuwe knop).
 
+### 1l. 0.9.17 Dack: printkiezer (Mick 23 nov "ja bouwen", nog niet uitgebracht)
+
+- Aanleiding: 28 losse kaarten (testset/losse-kaarten, 0.9.16): 26 goed, 0 groen maar fout; fout Cathar Commando (→ SLD 7132) en Snakeskin Veil (→ ATDM 19, Art Series); bij 9 kaarten nummer niet gelezen.
+- Oorzaken: (1) "C 2024 Wizards" (© als C) werd als nummer gezien en hield het echte nummer tegen; (2) "CO098", "C O16s" niet herkend; (3) offline `byName` gaf de nieuwste print met die voorkant = Art Series.
+- Gebouwd: `domain/PrintPick` (alle prints met de naam uit de offline database, punten voor nummer/set (precies 2, één teken 1), zeldzaamheidsletter en jaartal 0,5; zeker alleen bij set én nummer precies of 2+1 met ruime voorsprong), `Repository.pickPrint` bij geen set, `CardQuery.printSure/printWhy`, `resolveAll` telt `printSure` als gelezen set en nummer. Parser: letter+nummer aan elkaar, S=5, jaartal stopt niet. Offline: geen Art Series/tokens/emblemen (query én import). Scanrapport: camerabeelden en printkiezer.
+- Nog niet: printkiezer bij een ingevulde set met verlezen nummer; zeldzaamheid/jaar/typeregel als tegenbewijs (stap 3) en artiest (stap 4, database-uitbreiding).
+
 ### 2. Kleine verbeteringen (nog geen versie)
 
 - Scannen, kaart voor kaart: 39a (set van de vorige kaart als aanname) is door Mick afgewezen, 17 nov: scannen wordt er trager van; een set telt alleen als de gebruiker hem zelf opgeeft. 39c gebouwd in 0.9.15 (zie 1i-scan).

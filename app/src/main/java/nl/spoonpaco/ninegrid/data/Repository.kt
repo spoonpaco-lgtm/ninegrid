@@ -583,7 +583,9 @@ class Repository(
             val fixedName = q0.name?.let { n -> kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { c.correctName(n) } ?: n }
             val alts = if (c.namesLoaded) q0.altNames.filter { c.isExactName(it) } else emptyList()
             var q = q0.copy(name = fixedName ?: q0.name, altNames = alts)
-            val set = q.setCode ?: return@map q
+            // 0.9.17: geen set (niet opgegeven, niet gelezen): de printkiezer vergelijkt alle prints met deze naam
+            // (offline database) met de voetregel. Zonder offline database of zonder bewijs: zoals vroeger.
+            val set = q.setCode ?: return@map runCatching { pickPrint(q) }.getOrDefault(q)
             val list = c.scanList(set) ?: return@map q
             val setNames = list.cards.map { it.name }.distinct()
             // De naam zoals gelezen en zoals verbeterd tegen alle kaartnamen: binnen de set telt de best passende naam,
@@ -619,6 +621,17 @@ class Repository(
         }
         lastNamesMs = System.currentTimeMillis() - t0
         return out
+    }
+
+    /** Printkiezer zonder set: alle prints met de gelezen naam, punten voor wat de voetregel zegt. */
+    private suspend fun pickPrint(q: CardQuery): CardQuery {
+        val name = q.name ?: return q
+        val off = scryfall.offline ?: return q
+        val prints = off.printsOf(name).filter { !it.digital && !nl.spoonpaco.ninegrid.domain.PrintPick.notACard(it.name, it.typeLine) }
+        if (prints.isEmpty()) return q
+        val cands = prints.map { nl.spoonpaco.ninegrid.domain.PrintPick.Cand(it.id, it.set, it.collectorNumber, it.rarity, it.releasedAt.take(4), it.typeLine.startsWith("Basic Land")) }
+        val p = nl.spoonpaco.ninegrid.domain.PrintPick.pick(cands, q.lines, extraNumbers = listOfNotNull(q.collectorNumber)) ?: return q
+        return q.copy(id = p.cand.id, printSure = p.sure, printWhy = p.why)
     }
 
     /** De sets waar je kaarten van hebt (collectie en decks, geen proxies), voor Sets vooraf downloaden. */
@@ -700,6 +713,8 @@ class Repository(
     }
 
     private suspend fun betterPrint(q: CardQuery, c: SfCard): SfCard {
+        // De printkiezer heeft al gekozen op set én nummer: een los (misschien verlezen) nummer gaat daar niet overheen.
+        if (q.printWhy != null && q.id == c.id) return c
         val number = q.collectorNumber ?: return c
         if (c.collectorNumber.equals(number, true) && (q.setCode == null || c.set.equals(q.setCode, true))) return c
         // Eerst de setlijst op de telefoon: geen zoekopdracht bij Scryfall nodig.

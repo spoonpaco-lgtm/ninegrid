@@ -512,6 +512,7 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
                     val frames = votes.recent(System.currentTimeMillis()); votes.clear()
                     val filled = rRead.slots.map { nl.spoonpaco.ninegrid.domain.FrameVotes.fill(it, frames) }
                     vm.lastFrameVotes = frames.size
+                    vm.lastFrames = frames.map { f -> "naam=${f.name ?: "-"} set=${f.setCode ?: "-"} nr=${f.number ?: "-"}" }
                     vm.lastFilledFromFrames = filled.zip(rRead.slots).count { (a, b) -> a != b }
                     rRead.copy(slots = filled)
                 }
@@ -532,6 +533,7 @@ fun ScanScreen(vm: AppViewModel, onBack: () -> Unit, onResult: () -> Unit) {
                             offlineDb = settings.offlineDb != nl.spoonpaco.ninegrid.data.OfflineDb.OFF, language = java.util.Locale.getDefault().language,
                             pictureMatch = settings.pictureMatch, pictureReady = vm.hasFingerprints(vm.scanSet),
                             frameVotes = if (single) vm.lastFrameVotes else 0, filledFromFrames = if (single) vm.lastFilledFromFrames else 0,
+                            frames = if (single) vm.lastFrames else emptyList(),
                             crop = crop?.let { a -> String.format(java.util.Locale.ROOT, "%.0f %.0f %.0f %.0f", a.left, a.top, a.right, a.bottom) } ?: "",
                         ))
                     }

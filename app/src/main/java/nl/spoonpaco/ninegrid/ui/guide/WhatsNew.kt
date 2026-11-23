@@ -28,6 +28,8 @@ object WhatsNew {
     fun items(dutch: Boolean): List<Item> = if (dutch) NL else EN
 
     private val NL = listOf(
+        Item("Scanner kiest de juiste print beter: zonder ingevulde set vergelijkt hij alle prints met die naam met wat onderaan de kaart staat (nummer, set, zeldzaamheid, jaar). Offline en sneller.", "add"),
+        Item("Nummers onderaan worden vaker goed gelezen, en Art Series-kaarten en tokens worden nooit meer gekozen.", "check"),
         Item("Ontwikkelaar: Scanrapporten verzamelen. Scan bijvoorbeeld 20 losse kaarten en deel alle foto's en rapporten in één keer als zip, klaar voor de testset.", "settings"),
         Item("Testset draaien test nu ook losse kaarten (map losse-kaarten), met een eigen blok in de uitslag. En het scanrapport van een losse kaart laat weer zien wat de app vond.", "add"),
         Item("Boosters: tik op een booster om te zien wat erin zat, met de hit bovenaan, als lijst of als plaatjes. Wissen kan per booster, meerdere tegelijk (lang indrukken), per box of alles, met of zonder de kaarten uit je collectie, en terug te draaien.", "add"),
@@ -40,6 +42,8 @@ object WhatsNew {
     )
 
     private val EN = listOf(
+        Item("The scanner picks the right print better: without a set filled in, it compares every print with that name to what is printed at the bottom of the card (number, set, rarity, year). Offline and faster.", "add"),
+        Item("Numbers at the bottom are read correctly more often, and Art Series cards and tokens are never picked anymore.", "check"),
         Item("Developer: Collect scan reports. Scan for example 20 single cards and share all photos and reports at once as a zip, ready for the testset.", "settings"),
         Item("Run testset now also tests single cards (folder losse-kaarten), with its own block in the result. And the scan report of a single card shows again what the app found.", "add"),
         Item("Boosters: tap a booster to see what was in it, with the hit on top, as a list or as images. Delete one booster, several at once (long-press), a box or all, with or without the cards from your collection, and undo it.", "add"),

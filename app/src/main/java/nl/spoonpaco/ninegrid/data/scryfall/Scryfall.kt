@@ -72,6 +72,8 @@ data class SfCard(
     @SerialName("printed_name") val printedName: String? = null,
     /** Alleen digitaal (MTG Arena/Online): niet in de offline kaartdatabase. */
     val digital: Boolean = false,
+    /** Soort kaart bij Scryfall (normal, art_series, token ...). Leeg in de offline kaartdatabase. */
+    val layout: String = "",
     /** Welke afwerkingen er van deze print bestaan: nonfoil, foil, etched (leeg in de offline kaartdatabase). */
     val finishes: List<String> = emptyList(),
 ) {
@@ -153,6 +155,10 @@ data class CardQuery(
     val lines: List<String> = emptyList(),
     /** De naam kwam uit een andere regel dan de naamregel (zie [lines]); zo'n kaart wordt nooit groen. */
     val nameFromLine: Boolean = false,
+    /** 0.9.17: de printkiezer vond set en nummer duidelijk in de voetregel (telt als gelezen set en nummer). */
+    val printSure: Boolean = false,
+    /** Waarom de printkiezer deze print koos (voor het scanrapport). */
+    val printWhy: String? = null,
 )
 
 class ScryfallException(message: String, val code: Int = 0) : Exception(message)

@@ -85,8 +85,9 @@ interface OfflineDao {
     @Query("SELECT * FROM cards WHERE setCode = :set AND number = :number LIMIT 1")
     suspend fun bySetNumber(set: String, number: String): OfflineCard?
 
-    /** Op naam (of voorkant), het liefst in de gegeven set, anders de nieuwste print. */
-    @Query("SELECT * FROM cards WHERE (front = :name OR LOWER(name) = :name) AND (:set IS NULL OR setCode = :set) ORDER BY releasedAt DESC LIMIT 1")
+    /** Op naam (of voorkant), het liefst in de gegeven set, anders de nieuwste print. Nooit een Art Series-kaart of token
+     *  (Snakeskin Veil werd 23 nov "Snakeskin Veil // Snakeskin Veil" uit ATDM, de nieuwste print met die voorkant). */
+    @Query("SELECT * FROM cards WHERE (front = :name OR LOWER(name) = :name) AND (:set IS NULL OR setCode = :set) AND typeLine NOT LIKE 'Card%' AND typeLine NOT LIKE '%Token%' AND typeLine NOT LIKE 'Emblem%' ORDER BY releasedAt DESC LIMIT 1")
     suspend fun byName(name: String, set: String?): OfflineCard?
 
     /** Zoeken op naam: één regel per kaart, de nieuwste print. */
@@ -197,6 +198,8 @@ class OfflineCards(private val context: Context) {
         val batch = ArrayList<OfflineCard>(1000)
         for (c in cards(input)) {
             if (c.digital) continue
+            // Art Series-kaarten, tokens en emblemen zijn geen speelkaarten: de scanner mag ze nooit kiezen.
+            if (c.layout in setOf("art_series", "token", "double_faced_token", "emblem")) continue
             batch += OfflineCard.from(c, gen)
             if (batch.size >= 1000) {
                 val part = batch.toList(); batch.clear()

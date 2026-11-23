@@ -47,7 +47,8 @@ object ScanParser {
     // Het totaal heeft minstens 2 tekens, zodat kracht/weerstand ("2/2") niet als nummer telt.
     private val numberSlash = Regex("""(?<![A-Z0-9])($collectorToken)\s*/\s*([0-9OIL]{2,4})(?:\s*[CURMSLTP])?(?![0-9])""")
     // Nieuwe kaarten (2023+): "M 0074", "U 0859", "R 0049". Altijd drie of vier cijfers.
-    private val numberLetterFirst = Regex("""(?<![A-Z0-9])([CURMSLTP])\s+([0-9OIL]{3,4}$collectorSuffix)(?![0-9])""")
+    // 0.9.17: ook aan elkaar ("CO098", "U0146") en met S voor 5 ("C O16S" = 165), uit de losse kaarten van 23 nov.
+    private val numberLetterFirst = Regex("""(?<![A-Z0-9])([CURMSLTP])\s?([0-9OILS]{3,4}$collectorSuffix)(?![0-9])""")
     // "MH1 • EN", "WOT · EN", "CMM - EN", "LTC * EN"; bij foils staat er een ster: "MH1 ★ EN".
     // Het scheidingsteken leest de OCR vaak niet, dus dat is optioneel.
     private val setLang = Regex("""(?<![A-Z0-9])([A-Z0-9]{3,5})\s*([•·*.\-+°,★☆✩✭])?\s*(EN|DE|FR|IT|ES|PT|JA|JP|KO|RU|ZH|CS|CT|PH)(?![A-Z])""")
@@ -65,7 +66,8 @@ object ScanParser {
     private fun numberIn(t: String, bottom: Boolean): String? {
         fun real(v: String?) = v?.takeIf { x -> x.any { it.isDigit() } }
         val raw = numberSlash.findAll(t).firstNotNullOfOrNull { m -> real(m.groupValues[1])?.takeIf { real(m.groupValues[2]) != null } }
-            ?: numberLetterFirst.findAll(t).firstNotNullOfOrNull { real(it.groupValues[2]) }
+            // "C 2024 Wizards" (© gelezen als C) is het jaartal, geen nummer: verder zoeken in plaats van stoppen.
+            ?: numberLetterFirst.findAll(t).firstNotNullOfOrNull { m -> real(m.groupValues[2])?.takeUnless { isCopyrightYear(normalizeNumber(it)) } }
         if (raw != null) return normalizeNumber(raw)
         if (!bottom) return null
         // Een los nummer. Een jaartal ("2023" uit "© 2023 Wizards of the Coast") is geen verzamelnummer.
@@ -389,6 +391,7 @@ object ScanParser {
         when (it) {
             'O' -> '0'
             'I', 'L' -> '1'
+            'S' -> '5'
             else -> it
         }
     }.joinToString("").trimStart('0').ifEmpty { "0" }
