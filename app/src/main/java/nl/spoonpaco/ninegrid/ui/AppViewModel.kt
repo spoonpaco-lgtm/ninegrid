@@ -274,7 +274,9 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
             // Niet-Engelse kaart: de gelezen naam is de gedrukte (bijv. Franse) naam. Die mag niet tegen de Engelse
             // namen worden "verbeterd" of gecontroleerd; set en nummer zijn leidend, de naam wordt apart nagekeken.
             val lang = nl.spoonpaco.ninegrid.domain.ScanParser.scryfallLang(r.language)
-            val canLook = (set != null && r.collectorNumber != null) || (lang == null && (r.name != null || (set != null && (r.altNames.isNotEmpty() || r.lines.isNotEmpty()))))
+            // 0.9.20: ook zonder set en zonder naam opzoeken als er in een andere regel iets als een naam staat
+            // ("ook=Exclude", testset 20): de printkiezer probeert die namen (Repository.pickPrint). Anders bleef het "niet gevonden".
+            val canLook = (set != null && r.collectorNumber != null) || (lang == null && (r.name != null || r.altNames.isNotEmpty() || (set != null && r.lines.isNotEmpty())))
             val readParts = listOfNotNull(
                 listOfNotNull(r.setCode, r.collectorNumber).joinToString(" ").ifBlank { null },
                 (r.name ?: r.altNames.firstOrNull())?.let { "‘" + it.take(22) + "’" },
