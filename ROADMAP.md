@@ -273,6 +273,7 @@ Naam Niko (Aris, spiegelscherven = beelden) gekozen door Claude; Mick mag hem ve
 - Camera: `previewRect` (hele beeld 3:4 op volle breedte tussen de balken), `PreviewView` FIT_CENTER in dat vak, `guideRect`/`guideOnImage` op het beeld. Testset (galerijfoto's) meet dit niet: meten met verzamelde scans (kadergrootte in pixels in het scanrapport).
 - Combodatabase SCHEMA 3: `combo_names`, `combo_features`, `combo_cards(cardId, comboRow)`, zoeken via `owned_ids`; inlezen in `combos-new.db` en verwisselen. Gemeten door Mick (23 nov): **41 MB** (0.9.18: 196, 0.9.19: 119).
 - `PictureIndex.CHOOSE_PRINT = false` (0.9.19: 8 gelijk, 1 fout). Testset had al nummers bij de prints die het plaatje koos; de vier zonder nummer (Davriel, Cosmium Confluence, Glowcap Lantern, Denizen) zijn op de foto niet leesbaar.
+- Testset 24 nov (279 vakken, nieuwe bladen 19–24): 250 goed, groen maar fout 0; M20/ONE/LCI dichtbij 9/9; gemengd 8, 6, 5 van 9. Mick "bouw": (1) `pickPrint` gebruikt een bestaande naam uit `altNames` als de naamregel leeg is (oranje); (2) `ScanParser.isWalker`: bij planeswalkers geen losse getallen als nummer. Tura Kennerüd zit in DMU, niet in DMR (geen scannerfout). Nog open: Elixir of Immortality (flavortekst als naam), Jayemdae Tome (voetregel).
 - `NameLetters.explain` in het rapport als er geen naam gevonden wordt (Tura Kennerüd).
 
 ### 2. Kleine verbeteringen (nog geen versie)

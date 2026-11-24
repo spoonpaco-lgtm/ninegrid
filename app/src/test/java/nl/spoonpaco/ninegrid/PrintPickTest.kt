@@ -119,6 +119,16 @@ class PrintPickTest {
         assertFalse(same.printChoice(v(0.9f, 0.4f, 0f, 0f), "Kinzu")!!.usable)
     }
 
+    /** 0.9.20: loyalty van een planeswalker is geen nummer; een echte voetregel wel. */
+    @Test
+    fun planeswalkerLoyaltyIsNoNumber() {
+        fun read(vararg bottom: String) = ScanParser.analyzeSingle(
+            listOf(OcrLine("Tyvar Kell", 50f, 20f), OcrLine("Legendary Planeswalker - Tyvar", 50f, 170f)) + bottom.mapIndexed { i, t -> OcrLine(t, 50f, 270f + i * 6f) }, 100, 300, null,
+        ).slots.single()
+        assertNull(read("37", "3021Wirardh of th Cant").collectorNumber)
+        assertEquals("198", read("3", "198/285 M", "KHM EN CHRIS RALLIS").collectorNumber)
+    }
+
     @Test
     fun noFooterNoPick() {
         assertNull(PrintPick.pick(cathar, listOf("Cathar Commando", "Creature — Human Soldier")))

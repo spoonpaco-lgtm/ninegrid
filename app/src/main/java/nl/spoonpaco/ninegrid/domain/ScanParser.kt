@@ -282,11 +282,14 @@ object ScanParser {
         var lang: String? = null
         var setWithoutLanguage: String? = null
         var star = false
+        // 0.9.20: planeswalkers hebben losse getallen onderaan (loyalty "3", "+1"): alleen een nummer met
+        // zeldzaamheidsletter of /totaal telt (testset 24: Aminatou en Tyvar Kell kregen nr 37).
+        val walker = isWalker(ls.map { it.text })
         // Onderste regels eerst: de verzamelregel staat onderaan de kaart.
         for (l in ls.sortedByDescending { it.centerY }) {
             val t = cleanup(l.text)
             val inBottom = l.centerY > regionTop + regionH * 0.78f
-            if (number == null) number = numberIn(t, inBottom)
+            if (number == null) number = numberIn(t, inBottom && !walker)
             if (set == null) {
                 setLang.find(t)?.let {
                     set = fixSetCode(it.groupValues[1])
@@ -312,6 +315,9 @@ object ScanParser {
         return SlotRead(slot, set, number, lang, ls.sortedBy { it.centerY }.map { it.text }, name, alt, foilStar = star)
     }
 
+    /** Een planeswalker (typeregel): dan zijn losse getallen onderaan loyalty, geen verzamelnummer. */
+    fun isWalker(lines: List<String>) = lines.any { it.contains("planeswalker", ignoreCase = true) }
+
     /** Mist dit vak naam, set of nummer? Dan loont opnieuw lezen van uitvergrote stroken. */
     fun needsReread(r: SlotRead) = r.lines.isNotEmpty() && (r.name == null || r.setCode == null || r.collectorNumber == null)
 
@@ -322,9 +328,10 @@ object ScanParser {
     fun enrich(r: SlotRead, top: List<String>, bottom: List<String>, knownSets: Set<String> = emptySet()): SlotRead {
         var number = r.collectorNumber; var set = r.setCode; var lang = r.language
         var setWithoutLanguage: String? = null
+        val walker = isWalker(r.lines + bottom)
         for (raw in bottom) {
             val t = cleanup(raw)
-            if (number == null) number = numberIn(t, bottom = true)
+            if (number == null) number = numberIn(t, bottom = !walker)
             if (set == null) {
                 setLang.find(t)?.let { set = fixSetCode(it.groupValues[1]); lang = langMap[it.groupValues[3]] ?: it.groupValues[3] }
                 if (set == null && setWithoutLanguage == null) setWithoutLanguage = bareSetIn(t)?.takeIf { it in knownSets }

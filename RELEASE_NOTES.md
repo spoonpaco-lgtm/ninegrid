@@ -6,6 +6,8 @@ Kiora ziet alles wat in het water ligt: het hele camerabeeld.
 - Combodatabase nog kleiner: elke kaartnaam en elk "wat het doet" één keer, de koppeling alleen met nummers. Bijwerken gebeurt in een apart bestand: de oude blijft bruikbaar tot de nieuwe klaar is. De database van 0.9.19 wordt vanzelf vervangen (op wifi).
 - Scanner: kaarten uit The List (PLST) worden niet meer gekozen als het origineel bestaat (die dragen de setcode van het origineel; Adanto Vanguard en Smiting Helix werden PLST).
 - Scanner: het plaatje kiest geen print meer (testset: 8 keer hetzelfde als de tekst, 1 keer fout: Huatli). De cijfers blijven in het scanrapport.
+- Scanner zonder set: staat de naam niet op de naamregel maar wel als bestaande kaartnaam in een andere regel, dan zoekt de printkiezer daarmee (oranje). Testset: Exclude, Etchings of the Chosen, Throes of Chaos, Magic Missile.
+- Planeswalkers: losse getallen onderaan (loyalty) tellen niet meer als kaartnummer; alleen een nummer met zeldzaamheidsletter of /totaal (Aminatou en Tyvar Kell kregen nr 37).
 - Scanrapport: als er geen naam gevonden wordt, staat erbij welke twee namen op de letters het best pasten (om Tura Kennerüd uit te zoeken).
 
 NineGrid 0.9.19 – Jaya

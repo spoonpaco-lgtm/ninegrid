@@ -645,9 +645,16 @@ class Repository(
     }
 
     /** Printkiezer zonder set: alle prints met de gelezen naam, punten voor wat de voetregel zegt. */
-    private suspend fun pickPrint(q: CardQuery): CardQuery {
+    private suspend fun pickPrint(q0: CardQuery): CardQuery {
+        val off = scryfall.offline ?: return q0
+        // 0.9.20: geen naam op de naamregel, wel een bestaande kaartnaam in een andere regel ("ook=Exclude", testset 20):
+        // die gebruiken. Altijd oranje (nameFromLine).
+        var q = q0
+        if (q.name == null) {
+            val alt = q.altNames.firstOrNull { a -> a.length >= 3 && runCatching { off.printsOf(a) }.getOrDefault(emptyList()).isNotEmpty() } ?: return q
+            q = q.copy(name = alt, nameFromLine = true)
+        }
         val name = q.name ?: return q
-        val off = scryfall.offline ?: return q
         val all = off.printsOf(name).filter { !it.digital && !nl.spoonpaco.ninegrid.domain.PrintPick.notACard(it.name, it.typeLine) }
         // The List (PLST/ULST): de kaart draagt de setcode van het origineel, dus nooit kiezen als het origineel er is.
         val prints = all.filter { it.set.lowercase() !in nl.spoonpaco.ninegrid.domain.PrintPick.LIST_SETS }.ifEmpty { all }
