@@ -1,0 +1,10 @@
+# Juiste uitslag: door Claude vak voor vak van de foto gelezen (24 nov, gescand met 0.9.20, hele camerabeeld, setveld leeg); nummer uit de offline database waar de naam maar één print in de set heeft
+vak 1: Underrealm Lich (GRN 211)
+vak 2: Knight of Autumn (GRN 183)
+vak 3: Wee Dragonauts (GRN 214)
+vak 4: Boros Challenger (GRN 156)
+vak 5: Nightveil Predator (GRN 191)
+vak 6: Silent Dart (GRN 241)
+vak 7: Discovery // Dispersal (GRN 223)
+vak 8: Integrity // Intervention (GRN 227)
+vak 9: Flower // Flourish (GRN 226)

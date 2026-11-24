@@ -1,0 +1,10 @@
+# Juiste uitslag: door Claude vak voor vak van de foto gelezen (24 nov, gescand met 0.9.20, hele camerabeeld, setveld leeg); nummer uit de offline database waar de naam maar één print in de set heeft
+vak 1: Wayfaring Temple (RTR 209)
+vak 2: Jarad's Orders (RTR 175)
+vak 3: Havoc Festival (RTR 166)
+vak 4: Risen Sanctuary (RTR 190)
+vak 5: Izzet Staticaster (RTR 173)
+vak 6: Treasured Find (RTR 204)
+vak 7: Golgari Keyrune (RTR 229)
+vak 8: Selesnya Keyrune (RTR 233)
+vak 9: Tablet of the Guilds (RTR 235)

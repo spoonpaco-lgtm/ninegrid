@@ -57,3 +57,7 @@ Testset draaien leest ze via de route van kaart voor kaart (zonder het stemmen o
 ## Bladen 19–24 (23 nov, 0.9.20, hele camerabeeld)
 
 Zes bladen gescand met 0.9.20 (blad vult het kader, setveld leeg), uitslag door Claude van de foto gelezen. Gemengd (19, 20, 24) zonder set; 21 M20, 22 ONE, 23 LCI. Uitslag van de app bij het scannen: 47 van 51 kaarten goed, 29 groen, groen maar fout 0, lege vakken 3 van 3. Fout (oranje): Adanto Vanguard en Smiting Helix als The List (PLST), Jayemdae Tome ORI 231 (moet M13 207), Aminatou 2X2 468 (moet 169).
+
+## Bladen 25–27 (24 nov, 0.9.20, hele camerabeeld)
+
+Dezelfde pagina's als 06 (RTR), 17 (DOM) en 10 (GRN), opnieuw gescand met het hele camerabeeld en setveld leeg. Rapporten staan in Drive (scanrapport-20261124-163634, -163755 en -163920; -163843 is dezelfde DOM-foto nog een keer). Uitslag van de app bij het scannen: 27 van 27 goed, groen maar fout 0. Groen: RTR 0 van 9 (oud kader zonder setcode in de voetregel), DOM 7 van 9, GRN 6 van 9 (de drie splitkaarten oranje maar goed).

@@ -1,0 +1,10 @@
+# Juiste uitslag: door Claude vak voor vak van de foto gelezen (24 nov, gescand met 0.9.20, hele camerabeeld, setveld leeg); nummer uit de offline database waar de naam maar één print in de set heeft
+vak 1: History of Benalia (DOM 21)
+vak 2: Seal Away (DOM 31)
+vak 3: Board the Weatherlight (DOM 8)
+vak 4: Wizard's Retort (DOM 75)
+vak 5: Sentinel of the Pearl Trident (DOM 65)
+vak 6: Slinn Voda, the Rising Deep (DOM 66)
+vak 7: Josu Vess, Lich Knight (DOM 95)
+vak 8: Lingering Phantom (DOM 99)
+vak 9: The Eldest Reborn (DOM 90)
