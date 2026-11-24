@@ -1318,4 +1318,5 @@
     <string name="combos_db_update">Update now (wifi)</string>
     <string name="combos_db_delete">Delete combo database</string>
     <string name="scan_picture_print">print #%1$s chosen from the picture, check it</string>
+    <string name="combos_computing">Updating combos with your cards… (the list below stays usable)</string>
 </resources>

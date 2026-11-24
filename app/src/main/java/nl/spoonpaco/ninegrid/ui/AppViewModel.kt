@@ -1951,6 +1951,11 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                     }
                 }
                 comboPricesVersion++
+                // Bewaren, zodat de combo's bij de volgende start meteen klaarstaan.
+                val free = comboFreeNames; val prices = HashMap(comboPrices)
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    c.comboDb.saveCache(nl.spoonpaco.ninegrid.data.offline.ComboCache(found, free, prices, System.currentTimeMillis()))
+                }
             } catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (_: Exception) {
             } finally { combosComputing = false }
         }
@@ -1980,6 +1985,15 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
             nl.spoonpaco.ninegrid.data.offline.ComboDbWorker.start(getApplication(), manual = true, anyNetwork = false)
         }
         watchComboDb()
+        // De vorige uitkomst meteen tonen; daarna rekent hij op de achtergrond opnieuw (balkje met uitleg).
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            c.comboDb.loadCache()?.let { cache ->
+                if (collectionCombos.isEmpty()) {
+                    comboPrices.putAll(cache.prices)
+                    comboFreeNames = cache.free; collectionCombos = cache.combos; comboPricesVersion++
+                }
+            }
+        }
         viewModelScope.launch { entries.collect { recomputeCombos() } }
     }
 

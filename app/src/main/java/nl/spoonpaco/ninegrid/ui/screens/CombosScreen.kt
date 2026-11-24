@@ -153,7 +153,10 @@ fun CombosScreen(
                 }
             }
             if (tab != 2) ThumbnailSwitch(asCards) { asCards = it; vm.setComboCards(it) }
-            if (vm.combosComputing) LinearProgressIndicator(Modifier.fillMaxWidth().padding(horizontal = 16.dp))
+            if (vm.combosComputing) Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {
+                Text(stringResource(R.string.combos_computing), fontSize = NgText.caption, color = extra.subtle)
+                LinearProgressIndicator(Modifier.fillMaxWidth().padding(top = 2.dp))
+            }
             LazyColumn(contentPadding = PaddingValues(bottom = 48.dp)) {
                 when (tab) {
                     2 -> {

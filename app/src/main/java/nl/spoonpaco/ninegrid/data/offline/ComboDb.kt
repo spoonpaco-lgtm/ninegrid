@@ -80,6 +80,7 @@ abstract class ComboDatabase : RoomDatabase() {
 }
 
 /** Een combo zoals de schermen hem gebruiken: kaarten, wat ontbreekt en de rest. Stappen pas laden bij openen ([ComboDb.texts]). */
+@Serializable
 data class OwnedCombo(
     val id: String,
     val cards: List<String>,
@@ -103,6 +104,10 @@ data class OwnedCombo(
  * daarna zoekt de telefoon zelf: welke combo's je compleet hebt en welke je één kaart missen.
  * 0.9.20: inlezen gebeurt in een apart bestand; pas als dat klaar is, wordt het verwisseld (de oude blijft zo lang bruikbaar).
  */
+/** De laatst uitgerekende combo's, bewaard zodat ze bij het openen van de app meteen klaarstaan (0.9.20). */
+@Serializable
+data class ComboCache(val combos: List<OwnedCombo>, val free: Set<String>, val prices: Map<String, Double>, val at: Long)
+
 class ComboDb(private val context: Context) {
     private val file get() = context.getDatabasePath(FILE)
     @Volatile private var db: ComboDatabase? = null
@@ -209,12 +214,24 @@ class ComboDb(private val context: Context) {
 
     fun delete() {
         synchronized(this) { db?.close(); db = null; nameCache = null; featureCache = null }
+        runCatching { cacheFile.delete() }
         context.deleteDatabase(FILE)
         context.deleteDatabase(FILE_NEW)
         prefs.edit().clear().apply()
     }
 
     fun formats(): List<String> = if (!ready()) emptyList() else formatKeys
+
+    private val cacheFile get() = File(context.filesDir, "combos-cache.json")
+    private val cacheJson = Json { ignoreUnknownKeys = true }
+
+    fun saveCache(c: ComboCache) = runCatching {
+        val tmp = File(cacheFile.path + ".tmp"); tmp.writeText(cacheJson.encodeToString(ComboCache.serializer(), c)); tmp.renameTo(cacheFile)
+    }
+
+    fun loadCache(): ComboCache? = if (!ready()) null else runCatching {
+        cacheFile.takeIf { it.exists() }?.readText()?.let { cacheJson.decodeFromString(ComboCache.serializer(), it) }
+    }.getOrNull()
 
     suspend fun texts(c: OwnedCombo): Pair<String, String> = withContext(Dispatchers.IO) {
         suspend fun t(id: Long) = if (id == 0L) "" else runCatching { open().combos().text(id)?.let(::unpack) }.getOrNull().orEmpty()
