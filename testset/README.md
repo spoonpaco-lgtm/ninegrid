@@ -61,3 +61,7 @@ Zes bladen gescand met 0.9.20 (blad vult het kader, setveld leeg), uitslag door 
 ## Bladen 25–27 (24 nov, 0.9.20, hele camerabeeld)
 
 Dezelfde pagina's als 06 (RTR), 17 (DOM) en 10 (GRN), opnieuw gescand met het hele camerabeeld en setveld leeg. Rapporten staan in Drive (scanrapport-20261124-163634, -163755 en -163920; -163843 is dezelfde DOM-foto nog een keer). Uitslag van de app bij het scannen: 27 van 27 goed, groen maar fout 0. Groen: RTR 0 van 9 (oud kader zonder setcode in de voetregel), DOM 7 van 9, GRN 6 van 9 (de drie splitkaarten oranje maar goed).
+
+## Bladen 28–32 (27 nov, 0.9.20, hele camerabeeld, lamp aan)
+
+28 en 29 zijn dezelfde pagina's als 19 en 20; 30 en 31 hetzelfde M13-blad (30 met setveld M13, 31 leeg); 32 M20. Uitslag van de app bij het scannen: 45 van 45 goed (naam en print), groen maar fout 0, groen 24, oranje maar goed 21. Foil gemist: Veilborn Ghoul (vak 8 van 30 en 31). Jayemdae Tome, Adanto Vanguard en Smiting Helix (fout op 23 nov) zijn nu goed.
