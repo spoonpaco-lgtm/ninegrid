@@ -279,6 +279,10 @@ Naam Niko (Aris, spiegelscherven = beelden) gekozen door Claude; Mick mag hem ve
 ### 2. Kleine verbeteringen (nog geen versie)
 
 - Scannen, kaart voor kaart: 39a (set van de vorige kaart als aanname) is door Mick afgewezen, 17 nov: scannen wordt er trager van; een set telt alleen als de gebruiker hem zelf opgeeft. 39c gebouwd in 0.9.15 (zie 1i-scan).
+- **Scanner, op de lijst (Mick 27 nov "zet het op de lijst", wacht op startsein)**, uit de echte scans van 24 en 27 nov (testset 25–32: 72 van 72 goed, groen maar fout 0):
+  - **Nummer uit de copyrightregel van oude kaarten** (M13, RTR en ouder): "…Coast LLC 10/249" wordt gelezen als "10240", "81249" of "9129". Herken "LLC getal/getal": dat geeft het nummer en het settotaal (249 = M13). Daarmee wordt een oud blad zonder setveld groen (nu M13 0/9 en RTR 0/9 groen, alles goed). Vervangt het risicovolle voorstel "één gemeenschappelijke set voor het hele blad" (24 nov).
+  - **Setcode in de voetregel verlezen**: "MHI-EN", "MHIEN", "MHI:EN" (I i.p.v. 1) geeft geen set, waardoor MH1-kaarten met een goed nummer oranje blijven (Exclude, Ruination Rioter, Throes of Chaos). I als 1 lezen in een setcode als dat een bestaande set geeft. Ook nakijken waarom vastgeplakt "MH1EN" (vak 5 van testset 28) geen set gaf.
+  - **Foil gemist**: Veilborn Ghoul (M13, testset 30 en 31 vak 8) is foil, twee keer niet herkend.
 - Prijshistorie ophalen uit MTGJSON (tot 90 dagen terug): formaat en Cardmarket-waarde zijn nog niet nagekeken, en Mick heeft het nog niet bevestigd.
 
 ### 3. Nog na te kijken op Micks telefoon
